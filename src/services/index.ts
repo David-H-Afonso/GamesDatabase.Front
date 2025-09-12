@@ -1,0 +1,1 @@
+export { getExampleService } from './ExampleService'
