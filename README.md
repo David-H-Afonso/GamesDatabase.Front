@@ -24,8 +24,8 @@
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/David-H-Afonso/PokemonBank.Front.git
-   cd PokemonBank.Front
+   git clone https://github.com/David-H-Afonso/GamesDatabase.Front
+   cd GamesDatabase.Front
    ```
 
 2. **Install dependencies**
@@ -89,7 +89,7 @@ npm run preview
 
 ## 🤝 Contributing
 
-We welcome contributions to Beast Vault! Please feel free to:
+We welcome contributions to Games Database! Please feel free to:
 
 1. **Fork the repository**
 2. **Create a feature branch** (`git checkout -b feature/amazing-feature`)
