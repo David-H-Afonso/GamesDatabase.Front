@@ -1,0 +1,84 @@
+// Dark Theme - Elegant & Professional
+// CSS Custom Properties for dark theme
+
+[data-theme='dark'] {
+	--border-color-light: #444;
+	--surface: #27272a;
+	--surface-light: #222222;
+	--surface-hover: #333;
+	--box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+
+	// Background & Surface
+	--bg-primary: var(--gray-50);
+	--bg-secondary: var(--gray-100);
+
+	// Text Colors
+	--text-primary: var(--gray-900);
+	--text-secondary: var(--gray-600);
+	--text-tertiary: var(--gray-500);
+	--text-inverse: var(--gray-50);
+
+	// Brand Colors
+	--primary: #3b82f6;
+	--primary-hover: #2563eb;
+	--primary-light: #1e3a8a;
+
+	// Neutrals - Inverted for dark theme
+	--white: #ffffff;
+	--black: #000000;
+	--gray-50: #18181b;
+	--gray-100: #27272a;
+	--gray-200: #3f3f46;
+	--gray-300: #52525b;
+	--gray-400: #71717a;
+	--gray-500: #a1a1aa;
+	--gray-600: #d4d4d8;
+	--gray-700: #e4e4e7;
+	--gray-800: #f4f4f5;
+	--gray-900: #fafafa;
+
+	// Semantic Colors (adjusted for dark theme)
+	--success: #10b981;
+	--success-light: #064e3b;
+	--warning: #f59e0b;
+	--warning-light: #78350f;
+	--error: #ef4444;
+	--error-light: #7f1d1d;
+	--info: #06b6d4;
+	--info-light: #164e63;
+
+	--bg-tertiary: var(--gray-200);
+	--surface-elevated: var(--gray-200);
+
+	// Border & Divider
+	--border: var(--gray-300);
+	--border-light: var(--gray-200);
+	--divider: var(--gray-300);
+
+	// Interactive Elements
+	--interactive: var(--primary);
+	--interactive-hover: var(--primary-hover);
+	--interactive-active: var(--primary-light);
+	--interactive-disabled: var(--gray-400);
+
+	// Input & Form Elements
+	--input-bg: var(--gray-100);
+	--input-border: var(--gray-300);
+	--input-border-focus: var(--primary);
+	--input-text: var(--text-primary);
+	--input-placeholder: var(--gray-500);
+
+	// Cards & Components
+	--card-bg: var(--surface);
+	--card-border: var(--border-light);
+	--card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+	--card-shadow-hover: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+
+	// Header specific
+	--header-background: var(--gray-100);
+	--header-text: var(--text-primary);
+	--primary-color: var(--primary);
+	--primary-color-alpha: rgba(59, 130, 246, 0.2);
+	--primary-color-dark: var(--primary-hover);
+	--text-color: var(--text-primary);
+}

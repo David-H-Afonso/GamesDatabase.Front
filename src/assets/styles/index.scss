@@ -1,3 +1,309 @@
 @forward 'variables';
-
 @use 'variables' as *;
+
+// Import theme system
+@use './themes/index.scss';
+
+// Global reset and base styles
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+html {
+	font-size: 16px;
+	scroll-behavior: smooth;
+}
+
+body {
+	font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+	font-size: 16px;
+	font-weight: 400;
+	line-height: 1.6;
+	color: var(--text-primary);
+	background-color: var(--bg-primary);
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+// Typography
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	font-weight: 600;
+	line-height: 1.2;
+	margin-bottom: 16px;
+}
+
+h1 {
+	font-size: 30px;
+}
+
+h2 {
+	font-size: 24px;
+}
+
+h3 {
+	font-size: 20px;
+}
+
+h4 {
+	font-size: 18px;
+}
+
+h5 {
+	font-size: 16px;
+}
+
+h6 {
+	font-size: 14px;
+}
+
+p {
+	margin-bottom: 20px;
+}
+
+// Layout utilities
+.container {
+	margin: 0 auto;
+	padding: 0 20px;
+}
+
+// Flex utilities
+.flex {
+	display: flex;
+}
+
+.flex-col {
+	flex-direction: column;
+}
+
+.items-center {
+	align-items: center;
+}
+
+.justify-center {
+	justify-content: center;
+}
+
+.justify-between {
+	justify-content: space-between;
+}
+
+.gap-sm {
+	gap: 8px;
+}
+
+.gap-md {
+	gap: 16px;
+}
+
+.gap-lg {
+	gap: 20px;
+}
+
+.gap-xl {
+	gap: 24px;
+}
+
+// Text utilities
+.text-muted {
+	color: var(--text-secondary);
+}
+
+.text-secondary {
+	color: var(--text-tertiary);
+}
+
+.text-dark {
+	color: var(--text-primary);
+}
+
+// Spacing utilities
+.mb-sm {
+	margin-bottom: 8px;
+}
+
+.mb-md {
+	margin-bottom: 16px;
+}
+
+.mb-lg {
+	margin-bottom: 20px;
+}
+
+.mb-xl {
+	margin-bottom: 24px;
+}
+
+// Form elements
+.form-group {
+	margin-bottom: 20px;
+}
+
+.form-label {
+	display: block;
+	font-weight: 500;
+	font-size: 14px;
+	color: var(--text-primary);
+	margin-bottom: 8px;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+	width: 100%;
+	padding: 12px 16px;
+	border: 1px solid var(--input-border);
+	border-radius: 6px;
+	font-size: 16px;
+	font-family: inherit;
+	background-color: var(--input-bg);
+	transition: all 0.15s ease;
+
+	&:focus {
+		outline: none;
+		border-color: var(--input-border-focus);
+		box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+	}
+
+	&:disabled {
+		background-color: var(--bg-secondary);
+		color: var(--text-secondary);
+		cursor: not-allowed;
+	}
+}
+
+.form-textarea {
+	resize: vertical;
+	min-height: 100px;
+}
+
+// Button base styles
+.btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 12px 24px;
+	border: none;
+	border-radius: 6px;
+	font-family: inherit;
+	font-size: 14px;
+	font-weight: 500;
+	text-decoration: none;
+	cursor: pointer;
+	transition: all 0.15s ease;
+	user-select: none;
+
+	&:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	&:focus {
+		outline: none;
+		box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+	}
+}
+
+.btn-primary {
+	@extend .btn;
+	background-color: var(--interactive);
+	color: var(--text-inverse);
+
+	&:hover:not(:disabled) {
+		background-color: var(--interactive-hover);
+	}
+}
+
+.btn-secondary {
+	@extend .btn;
+	background-color: var(--bg-tertiary);
+	color: var(--text-primary);
+
+	&:hover:not(:disabled) {
+		background-color: var(--border);
+	}
+}
+
+.btn-danger {
+	@extend .btn;
+	background-color: var(--error);
+	color: var(--text-inverse);
+
+	&:hover:not(:disabled) {
+		background-color: var(--error);
+		filter: brightness(0.9);
+	}
+}
+
+// Card styles
+.card {
+	background-color: var(--card-bg);
+	border-radius: 8px;
+	box-shadow: var(--card-shadow);
+	border: 1px solid var(--card-border);
+	overflow: hidden;
+	transition: all 0.15s ease;
+
+	&:hover {
+		box-shadow: var(--card-shadow-hover);
+	}
+}
+
+.card-header {
+	padding: 24px;
+	border-bottom: 1px solid var(--card-border);
+	background-color: var(--bg-secondary);
+}
+
+.card-body {
+	padding: 24px;
+}
+
+.card-footer {
+	padding: 24px;
+	border-top: 1px solid var(--card-border);
+	background-color: var(--bg-secondary);
+}
+
+// Grid layouts
+.grid {
+	display: grid;
+	gap: 20px;
+}
+
+.grid-2 {
+	grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.grid-3 {
+	grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+.grid-4 {
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+// Loading states
+.loading {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 40px;
+	color: var(--text-secondary);
+}
+
+.error {
+	background-color: var(--error-light);
+	color: var(--error);
+	padding: 20px;
+	border-radius: 6px;
+	margin: 20px 0;
+}
+
+// The theme system is now handled by themes/index.scss

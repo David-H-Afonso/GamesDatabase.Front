@@ -1,0 +1,26 @@
+// Import all available themes
+@use './light.scss';
+@use './dark.scss';
+
+// Default theme - applies when no data-theme is set or as fallback
+:root {
+	// Set default theme to dark
+	@extend [data-theme='dark'];
+}
+
+// Theme transition for smooth switching
+* {
+	transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+// Ensure theme variables are available globally
+html {
+	height: 100%;
+}
+
+body {
+	height: 100%;
+	background-color: var(--bg-primary);
+	color: var(--text-primary);
+	font-family: var(--font-family-primary, 'Inter', sans-serif);
+}

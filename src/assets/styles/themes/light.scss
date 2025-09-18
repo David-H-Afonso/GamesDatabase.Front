@@ -1,0 +1,83 @@
+// Light Theme - Modern & Clean
+// CSS Custom Properties for light theme
+
+[data-theme='light'] {
+	--border-color-light: #ccc;
+	--surface: var(--white);
+	--surface-hover: #f3f4f6;
+	--box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+
+	// Background & Surface
+	--bg-primary: var(--white);
+	--bg-secondary: var(--gray-50);
+
+	// Text Colors
+	--text-primary: var(--gray-900);
+	--text-secondary: var(--gray-600);
+	--text-tertiary: var(--gray-400);
+	--text-inverse: var(--white);
+
+	// Brand Colors
+	--primary: #2563eb;
+	--primary-hover: #1d4ed8;
+	--primary-light: #dbeafe;
+
+	// Neutrals
+	--white: #ffffff;
+	--black: #000000;
+	--gray-50: #f9fafb;
+	--gray-100: #f3f4f6;
+	--gray-200: #e5e7eb;
+	--gray-300: #d1d5db;
+	--gray-400: #9ca3af;
+	--gray-500: #6b7280;
+	--gray-600: #4b5563;
+	--gray-700: #374151;
+	--gray-800: #1f2937;
+	--gray-900: #111827;
+
+	// Semantic Colors
+	--success: #059669;
+	--success-light: #d1fae5;
+	--warning: #d97706;
+	--warning-light: #fef3c7;
+	--error: #dc2626;
+	--error-light: #fee2e2;
+	--info: #0891b2;
+	--info-light: #cffafe;
+
+	--bg-tertiary: var(--gray-100);
+	--surface-elevated: var(--white);
+
+	// Border & Divider
+	--border: var(--gray-200);
+	--border-light: var(--gray-100);
+	--divider: var(--gray-200);
+
+	// Interactive Elements
+	--interactive: var(--primary);
+	--interactive-hover: var(--primary-hover);
+	--interactive-active: var(--primary-light);
+	--interactive-disabled: var(--gray-300);
+
+	// Input & Form Elements
+	--input-bg: var(--white);
+	--input-border: var(--gray-300);
+	--input-border-focus: var(--primary);
+	--input-text: var(--text-primary);
+	--input-placeholder: var(--gray-400);
+
+	// Cards & Components
+	--card-bg: var(--surface);
+	--card-border: var(--border-light);
+	--card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+	--card-shadow-hover: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+
+	// Header specific
+	--header-background: var(--white);
+	--header-text: var(--text-primary);
+	--primary-color: var(--primary);
+	--primary-color-alpha: rgba(37, 99, 235, 0.2);
+	--primary-color-dark: var(--primary-hover);
+	--text-color: var(--text-primary);
+}
