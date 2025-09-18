@@ -1,0 +1,77 @@
+.editable-field {
+	cursor: pointer;
+	padding: 4px 8px;
+	border-radius: 4px;
+	transition: background-color 0.2s ease;
+	min-height: 1.2em;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	user-select: none;
+	border: 1px solid transparent;
+	min-width: 88px;
+	max-width: 100%;
+	overflow: hidden;
+	word-break: break-all;
+
+	&:hover {
+		background-color: var(--bg-secondary);
+	}
+
+	&--empty {
+		color: var(--text-tertiary);
+		font-style: italic;
+	}
+}
+
+.editable-field-input {
+	background: var(--bg-primary);
+	border: 2px solid var(--accent-primary);
+	border-radius: 4px;
+	padding: 4px 8px;
+	font-size: inherit;
+	font-family: inherit;
+	color: var(--text-primary);
+	outline: none;
+	min-width: 60px;
+	width: 100%;
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+
+	&:focus {
+		border-color: var(--accent-primary);
+		box-shadow: 0 0 0 1px var(--accent-primary);
+	}
+
+	&:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+	}
+}
+
+.editable-field-textarea {
+	background: var(--bg-primary);
+	border: 2px solid var(--accent-primary);
+	border-radius: 4px;
+	padding: 8px;
+	font-size: inherit;
+	font-family: inherit;
+	color: var(--text-primary);
+	outline: none;
+	width: 100%;
+	min-height: 60px;
+	box-sizing: border-box;
+	resize: vertical;
+
+	&:focus {
+		border-color: var(--accent-primary);
+		box-shadow: 0 0 0 1px var(--accent-primary);
+	}
+
+	&:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+	}
+}
