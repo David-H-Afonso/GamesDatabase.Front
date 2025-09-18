@@ -4,8 +4,8 @@
 
 // Default theme - applies when no data-theme is set or as fallback
 :root {
-	// Set default theme to dark
-	@extend [data-theme='dark'];
+	// Set default theme to light
+	@extend [data-theme='light'];
 }
 
 // Theme transition for smooth switching
