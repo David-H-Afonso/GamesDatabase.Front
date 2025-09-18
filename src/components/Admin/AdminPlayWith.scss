@@ -1,0 +1,9 @@
+@use './AdminPlatforms.scss';
+
+.admin-play-with {
+	@extend .admin-platforms;
+}
+
+.options-table {
+	@extend .platforms-table;
+}

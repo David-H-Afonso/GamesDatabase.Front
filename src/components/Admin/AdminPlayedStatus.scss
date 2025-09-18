@@ -1,0 +1,9 @@
+@use './AdminPlatforms.scss';
+
+.admin-played-status {
+	@extend .admin-platforms;
+}
+
+.statuses-table {
+	@extend .platforms-table;
+}
