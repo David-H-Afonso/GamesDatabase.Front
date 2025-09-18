@@ -17,11 +17,24 @@ function getApiBaseUrl(): string {
 		return import.meta.env.VITE_API_URL as string
 	}
 
-	// Fallback por si acaso
-	return 'http://localhost:5000'
+	// Fallback - en producción usaríamos HTTPS por defecto
+	return 'https://localhost:7245/api'
 }
 
 export const environment = {
+	production: true,
 	baseUrl: getApiBaseUrl(),
+	fallbackUrl: 'http://localhost:5011/api',
 	apiRoutes,
+	api: {
+		timeout: 30000,
+		retryAttempts: 2,
+	},
+	pagination: {
+		defaultPageSize: 10,
+		maxPageSize: 100,
+	},
+	cors: {
+		allowedOrigins: [], // Se configura desde el backend en producción
+	},
 }

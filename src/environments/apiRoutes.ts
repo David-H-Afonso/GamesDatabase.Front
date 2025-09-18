@@ -3,27 +3,59 @@
  * Centralized location for all API routes used across the application
  */
 export const apiRoutes = {
-	/** Example API endpoints */
-	example: {
-		url: '/url/example',
-		/** Add more endpoints here */
+	/** Games endpoints */
+	games: {
+		base: '/games',
+		byId: (id: number) => `/games/${id}`,
+		create: '/games',
+		update: (id: number) => `/games/${id}`,
+		delete: (id: number) => `/games/${id}`,
 	},
 
-	/** Authentication endpoints */
-	auth: {
-		// login: '/auth/login',
-		// logout: '/auth/logout',
-		// refresh: '/auth/refresh',
+	/** Game Status endpoints */
+	gameStatus: {
+		base: '/gamestatus',
+		active: '/gamestatus/active',
+		byId: (id: number) => `/gamestatus/${id}`,
+		create: '/gamestatus',
+		update: (id: number) => `/gamestatus/${id}`,
+		delete: (id: number) => `/gamestatus/${id}`,
 	},
 
-	/** User management endpoints */
-	users: {
-		// list: '/api/users',
-		// profile: '/api/users/profile',
-		// update: '/api/users/update',
+	/** Game Platform endpoints */
+	gamePlatform: {
+		base: '/gameplatforms',
+		active: '/gameplatforms/active',
+		byId: (id: number) => `/gameplatforms/${id}`,
+		create: '/gameplatforms',
+		update: (id: number) => `/gameplatforms/${id}`,
+		delete: (id: number) => `/gameplatforms/${id}`,
 	},
 
-	/** Add more API route groups as needed */
+	/** Game Play With endpoints */
+	gamePlayWith: {
+		base: '/gameplaywith',
+		active: '/gameplaywith/active',
+		byId: (id: number) => `/gameplaywith/${id}`,
+		create: '/gameplaywith',
+		update: (id: number) => `/gameplaywith/${id}`,
+		delete: (id: number) => `/gameplaywith/${id}`,
+	},
+
+	/** Game Played Status endpoints */
+	gamePlayedStatus: {
+		base: '/gameplayedstatus',
+		active: '/gameplayedstatus/active',
+		byId: (id: number) => `/gameplayedstatus/${id}`,
+		create: '/gameplayedstatus',
+		update: (id: number) => `/gameplayedstatus/${id}`,
+		delete: (id: number) => `/gameplayedstatus/${id}`,
+	},
+
+	/** Data Export endpoints */
+	dataExport: {
+		gamesCSV: '/DataExport/games/csv',
+	},
 } as const
 
 /**
