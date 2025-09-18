@@ -1,0 +1,39 @@
+.theme-selector {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	margin-left: auto;
+
+	&__label {
+		font-size: 0.9rem;
+		font-weight: 500;
+		color: var(--text-primary);
+		white-space: nowrap;
+	}
+
+	&__select {
+		padding: 0.25rem 0.5rem;
+		border: 1px solid var(--border);
+		border-radius: 4px;
+		background-color: var(--input-bg);
+		color: var(--text-primary);
+		font-size: 0.9rem;
+		cursor: pointer;
+		transition: border-color 0.2s ease;
+
+		&:hover {
+			border-color: var(--interactive);
+		}
+
+		&:focus {
+			outline: none;
+			border-color: var(--interactive);
+			box-shadow: 0 0 0 2px var(--primary-color-alpha);
+		}
+
+		option {
+			background-color: var(--input-bg);
+			color: var(--text-primary);
+		}
+	}
+}

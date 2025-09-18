@@ -5,13 +5,16 @@ import { PersistGate } from 'redux-persist/integration/react'
 import { RouterProvider } from 'react-router-dom'
 import { store, persistor } from './store'
 import { router } from '@/navigation/router'
+import { ThemeProvider } from './providers'
 
 createRoot(document.getElementById('root')!).render(
 	<StrictMode>
 		<Provider store={store}>
-			<PersistGate loading={<div>Loading...</div>} persistor={persistor}>
-				<RouterProvider router={router} />
-			</PersistGate>
+			<ThemeProvider>
+				<PersistGate loading={<div>Loading...</div>} persistor={persistor}>
+					<RouterProvider router={router} />
+				</PersistGate>
+			</ThemeProvider>
 		</Provider>
 	</StrictMode>
 )
