@@ -1,1 +1,56 @@
 @use '@/assets/styles' as *;
+
+.app-header {
+	&-container {
+		background: var(--surface);
+		border-bottom: $border-width solid var(--border);
+		padding: 1rem;
+		box-shadow: var(--card-shadow);
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+
+		a {
+			text-decoration: none;
+			color: inherit;
+		}
+
+		.sr-only {
+			position: absolute !important;
+			width: 1px;
+			height: 1px;
+			padding: 0;
+			margin: -1px;
+			overflow: hidden;
+			clip: rect(0 0 0 0);
+			white-space: nowrap;
+			border: 0;
+		}
+
+		.header-logo {
+			font-weight: 600;
+			font-size: 1.5rem;
+		}
+
+		&-navigation {
+			display: flex;
+			align-items: center;
+			gap: 1rem;
+
+			a {
+				transition: all 0.3s ease;
+				text-decoration: none;
+
+				&:hover {
+					font-weight: 600;
+				}
+			}
+		}
+
+		&-quick-actions {
+			display: flex;
+			align-items: center;
+			gap: $space-md;
+		}
+	}
+}
