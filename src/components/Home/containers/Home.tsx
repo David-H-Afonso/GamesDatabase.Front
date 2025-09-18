@@ -14,7 +14,7 @@ const Home = () => {
 		fetchSuperImportantData()
 	}, [])
 
-	return <HomeComponent test={data} />
+	return <HomeComponent />
 }
 
 export default Home

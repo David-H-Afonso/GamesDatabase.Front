@@ -1,6 +1,335 @@
 @use '@/assets/styles' as *;
 
 .home-component {
-	// Amazing styles here
-	display: flex;
+	min-height: 92vh;
+	background: var(--bg-primary);
+	font-family: $font-family;
+
+	// Header action buttons (Select / Deselect / Bulk Delete)
+	&__select-all-button,
+	&__deselect-selected-button,
+	&__bulk-delete-button {
+		padding: 8px 12px;
+		border-radius: 8px;
+		border: 1px solid transparent;
+		font-weight: 600;
+		cursor: pointer;
+		transition: all 0.15s ease;
+		margin-left: 8px;
+		background: var(--bg-secondary);
+		color: var(--text-primary);
+		box-shadow: var(--card-shadow);
+
+		&:hover {
+			transform: translateY(-1px);
+			background: var(--surface-hover);
+		}
+
+		&:active {
+			transform: translateY(0);
+		}
+
+		&:disabled {
+			opacity: 0.6;
+			cursor: not-allowed;
+		}
+	}
+
+	// Specific style for bulk delete to stand out
+	&__bulk-delete-button {
+		background: var(--error);
+		color: var(--text-inverse);
+		border: 1px solid rgba(0, 0, 0, 0.08);
+
+		&:hover {
+			filter: brightness(0.95);
+		}
+	}
+
+	&__header-content {
+		max-width: $container-max-width;
+		margin: 0 auto;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: $space-md;
+	}
+
+	&__title {
+		color: var(--text-primary);
+		font-size: $font-size-2xl;
+		font-weight: $font-weight-bold;
+		margin: 0;
+	}
+
+	&__controls {
+		display: flex;
+		align-items: center;
+		gap: $space-md;
+	}
+
+	&__search {
+		display: flex;
+		align-items: center;
+		gap: $space-sm;
+		background: var(--input-bg);
+		border: $border-width solid var(--input-border);
+		border-radius: $border-radius-md;
+		padding: $space-sm;
+
+		input {
+			border: none;
+			background: transparent;
+			color: var(--input-text);
+			outline: none;
+			width: 200px;
+		}
+
+		select {
+			border: none;
+			background: transparent;
+			color: var(--input-text);
+			outline: none;
+		}
+	}
+
+	&__add-button {
+		background: var(--interactive);
+		color: var(--text-inverse);
+		border: none;
+		border-radius: $border-radius-md;
+		padding: $space-sm $space-lg;
+		cursor: pointer;
+	}
+
+	&__main {
+		margin: 0 auto;
+		padding: $space-lg $space-md;
+	}
+
+	// Controles de administración (mismo estilo que admin)
+	.admin-controls {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 24px;
+		padding: 16px;
+		background-color: var(--bg-secondary);
+		border-radius: 8px;
+		border: 1px solid var(--border);
+
+		.search-controls {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+
+			.search-input {
+				padding: 8px 12px;
+				border: 1px solid var(--input-border);
+				border-radius: 6px;
+				background-color: var(--input-bg);
+				color: var(--text-primary);
+				width: 200px;
+
+				&:focus {
+					outline: none;
+					border-color: var(--input-border-focus);
+					box-shadow: 0 0 0 3px var(--primary-color-alpha);
+				}
+			}
+		}
+
+		.sort-controls {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+
+			label {
+				font-weight: 500;
+				color: var(--text-primary);
+			}
+
+			select {
+				padding: 8px 12px;
+				border: 1px solid var(--input-border);
+				border-radius: 6px;
+				background-color: var(--input-bg);
+				color: var(--text-primary);
+			}
+
+			.sort-direction-btn {
+				padding: 8px 12px;
+				background-color: var(--bg-tertiary);
+				border: 1px solid var(--border);
+				border-radius: 6px;
+				cursor: pointer;
+				font-size: 14px;
+				font-weight: bold;
+
+				&:hover {
+					background-color: var(--border);
+				}
+			}
+		}
+	}
+
+	&__info-section {
+		background: var(--surface);
+		border: $border-width solid $card-border;
+		border-radius: $border-radius-lg;
+		padding: $space-lg;
+		margin-bottom: $space-lg;
+		box-shadow: $card-shadow;
+	}
+
+	&-games-card {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+		gap: $space-lg;
+	}
+
+	&-games-row {
+		display: flex;
+		flex-direction: column;
+		max-width: 100%;
+		width: 100%;
+		border: 1px solid var(--border-color-light);
+		overflow-x: scroll;
+
+		&-header {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			justify-content: flex-start;
+			padding: 10px;
+			min-width: fit-content;
+
+			p {
+				margin: 0;
+			}
+
+			.gr-select {
+				width: 24px;
+			}
+			.gr-status {
+				width: 140px;
+				padding-left: 10px;
+			}
+			.gr-name {
+				width: 500px;
+			}
+			.gr-grade {
+				width: 45px;
+			}
+			.gr-critic {
+				width: 45px;
+			}
+			.gr-story {
+				width: 55px;
+			}
+			.gr-completion {
+				width: 55px;
+			}
+			.gr-score {
+				width: 45px;
+			}
+			.gr-platform {
+				width: 140px;
+				padding-left: 10px;
+			}
+			.gr-released {
+				width: 80px;
+			}
+			.gr-started {
+				width: 80px;
+			}
+			.gr-finished {
+				width: 80px;
+			}
+			.gr-play-status {
+				width: 140px;
+				padding-left: 10px;
+			}
+			.gr-comment {
+				width: 500px;
+			}
+			.gr-play-with {
+				width: 140px;
+				padding-left: 10px;
+			}
+		}
+	}
+
+	& &__game-card {
+		background: $card-bg;
+		border: $border-width solid $card-border;
+		border-radius: $border-radius-lg;
+		padding: $space-lg;
+		box-shadow: $card-shadow;
+	}
+
+	// Estilos de paginación (mismos que admin)
+	.pagination-controls {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		gap: 16px;
+		margin-top: 24px;
+
+		.pagination-btn {
+			padding: 8px 16px;
+			background-color: #2563eb;
+			color: #ffffff;
+			border: none;
+			border-radius: 6px;
+			cursor: pointer;
+			font-weight: 500;
+
+			&:hover:not(:disabled) {
+				background-color: #1d4ed8;
+			}
+
+			&:disabled {
+				background-color: #d1d5db;
+				color: #9ca3af;
+				cursor: not-allowed;
+			}
+		}
+
+		.pagination-info {
+			color: #6b7280;
+			font-weight: 500;
+		}
+	}
+
+	// Responsive styles
+	@media (max-width: 768px) {
+		.admin-controls {
+			flex-direction: column;
+			gap: 16px;
+			align-items: stretch;
+
+			.search-controls,
+			.sort-controls {
+				justify-content: space-between;
+
+				.search-input {
+					width: 100%;
+				}
+			}
+		}
+
+		&__games-grid {
+			grid-template-columns: 1fr;
+		}
+
+		.pagination-controls {
+			flex-direction: column;
+			gap: 8px;
+
+			.pagination-info {
+				order: -1;
+			}
+		}
+	}
 }
