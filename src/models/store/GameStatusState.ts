@@ -4,6 +4,7 @@ import type { QueryParameters } from '@/models/api/Game'
 export interface GameStatusState {
 	statuses: GameStatus[]
 	activeStatuses: GameStatus[]
+	specialStatuses: GameStatus[]
 	currentStatus: GameStatus | null
 	loading: boolean
 	error: string | null

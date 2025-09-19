@@ -5,6 +5,8 @@ import {
 	createStatus as createStatusThunk,
 	updateStatus as updateStatusThunk,
 	deleteStatus as deleteStatusThunk,
+	fetchSpecialStatuses,
+	reassignSpecialStatuses,
 } from '@/store/features/gameStatus/thunk'
 import type { GameStatusCreateDto, GameStatusUpdateDto } from '@/models/api/GameStatus'
 import type { QueryParameters } from '@/models/api/Game'
@@ -26,6 +28,7 @@ export const useGameStatus = () => {
 	// State selectors (clear local names)
 	const statusList = useAppSelector((state) => state.gameStatus.statuses)
 	const activeStatusList = useAppSelector((state) => state.gameStatus.activeStatuses)
+	const specialStatusList = useAppSelector((state) => state.gameStatus.specialStatuses)
 	const isLoading = useAppSelector((state) => state.gameStatus.loading)
 	const errorState = useAppSelector((state) => state.gameStatus.error)
 	const paginationState = useAppSelector((state) => state.gameStatus.pagination)
@@ -46,14 +49,30 @@ export const useGameStatus = () => {
 		[dispatch]
 	)
 
-	// Load active statuses only
-	const fetchActiveStatusList = useCallback(async () => {
+	type ActiveStatusList = typeof activeStatusList
+	const fetchActiveStatusList = useCallback(async (): Promise<ActiveStatusList | undefined> => {
 		try {
 			dispatch(setLoading(true))
 			dispatch(setError(null))
-			return await dispatchAndUnwrapAsync(dispatch, fetchActiveStatuses())
+			return (await dispatchAndUnwrapAsync(dispatch, fetchActiveStatuses())) as ActiveStatusList
 		} catch (err: any) {
 			dispatch(setError(err || 'Failed to load active statuses'))
+			return undefined
+		} finally {
+			dispatch(setLoading(false))
+		}
+	}, [dispatch])
+
+	// Fetch special statuses
+	type SpecialStatusList = typeof specialStatusList
+	const fetchSpecialStatusList = useCallback(async (): Promise<SpecialStatusList | undefined> => {
+		try {
+			dispatch(setLoading(true))
+			dispatch(setError(null))
+			return (await dispatchAndUnwrapAsync(dispatch, fetchSpecialStatuses())) as SpecialStatusList
+		} catch (err: any) {
+			dispatch(setError(err || 'Failed to load special statuses'))
+			return undefined
 		} finally {
 			dispatch(setLoading(false))
 		}
@@ -129,10 +148,29 @@ export const useGameStatus = () => {
 		}
 	}, [])
 
+	// Reassign special statuses (wraps thunk)
+	const reassignSpecial = useCallback(
+		async (payload: { newDefaultStatusId: number; statusType: string }) => {
+			try {
+				dispatch(setLoading(true))
+				dispatch(setError(null))
+				await dispatchAndUnwrapAsync(dispatch, reassignSpecialStatuses(payload))
+				return true
+			} catch (err: any) {
+				dispatch(setError(err || 'Failed to reassign special statuses'))
+				throw err
+			} finally {
+				dispatch(setLoading(false))
+			}
+		},
+		[dispatch]
+	)
+
 	return {
 		// State
 		statuses: statusList,
 		activeStatuses: activeStatusList,
+		specialStatuses: specialStatusList,
 		loading: isLoading,
 		error: errorState,
 		pagination: paginationState,
@@ -140,6 +178,7 @@ export const useGameStatus = () => {
 		// Actions (clear names)
 		fetchStatusList,
 		fetchActiveStatusList,
+		fetchSpecialStatusList,
 		createNewStatus,
 		updateExistingStatus,
 		deleteById,
@@ -147,9 +186,11 @@ export const useGameStatus = () => {
 		// Backwards-compatible aliases
 		loadStatuses: fetchStatusList,
 		loadActiveStatuses: fetchActiveStatusList,
+		loadSpecialStatuses: fetchSpecialStatusList,
 		createStatus: createNewStatus,
 		updateStatus: updateExistingStatus,
 		deleteStatus: deleteById,
+		reassignSpecial,
 		setPagination,
 	}
 }

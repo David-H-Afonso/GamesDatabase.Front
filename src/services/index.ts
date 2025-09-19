@@ -3,6 +3,8 @@ export { getGames, getGameById, createGame, updateGame, deleteGame } from './Gam
 export {
 	getGameStatuses,
 	getActiveGameStatuses,
+	reassignSpecialStatuses,
+	getSpecialGameStatuses,
 	getGameStatusById,
 	createGameStatus,
 	updateGameStatus,

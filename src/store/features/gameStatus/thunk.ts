@@ -2,10 +2,12 @@ import { createAsyncThunk } from '@reduxjs/toolkit'
 import {
 	getGameStatuses,
 	getActiveGameStatuses,
+	getSpecialGameStatuses,
 	createGameStatus,
 	updateGameStatus,
 	deleteGameStatus,
 	getGameStatusById,
+	reassignSpecialStatuses as reassignSpecialService,
 } from '@/services'
 import type { GameStatusCreateDto, GameStatusUpdateDto } from '@/models/api/GameStatus'
 import type { QueryParameters } from '@/models/api/Game'
@@ -32,6 +34,19 @@ export const fetchActiveStatuses = createAsyncThunk(
 			return response
 		} catch (error: any) {
 			return rejectWithValue(error.message || 'Failed to fetch active statuses')
+		}
+	}
+)
+
+// Fetch special/predefined statuses (non-paged)
+export const fetchSpecialStatuses = createAsyncThunk(
+	'gameStatus/fetchSpecialStatuses',
+	async (_, { rejectWithValue }) => {
+		try {
+			const response = await getSpecialGameStatuses()
+			return response
+		} catch (error: any) {
+			return rejectWithValue(error.message || 'Failed to fetch special statuses')
 		}
 	}
 )
@@ -75,6 +90,19 @@ export const deleteStatus = createAsyncThunk(
 			return id
 		} catch (error: any) {
 			return rejectWithValue(error.message || 'Failed to delete status')
+		}
+	}
+)
+
+// Reassign special statuses for a statusType to a new default status id
+export const reassignSpecialStatuses = createAsyncThunk(
+	'gameStatus/reassignSpecialStatuses',
+	async (payload: { newDefaultStatusId: number; statusType: string }, { rejectWithValue }) => {
+		try {
+			await reassignSpecialService(payload)
+			return payload
+		} catch (error: any) {
+			return rejectWithValue(error.message || 'Failed to reassign special statuses')
 		}
 	}
 )

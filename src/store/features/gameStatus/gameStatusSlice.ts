@@ -9,11 +9,14 @@ import {
 	createStatus as createStatusThunk,
 	updateStatus as updateStatusThunk,
 	deleteStatus as deleteStatusThunk,
+	fetchSpecialStatuses,
+	reassignSpecialStatuses,
 } from './thunk'
 
 const initialState: GameStatusState = {
 	statuses: [],
 	activeStatuses: [],
+	specialStatuses: [],
 	currentStatus: null,
 	loading: false,
 	error: null,
@@ -137,6 +140,31 @@ const gameStatusSlice = createSlice({
 			.addCase(fetchActiveStatuses.rejected, (state, action) => {
 				state.loading = false
 				state.error = (action.payload as string) || 'Failed to fetch active statuses'
+			})
+
+			.addCase(fetchSpecialStatuses.pending, (state) => {
+				state.loading = true
+				state.error = null
+			})
+			.addCase(fetchSpecialStatuses.fulfilled, (state, action) => {
+				state.loading = false
+				state.specialStatuses = action.payload
+			})
+			.addCase(fetchSpecialStatuses.rejected, (state, action) => {
+				state.loading = false
+				state.error = (action.payload as string) || 'Failed to fetch special statuses'
+			})
+			.addCase(reassignSpecialStatuses.pending, (state) => {
+				state.loading = true
+				state.error = null
+			})
+			.addCase(reassignSpecialStatuses.fulfilled, (state) => {
+				state.loading = false
+				// payload contains the request payload; no direct state mutation required here
+			})
+			.addCase(reassignSpecialStatuses.rejected, (state, action) => {
+				state.loading = false
+				state.error = (action.payload as string) || 'Failed to reassign special statuses'
 			})
 
 			.addCase(createStatusThunk.pending, (state) => {

@@ -7,6 +7,9 @@ export const selectStatuses = (state: RootState) => state.gameStatus.statuses
 // Selector for active statuses
 export const selectActiveStatuses = (state: RootState) => state.gameStatus.activeStatuses
 
+// Selector for special/predefined statuses
+export const selectSpecialStatuses = (state: RootState) => state.gameStatus.specialStatuses
+
 // Selector for loading state
 export const selectStatusLoading = (state: RootState) => state.gameStatus.loading
 

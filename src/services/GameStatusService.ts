@@ -6,6 +6,14 @@ import type { QueryParameters, PagedResult } from '@/models/api/Game'
 const BASE = environment.apiRoutes.gameStatus.base
 
 /**
+ * Fetch special (predefined) game statuses provided by the API.
+ */
+export const getSpecialGameStatuses = async (): Promise<GameStatus[]> => {
+	const endpoint = environment.apiRoutes.gameStatus.special
+	return await customFetch<GameStatus[]>(endpoint, { method: 'GET', baseURL: environment.baseUrl })
+}
+
+/**
  * Fetch paged game statuses with optional query params.
  */
 export const getGameStatuses = async (
@@ -68,4 +76,15 @@ export const updateGameStatus = async (
 export const deleteGameStatus = async (id: number): Promise<void> => {
 	const endpoint = environment.apiRoutes.gameStatus.delete(id)
 	await customFetch<void>(endpoint, { method: 'DELETE', baseURL: environment.baseUrl })
+}
+
+/**
+ * Reassign special statuses of a given statusType to a new default status id.
+ */
+export const reassignSpecialStatuses = async (payload: {
+	newDefaultStatusId: number
+	statusType: string
+}): Promise<void> => {
+	const endpoint = environment.apiRoutes.gameStatus.reassignSpecial
+	await customFetch<void>(endpoint, { method: 'POST', body: payload, baseURL: environment.baseUrl })
 }

@@ -15,6 +15,8 @@ export const apiRoutes = {
 	/** Game Status endpoints */
 	gameStatus: {
 		base: '/gamestatus',
+		special: '/gamestatus/special',
+		reassignSpecial: '/gamestatus/reassign-special',
 		active: '/gamestatus/active',
 		byId: (id: number) => `/gamestatus/${id}`,
 		create: '/gamestatus',
