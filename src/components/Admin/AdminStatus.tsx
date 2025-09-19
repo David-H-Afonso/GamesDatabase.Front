@@ -14,6 +14,7 @@ export const AdminStatus: React.FC = () => {
 		createStatus,
 		updateStatus,
 		deleteStatus,
+		reassignSpecial,
 	} = useGameStatus()
 
 	const [isModalOpen, setIsModalOpen] = useState(false)
@@ -22,6 +23,9 @@ export const AdminStatus: React.FC = () => {
 		name: '',
 		isActive: true,
 		color: '#000000',
+		statusType: 'None',
+		isDefault: false,
+		isSpecialStatus: false,
 	})
 
 	// Pagination and sorting state
@@ -61,6 +65,9 @@ export const AdminStatus: React.FC = () => {
 				name: status.name,
 				isActive: status.isActive,
 				color: status.color || '#000000',
+				statusType: status.statusType || 'None',
+				isDefault: status.isDefault || false,
+				isSpecialStatus: status.isSpecialStatus || false,
 			})
 		} else {
 			setEditingStatus(null)
@@ -68,6 +75,9 @@ export const AdminStatus: React.FC = () => {
 				name: '',
 				isActive: true,
 				color: '#000000',
+				statusType: 'None',
+				isDefault: false,
+				isSpecialStatus: false,
 			})
 		}
 		setIsModalOpen(true)
@@ -80,6 +90,9 @@ export const AdminStatus: React.FC = () => {
 			name: '',
 			isActive: true,
 			color: '#000000',
+			statusType: 'None',
+			isDefault: false,
+			isSpecialStatus: false,
 		})
 	}
 
@@ -89,6 +102,17 @@ export const AdminStatus: React.FC = () => {
 			if (editingStatus) {
 				const updateData = { ...formData, id: editingStatus.id } as GameStatusUpdateDto
 				await updateStatus(editingStatus.id, updateData)
+				// If statusType changed to a non-empty value, call reassign endpoint via hook
+				if (formData.statusType && editingStatus?.statusType !== formData.statusType) {
+					try {
+						await reassignSpecial({
+							newDefaultStatusId: editingStatus.id,
+							statusType: formData.statusType,
+						})
+					} catch (err) {
+						console.warn('Failed to reassign special statuses via thunk:', err)
+					}
+				}
 			} else {
 				await createStatus(formData)
 			}
@@ -185,9 +209,16 @@ export const AdminStatus: React.FC = () => {
 											</div>
 										</td>
 										<td>
-											<span className={`status ${status.isActive ? 'active' : 'inactive'}`}>
-												{status.isActive ? 'Activo' : 'Inactivo'}
-											</span>
+											<div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+												<span className={`status ${status.isActive ? 'active' : 'inactive'}`}>
+													{status.isActive ? 'Activo' : 'Inactivo'}
+												</span>
+												<span className='meta'>
+													{status.statusType ? `(${status.statusType})` : ''}
+													{/* Default flag hidden in admin list per requirements */}
+													{status.isSpecialStatus ? ' • Special' : ''}
+												</span>
+											</div>
 										</td>
 										<td>
 											<div className='actions'>
@@ -198,7 +229,13 @@ export const AdminStatus: React.FC = () => {
 												</button>
 												<button
 													className='btn btn-sm btn-danger'
-													onClick={() => handleDelete(status.id)}>
+													onClick={() => handleDelete(status.id)}
+													disabled={!!status.isSpecialStatus}
+													title={
+														status.isSpecialStatus
+															? 'No se puede eliminar un special status'
+															: 'Eliminar'
+													}>
 													Eliminar
 												</button>
 											</div>
@@ -280,6 +317,36 @@ export const AdminStatus: React.FC = () => {
 									Activo
 								</label>
 							</div>
+
+							<div className='form-group'>
+								<label className='checkbox-label'>
+									<input
+										type='checkbox'
+										checked={!!formData.isSpecialStatus}
+										onChange={(e) =>
+											setFormData((prev) => ({
+												...prev,
+												isSpecialStatus: e.target.checked,
+												// reset statusType when unchecked
+												statusType: e.target.checked ? prev.statusType || 'None' : 'None',
+											}))
+										}
+									/>
+									Special Status
+								</label>
+							</div>
+
+							{formData.isSpecialStatus && (
+								<div className='form-group'>
+									<label htmlFor='statusType'>Tipo</label>
+									<select
+										id='statusType'
+										value={formData.statusType || 'None'}
+										onChange={(e) => setFormData({ ...formData, statusType: e.target.value })}>
+										<option value='NotFulfilled'>Not Fulfilled</option>
+									</select>
+								</div>
+							)}
 							<div className='modal-footer'>
 								<button type='button' className='btn btn-secondary' onClick={handleCloseModal}>
 									Cancelar
