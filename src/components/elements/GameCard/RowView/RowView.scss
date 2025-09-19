@@ -22,6 +22,12 @@
 
 	&-select {
 		width: 24px;
+
+		.game-row-checkbox {
+			width: 16px;
+			height: 16px;
+			cursor: pointer;
+		}
 	}
 
 	&-name {

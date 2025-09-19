@@ -140,27 +140,30 @@ const RowView: FC<RowViewProps> = (props) => {
 	return (
 		<div
 			key={game.id}
-			className={`game-row ${activeSelector ? 'gamerow--menu-open' : ''} ${
-				isSelected ? 'gamerow--selected' : ''
+			className={`game-row ${activeSelector ? 'game-row--menu-open' : ''} ${
+				isSelected ? 'game-row--selected' : ''
 			}`}
 			onClick={() => closeActionMenu(() => openDetails(game))}
 			ref={rowRef}
 			onMouseEnter={(e) => {
-				const checkbox = e.currentTarget.querySelector('.gamerow__select') as HTMLInputElement
+				const checkbox = e.currentTarget.querySelector('.game-row-checkbox') as HTMLInputElement
 				if (checkbox) checkbox.style.opacity = '1'
 			}}
 			onMouseLeave={(e) => {
-				const checkbox = e.currentTarget.querySelector('.gamerow__select') as HTMLInputElement
+				const checkbox = e.currentTarget.querySelector('.game-row-checkbox') as HTMLInputElement
 				if (checkbox && !isSelected) checkbox.style.opacity = '0'
 			}}>
 			{/* Select */}
-			<div className='game-row-select'>
+			<div
+				className='game-row-select'
+				onClick={(e) => {
+					e.stopPropagation()
+				}}>
 				<input
 					type='checkbox'
 					checked={isSelected}
-					onClick={(e) => e.stopPropagation()}
 					onChange={handleCheckboxChange}
-					className='gamerow__select'
+					className='game-row-checkbox'
 					aria-label='Seleccionar fila'
 					style={{ opacity: isSelected ? 1 : 0, transition: 'opacity .2s ease' }}
 				/>
