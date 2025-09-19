@@ -58,7 +58,19 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 				</div>
 				<div className='game-details-header-title'>
 					{game.logo ? (
-						<img src={game.logo} alt={`${game.name} logo`} className='game-details__logo' />
+						<img
+							src={game.logo}
+							alt={`${game.name} logo`}
+							className='game-details__logo'
+							onClick={() => {
+								if (!game.name) return
+								const url = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(
+									'"' + game.name + '" logo'
+									)}`
+								window.open(url, '_blank', 'noopener')
+							}}
+							style={{ cursor: game.name ? 'pointer' : 'default' }}
+						/>
 					) : null}
 					<div>
 						<EditableField
@@ -74,7 +86,19 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 			<div className='game-details-content'>
 				<div className='game-details-content-cover'>
 					{game.cover && (
-						<img src={game.cover} alt={`${game.name} cover`} className='game-details__cover' />
+						<img
+							src={game.cover}
+							alt={`${game.name} cover`}
+							className='game-details__cover'
+							onClick={() => {
+								if (!game.name) return
+								const url = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(
+									'"' + game.name + '" cover'
+									)}`
+								window.open(url, '_blank', 'noopener')
+							}}
+							style={{ cursor: game.name ? 'pointer' : 'default' }}
+						/>
 					)}
 				</div>
 				<div className='game-details-content-infoList'>
@@ -108,7 +132,15 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 						/>
 					</div>
 					<div className='game-details-content-infoList-item'>
-						<h4>Story</h4>
+						<h4
+							className='clickable'
+							onClick={() => {
+								if (!game.name) return
+								const url = `https://howlongtobeat.com/?q=${encodeURIComponent(game.name)}`
+								window.open(url, '_blank', 'noopener')
+							}}>
+							Story
+						</h4>
 						<EditableField
 							value={game.story}
 							type='number'
@@ -118,7 +150,15 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 						/>
 					</div>
 					<div className='game-details-content-infoList-item'>
-						<h4>Completion</h4>
+						<h4
+							className='clickable'
+							onClick={() => {
+								if (!game.name) return
+								const url = `https://howlongtobeat.com/?q=${encodeURIComponent(game.name)}`
+								window.open(url, '_blank', 'noopener')
+							}}>
+							Completion
+						</h4>
 						<EditableField
 							value={game.completion}
 							type='number'
@@ -172,7 +212,15 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 						/>
 					</div>
 					<div className='game-details-content-infoList-item'>
-						<h4>Grade</h4>
+						<h4
+							className='clickable'
+							onClick={() => {
+								if (!game.name) return
+								const url = `https://www.metacritic.com/search/${encodeURIComponent(game.name)}/`
+								window.open(url, '_blank', 'noopener')
+							}}>
+							Grade
+						</h4>
 						<EditableField
 							value={game.grade}
 							type='number'
@@ -191,7 +239,17 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 						/>
 					</div>
 					<div className='game-details-content-infoList-item'>
-						<h4>Logo</h4>
+						<h4
+							className='clickable'
+							onClick={() => {
+								if (!game.name) return
+								const url = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(
+									'"' + game.name + '" logo'
+								)}`
+								window.open(url, '_blank', 'noopener')
+							}}>
+							Logo
+						</h4>
 						<EditableField
 							value={game.logo}
 							type='text'
@@ -201,7 +259,17 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 					</div>
 
 					<div className='game-details-content-infoList-item'>
-						<h4>Cover</h4>
+						<h4
+							className='clickable'
+							onClick={() => {
+								if (!game.name) return
+								const url = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(
+									'"' + game.name + '" cover'
+								)}`
+								window.open(url, '_blank', 'noopener')
+							}}>
+							Cover
+						</h4>
 						<EditableField
 							value={game.cover}
 							type='text'
