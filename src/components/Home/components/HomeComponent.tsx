@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react'
 import { Button, GameCard } from '@/components/elements'
 import { useGames } from '@/hooks'
+import { useAppSelector, useAppDispatch } from '@/store/hooks'
+import { setCardStyle } from '@/store/features/theme/themeSlice'
 import type { GameQueryParameters } from '@/models/api/Game'
 import './HomeComponent.scss'
 
 const HomeComponent = () => {
 	const { games, error, pagination, fetchGamesList, deleteGameById } = useGames()
-	const [cardStyle, setCardStyle] = useState<'card' | 'row' | 'tile'>('row')
+	const dispatch = useAppDispatch()
+	const cardStyle = useAppSelector((s) => s.theme.cardStyle ?? 'row')
 
 	const [filters, setFilters] = useState<GameQueryParameters>({
 		page: 1,
@@ -26,21 +29,20 @@ const HomeComponent = () => {
 
 	const handleSelectAll = () => {
 		if (selectedGames.length === games.length) {
-			setSelectedGames([]) // Deselect all
+			setSelectedGames([])
 		} else {
-			setSelectedGames(games.map((game) => game.id)) // Select all
+			setSelectedGames(games.map((game) => game.id))
 		}
 	}
 
 	const handleBulkDelete = async () => {
-		if (window.confirm('Are you sure you want to delete the selected games?')) {
-			try {
-				await Promise.all(selectedGames.map((gameId) => deleteGameById(gameId)))
-				setSelectedGames([])
-				fetchGamesList(filters)
-			} catch (error) {
-				console.error('Error deleting games:', error)
-			}
+		if (!window.confirm('Are you sure you want to delete the selected games?')) return
+		try {
+			await Promise.all(selectedGames.map((gameId) => deleteGameById(gameId)))
+			setSelectedGames([])
+			fetchGamesList(filters)
+		} catch (error) {
+			console.error('Error deleting games:', error)
 		}
 	}
 
@@ -50,36 +52,24 @@ const HomeComponent = () => {
 	}, [filters, fetchGamesList])
 
 	const handlePageChange = (newPage: number) => {
-		setFilters((prev) => ({
-			...prev,
-			page: newPage,
-		}))
+		setFilters((prev) => ({ ...prev, page: newPage }))
 	}
 
 	const handleSearchChange = (search: string) => {
-		setFilters((prev) => ({
-			...prev,
-			search,
-			page: 1, // Reset to first page when searching
-		}))
+		setFilters((prev) => ({ ...prev, search, page: 1 }))
 	}
 
 	const handleSortChange = (sortBy: string, sortDescending: boolean) => {
-		setFilters((prev) => ({
-			...prev,
-			sortBy,
-			sortDescending,
-		}))
+		setFilters((prev) => ({ ...prev, sortBy, sortDescending }))
 	}
 
 	const handleDeleteGame = async (gameId: number) => {
-		if (window.confirm('Are you sure you want to delete this game?')) {
-			try {
-				await deleteGameById(gameId)
-				fetchGamesList(filters)
-			} catch (error) {
-				console.error('Error deleting game:', error)
-			}
+		if (!window.confirm('Are you sure you want to delete this game?')) return
+		try {
+			await deleteGameById(gameId)
+			fetchGamesList(filters)
+		} catch (error) {
+			console.error('Error deleting game:', error)
 		}
 	}
 
@@ -114,15 +104,17 @@ const HomeComponent = () => {
 										Deselect Selected
 									</button>
 								)}
+
 								<button className='home-component__select-all-button' onClick={handleSelectAll}>
 									{selectedGames.length === games.length ? 'Deselect All' : 'Select All'}
 								</button>
+
+								{selectedGames.length > 0 && (
+									<button className='home-component__bulk-delete-button' onClick={handleBulkDelete}>
+										Delete Selected
+									</button>
+								)}
 							</>
-						)}
-						{selectedGames.length > 0 && (
-							<button className='home-component__bulk-delete-button' onClick={handleBulkDelete}>
-								Delete Selected
-							</button>
 						)}
 					</div>
 					<div className='sort-controls'>
@@ -141,14 +133,20 @@ const HomeComponent = () => {
 							onClick={() => handleSortChange(filters.sortBy || 'name', !filters.sortDescending)}>
 							{filters.sortDescending ? '↓' : '↑'}
 						</button>
-						<button
-							onClick={() => {
-								if (cardStyle === 'card') setCardStyle('row')
-								if (cardStyle === 'row') setCardStyle('tile')
-								if (cardStyle === 'tile') setCardStyle('card')
+						<select
+							className='search-input'
+							value={cardStyle}
+							onChange={(e) => dispatch(setCardStyle(e.target.value as 'card' | 'row' | 'tile'))}
+							style={{
+								textTransform: 'capitalize',
+								padding: '8px 12px',
+								borderRadius: '6px',
+								marginLeft: 8,
 							}}>
-							{cardStyle}
-						</button>
+							<option value='card'>Card</option>
+							<option value='row'>Row</option>
+							<option value='tile'>Tile</option>
+						</select>
 					</div>
 				</div>
 

@@ -1,17 +1,27 @@
 import { useEffect } from 'react'
 import { useAppSelector, useAppDispatch } from '@/store/hooks'
-import { initializeTheme } from '@/store/features/theme/themeSlice'
+import { initializeTheme, setTheme, setCardStyle } from '@/store/features/theme/themeSlice'
 
 /**
  * Custom hook for managing theme application
  * Uses CSS Custom Properties with data-theme attribute
  */
 export const useTheme = () => {
-	const { currentTheme, availableThemes } = useAppSelector((state) => state.theme)
+	const { currentTheme, availableThemes, cardStyle } = useAppSelector((state) => state.theme)
 	const dispatch = useAppDispatch()
 
+	// Initialize theme state from system/local values via slice initializer
 	useEffect(() => {
 		dispatch(initializeTheme())
+		// load persisted values from localStorage and dispatch into Redux
+		if (typeof window !== 'undefined') {
+			const savedTheme = localStorage.getItem('theme')
+			if (savedTheme) dispatch(setTheme(savedTheme))
+			const savedCardStyle = localStorage.getItem('cardStyle')
+			if (savedCardStyle === 'card' || savedCardStyle === 'row' || savedCardStyle === 'tile') {
+				dispatch(setCardStyle(savedCardStyle))
+			}
+		}
 	}, [dispatch])
 
 	useEffect(() => {
@@ -26,8 +36,20 @@ export const useTheme = () => {
 		}
 	}, [currentTheme])
 
+	// Persist changes in Redux back to localStorage
+	useEffect(() => {
+		if (typeof window === 'undefined') return
+		if (currentTheme) localStorage.setItem('theme', currentTheme)
+	}, [currentTheme])
+
+	useEffect(() => {
+		if (typeof window === 'undefined') return
+		if (cardStyle) localStorage.setItem('cardStyle', cardStyle)
+	}, [cardStyle])
+
 	return {
 		currentTheme,
 		availableThemes,
+		cardStyle,
 	}
 }

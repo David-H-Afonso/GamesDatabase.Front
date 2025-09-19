@@ -22,6 +22,7 @@ const getInitialTheme = (): string => {
 const initialState: ThemeState = {
 	currentTheme: getInitialTheme(),
 	availableThemes: [...AVAILABLE_THEMES],
+	cardStyle: 'row',
 }
 
 const themeSlice = createSlice({
@@ -35,8 +36,6 @@ const themeSlice = createSlice({
 				// Apply theme to document immediately
 				if (typeof document !== 'undefined') {
 					document.documentElement.setAttribute('data-theme', action.payload)
-					// Store in localStorage for persistence
-					localStorage.setItem('theme', action.payload)
 				}
 			} else {
 				console.warn(`Attempted to set unavailable theme: ${action.payload}`)
@@ -74,10 +73,14 @@ const themeSlice = createSlice({
 				document.documentElement.setAttribute('data-theme', themeToSet)
 			}
 		},
+		setCardStyle: (state, action: PayloadAction<'card' | 'row' | 'tile'>) => {
+			state.cardStyle = action.payload
+		},
 		reset: () => initialState,
 	},
 })
 
-export const { setTheme, addTheme, removeTheme, initializeTheme, reset } = themeSlice.actions
+export const { setTheme, addTheme, removeTheme, initializeTheme, setCardStyle, reset } =
+	themeSlice.actions
 
 export default themeSlice.reducer
