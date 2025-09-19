@@ -4,6 +4,7 @@ import {
 	updateGame as updateGameService,
 	getGameById,
 	getGames,
+	deleteGame as deleteGameService,
 } from '@/services/GamesService'
 import type { GameCreateDto, GameUpdateDto, GameQueryParameters } from '@/models/api/Game'
 
@@ -66,7 +67,7 @@ export const deleteGame = createAsyncThunk(
 	'games/deleteGame',
 	async (id: number, { rejectWithValue }) => {
 		try {
-			await deleteGame(id)
+			await deleteGameService(id)
 			return id
 		} catch (error: any) {
 			return rejectWithValue(error.message || 'Failed to delete game')

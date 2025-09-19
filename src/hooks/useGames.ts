@@ -76,12 +76,14 @@ export const useGames = () => {
 	)
 
 	const deleteGameById = useCallback(
-		async (id: number) => dispatchAndUnwrapAsync(dispatch, deleteGame(id)),
+		async (id: number) => {
+			dispatchAndUnwrapAsync(dispatch, deleteGame(id))
+		},
 		[dispatch]
 	)
 
 	return {
-		// State (kept short clear names)
+		// State
 		games: gamesList,
 		currentGame: selectedGame,
 		loading: isLoading,
@@ -91,21 +93,13 @@ export const useGames = () => {
 		isDataFresh: dataIsFresh,
 		lastAppliedFilters: previousFilters,
 
-		// Actions — new clear names
+		// Actions
 		fetchGamesList,
 		refreshGames,
 		fetchGameDetails,
 		createNewGame,
 		updateGameById,
 		deleteGameById,
-
-		// Backwards-compatible aliases (old names) to avoid breaking callers
-		loadGames: fetchGamesList,
-		forceLoadGames: refreshGames,
-		loadGameById: fetchGameDetails,
-		addGame: createNewGame,
-		editGame: updateGameById,
-		removeGame: deleteGameById,
 
 		// Helper to create selector for specific game
 		selectGameById: (id: number) => selectGameById(id),

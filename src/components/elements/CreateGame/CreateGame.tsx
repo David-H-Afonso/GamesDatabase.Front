@@ -11,7 +11,7 @@ const CreateGame: FC<Props> = (props) => {
 	const { game } = props
 	const [isModalOpen, setIsModalOpen] = useState(false)
 	const [isSubmitting, setIsSubmitting] = useState(false)
-	const { loadGames, addGame } = useGames()
+	const { fetchGamesList, createNewGame } = useGames()
 
 	const openAddGameModal = () => {
 		setIsModalOpen(true)
@@ -25,9 +25,9 @@ const CreateGame: FC<Props> = (props) => {
 	const handleGameSubmit = async (gameData: GameCreateDto | GameUpdateDto) => {
 		try {
 			setIsSubmitting(true)
-			await addGame(gameData as GameCreateDto)
+			await createNewGame(gameData as GameCreateDto)
 			closeModal()
-			loadGames()
+			fetchGamesList()
 		} catch (error) {
 			console.error('Error saving game:', error)
 		} finally {

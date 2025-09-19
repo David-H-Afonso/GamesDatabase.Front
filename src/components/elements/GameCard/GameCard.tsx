@@ -20,7 +20,7 @@ export const GameCard: FC<Props> = (props) => {
 	const { game, variant = 'card', onDelete, isSelected = false, onSelect } = props
 	const [selectedGame, setSelectedGame] = useState<Game | null>(null)
 	const [isDetailsOpen, setIsDetailsOpen] = useState(false)
-	const { editGame } = useGames()
+	const { updateGameById } = useGames()
 
 	// Get entities from Redux store to access colors
 	const { activeStatuses } = useAppSelector((state) => state.gameStatus)
@@ -42,7 +42,7 @@ export const GameCard: FC<Props> = (props) => {
 	const handleFieldUpdate = async (gameId: number, field: string, value: number | undefined) => {
 		try {
 			const payload = typeof value === 'undefined' ? null : value
-			await editGame(gameId, { [field]: payload } as any)
+			await updateGameById(gameId, { [field]: payload } as any)
 		} catch (error) {
 			console.error(`Error updating ${field}:`, error)
 			throw error

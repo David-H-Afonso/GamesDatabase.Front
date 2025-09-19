@@ -5,7 +5,7 @@ import type { GameQueryParameters } from '@/models/api/Game'
 import './HomeComponent.scss'
 
 const HomeComponent = () => {
-	const { games, error, pagination, loadGames, removeGame } = useGames()
+	const { games, error, pagination, fetchGamesList, deleteGameById } = useGames()
 	const [cardStyle, setCardStyle] = useState<'card' | 'row' | 'tile'>('row')
 
 	const [filters, setFilters] = useState<GameQueryParameters>({
@@ -35,9 +35,9 @@ const HomeComponent = () => {
 	const handleBulkDelete = async () => {
 		if (window.confirm('Are you sure you want to delete the selected games?')) {
 			try {
-				await Promise.all(selectedGames.map((gameId) => removeGame(gameId)))
+				await Promise.all(selectedGames.map((gameId) => deleteGameById(gameId)))
 				setSelectedGames([])
-				loadGames(filters)
+				fetchGamesList(filters)
 			} catch (error) {
 				console.error('Error deleting games:', error)
 			}
@@ -46,8 +46,8 @@ const HomeComponent = () => {
 
 	// Load games on component mount and when filters change
 	useEffect(() => {
-		loadGames(filters)
-	}, [filters, loadGames])
+		fetchGamesList(filters)
+	}, [filters, fetchGamesList])
 
 	const handlePageChange = (newPage: number) => {
 		setFilters((prev) => ({
@@ -75,8 +75,8 @@ const HomeComponent = () => {
 	const handleDeleteGame = async (gameId: number) => {
 		if (window.confirm('Are you sure you want to delete this game?')) {
 			try {
-				await removeGame(gameId)
-				loadGames(filters)
+				await deleteGameById(gameId)
+				fetchGamesList(filters)
 			} catch (error) {
 				console.error('Error deleting game:', error)
 			}
@@ -88,7 +88,7 @@ const HomeComponent = () => {
 			{error && (
 				<div className='home-component' style={{ padding: '1rem' }}>
 					<h1>Error: {error}</h1>
-					<Button title='Retry' onPress={() => loadGames(filters)} />
+					<Button title='Retry' onPress={() => fetchGamesList(filters)} />
 				</div>
 			)}
 

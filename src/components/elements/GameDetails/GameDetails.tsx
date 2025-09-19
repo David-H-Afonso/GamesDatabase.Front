@@ -17,7 +17,7 @@ interface GameDetailsProps {
 export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 	const { game, closeDetails, onDelete } = props
 	const [isClosing, setIsClosing] = useState(false)
-	const { editGame } = useGames()
+	const { updateGameById } = useGames()
 
 	// Get options for selectable fields
 	const { activeStatuses: statusOptions } = useAppSelector((state) => state.gameStatus)
@@ -40,7 +40,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 		try {
 			const payloadValue =
 				value === '' || value === 0 || typeof value === 'undefined' ? null : value
-			await editGame(game.id, { [field]: payloadValue } as any)
+			await updateGameById(game.id, { [field]: payloadValue } as any)
 		} catch (error) {
 			console.error(`Error updating ${field}:`, error)
 			throw error
@@ -73,7 +73,9 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 
 			<div className='game-details-content'>
 				<div className='game-details-content-cover'>
-					<img src={game.cover} alt={`${game.name} cover`} className='game-details__cover' />
+					{game.cover && (
+						<img src={game.cover} alt={`${game.name} cover`} className='game-details__cover' />
+					)}
 				</div>
 				<div className='game-details-content-infoList'>
 					<div className='game-details-content-infoList-item'>

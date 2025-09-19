@@ -9,7 +9,7 @@ export const AdminDataExport: React.FC = () => {
 	const [messageType, setMessageType] = useState<'success' | 'error'>('success')
 
 	// Hook para manejar los juegos
-	const { forceLoadGames, filters } = useGames()
+	const { refreshGames, filters } = useGames()
 
 	const showMessage = (text: string, type: 'success' | 'error') => {
 		setMessage(text)
@@ -45,7 +45,7 @@ export const AdminDataExport: React.FC = () => {
 
 			// Refrescar la lista de juegos para mostrar los nuevos datos
 			// Usar los filtros actuales para mantener la misma vista
-			await forceLoadGames(filters)
+			await refreshGames(filters)
 		} catch (error) {
 			console.error('Import error:', error)
 			showMessage(error instanceof Error ? error.message : 'Error importing games', 'error')
