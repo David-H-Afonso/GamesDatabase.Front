@@ -1,0 +1,78 @@
+@use '@/assets/styles' as *;
+
+.create-game-modal {
+	.add-game-rows {
+		margin-bottom: 1rem;
+		.add-game-row {
+			display: flex;
+			gap: 0.8rem;
+			align-items: center;
+			margin-bottom: 0.5rem;
+
+			.name-input {
+				padding: 8px;
+				border: 1px solid var(--border);
+				border-radius: 4px;
+				font-size: 16px;
+				color: var(--text-primary);
+				background-color: var(--bg-secondary);
+				flex: 1;
+
+				&:focus {
+					outline: none;
+					border-color: var(--interactive);
+					box-shadow: 0 0 0 2px var(--interactive);
+				}
+			}
+
+			.status-select {
+				padding: 8px;
+				border: 1px solid var(--border);
+				border-radius: 4px;
+				font-size: 16px;
+				color: var(--text-primary);
+				background-color: var(--bg-secondary);
+				flex: 1;
+
+				&:focus {
+					outline: none;
+					border-color: var(--interactive);
+					box-shadow: 0 0 0 2px var(--interactive);
+				}
+			}
+
+			.delete-row {
+				background: none;
+				border: none;
+				font-size: 24px;
+				color: var(--text-secondary);
+				cursor: pointer;
+				padding: 8px;
+				border-radius: 4px;
+				transition: all 0.15s ease;
+				width: 32px;
+				height: 32px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+
+				&:hover {
+					background-color: var(--bg-tertiary);
+					color: var(--text-primary);
+				}
+
+				&:focus {
+					outline: none;
+					background-color: var(--bg-tertiary);
+					box-shadow: 0 0 0 2px var(--interactive);
+				}
+			}
+		}
+	}
+}
+
+.field-error {
+	margin: -8px 0 6px 0;
+	padding: 0;
+	color: var(--error);
+}
