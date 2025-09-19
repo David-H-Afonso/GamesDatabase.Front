@@ -33,39 +33,39 @@
 	justify-content: space-between;
 	background-color: var(--bg-secondary);
 	border-radius: 12px 12px 0 0;
-}
 
-.modal-title {
-	font-size: 20px;
-	font-weight: 600;
-	margin: 0;
-	color: var(--text-primary);
-}
-
-.modal-close {
-	background: none;
-	border: none;
-	font-size: 24px;
-	color: var(--text-secondary);
-	cursor: pointer;
-	padding: 8px;
-	border-radius: 4px;
-	transition: all 0.15s ease;
-	width: 32px;
-	height: 32px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-
-	&:hover {
-		background-color: var(--bg-tertiary);
+	.modal-title {
 		color: var(--text-primary);
+		font-size: 20px;
+		font-weight: 600;
+		margin: 0;
 	}
 
-	&:focus {
-		outline: none;
-		background-color: var(--bg-tertiary);
-		box-shadow: 0 0 0 2px var(--interactive);
+	.modal-close {
+		background: none;
+		border: none;
+		font-size: 24px;
+		color: var(--text-secondary);
+		cursor: pointer;
+		padding: 8px;
+		border-radius: 4px;
+		transition: all 0.15s ease;
+		width: 32px;
+		height: 32px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+
+		&:hover {
+			background-color: var(--bg-tertiary);
+			color: var(--text-primary);
+		}
+
+		&:focus {
+			outline: none;
+			background-color: var(--bg-tertiary);
+			box-shadow: 0 0 0 2px var(--interactive);
+		}
 	}
 }
 
