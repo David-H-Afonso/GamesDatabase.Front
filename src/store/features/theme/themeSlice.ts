@@ -1,5 +1,6 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import type { ThemeState } from '@/models/store/ThemeState'
+import type { ViewMode } from '@/models/ViewMode'
 import { AVAILABLE_THEMES } from '@/assets/styles/themes/AVAILABLE_THEMES'
 
 // Function to get initial theme
@@ -23,6 +24,7 @@ const initialState: ThemeState = {
 	currentTheme: getInitialTheme(),
 	availableThemes: [...AVAILABLE_THEMES],
 	cardStyle: 'row',
+	viewMode: 'default',
 }
 
 const themeSlice = createSlice({
@@ -76,11 +78,21 @@ const themeSlice = createSlice({
 		setCardStyle: (state, action: PayloadAction<'card' | 'row' | 'tile'>) => {
 			state.cardStyle = action.payload
 		},
+		setViewMode: (state, action: PayloadAction<ViewMode>) => {
+			state.viewMode = action.payload
+		},
 		reset: () => initialState,
 	},
 })
 
-export const { setTheme, addTheme, removeTheme, initializeTheme, setCardStyle, reset } =
-	themeSlice.actions
+export const {
+	setTheme,
+	addTheme,
+	removeTheme,
+	initializeTheme,
+	setCardStyle,
+	setViewMode,
+	reset,
+} = themeSlice.actions
 
 export default themeSlice.reducer

@@ -17,8 +17,11 @@ const FILTER_KEYS: (keyof GameQueryParameters)[] = [
 	'minGrade',
 	'maxGrade',
 	'released',
+	'releasedYear',
 	'started',
+	'startedYear',
 	'finished',
+	'finishedYear',
 ]
 
 /** Normalize null -> undefined for consistent comparisons */
@@ -64,6 +67,9 @@ const cloneDateOrValue = (value: unknown): unknown => {
 export const cloneFilters = (filters: GameQueryParameters): GameQueryParameters => ({
 	...filters,
 	released: cloneDateOrValue(filters.released) as GameQueryParameters['released'],
+	releasedYear: filters.releasedYear,
 	started: cloneDateOrValue(filters.started) as GameQueryParameters['started'],
+	startedYear: filters.startedYear,
 	finished: cloneDateOrValue(filters.finished) as GameQueryParameters['finished'],
+	finishedYear: filters.finishedYear,
 })

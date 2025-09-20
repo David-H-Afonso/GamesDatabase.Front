@@ -57,3 +57,49 @@ export const deleteGame = async (id: number): Promise<void> => {
 	const endpoint = environment.apiRoutes.games.delete(id)
 	await customFetch<void>(endpoint, { method: 'DELETE', baseURL: environment.baseUrl })
 }
+
+/**
+ * Returns games released and started in a given year (simple list)
+ */
+export const getReleasedAndStarted = async (
+	params?: GameQueryParameters
+): Promise<PagedResult<Game>> => {
+	const endpoint = `${BASE}/released-and-started`
+	const query = { ...(params || {}) }
+	return await customFetch<PagedResult<Game>>(endpoint, {
+		method: 'GET',
+		params: query,
+		baseURL: environment.baseUrl,
+	})
+}
+
+/**
+ * Returns games that were started in a year or match a given status
+ */
+export const getStartedOrStatus = async (
+	params?: GameQueryParameters & { status?: string }
+): Promise<PagedResult<Game>> => {
+	const endpoint = `${BASE}/started-or-status`
+	const query: Record<string, any> = { ...(params || {}) }
+	if (params?.status) query.status = params.status
+	return await customFetch<PagedResult<Game>>(endpoint, {
+		method: 'GET',
+		params: query,
+		baseURL: environment.baseUrl,
+	})
+}
+
+/**
+ * Returns games with no 'started' date ordered by score (accepts same filters)
+ */
+export const getNoStartedByScore = async (
+	params?: GameQueryParameters
+): Promise<PagedResult<Game>> => {
+	const endpoint = `${BASE}/no-started-by-score`
+	const query: Record<string, any> = { ...(params || {}) }
+	return await customFetch<PagedResult<Game>>(endpoint, {
+		method: 'GET',
+		params: query,
+		baseURL: environment.baseUrl,
+	})
+}

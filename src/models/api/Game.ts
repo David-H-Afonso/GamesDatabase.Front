@@ -65,6 +65,10 @@ export interface GameQueryParameters extends QueryParameters {
 	released?: string
 	started?: string
 	finished?: string
+	// Year filters (backend accepts integer year values)
+	releasedYear?: number
+	startedYear?: number
+	finishedYear?: number
 }
 
 // Paginated response wrapper

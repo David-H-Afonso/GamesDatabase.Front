@@ -2,7 +2,16 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import type { GamesState } from '@/models/store/GamesState'
 import type { Game, GameQueryParameters, PagedResult } from '@/models/api/Game'
 import { environment } from '@/environments'
-import { fetchGames, fetchGameById, createGame, updateGame, deleteGame } from './thunk'
+import {
+	fetchGames,
+	fetchGameById,
+	createGame,
+	updateGame,
+	deleteGame,
+	fetchReleasedAndStarted,
+	fetchStartedOrStatus,
+	fetchNoStartedByScore,
+} from './thunk'
 
 const initialState: GamesState = {
 	games: [],
@@ -188,6 +197,79 @@ const gamesSlice = createSlice({
 			.addCase(deleteGame.rejected, (state, action) => {
 				state.loading = false
 				state.error = (action.payload as string) || 'Failed to delete game'
+			})
+
+		// Special server-driven views (treat like fetchGames)
+		const applyPaged = (
+			state: GamesState,
+			payload: PagedResult<Game>,
+			arg?: GameQueryParameters
+		) => {
+			state.games = payload.data
+			state.pagination = {
+				page: payload.page,
+				pageSize: payload.pageSize,
+				totalCount: payload.totalCount,
+				totalPages: payload.totalPages,
+				hasNextPage: payload.hasNextPage,
+				hasPreviousPage: payload.hasPreviousPage,
+			}
+			state.lastAppliedFilters = arg || {}
+			state.isDataFresh = true
+		}
+
+		builder
+			.addCase(fetchReleasedAndStarted.pending, (state) => {
+				state.loading = true
+				state.error = null
+			})
+			.addCase(fetchReleasedAndStarted.fulfilled, (state, action) => {
+				state.loading = false
+				applyPaged(
+					state,
+					action.payload as PagedResult<Game>,
+					action.meta?.arg as GameQueryParameters
+				)
+			})
+			.addCase(fetchReleasedAndStarted.rejected, (state, action) => {
+				state.loading = false
+				state.error = (action.payload as string) || 'Failed to fetch released-and-started'
+			})
+
+		builder
+			.addCase(fetchStartedOrStatus.pending, (state) => {
+				state.loading = true
+				state.error = null
+			})
+			.addCase(fetchStartedOrStatus.fulfilled, (state, action) => {
+				state.loading = false
+				applyPaged(
+					state,
+					action.payload as PagedResult<Game>,
+					action.meta?.arg as GameQueryParameters
+				)
+			})
+			.addCase(fetchStartedOrStatus.rejected, (state, action) => {
+				state.loading = false
+				state.error = (action.payload as string) || 'Failed to fetch started-or-status'
+			})
+
+		builder
+			.addCase(fetchNoStartedByScore.pending, (state) => {
+				state.loading = true
+				state.error = null
+			})
+			.addCase(fetchNoStartedByScore.fulfilled, (state, action) => {
+				state.loading = false
+				applyPaged(
+					state,
+					action.payload as PagedResult<Game>,
+					action.meta?.arg as GameQueryParameters
+				)
+			})
+			.addCase(fetchNoStartedByScore.rejected, (state, action) => {
+				state.loading = false
+				state.error = (action.payload as string) || 'Failed to fetch no-started-by-score'
 			})
 	},
 })
