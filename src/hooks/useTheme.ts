@@ -1,13 +1,21 @@
 import { useEffect } from 'react'
 import { useAppSelector, useAppDispatch } from '@/store/hooks'
-import { initializeTheme, setTheme, setCardStyle } from '@/store/features/theme/themeSlice'
+import {
+	initializeTheme,
+	setTheme,
+	setCardStyle,
+	setViewMode,
+} from '@/store/features/theme/themeSlice'
+import type { ViewMode } from '@/models/ViewMode'
 
 /**
  * Custom hook for managing theme application
  * Uses CSS Custom Properties with data-theme attribute
  */
 export const useTheme = () => {
-	const { currentTheme, availableThemes, cardStyle } = useAppSelector((state) => state.theme)
+	const { currentTheme, availableThemes, cardStyle, viewMode } = useAppSelector(
+		(state) => state.theme
+	)
 	const dispatch = useAppDispatch()
 
 	// Initialize theme state from system/local values via slice initializer
@@ -20,6 +28,11 @@ export const useTheme = () => {
 			const savedCardStyle = localStorage.getItem('cardStyle')
 			if (savedCardStyle === 'card' || savedCardStyle === 'row' || savedCardStyle === 'tile') {
 				dispatch(setCardStyle(savedCardStyle))
+			}
+
+			const savedView = localStorage.getItem('viewMode')
+			if (savedView === 'default' || savedView === 'goty2025' || savedView === 'goal2025') {
+				dispatch(setViewMode(savedView as any))
 			}
 		}
 	}, [dispatch])
@@ -47,9 +60,16 @@ export const useTheme = () => {
 		if (cardStyle) localStorage.setItem('cardStyle', cardStyle)
 	}, [cardStyle])
 
+	useEffect(() => {
+		if (typeof window === 'undefined') return
+		if (viewMode) localStorage.setItem('viewMode', viewMode)
+	}, [viewMode])
+
 	return {
 		currentTheme,
 		availableThemes,
 		cardStyle,
+		viewMode,
+		setViewMode: (v: ViewMode) => dispatch(setViewMode(v)),
 	}
 }

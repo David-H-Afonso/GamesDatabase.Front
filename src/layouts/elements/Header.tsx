@@ -28,7 +28,7 @@ export const Header: React.FC = () => {
 					</div>
 
 					<div className='app-header-container-quick-actions'>
-						<CreateGame game={undefined as any} />
+						<CreateGame />
 						<ThemeSelector />
 					</div>
 				</div>
