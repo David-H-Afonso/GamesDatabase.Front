@@ -2,7 +2,13 @@ import type { Game } from '@/models/api/Game'
 import { useState, type FC } from 'react'
 import { useAppSelector } from '@/store/hooks'
 import { selectGameById } from '@/store/features/games'
-import { useGames } from '@/hooks'
+import {
+	useGamePlatform,
+	useGamePlayedStatus,
+	useGamePlayWith,
+	useGames,
+	useGameStatus,
+} from '@/hooks'
 import { GameDetails } from '@/components/elements'
 import CardView from './CardView/CardView'
 import RowView from './RowView/RowView'
@@ -23,18 +29,17 @@ export const GameCard: FC<Props> = (props) => {
 	const { updateGameById } = useGames()
 
 	// Get entities from Redux store to access colors
-	const { activeStatuses } = useAppSelector((state) => state.gameStatus)
-	const { platforms: activePlatforms } = useAppSelector((state) => state.gamePlatform)
-	const { playWithOptions: activePlayWithOptions } = useAppSelector((state) => state.gamePlayWith)
-	const { playedStatuses: activePlayedStatuses } = useAppSelector((state) => state.gamePlayedStatus)
+	const { activeStatuses } = useGameStatus()
+	const { platforms: activePlatforms } = useGamePlatform()
+	const { activePlayWiths } = useGamePlayWith()
+	const { playedStatuses: activePlayedStatuses } = useGamePlayedStatus()
 
-	// Get the most up-to-date version of the game from Redux store
 	const updatedGame = useAppSelector(selectGameById(game.id)) || game
 
 	// Find the entities to get their colors
 	const gameStatus = activeStatuses.find((status) => status.id === updatedGame.statusId)
 	const gamePlatform = activePlatforms.find((platform) => platform.id === updatedGame.platformId)
-	const gamePlayWith = activePlayWithOptions.find((option) => option.id === updatedGame.playWithId)
+	const gamePlayWith = activePlayWiths.find((option) => option.id === updatedGame.playWithId)
 	const gamePlayedStatus = activePlayedStatuses.find(
 		(status) => status.id === updatedGame.playedStatusId
 	)
@@ -50,7 +55,7 @@ export const GameCard: FC<Props> = (props) => {
 	}
 
 	const openDetails = (_game: Game) => {
-		setSelectedGame(updatedGame) // Use the updated game
+		setSelectedGame(updatedGame)
 		setIsDetailsOpen(true)
 	}
 
@@ -58,7 +63,7 @@ export const GameCard: FC<Props> = (props) => {
 		<>
 			{isDetailsOpen && selectedGame && (
 				<GameDetails
-					game={updatedGame} // Always use the most up-to-date version
+					game={updatedGame}
 					closeDetails={() => setIsDetailsOpen(false)}
 					onDelete={onDelete}
 				/>
