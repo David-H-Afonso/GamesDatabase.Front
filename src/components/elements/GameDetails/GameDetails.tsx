@@ -7,6 +7,7 @@ import { EditableField } from '@/components/elements'
 import { EditableSelect } from '../EditableSelect/EditableSelect'
 import { useGames } from '@/hooks'
 import { useAppSelector } from '@/store/hooks'
+import { useFormik } from 'formik'
 
 interface GameDetailsProps {
 	game: Game
@@ -36,14 +37,90 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 		}, 300) // Match the duration of the slideOut animation
 	}
 
-	const handleFieldUpdate = async (field: string, value: string | number | undefined) => {
+	// Formik to manage fields locally and validate critic/grade
+	const formik = useFormik({
+		initialValues: {
+			name: game.name ?? '',
+			statusId: game.statusId ?? undefined,
+			released: game.released ?? '',
+			critic: game.critic ?? undefined,
+			story: game.story ?? undefined,
+			completion: game.completion ?? undefined,
+			score: game.score ?? undefined,
+			platformId: game.platformId ?? undefined,
+			playedStatusId: game.playedStatusId ?? undefined,
+			started: game.started ?? '',
+			finished: game.finished ?? '',
+			grade: game.grade ?? undefined,
+			playWithId: game.playWithId ?? undefined,
+			logo: game.logo ?? '',
+			cover: game.cover ?? '',
+			comment: game.comment ?? '',
+		},
+		enableReinitialize: true,
+		validate: (values) => {
+			const errors: Record<string, string> = {}
+			const clampNumber = (v: any) =>
+				v === '' || v === null || typeof v === 'undefined' ? undefined : Number(v)
+			const critic = clampNumber(values.critic)
+			const grade = clampNumber(values.grade)
+			if (typeof critic !== 'undefined' && (isNaN(critic) || critic < 0 || critic > 100)) {
+				errors.critic = 'Critic must be a number between 0 and 100'
+			}
+			if (typeof grade !== 'undefined' && (isNaN(grade) || grade < 0 || grade > 100)) {
+				errors.grade = 'Grade must be a number between 0 and 100'
+			}
+			return errors
+		},
+		onSubmit: async () => {
+			// no-op: we save per-field via saveField
+		},
+	})
+
+	// helper to save a single field: validate, set formik state, then call backend
+	const saveField = async (field: string, value: any) => {
+		// coerce numeric-like fields
+		let payloadValue: any = value
+		if (
+			field === 'critic' ||
+			field === 'grade' ||
+			field === 'story' ||
+			field === 'completion' ||
+			field === 'score'
+		) {
+			if (value === '' || value === null || typeof value === 'undefined') payloadValue = null
+			else payloadValue = Number(value)
+		}
+
+		// Special handling for critic and grade: clamp to [0,100], allow clearing
+		if (field === 'critic' || field === 'grade') {
+			if (value === '' || value === null || typeof value === 'undefined') {
+				// cleared by user -> treat as delete
+				payloadValue = null
+				formik.setFieldValue(field as any, '')
+			} else {
+				const n = Number(value)
+				if (isNaN(n)) {
+					formik.setFieldError(field, 'Must be a number')
+					return
+				}
+				// clamp
+				const clamped = Math.min(100, Math.max(0, Math.round(n)))
+				payloadValue = clamped
+				formik.setFieldValue(field as any, clamped)
+			}
+		} else {
+			// Update formik local state for other fields
+			formik.setFieldValue(field as any, value)
+		}
+
+		// Persist to backend
 		try {
-			const payloadValue =
-				value === '' || value === 0 || typeof value === 'undefined' ? null : value
 			await updateGameById(game.id, { [field]: payloadValue } as any)
-		} catch (error) {
-			console.error(`Error updating ${field}:`, error)
-			throw error
+		} catch (err) {
+			console.error(`Error saving ${field}:`, err)
+			// restore original value from prop if needed
+			formik.setFieldValue(field as any, (game as any)[field])
 		}
 	}
 
@@ -66,7 +143,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 								if (!game.name) return
 								const url = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(
 									'"' + game.name + '" logo'
-									)}`
+								)}`
 								window.open(url, '_blank', 'noopener')
 							}}
 							style={{ cursor: game.name ? 'pointer' : 'default' }}
@@ -74,9 +151,9 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 					) : null}
 					<div>
 						<EditableField
-							value={game.name}
+							value={formik.values.name}
 							type='text'
-							onSave={(value) => handleFieldUpdate('name', value)}
+							onSave={(value) => saveField('name', value)}
 							placeholder='No name'
 						/>
 					</div>
@@ -94,7 +171,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 								if (!game.name) return
 								const url = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(
 									'"' + game.name + '" cover'
-									)}`
+								)}`
 								window.open(url, '_blank', 'noopener')
 							}}
 							style={{ cursor: game.name ? 'pointer' : 'default' }}
@@ -105,19 +182,19 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 					<div className='game-details-content-infoList-item'>
 						<h4>Status</h4>
 						<EditableSelect
-							value={game.statusId}
+							value={formik.values.statusId}
 							displayValue={game.statusName}
 							options={statusOptions}
-							onSave={(value) => handleFieldUpdate('statusId', value)}
+							onSave={(value) => saveField('statusId', value)}
 							placeholder='Select status'
 						/>
 					</div>
 					<div className='game-details-content-infoList-item'>
 						<h4>Released</h4>
 						<EditableField
-							value={game.released}
+							value={formik.values.released}
 							type='date'
-							onSave={(value) => handleFieldUpdate('released', value)}
+							onSave={(value) => saveField('released', value)}
 							placeholder='No release date'
 							formatter={(val) => formatToLocaleDate(val as string)}
 						/>
@@ -125,9 +202,9 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 					<div className='game-details-content-infoList-item'>
 						<h4>Critic Score</h4>
 						<EditableField
-							value={game.critic}
+							value={formik.values.critic}
 							type='number'
-							onSave={(value) => handleFieldUpdate('critic', Number(value))}
+							onSave={(value) => saveField('critic', value)}
 							placeholder='No score'
 						/>
 					</div>
@@ -142,9 +219,9 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 							Story
 						</h4>
 						<EditableField
-							value={game.story}
+							value={formik.values.story}
 							type='number'
-							onSave={(value) => handleFieldUpdate('story', Number(value))}
+							onSave={(value) => saveField('story', value)}
 							placeholder='0h'
 							formatter={(val) => `${val || 0}h`}
 						/>
@@ -160,43 +237,49 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 							Completion
 						</h4>
 						<EditableField
-							value={game.completion}
+							value={formik.values.completion}
 							type='number'
-							onSave={(value) => handleFieldUpdate('completion', Number(value))}
+							onSave={(value) => saveField('completion', value)}
 							placeholder='0h'
 							formatter={(val) => `${val || 0}h`}
 						/>
 					</div>
 					<div className='game-details-content-infoList-item'>
 						<h4>Score</h4>
-						<p>{game.score}</p>
+						<EditableField
+							value={formik.values.score}
+							type='number'
+							onSave={(value) => saveField('score', value)}
+							placeholder='No score'
+							allowEditing={false}
+						/>
 					</div>
 					<div className='game-details-content-infoList-item'>
 						<h4>Platform</h4>
 						<EditableSelect
-							value={game.platformId}
+							value={formik.values.platformId}
 							displayValue={game.platformName}
 							options={platformOptions}
-							onSave={(value) => handleFieldUpdate('platformId', value)}
+							onSave={(value) => saveField('platformId', value)}
 							placeholder='Select platform'
 						/>
 					</div>
 					<div className='game-details-content-infoList-item'>
 						<h4>Played</h4>
 						<EditableSelect
-							value={game.playedStatusId}
+							value={formik.values.playedStatusId}
 							displayValue={game.playedStatusName}
 							options={playedStatusOptions}
-							onSave={(value) => handleFieldUpdate('playedStatusId', value)}
+							onSave={(value) => saveField('playedStatusId', value)}
 							placeholder='Select status'
 						/>
 					</div>
 					<div className='game-details-content-infoList-item'>
 						<h4>Started</h4>
 						<EditableField
-							value={game.started}
+							value={formik.values.started}
 							type='date'
-							onSave={(value) => handleFieldUpdate('started', value)}
+							onSave={(value) => saveField('started', value)}
 							placeholder='Not started'
 							formatter={(val) => formatToLocaleDate(val as string)}
 						/>
@@ -204,9 +287,9 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 					<div className='game-details-content-infoList-item'>
 						<h4>Finished</h4>
 						<EditableField
-							value={game.finished}
+							value={formik.values.finished}
 							type='date'
-							onSave={(value) => handleFieldUpdate('finished', value)}
+							onSave={(value) => saveField('finished', value)}
 							placeholder='Not finished'
 							formatter={(val) => formatToLocaleDate(val as string)}
 						/>
@@ -222,19 +305,19 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 							Grade
 						</h4>
 						<EditableField
-							value={game.grade}
+							value={formik.values.grade}
 							type='number'
-							onSave={(value) => handleFieldUpdate('grade', Number(value))}
+							onSave={(value) => saveField('grade', value)}
 							placeholder='No grade'
 						/>
 					</div>
 					<div className='game-details-content-infoList-item'>
 						<h4>Play With</h4>
 						<EditableSelect
-							value={game.playWithId}
+							value={formik.values.playWithId}
 							displayValue={game.playWithName}
 							options={playWithOptions}
-							onSave={(value) => handleFieldUpdate('playWithId', value)}
+							onSave={(value) => saveField('playWithId', value)}
 							placeholder='Select option'
 						/>
 					</div>
@@ -251,9 +334,9 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 							Logo
 						</h4>
 						<EditableField
-							value={game.logo}
+							value={formik.values.logo}
 							type='text'
-							onSave={(value) => handleFieldUpdate('logo', value)}
+							onSave={(value) => saveField('logo', value)}
 							placeholder='Enter logo URL (optional)'
 						/>
 					</div>
@@ -271,9 +354,9 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 							Cover
 						</h4>
 						<EditableField
-							value={game.cover}
+							value={formik.values.cover}
 							type='text'
-							onSave={(value) => handleFieldUpdate('cover', value)}
+							onSave={(value) => saveField('cover', value)}
 							placeholder='Enter cover URL (optional)'
 						/>
 					</div>
@@ -282,9 +365,9 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 				<div className='game-details-content-comment'>
 					<h3>Comment</h3>
 					<EditableField
-						value={game.comment}
+						value={formik.values.comment}
 						type='textarea'
-						onSave={(value) => handleFieldUpdate('comment', value)}
+						onSave={(value) => saveField('comment', value)}
 						placeholder='Add a comment...'
 						className='comment-field'
 					/>
