@@ -2,24 +2,94 @@ import { useEffect, useState } from 'react'
 import { Button, GameCard } from '@/components/elements'
 import { useGames } from '@/hooks'
 import { useAppSelector, useAppDispatch } from '@/store/hooks'
-import { setCardStyle } from '@/store/features/theme/themeSlice'
+import { setCardStyle, setViewMode } from '@/store/features/theme/themeSlice'
+import {
+	setFilters as setGamesFilters,
+	resetFilters as resetGamesFilters,
+} from '@/store/features/games/gamesSlice'
+import { selectGamesFilters } from '@/store/features/games/selector'
 import type { GameQueryParameters } from '@/models/api/Game'
+import GamesFilters from './GamesFilters'
 import './HomeComponent.scss'
 
 const HomeComponent = () => {
-	const { games, error, pagination, fetchGamesList, deleteGameById } = useGames()
+	const {
+		games,
+		error,
+		pagination,
+		fetchGamesList,
+		refreshGames,
+		deleteGameById,
+		fetchReleasedAndStartedList,
+		fetchStartedOrStatusList,
+		fetchNoStartedByScoreList,
+	} = useGames()
+
 	const dispatch = useAppDispatch()
 	const cardStyle = useAppSelector((s) => s.theme.cardStyle ?? 'row')
-
-	const [filters, setFilters] = useState<GameQueryParameters>({
-		page: 1,
-		pageSize: 200,
-		search: '',
-		sortBy: 'name',
-		sortDescending: false,
-	})
-
+	const filters = useAppSelector(selectGamesFilters)
+	const setFilters = (next: GameQueryParameters) => dispatch(setGamesFilters(next))
 	const [selectedGames, setSelectedGames] = useState<number[]>([])
+	const [filtersOpen, setFiltersOpen] = useState(false)
+	const viewMode = useAppSelector((s) => s.theme.viewMode ?? 'default')
+
+	// Load current view data
+	useEffect(() => {
+		const load = async () => {
+			try {
+				if (viewMode === 'default') {
+					await refreshGames(filters)
+					return
+				}
+
+				if (((filters as any)?.page ?? 1) !== 1) {
+					dispatch(setGamesFilters({ ...filters, page: 1 }))
+					return
+				}
+
+				if (viewMode === 'goty2025') {
+					await fetchReleasedAndStartedList({ ...filters, year: 2025 })
+					return
+				}
+
+				if (viewMode === 'goal2025') {
+					await fetchStartedOrStatusList({ ...filters, year: 2025, status: 'Goal 2025' })
+					return
+				}
+
+				if (viewMode === 'noStartedByScore') {
+					await fetchNoStartedByScoreList({ ...filters })
+					return
+				}
+			} catch (e) {
+				console.error('Error loading view data', e)
+			}
+		}
+		void load()
+	}, [
+		viewMode,
+		fetchReleasedAndStartedList,
+		fetchStartedOrStatusList,
+		fetchNoStartedByScoreList,
+		filters,
+		refreshGames,
+		dispatch,
+	])
+
+	// Default list loads only when in default view
+	useEffect(() => {
+		if (viewMode === 'default') void fetchGamesList(filters)
+	}, [filters, fetchGamesList, viewMode])
+
+	const hasActiveFilters = (f: GameQueryParameters) => {
+		if (!f) return false
+		const ignore = ['page', 'pageSize', 'sortBy', 'sortDescending']
+		return Object.keys(f).some((k) => {
+			if (ignore.includes(k)) return false
+			const val = (f as any)[k]
+			return val !== undefined && val !== null && val !== ''
+		})
+	}
 
 	const toggleGameSelection = (gameId: number, isSelected: boolean) => {
 		setSelectedGames((prev) =>
@@ -28,48 +98,33 @@ const HomeComponent = () => {
 	}
 
 	const handleSelectAll = () => {
-		if (selectedGames.length === games.length) {
-			setSelectedGames([])
-		} else {
-			setSelectedGames(games.map((game) => game.id))
-		}
+		if (selectedGames.length === games.length) setSelectedGames([])
+		else setSelectedGames(games.map((g) => g.id))
 	}
 
 	const handleBulkDelete = async () => {
 		if (!window.confirm('Are you sure you want to delete the selected games?')) return
 		try {
-			await Promise.all(selectedGames.map((gameId) => deleteGameById(gameId)))
+			await Promise.all(selectedGames.map((id) => deleteGameById(id)))
 			setSelectedGames([])
 			fetchGamesList(filters)
-		} catch (error) {
-			console.error('Error deleting games:', error)
+		} catch (err) {
+			console.error('Error deleting games', err)
 		}
 	}
 
-	// Load games on component mount and when filters change
-	useEffect(() => {
-		fetchGamesList(filters)
-	}, [filters, fetchGamesList])
+	const handlePageChange = (newPage: number) => setFilters({ ...filters, page: newPage })
+	const handleSearchChange = (search: string) => setFilters({ ...filters, search, page: 1 })
+	const handleSortChange = (sortBy: string, sortDescending: boolean) =>
+		setFilters({ ...filters, sortBy, sortDescending })
 
-	const handlePageChange = (newPage: number) => {
-		setFilters((prev) => ({ ...prev, page: newPage }))
-	}
-
-	const handleSearchChange = (search: string) => {
-		setFilters((prev) => ({ ...prev, search, page: 1 }))
-	}
-
-	const handleSortChange = (sortBy: string, sortDescending: boolean) => {
-		setFilters((prev) => ({ ...prev, sortBy, sortDescending }))
-	}
-
-	const handleDeleteGame = async (gameId: number) => {
+	const handleDeleteGame = async (id: number) => {
 		if (!window.confirm('Are you sure you want to delete this game?')) return
 		try {
-			await deleteGameById(gameId)
+			await deleteGameById(id)
 			fetchGamesList(filters)
-		} catch (error) {
-			console.error('Error deleting game:', error)
+		} catch (err) {
+			console.error('Error deleting game', err)
 		}
 	}
 
@@ -82,19 +137,9 @@ const HomeComponent = () => {
 				</div>
 			)}
 
-			{/* Search and Filters */}
 			<div className='home-component__main'>
 				<div className='admin-controls'>
-					<div className='search-controls'>
-						<input
-							type='text'
-							placeholder='Buscar juegos...'
-							value={filters.search || ''}
-							onChange={(e) => handleSearchChange(e.target.value)}
-							className='search-input'
-						/>
-					</div>
-					<div>
+					<div className='controls-left'>
 						{games.length > 0 && (
 							<>
 								{selectedGames.length > 0 && selectedGames.length !== games.length && (
@@ -117,24 +162,60 @@ const HomeComponent = () => {
 							</>
 						)}
 					</div>
-					<div className='sort-controls'>
-						<label>Ordenar por:</label>
-						<select
-							value={filters.sortBy || 'name'}
-							onChange={(e) => handleSortChange(e.target.value, filters.sortDescending || false)}>
-							<option value='name'>Nombre</option>
-							<option value='grade'>Calificación</option>
-							<option value='critic'>Puntuación Crítica</option>
-							<option value='released'>Fecha de Lanzamiento</option>
-							<option value='started'>Fecha de Inicio</option>
-						</select>
-						<button
-							className='sort-direction-btn'
-							onClick={() => handleSortChange(filters.sortBy || 'name', !filters.sortDescending)}>
-							{filters.sortDescending ? '↓' : '↑'}
+
+					<div className='controls-right'>
+						<div className='search-controls'>
+							<input
+								type='text'
+								placeholder='Buscar juegos...'
+								value={filters.search || ''}
+								onChange={(e) => handleSearchChange((e.target as HTMLInputElement).value)}
+								className='controls-input'
+							/>
+						</div>
+
+						<div className='sort-controls'>
+							<label>Ordenar por:</label>
+							<select
+								value={filters.sortBy || 'name'}
+								onChange={(e) =>
+									handleSortChange(
+										(e.target as HTMLSelectElement).value,
+										filters.sortDescending || false
+									)
+								}>
+								<option value='name'>Nombre</option>
+								<option value='grade'>Calificación</option>
+								<option value='critic'>Puntuación Crítica</option>
+								<option value='released'>Fecha de Lanzamiento</option>
+								<option value='started'>Fecha de Inicio</option>
+							</select>
+							<button
+								className='sort-direction-btn'
+								onClick={() => handleSortChange(filters.sortBy || 'name', !filters.sortDescending)}>
+								{filters.sortDescending ? '↓' : '↑'}
+							</button>
+						</div>
+
+						<button className='controls-button' onClick={() => setFiltersOpen((s) => !s)}>
+							{filtersOpen
+								? 'Hide filters'
+								: `Show filters${hasActiveFilters(filters) ? ' *' : ''}`}
 						</button>
+
 						<select
-							className='search-input'
+							className='controls-input'
+							style={{ marginLeft: 8 }}
+							value={viewMode}
+							onChange={(e) => dispatch(setViewMode(e.target.value as any))}>
+							<option value='default'>Default</option>
+							<option value='goty2025'>GOTY 2025</option>
+							<option value='goal2025'>Goal 2025</option>
+							<option value='noStartedByScore'>Next up</option>
+						</select>
+
+						<select
+							className='controls-input'
 							value={cardStyle}
 							onChange={(e) => dispatch(setCardStyle(e.target.value as 'card' | 'row' | 'tile'))}
 							style={{
@@ -150,7 +231,16 @@ const HomeComponent = () => {
 					</div>
 				</div>
 
-				{/* Games Grid */}
+				<GamesFilters
+					value={filters}
+					onChange={(patch) => setFilters({ ...filters, ...patch })}
+					onClear={() => {
+						dispatch(resetGamesFilters())
+						fetchGamesList({})
+					}}
+					isOpen={filtersOpen}
+				/>
+
 				<div className={`home-component-games-${cardStyle}`}>
 					{cardStyle === 'row' && (
 						<div className='home-component-games-row-header'>
@@ -171,8 +261,12 @@ const HomeComponent = () => {
 							<p className='gr-play-with'>Play With</p>
 						</div>
 					)}
-					{games.length > 0 ? (
-						games.map((game) => (
+
+					{(() => {
+						const list = games
+						if (!list || list.length === 0)
+							return <p className='home-component__no-games'>No games found.</p>
+						return list.map((game: any) => (
 							<GameCard
 								key={game.id}
 								game={game}
@@ -183,11 +277,9 @@ const HomeComponent = () => {
 								variant={cardStyle}
 							/>
 						))
-					) : (
-						<p className='home-component__no-games'>No games found.</p>
-					)}
+					})()}
 				</div>
-				{/* Pagination */}
+
 				<div className='pagination-controls'>
 					<button
 						className='pagination-btn'
