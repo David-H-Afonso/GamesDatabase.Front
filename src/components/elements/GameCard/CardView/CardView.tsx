@@ -118,7 +118,7 @@ const CardView: FC<CardViewProps> = (props) => {
 						/>
 						<div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
 							<span className='game-card-score'>{game.grade ?? 'N/A'}</span>
-							{game.critic && (
+							{game.critic != null && !isNaN(game.critic) && (
 								<span className='game-card-score'>
 									<span style={{ color: '#ccc', fontWeight: 'normal' }}>Critic: </span>
 									<span style={{ fontFamily: 'monospace' }}>{game.critic ?? 'N/A'}</span>
