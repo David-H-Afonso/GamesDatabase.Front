@@ -2,41 +2,37 @@ import React, { useState } from 'react'
 import './EditableField.scss'
 
 interface EditableFieldProps {
-	value: string | number | undefined
-	type: string
+	allowEditing?: boolean
+	className?: string
+	formatter?: (val: string | number | undefined) => string
 	onSave: (value: string | number) => void
 	placeholder: string
-	formatter?: (val: string | number | undefined) => string
-	className?: string
 	style?: React.CSSProperties
+	type: string
+	value: string | number | undefined
 }
 
 export const EditableField: React.FC<EditableFieldProps> = ({
-	value,
-	type,
+	allowEditing = true,
+	className,
+	formatter,
 	onSave,
 	placeholder,
-	formatter,
-	className,
 	style,
+	type,
+	value,
 }) => {
 	const [isEditing, setIsEditing] = useState(false)
-	const [currentValue, setCurrentValue] = useState(value)
+	const [currentValue, setCurrentValue] = useState<string | number | undefined>(value)
+	const hasValue = value !== undefined && value !== null && currentValue !== ''
+	const showTitle = hasValue ? (formatter ? formatter(value) : String(value)) : placeholder
 
 	const handleSave = () => {
-		if (currentValue !== undefined) {
+		if (currentValue !== undefined && currentValue !== null) {
 			onSave(currentValue)
 		}
 		setIsEditing(false)
 	}
-
-	const showTitle = value
-		? formatter
-			? formatter(value)
-			: value
-			? String(value)
-			: placeholder
-		: placeholder
 
 	return (
 		<div
@@ -44,25 +40,44 @@ export const EditableField: React.FC<EditableFieldProps> = ({
 			className={`editable-field ${className || ''}`}
 			onClick={() => setIsEditing(true)}
 			title={showTitle}>
-			{isEditing ? (
-				<input
-					type={type}
-					value={currentValue}
-					onChange={(e) => setCurrentValue(e.target.value)}
-					onBlur={handleSave}
-					onKeyDown={(e) => {
-						if (e.key === 'Enter') {
-							e.preventDefault()
-							handleSave()
-						}
-					}}
-					placeholder={placeholder}
-					className='editable-field-input'
-					autoFocus
-				/>
+			{isEditing && allowEditing ? (
+				type === 'textarea' ? (
+					<textarea
+						value={currentValue === undefined || currentValue === null ? '' : String(currentValue)}
+						onChange={(e) => setCurrentValue(e.target.value)}
+						onBlur={handleSave}
+						onKeyDown={(e) => {
+							if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+								e.preventDefault()
+								handleSave()
+							}
+						}}
+						placeholder={placeholder}
+						className='editable-field-input editable-field-textarea'
+						autoFocus
+					/>
+				) : (
+					<input
+						type={type}
+						value={currentValue === undefined || currentValue === null ? '' : String(currentValue)}
+						onChange={(e) => setCurrentValue(e.target.value)}
+						onBlur={handleSave}
+						onKeyDown={(e) => {
+							if (e.key === 'Enter') {
+								e.preventDefault()
+								handleSave()
+							}
+						}}
+						placeholder={placeholder}
+						className='editable-field-input'
+						autoFocus
+					/>
+				)
 			) : (
-				<span className={`editable-field__trigger ${!value ? 'editable-field--empty' : ''}`}>
-					{formatter ? formatter(value) : value || placeholder}
+				<span
+					className={`editable-field__trigger ${!hasValue ? 'editable-field--empty' : ''}`}
+					style={{ whiteSpace: 'pre-wrap' }}>
+					{formatter ? formatter(value) : hasValue ? String(value) : placeholder}
 				</span>
 			)}
 		</div>

@@ -9,7 +9,7 @@
 	justify-content: space-between;
 	user-select: none;
 	border: 1px solid transparent;
-	min-width: 88px;
+	min-width: 220px;
 	max-width: 100%;
 	overflow: hidden;
 	word-break: break-all;
@@ -25,20 +25,20 @@
 }
 
 .editable-field-input {
-	background: var(--bg-primary);
-	border: 2px solid var(--accent-primary);
-	border-radius: 4px;
-	padding: 4px 8px;
-	font-size: inherit;
-	font-family: inherit;
-	color: var(--text-primary);
-	outline: none;
-	min-width: 60px;
-	width: 100%;
-	box-sizing: border-box;
-	display: flex;
 	align-items: center;
+	background: var(--bg-primary);
+	border-radius: 4px;
+	border: 2px solid var(--accent-primary);
+	box-sizing: border-box;
+	color: var(--text-primary);
+	display: flex;
+	font-family: inherit;
+	font-size: inherit;
 	justify-content: space-between;
+	min-width: 60px;
+	outline: none;
+	padding: 4px 8px;
+	width: 100%;
 
 	&:focus {
 		border-color: var(--accent-primary);
@@ -64,6 +64,8 @@
 	min-height: 60px;
 	box-sizing: border-box;
 	resize: vertical;
+	height: auto;
+	min-height: 90px;
 
 	&:focus {
 		border-color: var(--accent-primary);
