@@ -31,8 +31,8 @@ export const environment = {
 		retryAttempts: 3,
 	},
 	pagination: {
-		defaultPageSize: 10,
-		maxPageSize: 100,
+		defaultPageSize: 200,
+		maxPageSize: 200,
 	},
 	cors: {
 		allowedOrigins: [

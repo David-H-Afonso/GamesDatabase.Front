@@ -3,6 +3,8 @@ export interface GameStatus {
 	name: string
 	isActive: boolean
 	color?: string
+	/** Order used for display and manual reordering */
+	sortOrder?: number
 	/** Optional: represents a predefined type for special statuses (e.g. 'NotFulfilled') */
 	statusType?: string
 	/** Optional flag indicating this is a default/system status */
@@ -15,6 +17,7 @@ export interface GameStatusCreateDto {
 	name: string
 	isActive: boolean
 	color?: string
+	sortOrder?: number
 	statusType?: string
 	isDefault?: boolean
 	isSpecialStatus?: boolean

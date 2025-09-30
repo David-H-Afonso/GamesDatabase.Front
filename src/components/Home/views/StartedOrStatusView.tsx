@@ -25,7 +25,7 @@ const StartedOrStatusView: React.FC = () => {
 
 	return (
 		<div>
-			<h2>Started in 2025 or Status 'Goal 2025'</h2>
+			<h2>Started in 2025 or Status 'Games 2025'</h2>
 			{loading && <p>Loading...</p>}
 			<div
 				style={{

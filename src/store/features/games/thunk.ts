@@ -1,4 +1,5 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
+import { environment } from '@/environments'
 import {
 	createGame as createGameService,
 	updateGame as updateGameService,
@@ -16,7 +17,8 @@ export const fetchGames = createAsyncThunk(
 	'games/fetchGames',
 	async (params: GameQueryParameters = {}, { rejectWithValue }) => {
 		try {
-			const response = await getGames(params)
+			const query = { pageSize: environment.pagination.defaultPageSize, ...(params || {}) }
+			const response = await getGames(query)
 			return response
 		} catch (error: any) {
 			return rejectWithValue(error.message || 'Failed to fetch games')
@@ -29,7 +31,8 @@ export const fetchReleasedAndStarted = createAsyncThunk(
 	'games/fetchReleasedAndStarted',
 	async (params: GameQueryParameters & { year?: number } = {}, { rejectWithValue }) => {
 		try {
-			const response = await getReleasedAndStarted(params)
+			const query = { pageSize: environment.pagination.defaultPageSize, ...(params || {}) }
+			const response = await getReleasedAndStarted(query)
 			return response
 		} catch (error: any) {
 			return rejectWithValue(error.message || 'Failed to fetch released-and-started')
@@ -45,7 +48,8 @@ export const fetchStartedOrStatus = createAsyncThunk(
 		{ rejectWithValue }
 	) => {
 		try {
-			const response = await getStartedOrStatus(params)
+			const query = { pageSize: environment.pagination.defaultPageSize, ...(params || {}) }
+			const response = await getStartedOrStatus(query)
 			return response
 		} catch (error: any) {
 			return rejectWithValue(error.message || 'Failed to fetch started-or-status')
@@ -58,7 +62,8 @@ export const fetchNoStartedByScore = createAsyncThunk(
 	'games/fetchNoStartedByScore',
 	async (params: GameQueryParameters = {}, { rejectWithValue }) => {
 		try {
-			const response = await getNoStartedByScore(params)
+			const query = { pageSize: environment.pagination.defaultPageSize, ...(params || {}) }
+			const response = await getNoStartedByScore(query)
 			return response
 		} catch (error: any) {
 			return rejectWithValue(error.message || 'Failed to fetch no-started-by-score')

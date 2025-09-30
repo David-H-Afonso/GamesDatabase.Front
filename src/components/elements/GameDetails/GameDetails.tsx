@@ -200,7 +200,15 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 						/>
 					</div>
 					<div className='game-details-content-infoList-item'>
-						<h4>Critic Score</h4>
+						<h4
+							className='clickable'
+							onClick={() => {
+								if (!game.name) return
+								const url = `https://www.metacritic.com/search/${encodeURIComponent(game.name)}/`
+								window.open(url, '_blank', 'noopener')
+							}}>
+							Critic Score
+						</h4>
 						<EditableField
 							value={formik.values.critic}
 							type='number'
@@ -255,7 +263,31 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 						/>
 					</div>
 					<div className='game-details-content-infoList-item'>
-						<h4>Platform</h4>
+						<h4
+							className={
+								(game.platformName || '').toLowerCase().includes('steam') ||
+								(game.platformName || '').toLowerCase().includes('epic')
+									? 'clickable'
+									: undefined
+							}
+							onClick={() => {
+								if (!game.name) return
+								const platform = (game.platformName || '').toLowerCase()
+								if (platform.includes('steam')) {
+									const q = encodeURIComponent(game.name).replace(/%20/g, '+')
+									const url = `https://store.steampowered.com/search/?term=${q}`
+									window.open(url, '_blank', 'noopener')
+									return
+								}
+								if (platform.includes('epic')) {
+									const url = `https://store.epicgames.com/es-ES/browse?q=${encodeURIComponent(
+										game.name
+									)}&sortBy=relevancy&sortDir=DESC&count=40`
+									window.open(url, '_blank', 'noopener')
+								}
+							}}>
+							Platform
+						</h4>
 						<EditableSelect
 							value={formik.values.platformId}
 							displayValue={game.platformName}
@@ -295,15 +327,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 						/>
 					</div>
 					<div className='game-details-content-infoList-item'>
-						<h4
-							className='clickable'
-							onClick={() => {
-								if (!game.name) return
-								const url = `https://www.metacritic.com/search/${encodeURIComponent(game.name)}/`
-								window.open(url, '_blank', 'noopener')
-							}}>
-							Grade
-						</h4>
+						<h4>Grade</h4>
 						<EditableField
 							value={formik.values.grade}
 							type='number'

@@ -46,11 +46,23 @@ export interface GameUpdateDto extends GameCreateDto {
 }
 
 // Query parameters for API requests
+export type SortByKey =
+	| 'name'
+	| 'grade'
+	| 'critic'
+	| 'released'
+	| 'started'
+	| 'score'
+	| 'storyDuration'
+	| 'completionDuration'
+	| 'status'
+	| string
+
 export interface QueryParameters {
 	page?: number
 	pageSize?: number
 	search?: string
-	sortBy?: string
+	sortBy?: SortByKey
 	sortDescending?: boolean
 	isActive?: boolean
 }

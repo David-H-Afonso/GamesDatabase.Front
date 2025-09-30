@@ -2,13 +2,14 @@
 
 .app-header {
 	&-container {
+		align-items: center;
 		background: var(--surface);
 		border-bottom: $border-width solid var(--border);
-		padding: 1rem;
 		box-shadow: var(--card-shadow);
 		display: flex;
-		align-items: center;
+		flex-wrap: wrap;
 		justify-content: space-between;
+		padding: 1rem;
 
 		a {
 			text-decoration: none;

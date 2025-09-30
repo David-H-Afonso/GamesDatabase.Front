@@ -102,7 +102,12 @@ const CardView: FC<CardViewProps> = (props) => {
 			<div className='game-card-view-container-hideOverflow'>
 				<div className='game-card-header'>
 					{game.cover && (
-						<img src={game.cover} alt={`${game.name} cover`} className='game-card-cover' />
+						<img
+							loading='lazy'
+							src={game.cover}
+							alt={`${game.name} cover`}
+							className='game-card-cover'
+						/>
 					)}
 					<div className='game-card-header-score'>
 						<input

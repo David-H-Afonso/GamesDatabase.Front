@@ -189,6 +189,10 @@ const HomeComponent = () => {
 								<option value='critic'>Puntuación Crítica</option>
 								<option value='released'>Fecha de Lanzamiento</option>
 								<option value='started'>Fecha de Inicio</option>
+								<option value='score'>Score</option>
+								<option value='storyDuration'>Story</option>
+								<option value='completionDuration'>Completion</option>
+								<option value='status'>Status</option>
 							</select>
 							<button
 								className='sort-direction-btn'
@@ -210,7 +214,7 @@ const HomeComponent = () => {
 							onChange={(e) => dispatch(setViewMode(e.target.value as any))}>
 							<option value='default'>Default</option>
 							<option value='goty2025'>GOTY 2025</option>
-							<option value='goal2025'>Goal 2025</option>
+							<option value='goal2025'>Games 2025</option>
 							<option value='noStartedByScore'>Next up</option>
 						</select>
 

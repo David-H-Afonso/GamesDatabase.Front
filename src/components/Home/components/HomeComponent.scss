@@ -320,8 +320,9 @@
 }
 
 .controls-right {
-	display: flex;
+	flex-wrap: wrap;
 	align-items: center;
+	display: flex;
 	gap: 20px;
 }
 

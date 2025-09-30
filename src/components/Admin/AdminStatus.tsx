@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useGameStatus } from '@/hooks'
+import { updateGameStatus } from '@/services'
 import type { GameStatus, GameStatusCreateDto, GameStatusUpdateDto } from '@/models/api/GameStatus'
 import type { QueryParameters } from '@/models/api/Game'
 import './AdminStatus.scss'
@@ -32,9 +33,73 @@ export const AdminStatus: React.FC = () => {
 	const [queryParams, setQueryParams] = useState<QueryParameters>({
 		page: 1,
 		pageSize: 10,
-		sortBy: 'name',
+		// default: no sorting applied
+		sortBy: undefined,
 		sortDescending: false,
 	})
+
+	// Drag and drop state
+	const [draggedId, setDraggedId] = useState<number | null>(null)
+	const [isReordering, setIsReordering] = useState(false)
+
+	// Reorder statuses by moving status with id `sourceId` to the position of `targetId`.
+	// This will compute new sortOrder values for affected statuses and persist them.
+	const reorderStatuses = async (sourceId: number, targetId: number) => {
+		// Work on a copy ordered by sortOrder if present, otherwise by id
+		const ordered = [...statuses].sort((a, b) => {
+			const aKey = a.sortOrder ?? a.id
+			const bKey = b.sortOrder ?? b.id
+			return aKey - bKey
+		})
+
+		const sourceIndex = ordered.findIndex((s) => s.id === sourceId)
+		const targetIndex = ordered.findIndex((s) => s.id === targetId)
+		if (sourceIndex === -1 || targetIndex === -1) return
+
+		// Remove source and insert at targetIndex
+		const [moved] = ordered.splice(sourceIndex, 1)
+		ordered.splice(targetIndex, 0, moved)
+
+		// Reassign sortOrder sequentially starting from 1
+		const updates = ordered.map((s, idx) => ({ ...s, sortOrder: idx + 1 }))
+
+		// Determine which ones changed
+
+		setIsReordering(true)
+		const failures: Array<{ id: number; error: any }> = []
+		try {
+			for (const u of updates) {
+				const original = statuses.find((s) => s.id === u.id)
+				if (!original) continue
+				const newSort = u.sortOrder
+				if ((original.sortOrder ?? original.id) === newSort) continue
+				const dto = {
+					name: original.name,
+					isActive: original.isActive,
+					color: original.color,
+					statusType: original.statusType,
+					isDefault: original.isDefault,
+					isSpecialStatus: original.isSpecialStatus,
+					sortOrder: newSort,
+				} as any
+				try {
+					// sequential to avoid overloading server
+					await updateGameStatus(u.id, dto)
+				} catch (err) {
+					console.error(`Failed updating status ${u.id} sortOrder -> ${newSort}:`, err)
+					failures.push({ id: u.id, error: err })
+				}
+			}
+			// reload list to reflect server state
+			await loadStatuses(queryParams)
+		} finally {
+			setIsReordering(false)
+		}
+		if (failures.length > 0) {
+			console.warn('Some status updates failed:', failures)
+			window.alert('Algunas actualizaciones fallaron. Revisa la consola para más detalles.')
+		}
+	}
 
 	useEffect(() => {
 		loadStatuses(queryParams)
@@ -51,11 +116,17 @@ export const AdminStatus: React.FC = () => {
 
 	// Sorting handlers
 	const handleSortChange = (sortBy: string) => {
-		setQueryParams((prev) => ({
-			...prev,
-			sortBy,
-			sortDescending: prev.sortBy === sortBy ? !prev.sortDescending : false,
-		}))
+		setQueryParams((prev) => {
+			if (!sortBy) {
+				// clear sorting
+				return { ...prev, sortBy: undefined, sortDescending: false }
+			}
+			return {
+				...prev,
+				sortBy,
+				sortDescending: prev.sortBy === sortBy ? !prev.sortDescending : false,
+			}
+		})
 	}
 
 	const handleOpenModal = (status?: GameStatus) => {
@@ -149,15 +220,17 @@ export const AdminStatus: React.FC = () => {
 				<div className='sort-controls'>
 					<label>Ordenar por:</label>
 					<select
-						value={queryParams.sortBy || 'name'}
+						value={queryParams.sortBy ?? ''}
 						onChange={(e) => handleSortChange(e.target.value)}>
+						<option value=''>Sin ordenar</option>
 						<option value='name'>Nombre</option>
 						<option value='id'>ID</option>
 						<option value='isActive'>Estado</option>
 					</select>
 					<button
 						className='sort-direction-btn'
-						onClick={() => handleSortChange(queryParams.sortBy || 'name')}>
+						onClick={() => handleSortChange(queryParams.sortBy || '')}
+						disabled={!queryParams.sortBy}>
 						{queryParams.sortDescending ? '↓' : '↑'}
 					</button>
 				</div>
@@ -190,7 +263,29 @@ export const AdminStatus: React.FC = () => {
 							</thead>
 							<tbody>
 								{statuses.map((status) => (
-									<tr key={status.id}>
+									<tr
+										key={status.id}
+										draggable={!isReordering}
+										onDragStart={(e) => {
+											if (isReordering) return
+											setDraggedId(status.id)
+											e.dataTransfer!.effectAllowed = 'move'
+										}}
+										onDragOver={(e) => {
+											if (isReordering) return
+											e.preventDefault()
+										}}
+										onDragLeave={() => {}}
+										onDrop={async (e) => {
+											e.preventDefault()
+											if (isReordering) return
+											if (draggedId == null) return
+											if (draggedId === status.id) return
+
+											// compute new ordering and persist
+											await reorderStatuses(draggedId, status.id)
+											setDraggedId(null)
+										}}>
 										<td>{status.name}</td>
 										<td>
 											<div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

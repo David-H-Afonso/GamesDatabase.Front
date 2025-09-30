@@ -1,18 +1,17 @@
 .editable-field {
-	cursor: pointer;
-	padding: 4px 8px;
-	border-radius: 4px;
-	transition: background-color 0.2s ease;
-	min-height: 1.2em;
-	display: flex;
 	align-items: center;
+	border-radius: 4px;
+	cursor: pointer;
+	display: flex;
 	justify-content: space-between;
-	user-select: none;
-	border: 1px solid transparent;
-	min-width: 220px;
 	max-width: 100%;
+	min-height: 1.2em;
+	min-width: 220px;
 	overflow: hidden;
-	word-break: break-all;
+	padding: 4px 8px;
+	transition: background-color 0.2s ease;
+	user-select: none;
+	line-height: normal;
 
 	&:hover {
 		background-color: var(--bg-secondary);
