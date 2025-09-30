@@ -67,6 +67,19 @@ const GamesFilters: React.FC<Props> = ({ value, onChange, isOpen = true, onClear
 		else onChange({})
 	}
 
+	const handleExcludeStatusChange = (statusId: number, isExcluded: boolean) => {
+		const currentExcluded = value.excludeStatusIds || []
+		let newExcluded: number[]
+
+		if (isExcluded) {
+			newExcluded = [...currentExcluded, statusId]
+		} else {
+			newExcluded = currentExcluded.filter((id) => id !== statusId)
+		}
+
+		update({ excludeStatusIds: newExcluded.length > 0 ? newExcluded : undefined })
+	}
+
 	return (
 		<div className={`games-filters ${isOpen ? 'open' : 'closed'}`}>
 			<input
@@ -177,6 +190,30 @@ const GamesFilters: React.FC<Props> = ({ value, onChange, isOpen = true, onClear
 				<option value='100'>100</option>
 				<option value='200'>200</option>
 			</select>
+
+			{/* Exclude Status IDs filter */}
+			<div className='gf-exclude-status'>
+				<label
+					style={{ marginBottom: '4px', display: 'block', fontSize: '12px', fontWeight: 'bold' }}>
+					Exclude Status:
+				</label>
+				{statusOptions.map((status) => {
+					const isExcluded = (value.excludeStatusIds || []).includes(status.value)
+					return (
+						<label
+							key={status.value}
+							style={{ display: 'flex', alignItems: 'center', marginBottom: '2px' }}>
+							<input
+								type='checkbox'
+								checked={isExcluded}
+								onChange={(e) => handleExcludeStatusChange(status.value, e.target.checked)}
+								style={{ marginRight: '6px' }}
+							/>
+							<span style={{ fontSize: '12px' }}>{status.label}</span>
+						</label>
+					)
+				})}
+			</div>
 
 			<div className='gf-row gf-row--compact'>
 				<button type='button' className='gf-clear-btn' onClick={handleClear}>

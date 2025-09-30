@@ -79,3 +79,29 @@
 .gf-row .gf-select:last-child {
 	margin-right: 0;
 }
+
+.gf-exclude-status {
+	background-color: var(--input-bg);
+	border-radius: 6px;
+	border: 1px solid var(--input-border);
+	padding: 8px;
+	min-width: 160px;
+	max-width: 200px;
+	max-height: 120px;
+	overflow-y: auto;
+
+	label {
+		cursor: pointer;
+		color: var(--text-primary);
+		font-size: 12px;
+		margin: 0;
+
+		&:hover {
+			background-color: var(--input-border);
+		}
+	}
+
+	input[type='checkbox'] {
+		accent-color: var(--primary-color);
+	}
+}

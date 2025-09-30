@@ -22,14 +22,28 @@ const FILTER_KEYS: (keyof GameQueryParameters)[] = [
 	'startedYear',
 	'finished',
 	'finishedYear',
+	'excludeStatusIds',
 ]
 
 /** Normalize null -> undefined for consistent comparisons */
 const normalizeNullToUndefined = (v: unknown): unknown => (v === null ? undefined : v)
 
 /** Compare two values after normalization */
-const areValuesEqual = (a: unknown, b: unknown): boolean =>
-	normalizeNullToUndefined(a) === normalizeNullToUndefined(b)
+const areValuesEqual = (a: unknown, b: unknown): boolean => {
+	const normalizedA = normalizeNullToUndefined(a)
+	const normalizedB = normalizeNullToUndefined(b)
+
+	// Handle array comparison for excludeStatusIds
+	if (Array.isArray(normalizedA) && Array.isArray(normalizedB)) {
+		if (normalizedA.length !== normalizedB.length) return false
+		return normalizedA.every((item, index) => item === normalizedB[index])
+	}
+
+	// One is array, other is not
+	if (Array.isArray(normalizedA) || Array.isArray(normalizedB)) return false
+
+	return normalizedA === normalizedB
+}
 
 /**
  * Compare two filter objects to determine if they are equivalent.
@@ -63,6 +77,7 @@ const cloneDateOrValue = (value: unknown): unknown => {
 /**
  * Deep-ish clone of the filters for storing in state.
  * - Clones Date objects to avoid shared references
+ * - Clones arrays to avoid shared references
  */
 export const cloneFilters = (filters: GameQueryParameters): GameQueryParameters => ({
 	...filters,
@@ -72,4 +87,5 @@ export const cloneFilters = (filters: GameQueryParameters): GameQueryParameters 
 	startedYear: filters.startedYear,
 	finished: cloneDateOrValue(filters.finished) as GameQueryParameters['finished'],
 	finishedYear: filters.finishedYear,
+	excludeStatusIds: filters.excludeStatusIds ? [...filters.excludeStatusIds] : undefined,
 })

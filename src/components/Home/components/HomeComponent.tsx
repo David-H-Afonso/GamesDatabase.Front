@@ -193,6 +193,8 @@ const HomeComponent = () => {
 								<option value='storyDuration'>Story</option>
 								<option value='completionDuration'>Completion</option>
 								<option value='status'>Status</option>
+								<option value='createdat'>Fecha de Creación</option>
+								<option value='updatedat'>Última Modificación</option>
 							</select>
 							<button
 								className='sort-direction-btn'

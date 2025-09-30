@@ -21,6 +21,8 @@ export interface Game {
 	statusId: number
 	statusName?: string
 	story?: number // 0-100
+	createdAt?: string // ISO date string - when the game was created
+	updatedAt?: string // ISO date string - when the game was last modified
 }
 
 // DTOs for create and update operations
@@ -56,6 +58,8 @@ export type SortByKey =
 	| 'storyDuration'
 	| 'completionDuration'
 	| 'status'
+	| 'createdat'
+	| 'updatedat'
 	| string
 
 export interface QueryParameters {
@@ -81,6 +85,8 @@ export interface GameQueryParameters extends QueryParameters {
 	releasedYear?: number
 	startedYear?: number
 	finishedYear?: number
+	// Exclude specific status IDs (can be multiple)
+	excludeStatusIds?: number[]
 }
 
 // Paginated response wrapper
