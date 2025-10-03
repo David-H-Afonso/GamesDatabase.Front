@@ -6,12 +6,8 @@ WORKDIR /app
 RUN apk add --no-cache python3 make g++
 
 # Copy package files and install dependencies
-COPY package*.json ./
-RUN if [ -f package-lock.json ]; then \
-      npm ci --no-audit --no-fund; \
-    else \
-      npm install --no-audit --no-fund; \
-    fi
+COPY package.json ./
+RUN npm install --no-audit --no-fund
 
 # Copy source code
 COPY . .

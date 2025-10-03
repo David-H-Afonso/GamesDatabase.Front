@@ -11,8 +11,23 @@ export default defineConfig({
 			},
 			include: '**/*.svg?react',
 		}),
+		// Plugin para eliminar env-config.js cuando se compila para Electron
+		{
+			name: 'remove-env-config-for-electron',
+			transformIndexHtml(html) {
+				if (process.env.ELECTRON === 'true') {
+					// Eliminar la línea que carga env-config.js
+					return html.replace(
+						/<!-- Load runtime environment configuration \(for Docker\) -->\s*<script src="[^"]*env-config\.js"><\/script>\s*/,
+						'<!-- env-config.js not needed in Electron -->\n\t\t'
+					)
+				}
+				return html
+			},
+		},
 	],
-	base: '/',
+	// Usar rutas relativas para Electron, absolutas para web
+	base: process.env.ELECTRON === 'true' ? './' : '/',
 	resolve: {
 		alias: {
 			'@': '/src',

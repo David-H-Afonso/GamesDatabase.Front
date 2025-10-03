@@ -2,7 +2,8 @@
 import { apiRoutes } from '../apiRoutes'
 
 function getApiBaseUrl(): string {
-	// Si estamos en Electron
+	// Versión síncrona para compatibilidad
+	// Si estamos en Electron (detección síncrona)
 	if (typeof window !== 'undefined' && (window as any).API_BASE_URL) {
 		return (window as any).API_BASE_URL
 	}
@@ -17,8 +18,8 @@ function getApiBaseUrl(): string {
 		return import.meta.env.VITE_API_URL as string
 	}
 
-	// Fallback - en producción usaríamos HTTPS por defecto
-	return 'https://localhost:7245/api'
+	// Fallback - puerto 8080 por defecto (Electron local)
+	return 'http://localhost:8080/api'
 }
 
 export const environment = {
