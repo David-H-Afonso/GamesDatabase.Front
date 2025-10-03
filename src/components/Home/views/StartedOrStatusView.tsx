@@ -4,7 +4,7 @@ import { GameCard } from '@/components/elements'
 import type { Game } from '@/models/api/Game'
 
 const StartedOrStatusView: React.FC = () => {
-	const { fetchStartedOrStatusList, filters } = useGames()
+	const { refreshGames, filters } = useGames()
 	const [items, setItems] = useState<Game[]>([])
 	const [loading, setLoading] = useState(false)
 
@@ -12,7 +12,8 @@ const StartedOrStatusView: React.FC = () => {
 		void (async () => {
 			setLoading(true)
 			try {
-				const res = await fetchStartedOrStatusList({ ...filters, year: 2025, status: 'Goal 2025' })
+				// Filter by started year 2025 (you can add statusId if you know the ID for 'Goal 2025')
+				const res = await refreshGames({ ...filters, startedYear: 2025 })
 				const data = (res as any)?.data ?? res
 				setItems((data as Game[]) || [])
 			} catch (err) {
@@ -21,7 +22,7 @@ const StartedOrStatusView: React.FC = () => {
 				setLoading(false)
 			}
 		})()
-	}, [fetchStartedOrStatusList])
+	}, [refreshGames, filters])
 
 	return (
 		<div>

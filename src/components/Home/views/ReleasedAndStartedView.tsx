@@ -4,7 +4,7 @@ import { GameCard } from '@/components/elements'
 import type { Game } from '@/models/api/Game'
 
 const ReleasedAndStartedView: React.FC = () => {
-	const { fetchReleasedAndStartedList, filters } = useGames()
+	const { refreshGames, filters } = useGames()
 	const [items, setItems] = useState<Game[]>([])
 	const [loading, setLoading] = useState(false)
 
@@ -12,7 +12,7 @@ const ReleasedAndStartedView: React.FC = () => {
 		void (async () => {
 			setLoading(true)
 			try {
-				const res = await fetchReleasedAndStartedList({ ...filters, year: 2025 })
+				const res = await refreshGames({ ...filters, releasedYear: 2025, startedYear: 2025 })
 				// Thunk returns paged result; handle both shapes
 				const data = (res as any)?.data ?? res
 				setItems((data as Game[]) || [])
@@ -22,7 +22,7 @@ const ReleasedAndStartedView: React.FC = () => {
 				setLoading(false)
 			}
 		})()
-	}, [fetchReleasedAndStartedList])
+	}, [refreshGames, filters])
 
 	return (
 		<div>
