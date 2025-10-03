@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { createHashRouter } from 'react-router-dom'
 import { AppLayout, EmptyLayout } from '@/layouts'
 import Home from '@/components/Home/containers/Home'
 import { Login, ProtectedRoute, PublicRoute } from '@/components/Auth'
@@ -14,7 +14,7 @@ import {
 } from '@/components/Admin'
 import { RouteError, NotFound } from '@/components/errors'
 
-export const router = createBrowserRouter([
+export const router = createHashRouter([
 	{
 		path: '/login',
 		element: (
