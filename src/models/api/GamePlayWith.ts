@@ -3,6 +3,7 @@ export interface GamePlayWith {
 	name: string
 	isActive: boolean
 	color?: string
+	sortOrder?: number
 }
 
 export interface GamePlayWithCreateDto {
@@ -13,4 +14,5 @@ export interface GamePlayWithCreateDto {
 
 export interface GamePlayWithUpdateDto extends GamePlayWithCreateDto {
 	id: number
+	sortOrder?: number
 }

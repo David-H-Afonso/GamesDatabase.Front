@@ -79,3 +79,15 @@ export const deleteGamePlatform = async (id: number): Promise<void> => {
 	const endpoint = environment.apiRoutes.gamePlatform.delete(id)
 	await customFetch<void>(endpoint, { method: 'DELETE', baseURL: environment.baseUrl })
 }
+
+/**
+ * Reorder game platforms by providing an ordered list of IDs.
+ */
+export const reorderGamePlatforms = async (orderedIds: number[]): Promise<void> => {
+	const endpoint = environment.apiRoutes.gamePlatform.reorder
+	await customFetch<void>(endpoint, {
+		method: 'POST',
+		body: { orderedIds },
+		baseURL: environment.baseUrl,
+	})
+}

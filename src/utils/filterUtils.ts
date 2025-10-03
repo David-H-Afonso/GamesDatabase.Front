@@ -23,6 +23,7 @@ const FILTER_KEYS: (keyof GameQueryParameters)[] = [
 	'finished',
 	'finishedYear',
 	'excludeStatusIds',
+	'viewName',
 ]
 
 /** Normalize null -> undefined for consistent comparisons */

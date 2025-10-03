@@ -1,0 +1,177 @@
+@use '@/assets/styles' as *;
+
+.editable-multi-select {
+	position: relative;
+	display: inline-block;
+	min-width: 150px;
+
+	&__trigger {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 8px;
+		padding: 6px 12px;
+		background: var(--input-bg);
+		border: 1px solid var(--input-border);
+		border-radius: $border-radius-md;
+		cursor: pointer;
+		transition: all 0.2s ease;
+		min-height: 36px;
+
+		&:hover {
+			background: var(--input-bg-hover);
+			border-color: var(--input-border-focus);
+		}
+
+		&--open {
+			border-color: var(--primary);
+			box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+		}
+
+		&--empty {
+			color: var(--text-tertiary);
+		}
+	}
+
+	&__trigger-text {
+		flex: 1;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		color: var(--text-primary);
+	}
+
+	&__arrow {
+		font-size: 10px;
+		color: var(--text-secondary);
+		transition: transform 0.2s ease;
+
+		.editable-multi-select__trigger--open & {
+			transform: rotate(180deg);
+		}
+	}
+
+	&__dropdown {
+		position: absolute;
+		top: calc(100% + 4px);
+		left: 0;
+		right: 0;
+		background: var(--surface);
+		border: 1px solid var(--border);
+		border-radius: $border-radius-md;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+		max-height: 300px;
+		overflow-y: auto;
+		z-index: 1000;
+		animation: slideDown 0.2s ease;
+	}
+
+	&__option {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		padding: 10px 12px;
+		cursor: pointer;
+		transition: background 0.2s ease;
+		border-bottom: 1px solid var(--border-light);
+
+		&:last-child {
+			border-bottom: none;
+		}
+
+		&:hover {
+			background: var(--surface-hover);
+		}
+
+		&--selected {
+			background: rgba(102, 126, 234, 0.08);
+
+			&:hover {
+				background: rgba(102, 126, 234, 0.12);
+			}
+		}
+
+		&--disabled {
+			opacity: 0.6;
+			cursor: not-allowed;
+			pointer-events: none;
+		}
+	}
+
+	&__checkbox {
+		position: relative;
+		display: flex;
+		align-items: center;
+		cursor: pointer;
+
+		input[type='checkbox'] {
+			position: absolute;
+			opacity: 0;
+			width: 0;
+			height: 0;
+		}
+	}
+
+	&__checkmark {
+		width: 18px;
+		height: 18px;
+		border: 2px solid var(--border);
+		border-radius: 4px;
+		background: var(--input-bg);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		transition: all 0.2s ease;
+
+		&::after {
+			content: '✓';
+			color: white;
+			font-size: 12px;
+			font-weight: bold;
+			opacity: 0;
+			transform: scale(0);
+			transition: all 0.2s ease;
+		}
+
+		input[type='checkbox']:checked + & {
+			background: var(--primary);
+			border-color: var(--primary);
+
+			&::after {
+				opacity: 1;
+				transform: scale(1);
+			}
+		}
+
+		input[type='checkbox']:hover + & {
+			border-color: var(--primary);
+		}
+
+		input[type='checkbox']:disabled + & {
+			opacity: 0.5;
+			cursor: not-allowed;
+		}
+	}
+
+	&__option-name {
+		flex: 1;
+		padding: 4px 10px;
+		border-radius: 4px;
+		font-size: 0.9rem;
+		font-weight: 500;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+}
+
+@keyframes slideDown {
+	from {
+		opacity: 0;
+		transform: translateY(-10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}

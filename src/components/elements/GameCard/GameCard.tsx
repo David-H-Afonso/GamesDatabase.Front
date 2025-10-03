@@ -1,5 +1,5 @@
 import type { Game } from '@/models/api/Game'
-import { useState, type FC } from 'react'
+import { useState, memo, type FC } from 'react'
 import { useAppSelector } from '@/store/hooks'
 import { selectGameById } from '@/store/features/games'
 import {
@@ -22,11 +22,14 @@ interface Props {
 	deselectAll?: () => void
 }
 
-export const GameCard: FC<Props> = (props) => {
-	const { game, variant = 'card', onDelete, isSelected = false, onSelect } = props
+const GameCardComponent: FC<Props> = (props) => {
+	const { game: initialGame, variant = 'card', onDelete, isSelected = false, onSelect } = props
 	const [selectedGame, setSelectedGame] = useState<Game | null>(null)
 	const [isDetailsOpen, setIsDetailsOpen] = useState(false)
 	const { updateGameById } = useGames()
+
+	// Always use the game from Redux to get the latest updates
+	const game = useAppSelector(selectGameById(initialGame.id)) || initialGame
 
 	// Get entities from Redux store to access colors
 	const { activeStatuses } = useGameStatus()
@@ -34,17 +37,20 @@ export const GameCard: FC<Props> = (props) => {
 	const { activePlayWiths } = useGamePlayWith()
 	const { playedStatuses: activePlayedStatuses } = useGamePlayedStatus()
 
-	const updatedGame = useAppSelector(selectGameById(game.id)) || game
-
 	// Find the entities to get their colors
-	const gameStatus = activeStatuses.find((status) => status.id === updatedGame.statusId)
-	const gamePlatform = activePlatforms.find((platform) => platform.id === updatedGame.platformId)
-	const gamePlayWith = activePlayWiths.find((option) => option.id === updatedGame.playWithId)
-	const gamePlayedStatus = activePlayedStatuses.find(
-		(status) => status.id === updatedGame.playedStatusId
-	)
+	const gameStatus = activeStatuses.find((status) => status.id === game.statusId)
+	const gamePlatform = activePlatforms.find((platform) => platform.id === game.platformId)
+	const gamePlayWiths = activePlayWiths.filter((option) => game.playWithIds?.includes(option.id))
+	const gamePlayedStatus = activePlayedStatuses.find((status) => status.id === game.playedStatusId)
 
-	const handleFieldUpdate = async (gameId: number, field: string, value: number | undefined) => {
+	// Get array of colors for PlayWith options
+	const playWithColors = gamePlayWiths.map((pw) => pw.color)
+
+	const handleFieldUpdate = async (
+		gameId: number,
+		field: string,
+		value: number | number[] | undefined
+	) => {
 		try {
 			const payload = typeof value === 'undefined' ? null : value
 			await updateGameById(gameId, { [field]: payload } as any)
@@ -55,18 +61,14 @@ export const GameCard: FC<Props> = (props) => {
 	}
 
 	const openDetails = (_game: Game) => {
-		setSelectedGame(updatedGame)
+		setSelectedGame(game)
 		setIsDetailsOpen(true)
 	}
 
 	return (
 		<>
 			{isDetailsOpen && selectedGame && (
-				<GameDetails
-					game={updatedGame}
-					closeDetails={() => setIsDetailsOpen(false)}
-					onDelete={onDelete}
-				/>
+				<GameDetails game={game} closeDetails={() => setIsDetailsOpen(false)} onDelete={onDelete} />
 			)}
 
 			{variant === 'card' && (
@@ -75,7 +77,7 @@ export const GameCard: FC<Props> = (props) => {
 						game={game}
 						openDetails={openDetails}
 						onFieldUpdate={handleFieldUpdate}
-						playWithColor={gamePlayWith?.color || '#333'}
+						playWithColors={playWithColors}
 						gameStatusColor={gameStatus?.color || '#333'}
 						platformColor={gamePlatform?.color || '#333'}
 						onSelect={onSelect}
@@ -91,7 +93,7 @@ export const GameCard: FC<Props> = (props) => {
 						game={game}
 						openDetails={openDetails}
 						onFieldUpdate={handleFieldUpdate}
-						playWithColor={gamePlayWith?.color || '#333'}
+						playWithColors={playWithColors}
 						gameStatusColor={gameStatus?.color || '#333'}
 						platformColor={gamePlatform?.color || '#333'}
 						playedStatusColor={gamePlayedStatus?.color || '#333'}
@@ -104,3 +106,15 @@ export const GameCard: FC<Props> = (props) => {
 		</>
 	)
 }
+
+// Memoize GameCard to prevent unnecessary re-renders when props don't change
+// Note: We use game from Redux inside the component, so we only need to check
+// if the game ID, selection state, or variant changed. The component will
+// automatically get updates from Redux when the game data changes.
+export const GameCard = memo(GameCardComponent, (prevProps, nextProps) => {
+	return (
+		prevProps.game.id === nextProps.game.id &&
+		prevProps.isSelected === nextProps.isSelected &&
+		prevProps.variant === nextProps.variant
+	)
+})

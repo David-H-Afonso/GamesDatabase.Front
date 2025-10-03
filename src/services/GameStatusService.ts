@@ -88,3 +88,15 @@ export const reassignSpecialStatuses = async (payload: {
 	const endpoint = environment.apiRoutes.gameStatus.reassignSpecial
 	await customFetch<void>(endpoint, { method: 'POST', body: payload, baseURL: environment.baseUrl })
 }
+
+/**
+ * Reorder game statuses by providing an ordered list of IDs.
+ */
+export const reorderGameStatuses = async (orderedIds: number[]): Promise<void> => {
+	const endpoint = environment.apiRoutes.gameStatus.reorder
+	await customFetch<void>(endpoint, {
+		method: 'POST',
+		body: { orderedIds },
+		baseURL: environment.baseUrl,
+	})
+}

@@ -2,7 +2,7 @@
 	display: flex;
 	flex-direction: column;
 	min-height: 100vh;
-	background-color: #ffffff;
+	background-color: var(--bg-primary);
 }
 
 .admin-header {
@@ -10,7 +10,7 @@
 	justify-content: space-between;
 	align-items: center;
 	padding: 16px 24px;
-	background-color: #2563eb;
+	background-color: var(--primary);
 	color: #ffffff;
 	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
@@ -38,12 +38,12 @@
 
 .admin-sidebar {
 	width: 250px;
-	background-color: #f8f9fa;
-	border-right: 1px solid #e9ecef;
+	background-color: var(--bg-secondary);
+	border-right: 1px solid var(--border);
 	padding: 24px;
 
 	h2 {
-		color: #2563eb;
+		color: var(--primary);
 		margin-bottom: 32px;
 		font-size: 20px;
 		font-weight: 600;
@@ -58,19 +58,19 @@
 	.nav-link {
 		display: block;
 		padding: 12px 16px;
-		color: #6b7280;
+		color: var(--text-secondary);
 		text-decoration: none;
 		border-radius: 8px;
 		transition: all 0.2s ease;
 		font-weight: 500;
 
 		&:hover {
-			background-color: #e5e7eb;
-			color: #374151;
+			background-color: var(--gray-200);
+			color: var(--text-primary);
 		}
 
 		&.active {
-			background-color: #2563eb;
+			background-color: var(--primary);
 			color: #ffffff;
 		}
 	}
@@ -79,7 +79,7 @@
 .admin-content {
 	flex: 1;
 	padding: 24px;
-	background-color: #ffffff;
+	background-color: var(--bg-primary);
 }
 
 @media (max-width: 768px) {
@@ -99,7 +99,7 @@
 		width: 100%;
 		position: relative;
 		border-right: none;
-		border-bottom: 1px solid #e9ecef;
+		border-bottom: 1px solid var(--border);
 	}
 
 	.admin-nav {

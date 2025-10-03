@@ -11,8 +11,8 @@ export interface Game {
 	name: string
 	platformId?: number
 	platformName?: string
-	playWithId?: number
-	playWithName?: string
+	playWithIds: number[] // Changed to array
+	playWithNames: string[] // Changed to array
 	playedStatusId?: number
 	playedStatusName?: string
 	released?: string // ISO date string
@@ -39,7 +39,7 @@ export interface GameCreateDto {
 	started?: string
 	finished?: string
 	comment?: string
-	playWithId?: number
+	playWithIds?: number[] // Changed to array
 	playedStatusId?: number
 }
 
@@ -87,6 +87,8 @@ export interface GameQueryParameters extends QueryParameters {
 	finishedYear?: number
 	// Exclude specific status IDs (can be multiple)
 	excludeStatusIds?: number[]
+	// View name for custom views
+	viewName?: string
 }
 
 // Paginated response wrapper

@@ -1,6 +1,7 @@
 import { createBrowserRouter } from 'react-router-dom'
-import { AppLayout } from '@/layouts'
+import { AppLayout, EmptyLayout } from '@/layouts'
 import Home from '@/components/Home/containers/Home'
+import { Login, ProtectedRoute, PublicRoute } from '@/components/Auth'
 import {
 	AdminLayout,
 	AdminPlatforms,
@@ -8,23 +9,33 @@ import {
 	AdminPlayWith,
 	AdminPlayedStatus,
 	AdminDataExport,
+	AdminGameViews,
+	AdminUsers,
 } from '@/components/Admin'
-
-// TODO: DO THIS BETTER AND WITH CUSTOM ROUTES IN SEPARATE FILES
+import { RouteError, NotFound } from '@/components/errors'
 
 export const router = createBrowserRouter([
 	{
+		path: '/login',
+		element: (
+			<PublicRoute>
+				<EmptyLayout>
+					<Login />
+				</EmptyLayout>
+			</PublicRoute>
+		),
+		errorElement: <RouteError />,
+	},
+	{
 		path: '/',
 		element: (
-			<AppLayout>
-				<Home />
-			</AppLayout>
+			<ProtectedRoute>
+				<AppLayout>
+					<Home />
+				</AppLayout>
+			</ProtectedRoute>
 		),
-		errorElement: (
-			<AppLayout>
-				<Home />
-			</AppLayout>
-		),
+		errorElement: <RouteError />,
 	},
 	{
 		path: '/settings',
@@ -36,7 +47,12 @@ export const router = createBrowserRouter([
 	},
 	{
 		path: '/admin',
-		element: <AdminLayout />,
+		element: (
+			<ProtectedRoute>
+				<AdminLayout />
+			</ProtectedRoute>
+		),
+		errorElement: <RouteError />,
 		children: [
 			{
 				path: 'platforms',
@@ -58,11 +74,26 @@ export const router = createBrowserRouter([
 				path: 'data-export',
 				element: <AdminDataExport />,
 			},
+			{
+				path: 'game-views',
+				element: <AdminGameViews />,
+			},
+			{
+				path: 'users',
+				element: (
+					<ProtectedRoute adminOnly={true}>
+						<AdminUsers />
+					</ProtectedRoute>
+				),
+			},
 		],
 	},
 	{
 		path: '*',
-		element: <div>Page not found</div>,
-		errorElement: <Home />,
+		element: (
+			<EmptyLayout>
+				<NotFound />
+			</EmptyLayout>
+		),
 	},
 ])

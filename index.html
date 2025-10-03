@@ -3,11 +3,28 @@
 	<head>
 		<meta charset="UTF-8" />
 		<link rel="icon" type="image/svg+xml" href="/vite.svg" />
-		<link
-			href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-			rel="stylesheet" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>Games Database</title>
+		<!-- Apply theme IMMEDIATELY before any rendering to prevent FOUC -->
+		<script>
+			;(function () {
+				const theme = localStorage.getItem('theme') || 'oscuro'
+				document.documentElement.setAttribute('data-theme', theme)
+				// Add a class to prevent transitions on initial load
+				document.documentElement.classList.add('preload')
+			})()
+		</script>
+		<!-- Load fonts asynchronously to not block rendering -->
+		<link
+			rel="preload"
+			href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+			as="style"
+			onload="this.onload=null;this.rel='stylesheet'" />
+		<noscript>
+			<link
+				href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+				rel="stylesheet" />
+		</noscript>
 	</head>
 	<body>
 		<div id="root"></div>

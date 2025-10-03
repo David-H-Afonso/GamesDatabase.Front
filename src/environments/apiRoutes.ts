@@ -22,6 +22,7 @@ export const apiRoutes = {
 		create: '/gamestatus',
 		update: (id: number) => `/gamestatus/${id}`,
 		delete: (id: number) => `/gamestatus/${id}`,
+		reorder: '/gamestatus/reorder',
 	},
 
 	/** Game Platform endpoints */
@@ -32,6 +33,7 @@ export const apiRoutes = {
 		create: '/gameplatforms',
 		update: (id: number) => `/gameplatforms/${id}`,
 		delete: (id: number) => `/gameplatforms/${id}`,
+		reorder: '/gameplatforms/reorder',
 	},
 
 	/** Game Play With endpoints */
@@ -42,6 +44,7 @@ export const apiRoutes = {
 		create: '/gameplaywith',
 		update: (id: number) => `/gameplaywith/${id}`,
 		delete: (id: number) => `/gameplaywith/${id}`,
+		reorder: '/gameplaywith/reorder',
 	},
 
 	/** Game Played Status endpoints */
@@ -52,11 +55,34 @@ export const apiRoutes = {
 		create: '/gameplayedstatus',
 		update: (id: number) => `/gameplayedstatus/${id}`,
 		delete: (id: number) => `/gameplayedstatus/${id}`,
+		reorder: '/gameplayedstatus/reorder',
 	},
 
 	/** Data Export endpoints */
 	dataExport: {
 		gamesCSV: '/DataExport/games/csv',
+		fullExport: '/DataExport/full',
+		fullImport: '/DataExport/full',
+	},
+
+	/** Game Views endpoints */
+	gameViews: {
+		base: '/gameviews',
+		byId: (id: number) => `/gameviews/${id}`,
+		create: '/gameviews',
+		update: (id: number) => `/gameviews/${id}`,
+		delete: (id: number) => `/gameviews/${id}`,
+	},
+
+	/** User endpoints */
+	users: {
+		login: '/users/login',
+		base: '/users',
+		byId: (id: number) => `/users/${id}`,
+		create: '/users',
+		update: (id: number) => `/users/${id}`,
+		delete: (id: number) => `/users/${id}`,
+		changePassword: (id: number) => `/users/${id}/password`,
 	},
 } as const
 

@@ -44,4 +44,8 @@ export const environment = {
 			'192.168.0.32:8080',
 		],
 	},
+	auth: {
+		defaultUsername: 'Admin',
+		defaultPassword: '',
+	},
 }

@@ -6,9 +6,6 @@ import {
 	getGameById,
 	getGames,
 	deleteGame as deleteGameService,
-	getReleasedAndStarted,
-	getStartedOrStatus,
-	getNoStartedByScore,
 } from '@/services/GamesService'
 import type { GameCreateDto, GameUpdateDto, GameQueryParameters } from '@/models/api/Game'
 
@@ -22,51 +19,6 @@ export const fetchGames = createAsyncThunk(
 			return response
 		} catch (error: any) {
 			return rejectWithValue(error.message || 'Failed to fetch games')
-		}
-	}
-)
-
-// Fetch games released and started in a specific year (simple list)
-export const fetchReleasedAndStarted = createAsyncThunk(
-	'games/fetchReleasedAndStarted',
-	async (params: GameQueryParameters & { year?: number } = {}, { rejectWithValue }) => {
-		try {
-			const query = { pageSize: environment.pagination.defaultPageSize, ...(params || {}) }
-			const response = await getReleasedAndStarted(query)
-			return response
-		} catch (error: any) {
-			return rejectWithValue(error.message || 'Failed to fetch released-and-started')
-		}
-	}
-)
-
-// Fetch games started in a year or matching a status
-export const fetchStartedOrStatus = createAsyncThunk(
-	'games/fetchStartedOrStatus',
-	async (
-		params: GameQueryParameters & { year?: number; status?: string } = {},
-		{ rejectWithValue }
-	) => {
-		try {
-			const query = { pageSize: environment.pagination.defaultPageSize, ...(params || {}) }
-			const response = await getStartedOrStatus(query)
-			return response
-		} catch (error: any) {
-			return rejectWithValue(error.message || 'Failed to fetch started-or-status')
-		}
-	}
-)
-
-// Fetch games with no started date ordered by score
-export const fetchNoStartedByScore = createAsyncThunk(
-	'games/fetchNoStartedByScore',
-	async (params: GameQueryParameters = {}, { rejectWithValue }) => {
-		try {
-			const query = { pageSize: environment.pagination.defaultPageSize, ...(params || {}) }
-			const response = await getNoStartedByScore(query)
-			return response
-		} catch (error: any) {
-			return rejectWithValue(error.message || 'Failed to fetch no-started-by-score')
 		}
 	}
 )

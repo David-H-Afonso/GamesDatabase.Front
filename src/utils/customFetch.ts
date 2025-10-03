@@ -1,33 +1,17 @@
-/**
- * HTTP methods supported by the custom fetch utility
- */
+import { environment } from '@/environments'
+
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS'
 
-/**
- * Configuration options for customFetch requests
- */
 type CustomFetchOptions = {
-	/** HTTP method for the request */
 	method?: HttpMethod
-	/** Request headers as key-value pairs */
 	headers?: Record<string, string>
-	/** Request body data (automatically serialized for JSON) */
 	body?: any
-	/** URL query parameters to append to the endpoint */
 	params?: Record<string, string | number | boolean | number[]>
-	/** AbortSignal for request cancellation */
 	signal?: AbortSignal
-	/** Request timeout in milliseconds */
 	timeout?: number
-	/** Custom base URL to prepend to relative URLs */
 	baseURL?: string
 }
 
-/**
- * Builds URL query string from parameters object
- * @param queryParameters - Object containing query parameters
- * @returns Formatted query string with leading '?' or empty string
- */
 const buildQueryString = (
 	queryParameters?: Record<string, string | number | boolean | number[]>
 ): string => {
@@ -42,7 +26,6 @@ const buildQueryString = (
 		.filter(([_, value]) => value !== null && value !== undefined)
 		.forEach(([key, value]) => {
 			if (Array.isArray(value)) {
-				// Handle arrays by creating multiple query parameters with the same key
 				value.forEach((item) => {
 					queryPairs.push(`${encodeURIComponent(key)}=${encodeURIComponent(String(item))}`)
 				})
@@ -54,11 +37,6 @@ const buildQueryString = (
 	return queryPairs.length > 0 ? `?${queryPairs.join('&')}` : ''
 }
 
-/**
- * Determines if the request body should be JSON serialized
- * @param requestBody - The body data to check
- * @returns True if body should be JSON serialized
- */
 const shouldSerializeAsJson = (requestBody: any): boolean => {
 	return (
 		typeof requestBody === 'object' &&
@@ -70,11 +48,6 @@ const shouldSerializeAsJson = (requestBody: any): boolean => {
 	)
 }
 
-/**
- * Processes the response based on its content type
- * @param httpResponse - The fetch Response object
- * @returns Parsed response data
- */
 const parseResponseData = async (httpResponse: Response): Promise<any> => {
 	const responseContentType = httpResponse.headers.get('content-type') || ''
 
@@ -93,15 +66,9 @@ const parseResponseData = async (httpResponse: Response): Promise<any> => {
 		return await httpResponse.blob()
 	}
 
-	// Default to text for unknown content types
 	return await httpResponse.text()
 }
 
-/**
- * Creates a timeout promise that rejects after specified milliseconds
- * @param timeoutMs - Timeout duration in milliseconds
- * @returns Promise that rejects with timeout error
- */
 const createTimeoutPromise = (timeoutMs: number): Promise<never> => {
 	return new Promise((_, reject) => {
 		setTimeout(() => {
@@ -110,24 +77,6 @@ const createTimeoutPromise = (timeoutMs: number): Promise<never> => {
 	})
 }
 
-/**
- * Universal HTTP client for making API requests with automatic JSON handling,
- * query parameter encoding, and comprehensive error handling
- *
- * @template T - Expected response data type
- * @param endpoint - URL endpoint (absolute or relative)
- * @param requestOptions - Configuration options for the request
- * Request options:
- * - method: HTTP method for the request (default: 'GET')
- * - headers: Request headers as key-value pairs (default: {})
- * - body: Request body data (default: undefined)
- * - params: URL query parameters to append to the endpoint (default: undefined)
- * - signal: AbortSignal for request cancellation (default: undefined)
- * - timeout: Request timeout in milliseconds (default: undefined)
- * - baseURL: Custom base URL to prepend to relative URLs (default: '')
- *
- * @returns Promise resolving to typed response data
- */
 export const customFetch = async <T = any>(
 	endpoint: string,
 	requestOptions: CustomFetchOptions = {}
@@ -139,20 +88,20 @@ export const customFetch = async <T = any>(
 		params: queryParams,
 		signal: abortSignal,
 		timeout: timeoutMs,
-		baseURL: baseUrl = '',
+		baseURL: baseUrl = environment.baseUrl,
 	} = requestOptions
 
-	// Construct the complete URL with base URL and query parameters
 	const completeUrl = baseUrl + endpoint + buildQueryString(queryParams)
-
-	// Prepare fetch configuration
+	const token = localStorage.getItem('authToken')
 	const fetchConfiguration: RequestInit = {
 		method,
-		headers: { ...customHeaders },
+		headers: {
+			...customHeaders,
+			...(token && { Authorization: `Bearer ${token}` }),
+		},
 		signal: abortSignal,
 	}
 
-	// Handle request body serialization for non-GET requests
 	if (requestBody !== undefined && method !== 'GET' && method !== 'HEAD') {
 		if (shouldSerializeAsJson(requestBody)) {
 			fetchConfiguration.body = JSON.stringify(requestBody)
@@ -166,19 +115,23 @@ export const customFetch = async <T = any>(
 	}
 
 	try {
-		// Create fetch promise
 		const fetchPromise = fetch(completeUrl, fetchConfiguration)
-
-		// Handle timeout if specified
 		const httpResponse = timeoutMs
 			? await Promise.race([fetchPromise, createTimeoutPromise(timeoutMs)])
 			: await fetchPromise
 
-		// Parse response data based on content type
 		const responseData = await parseResponseData(httpResponse)
 
-		// Handle HTTP error status codes
 		if (!httpResponse.ok) {
+			if (httpResponse.status === 401) {
+				localStorage.removeItem('authToken')
+				localStorage.removeItem('userId')
+				localStorage.removeItem('username')
+				localStorage.removeItem('userRole')
+				window.location.href = '/login'
+				throw new Error('Authentication required. Redirecting to login...')
+			}
+
 			const errorMessage =
 				typeof responseData === 'string' ? responseData : JSON.stringify(responseData)
 
@@ -187,7 +140,6 @@ export const customFetch = async <T = any>(
 
 		return responseData as T
 	} catch (fetchError) {
-		// Re-throw with enhanced error context
 		if (fetchError instanceof Error) {
 			throw new Error(`Request failed for ${method} ${completeUrl}: ${fetchError.message}`)
 		}

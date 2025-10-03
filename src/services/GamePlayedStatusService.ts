@@ -82,3 +82,15 @@ export const deleteGamePlayedStatus = async (id: number): Promise<void> => {
 	const endpoint = environment.apiRoutes.gamePlayedStatus.delete(id)
 	await customFetch<void>(endpoint, { method: 'DELETE', baseURL: environment.baseUrl })
 }
+
+/**
+ * Reorder game played statuses by providing an ordered list of IDs.
+ */
+export const reorderGamePlayedStatuses = async (orderedIds: number[]): Promise<void> => {
+	const endpoint = environment.apiRoutes.gamePlayedStatus.reorder
+	await customFetch<void>(endpoint, {
+		method: 'POST',
+		body: { orderedIds },
+		baseURL: environment.baseUrl,
+	})
+}

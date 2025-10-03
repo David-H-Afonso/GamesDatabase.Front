@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useGamePlayWith } from '@/hooks'
+import { reorderGamePlayWith } from '@/services'
 import type {
 	GamePlayWith,
 	GamePlayWithCreateDto,
@@ -32,9 +33,14 @@ export const AdminPlayWith: React.FC = () => {
 	const [queryParams, setQueryParams] = useState<QueryParameters>({
 		page: 1,
 		pageSize: 10,
-		sortBy: 'name',
+		sortBy: undefined,
 		sortDescending: false,
 	})
+
+	// Drag and drop state
+	const [draggedId, setDraggedId] = useState<number | null>(null)
+	const [dragOverId, setDragOverId] = useState<number | null>(null)
+	const [isReordering, setIsReordering] = useState(false)
 
 	useEffect(() => {
 		loadPlayWiths(queryParams)
@@ -49,13 +55,37 @@ export const AdminPlayWith: React.FC = () => {
 		setQueryParams((prev) => ({ ...prev, pageSize: newPageSize, page: 1 }))
 	}
 
-	// Sorting handlers
-	const handleSortChange = (sortBy: string) => {
-		setQueryParams((prev) => ({
-			...prev,
-			sortBy,
-			sortDescending: prev.sortBy === sortBy ? !prev.sortDescending : false,
-		}))
+	// Reorder play-with options by moving option with id `sourceId` to the position of `targetId`.
+	const reorderPlayWiths = async (sourceId: number, targetId: number) => {
+		// Work on a copy ordered by sortOrder if present, otherwise by id
+		const ordered = [...playWiths].sort((a, b) => {
+			const aKey = a.sortOrder ?? a.id
+			const bKey = b.sortOrder ?? b.id
+			return aKey - bKey
+		})
+
+		const sourceIndex = ordered.findIndex((s) => s.id === sourceId)
+		const targetIndex = ordered.findIndex((s) => s.id === targetId)
+		if (sourceIndex === -1 || targetIndex === -1) return
+
+		// Remove source and insert at targetIndex
+		const [moved] = ordered.splice(sourceIndex, 1)
+		ordered.splice(targetIndex, 0, moved)
+
+		// Extract ordered IDs
+		const orderedIds = ordered.map((s) => s.id)
+
+		setIsReordering(true)
+		try {
+			await reorderGamePlayWith(orderedIds)
+			// Reload list to reflect server state
+			await loadPlayWiths(queryParams)
+		} catch (err) {
+			console.error('Failed to reorder play-with options:', err)
+			window.alert('Error al reordenar. Por favor, intenta de nuevo.')
+		} finally {
+			setIsReordering(false)
+		}
 	}
 
 	const handleOpenModal = (option?: GamePlayWith) => {
@@ -126,21 +156,6 @@ export const AdminPlayWith: React.FC = () => {
 			{error && <div className='alert alert-error'>{error}</div>}
 
 			<div className='admin-controls'>
-				<div className='sort-controls'>
-					<label>Ordenar por:</label>
-					<select
-						value={queryParams.sortBy || 'name'}
-						onChange={(e) => handleSortChange(e.target.value)}>
-						<option value='name'>Nombre</option>
-						<option value='id'>ID</option>
-						<option value='isActive'>Estado</option>
-					</select>
-					<button
-						className='sort-direction-btn'
-						onClick={() => handleSortChange(queryParams.sortBy || 'name')}>
-						{queryParams.sortDescending ? '↓' : '↑'}
-					</button>
-				</div>
 				<div className='page-size-control'>
 					<label>Elementos por página:</label>
 					<select
@@ -170,7 +185,35 @@ export const AdminPlayWith: React.FC = () => {
 							</thead>
 							<tbody>
 								{playWiths.map((option) => (
-									<tr key={option.id}>
+									<tr
+										key={option.id}
+										draggable={true}
+										onDragStart={(e) => {
+											setDraggedId(option.id)
+											e.dataTransfer.effectAllowed = 'move'
+										}}
+										onDragOver={(e) => {
+											if (isReordering) return
+											e.preventDefault()
+											if (option.id !== draggedId) {
+												setDragOverId(option.id)
+											}
+										}}
+										onDragLeave={() => {
+											setDragOverId(null)
+										}}
+										onDrop={async (e) => {
+											e.preventDefault()
+											setDragOverId(null)
+											if (isReordering || draggedId == null || draggedId === option.id) return
+											await reorderPlayWiths(draggedId, option.id)
+											setDraggedId(null)
+										}}
+										style={{
+											cursor: 'grab',
+											opacity: draggedId === option.id ? 0.5 : 1,
+											borderTop: dragOverId === option.id ? '2px solid #2563eb' : undefined,
+										}}>
 										<td>{option.name}</td>
 										<td>
 											<div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

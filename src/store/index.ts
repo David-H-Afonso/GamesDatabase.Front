@@ -7,7 +7,10 @@ import gameStatusReducer from './features/gameStatus/gameStatusSlice'
 import gamePlatformReducer from './features/gamePlatform/gamePlatformSlice'
 import gamePlayWithReducer from './features/gamePlayWith/gamePlayWithSlice'
 import gamePlayedStatusReducer from './features/gamePlayedStatus/gamePlayedStatusSlice'
+import gameViewsReducer from './features/gameViews/gameViewSlice'
 import themeReducer from './features/theme/themeSlice'
+import authReducer from './features/auth/authSlice'
+import recentUsersReducer from './features/recentUsers/recentUsersSlice'
 
 /**
  * CENTRALIZED PERSISTENCE CONFIGURATION
@@ -20,7 +23,17 @@ import themeReducer from './features/theme/themeSlice'
 const persistConfig = {
 	key: 'root',
 	storage,
-	whitelist: ['games', 'gameStatus', 'gamePlatform', 'gamePlayWith', 'gamePlayedStatus', 'theme'], // Add reducers here to persist
+	whitelist: [
+		'games',
+		'gameStatus',
+		'gamePlatform',
+		'gamePlayWith',
+		'gamePlayedStatus',
+		'gameViews',
+		'theme',
+		'auth', // Persist authentication state
+		'recentUsers', // Persist recent users for quick login
+	], // Add reducers here to persist
 }
 
 // Combine reducers - Add your reducers here
@@ -30,7 +43,10 @@ const rootReducer = combineReducers({
 	gamePlatform: gamePlatformReducer,
 	gamePlayWith: gamePlayWithReducer,
 	gamePlayedStatus: gamePlayedStatusReducer,
+	gameViews: gameViewsReducer,
 	theme: themeReducer,
+	auth: authReducer,
+	recentUsers: recentUsersReducer,
 })
 
 // Create persisted reducer - Single point of persistence configuration

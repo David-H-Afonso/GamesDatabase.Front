@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useGamePlatform } from '@/hooks'
+import { reorderGamePlatforms } from '@/services'
 import type {
 	GamePlatform,
 	GamePlatformCreateDto,
@@ -31,10 +32,44 @@ export const AdminPlatforms: React.FC = () => {
 	// Pagination and sorting state
 	const [queryParams, setQueryParams] = useState<QueryParameters>({
 		page: 1,
-		pageSize: 10,
-		sortBy: 'name',
+		pageSize: 50,
+		sortBy: undefined,
 		sortDescending: false,
 	})
+
+	// Drag and drop state
+	const [draggedId, setDraggedId] = useState<number | null>(null)
+	const [dragOverId, setDragOverId] = useState<number | null>(null)
+	const [isReordering, setIsReordering] = useState(false)
+
+	// Reorder platforms by moving platform with id `sourceId` to the position of `targetId`.
+	const reorderPlatforms = async (sourceId: number, targetId: number) => {
+		const ordered = [...platforms].sort((a, b) => {
+			const aKey = a.sortOrder ?? a.id
+			const bKey = b.sortOrder ?? b.id
+			return aKey - bKey
+		})
+
+		const sourceIndex = ordered.findIndex((p) => p.id === sourceId)
+		const targetIndex = ordered.findIndex((p) => p.id === targetId)
+		if (sourceIndex === -1 || targetIndex === -1) return
+
+		const [moved] = ordered.splice(sourceIndex, 1)
+		ordered.splice(targetIndex, 0, moved)
+
+		const orderedIds = ordered.map((p) => p.id)
+
+		setIsReordering(true)
+		try {
+			await reorderGamePlatforms(orderedIds)
+			await loadPlatforms(queryParams)
+		} catch (err) {
+			console.error('Failed to reorder platforms:', err)
+			window.alert('Error al reordenar. Por favor, intenta de nuevo.')
+		} finally {
+			setIsReordering(false)
+		}
+	}
 
 	useEffect(() => {
 		loadPlatforms(queryParams)
@@ -47,15 +82,6 @@ export const AdminPlatforms: React.FC = () => {
 
 	const handlePageSizeChange = (newPageSize: number) => {
 		setQueryParams((prev) => ({ ...prev, pageSize: newPageSize, page: 1 }))
-	}
-
-	// Sorting handlers
-	const handleSortChange = (sortBy: string) => {
-		setQueryParams((prev) => ({
-			...prev,
-			sortBy,
-			sortDescending: prev.sortBy === sortBy ? !prev.sortDescending : false,
-		}))
 	}
 
 	const handleOpenModal = (platform?: GamePlatform) => {
@@ -129,25 +155,10 @@ export const AdminPlatforms: React.FC = () => {
 
 			{/* Filters and Pagination Controls */}
 			<div className='admin-controls'>
-				<div className='sort-controls'>
-					<label>Ordenar por:</label>
-					<select
-						value={queryParams.sortBy || 'name'}
-						onChange={(e) => handleSortChange(e.target.value)}>
-						<option value='name'>Nombre</option>
-						<option value='id'>ID</option>
-						<option value='isActive'>Estado</option>
-					</select>
-					<button
-						className='sort-direction-btn'
-						onClick={() => handleSortChange(queryParams.sortBy || 'name')}>
-						{queryParams.sortDescending ? '↓' : '↑'}
-					</button>
-				</div>
 				<div className='page-size-control'>
 					<label>Elementos por página:</label>
 					<select
-						value={queryParams.pageSize || 10}
+						value={queryParams.pageSize || 50}
 						onChange={(e) => handlePageSizeChange(Number(e.target.value))}>
 						<option value='5'>5</option>
 						<option value='10'>10</option>
@@ -172,7 +183,35 @@ export const AdminPlatforms: React.FC = () => {
 						</thead>
 						<tbody>
 							{platforms.map((platform) => (
-								<tr key={platform.id}>
+								<tr
+									key={platform.id}
+									draggable={true}
+									onDragStart={(e) => {
+										setDraggedId(platform.id)
+										e.dataTransfer.effectAllowed = 'move'
+									}}
+									onDragOver={(e) => {
+										if (isReordering) return
+										e.preventDefault()
+										if (platform.id !== draggedId) {
+											setDragOverId(platform.id)
+										}
+									}}
+									onDragLeave={() => {
+										setDragOverId(null)
+									}}
+									onDrop={async (e) => {
+										e.preventDefault()
+										setDragOverId(null)
+										if (isReordering || draggedId == null || draggedId === platform.id) return
+										await reorderPlatforms(draggedId, platform.id)
+										setDraggedId(null)
+									}}
+									style={{
+										cursor: 'grab',
+										opacity: draggedId === platform.id ? 0.5 : 1,
+										borderTop: dragOverId === platform.id ? '2px solid #2563eb' : undefined,
+									}}>
 									<td>{platform.name}</td>
 									<td>
 										<div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

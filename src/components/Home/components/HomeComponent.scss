@@ -4,6 +4,66 @@
 	min-height: 92vh;
 	background: var(--bg-primary);
 	font-family: $font-family;
+	max-width: 100%;
+	overflow-x: hidden;
+
+	// Alert/notification banner
+	&__alert {
+		position: sticky;
+		top: 0;
+		z-index: 100;
+		padding: 12px 20px;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		animation: slideDown 0.3s ease-out;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+
+		&--warning {
+			background-color: #ff9800;
+			color: #000;
+			border-left: 4px solid #f57c00;
+		}
+
+		&--error {
+			background-color: #f44336;
+			color: #fff;
+			border-left: 4px solid #c62828;
+		}
+
+		span {
+			flex: 1;
+			font-weight: 500;
+		}
+	}
+
+	&__alert-close {
+		background: none;
+		border: none;
+		color: inherit;
+		font-size: 24px;
+		line-height: 1;
+		cursor: pointer;
+		padding: 0 8px;
+		margin-left: 16px;
+		opacity: 0.8;
+		transition: opacity 0.2s;
+
+		&:hover {
+			opacity: 1;
+		}
+	}
+
+	@keyframes slideDown {
+		from {
+			transform: translateY(-100%);
+			opacity: 0;
+		}
+		to {
+			transform: translateY(0);
+			opacity: 1;
+		}
+	}
 
 	// Header action buttons (Select / Deselect / Bulk Delete)
 	&__select-all-button,
@@ -19,6 +79,7 @@
 		background: var(--bg-secondary);
 		color: var(--text-primary);
 		box-shadow: var(--card-shadow);
+		white-space: nowrap;
 
 		&:hover {
 			transform: translateY(-1px);
@@ -32,6 +93,16 @@
 		&:disabled {
 			opacity: 0.6;
 			cursor: not-allowed;
+		}
+
+		@media (max-width: 767px) {
+			margin-left: 0;
+			margin-top: 8px;
+			width: 100%;
+			padding: 12px;
+			justify-content: center;
+			display: flex;
+			align-items: center;
 		}
 	}
 
@@ -105,6 +176,13 @@
 	&__main {
 		margin: 0 auto;
 		padding: $space-lg $space-md;
+		max-width: 100%;
+		overflow: hidden;
+		box-sizing: border-box;
+
+		@media (max-width: 767px) {
+			padding: $space-md $space-sm;
+		}
 	}
 
 	// Controles de administración (mismo estilo que admin)
@@ -117,21 +195,28 @@
 		background-color: var(--bg-secondary);
 		border-radius: 8px;
 		border: 1px solid var(--border);
+		flex-wrap: wrap;
+		gap: 12px;
 
 		.search-controls {
 			display: flex;
 			align-items: center;
 			gap: 8px;
+			flex-wrap: wrap;
+			flex: 1 1 auto;
+			min-width: 200px;
 		}
 
 		.sort-controls {
 			display: flex;
 			align-items: center;
 			gap: 8px;
+			flex-wrap: wrap;
 
 			label {
 				font-weight: 500;
 				color: var(--text-primary);
+				white-space: nowrap;
 			}
 
 			select {
@@ -140,6 +225,7 @@
 				border-radius: 6px;
 				background-color: var(--input-bg);
 				color: var(--text-primary);
+				min-width: 120px;
 			}
 
 			.sort-direction-btn {
@@ -165,12 +251,36 @@
 		padding: $space-lg;
 		margin-bottom: $space-lg;
 		box-shadow: $card-shadow;
+
+		@media (max-width: 767px) {
+			padding: $space-md;
+			margin-bottom: $space-md;
+			border-radius: $border-radius-md;
+		}
 	}
 
 	&-games-card {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+		grid-template-columns: repeat(auto-fill, minmax(min(347px, 100%), 1fr));
 		gap: $space-lg;
+		width: 100%;
+		max-width: 100%;
+		box-sizing: border-box;
+		overflow: hidden;
+		justify-items: center;
+
+		// Cuando solo hay una columna en móvil, los items se centran
+		@media (max-width: 767px) {
+			grid-template-columns: 1fr;
+			justify-items: center;
+			padding: 0 $space-sm;
+		}
+
+		// Para tablets pequeñas
+		@media (min-width: 768px) and (max-width: 1023px) {
+			grid-template-columns: repeat(auto-fill, minmax(min(330px, 45%), 1fr));
+			justify-items: center;
+		}
 	}
 
 	&-games-row {
@@ -179,7 +289,8 @@
 		max-width: 100%;
 		width: 100%;
 		border: 1px solid var(--border-color-light);
-		overflow-x: scroll;
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
 
 		&-header {
 			display: flex;
@@ -188,6 +299,11 @@
 			justify-content: flex-start;
 			padding: 10px;
 			min-width: fit-content;
+			background-color: var(--bg-secondary);
+			font-weight: 600;
+			position: sticky;
+			top: 0;
+			z-index: 10;
 
 			p {
 				margin: 0;
@@ -195,52 +311,79 @@
 
 			.gr-select {
 				width: 24px;
+				min-width: 24px;
 			}
 			.gr-status {
 				width: 140px;
+				min-width: 140px;
 				padding-left: 10px;
 			}
 			.gr-name {
 				width: 500px;
+				min-width: 200px;
 			}
 			.gr-grade {
 				width: 45px;
+				min-width: 45px;
 			}
 			.gr-critic {
 				width: 45px;
+				min-width: 45px;
 			}
 			.gr-story {
 				width: 55px;
+				min-width: 55px;
 			}
 			.gr-completion {
 				width: 55px;
+				min-width: 55px;
 			}
 			.gr-score {
 				width: 45px;
+				min-width: 45px;
 			}
 			.gr-platform {
 				width: 140px;
+				min-width: 140px;
 				padding-left: 10px;
 			}
 			.gr-released {
 				width: 80px;
+				min-width: 80px;
 			}
 			.gr-started {
 				width: 80px;
+				min-width: 80px;
 			}
 			.gr-finished {
 				width: 80px;
+				min-width: 80px;
 			}
 			.gr-play-status {
 				width: 140px;
+				min-width: 140px;
 				padding-left: 10px;
 			}
 			.gr-comment {
 				width: 500px;
+				min-width: 200px;
 			}
 			.gr-play-with {
 				width: 140px;
+				min-width: 140px;
 				padding-left: 10px;
+			}
+		}
+
+		// Responsive para el modo row
+		@media (max-width: 1023px) {
+			border-radius: 8px;
+			margin: 0 $space-sm;
+
+			&-header {
+				font-size: 13px;
+				padding: 8px;
+				gap: 8px;
 			}
 		}
 	}
@@ -260,6 +403,15 @@
 		align-items: center;
 		gap: 16px;
 		margin-top: 24px;
+		flex-wrap: wrap;
+		padding: 0 $space-sm;
+
+		.pagination-buttons {
+			display: flex;
+			gap: 8px;
+			flex-wrap: wrap;
+			justify-content: center;
+		}
 
 		.pagination-btn {
 			padding: 8px 16px;
@@ -269,6 +421,8 @@
 			border-radius: 6px;
 			cursor: pointer;
 			font-weight: 500;
+			min-width: 42px;
+			transition: background-color 0.2s ease;
 
 			&:hover:not(:disabled) {
 				background-color: #1d4ed8;
@@ -284,23 +438,96 @@
 		.pagination-info {
 			color: #6b7280;
 			font-weight: 500;
+			text-align: center;
+			width: 100%;
+
+			@media (min-width: 768px) {
+				width: auto;
+			}
 		}
 	}
 
 	// Responsive styles
-	@media (max-width: 768px) {
+	@media (max-width: 767px) {
+		&__header-content {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: $space-sm;
+		}
+
+		&__title {
+			font-size: $font-size-xl;
+		}
+
+		&__controls {
+			width: 100%;
+			flex-direction: column;
+			align-items: stretch;
+			gap: $space-sm;
+		}
+
+		&__search {
+			width: 100%;
+
+			input {
+				width: 100%;
+				min-width: 0;
+			}
+		}
+
+		&__add-button {
+			width: 100%;
+			text-align: center;
+		}
+
 		.admin-controls {
 			flex-direction: column;
-			gap: 16px;
+			gap: 12px;
 			align-items: stretch;
+			padding: 12px;
 
-			.search-controls,
-			.sort-controls {
-				justify-content: space-between;
+			.search-controls {
+				width: 100%;
+				flex-direction: column;
+				align-items: stretch;
+				gap: 10px;
 
-				.search-input {
+				input {
+					width: 100%;
+					padding: 10px 12px;
+				}
+
+				button {
 					width: 100%;
 				}
+			}
+
+			.sort-controls {
+				width: 100%;
+				flex-direction: column;
+				align-items: stretch;
+				gap: 10px;
+
+				label {
+					font-size: 14px;
+				}
+
+				select,
+				.sort-direction-btn {
+					width: 100%;
+				}
+			}
+		}
+
+		.controls-right {
+			width: 100%;
+			flex-direction: column;
+			gap: 10px;
+
+			button,
+			select,
+			input {
+				width: 100%;
 			}
 		}
 
@@ -310,10 +537,123 @@
 
 		.pagination-controls {
 			flex-direction: column;
-			gap: 8px;
+			gap: 12px;
+			align-items: stretch;
 
 			.pagination-info {
 				order: -1;
+				text-align: center;
+			}
+
+			.pagination-buttons {
+				display: flex;
+				justify-content: center;
+				gap: 8px;
+				flex-wrap: wrap;
+
+				button {
+					min-width: 44px;
+					padding: 10px 14px;
+				}
+			}
+		}
+
+		// Botones de acción del header
+		&__select-all-button,
+		&__deselect-selected-button,
+		&__bulk-delete-button {
+			width: 100%;
+			margin-left: 0;
+			margin-top: 8px;
+			padding: 10px 12px;
+		}
+	}
+
+	// Tablet styles
+	@media (min-width: 768px) and (max-width: 1023px) {
+		&__header-content {
+			gap: $space-md;
+		}
+
+		&__title {
+			font-size: $font-size-xl;
+		}
+
+		.admin-controls {
+			padding: 14px;
+			gap: 10px;
+
+			.search-controls {
+				flex: 1 1 300px;
+
+				input {
+					min-width: 150px;
+				}
+			}
+
+			.sort-controls {
+				flex: 0 1 auto;
+
+				select {
+					min-width: 100px;
+				}
+			}
+		}
+
+		.controls-right {
+			gap: 12px;
+		}
+
+		.pagination-controls {
+			.pagination-buttons {
+				gap: 6px;
+
+				button {
+					min-width: 40px;
+					padding: 8px 12px;
+				}
+			}
+		}
+	}
+
+	// Extra small devices (móviles muy pequeños)
+	@media (max-width: 374px) {
+		&__title {
+			font-size: $font-size-lg;
+		}
+
+		.admin-controls {
+			padding: 10px;
+
+			.search-controls,
+			.sort-controls {
+				gap: 8px;
+
+				input,
+				select,
+				button {
+					font-size: 14px;
+					padding: 8px 10px;
+				}
+			}
+		}
+
+		&-games-card {
+			padding: 0 $space-xs;
+			gap: $space-md;
+		}
+
+		.pagination-controls {
+			gap: 10px;
+
+			.pagination-btn {
+				padding: 6px 12px;
+				font-size: 14px;
+				min-width: 38px;
+			}
+
+			.pagination-info {
+				font-size: 13px;
 			}
 		}
 	}
@@ -324,6 +664,10 @@
 	align-items: center;
 	display: flex;
 	gap: 20px;
+
+	@media (max-width: 767px) {
+		gap: 10px;
+	}
 }
 
 .controls-input {

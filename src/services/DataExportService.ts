@@ -37,6 +37,53 @@ export const importGamesCSV = async (csvFile: File): Promise<any> => {
 }
 
 /**
+ * Fetches full database export (games + catalogs) from the API and returns it as a Blob.
+ * @returns Blob containing CSV data with all database information
+ */
+export const exportFullDatabase = async (): Promise<Blob> => {
+	const endpoint = environment.apiRoutes.dataExport.fullExport
+
+	const csvText = await customFetch<string>(endpoint, {
+		method: 'GET',
+		headers: { Accept: 'text/csv' },
+		baseURL: environment.baseUrl,
+		timeout: environment.api?.timeout,
+	})
+
+	return new Blob([csvText], { type: 'text/csv' })
+}
+
+/**
+ * Uploads a full database CSV file to the API for import (MERGE mode).
+ * @param csvFile - The CSV file to upload
+ * @returns Import result with statistics
+ */
+export const importFullDatabase = async (
+	csvFile: File
+): Promise<{
+	message: string
+	catalogs: {
+		platforms: { imported: number; updated: number }
+		statuses: { imported: number; updated: number }
+		playWiths: { imported: number; updated: number }
+		playedStatuses: { imported: number; updated: number }
+	}
+	games: { imported: number; updated: number }
+	errors: string[]
+}> => {
+	const endpoint = environment.apiRoutes.dataExport.fullImport
+	const formData = new FormData()
+	formData.append('csvFile', csvFile)
+
+	return await customFetch(endpoint, {
+		method: 'POST',
+		body: formData,
+		baseURL: environment.baseUrl,
+		timeout: environment.api?.timeout,
+	})
+}
+
+/**
  * Triggers a download of a Blob using an anchor element. Throws if the Blob is empty.
  * @param blob - The Blob to download
  * @param filename - The desired filename for the downloaded file

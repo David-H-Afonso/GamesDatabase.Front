@@ -9,6 +9,7 @@ export {
 	createGameStatus,
 	updateGameStatus,
 	deleteGameStatus,
+	reorderGameStatuses,
 } from './GameStatusService'
 
 export {
@@ -18,6 +19,7 @@ export {
 	createGamePlatform,
 	updateGamePlatform,
 	deleteGamePlatform,
+	reorderGamePlatforms,
 } from './GamePlatformService'
 
 export {
@@ -27,6 +29,7 @@ export {
 	createGamePlayWith,
 	updateGamePlayWith,
 	deleteGamePlayWith,
+	reorderGamePlayWith,
 } from './GamePlayWithService'
 
 export {
@@ -36,6 +39,28 @@ export {
 	getGamePlayedStatusById,
 	getGamePlayedStatuses,
 	updateGamePlayedStatus,
+	reorderGamePlayedStatuses,
 } from './GamePlayedStatusService'
 
-export { downloadBlob, exportGamesCSV, importGamesCSV } from './DataExportService'
+export {
+	downloadBlob,
+	exportGamesCSV,
+	importGamesCSV,
+	exportFullDatabase,
+	importFullDatabase,
+} from './DataExportService'
+
+export {
+	getGameViews,
+	getGameViewById,
+	createGameView,
+	updateGameView,
+	updateGameViewConfiguration,
+	deleteGameView,
+	getPublicGameViews,
+} from './GameViewService'
+
+export { GameViewMigrationService } from './GameViewMigrationService'
+
+export { authService } from './AuthService'
+export { userService } from './UserService'

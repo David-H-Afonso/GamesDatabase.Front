@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Button, GameCard } from '@/components/elements'
-import { useGames } from '@/hooks'
+import { useGames, useGameViews } from '@/hooks'
 import { useAppSelector, useAppDispatch } from '@/store/hooks'
 import { setCardStyle, setViewMode } from '@/store/features/theme/themeSlice'
 import {
@@ -13,17 +13,8 @@ import GamesFilters from './GamesFilters'
 import './HomeComponent.scss'
 
 const HomeComponent = () => {
-	const {
-		games,
-		error,
-		pagination,
-		fetchGamesList,
-		refreshGames,
-		deleteGameById,
-		fetchReleasedAndStartedList,
-		fetchStartedOrStatusList,
-		fetchNoStartedByScoreList,
-	} = useGames()
+	const { games, error, pagination, fetchGamesList, refreshGames, deleteGameById } = useGames()
+	const { publicGameViews, loadPublicGameViews } = useGameViews()
 
 	const dispatch = useAppDispatch()
 	const cardStyle = useAppSelector((s) => s.theme.cardStyle ?? 'row')
@@ -32,13 +23,36 @@ const HomeComponent = () => {
 	const [selectedGames, setSelectedGames] = useState<number[]>([])
 	const [filtersOpen, setFiltersOpen] = useState(false)
 	const viewMode = useAppSelector((s) => s.theme.viewMode ?? 'default')
+	const [viewError, setViewError] = useState<string | null>(null)
 
-	// Load current view data
+	// Prevent infinite retry loops when view fails
+	const retryCountRef = useRef<Map<string, number>>(new Map())
+	const lastErrorTimeRef = useRef<Map<string, number>>(new Map())
+	const MAX_RETRIES = 2
+	const RETRY_RESET_TIME = 30000 // Reset retry count after 30 seconds
+
+	// Load public GameViews on mount
+	useEffect(() => {
+		loadPublicGameViews()
+	}, [loadPublicGameViews])
+
+	// Always reload data when Home component mounts (from any route)
+	useEffect(() => {
+		// Reload current view
+		if (viewMode === 'default') {
+			void refreshGames(filters)
+		} else {
+			void fetchGamesList({ ...filters, viewName: viewMode })
+		}
+	}, []) // Empty deps = only run on mount
+
+	// Load current view data with error protection
 	useEffect(() => {
 		const load = async () => {
 			try {
 				if (viewMode === 'default') {
 					await refreshGames(filters)
+					setViewError(null)
 					return
 				}
 
@@ -47,34 +61,64 @@ const HomeComponent = () => {
 					return
 				}
 
-				if (viewMode === 'goty2025') {
-					await fetchReleasedAndStartedList({ ...filters, year: 2025 })
+				// Check retry count for this view
+				const currentTime = Date.now()
+				const lastErrorTime = lastErrorTimeRef.current.get(viewMode) || 0
+				const retryCount = retryCountRef.current.get(viewMode) || 0
+
+				// Reset retry count if enough time has passed
+				if (currentTime - lastErrorTime > RETRY_RESET_TIME) {
+					retryCountRef.current.set(viewMode, 0)
+				}
+
+				// If we've exceeded max retries, fallback to default view
+				if (retryCount >= MAX_RETRIES) {
+					console.error(
+						`View "${viewMode}" failed ${MAX_RETRIES} times. Falling back to default view.`
+					)
+					setViewError(`Failed to load view "${viewMode}". Switched to default view.`)
+					dispatch(setViewMode('default'))
+					retryCountRef.current.delete(viewMode)
+					lastErrorTimeRef.current.delete(viewMode)
 					return
 				}
 
-				if (viewMode === 'goal2025') {
-					await fetchStartedOrStatusList({ ...filters, year: 2025, status: 'Goal 2025' })
-					return
-				}
+				// Use the new GameView system
+				await fetchGamesList({ ...filters, viewName: viewMode })
 
-				if (viewMode === 'noStartedByScore') {
-					await fetchNoStartedByScoreList({ ...filters })
-					return
-				}
+				// Success - reset retry count
+				retryCountRef.current.set(viewMode, 0)
+				setViewError(null)
 			} catch (e) {
 				console.error('Error loading view data', e)
+
+				// Increment retry count
+				const currentRetries = retryCountRef.current.get(viewMode) || 0
+				retryCountRef.current.set(viewMode, currentRetries + 1)
+				lastErrorTimeRef.current.set(viewMode, Date.now())
+
+				// If this was the last retry, the next effect run will trigger fallback
+				if (currentRetries + 1 >= MAX_RETRIES) {
+					setViewError(`View "${viewMode}" failed to load. Switching to default view...`)
+					// Use setTimeout to avoid state update during render
+					setTimeout(() => {
+						dispatch(setViewMode('default'))
+					}, 100)
+				}
 			}
 		}
 		void load()
-	}, [
-		viewMode,
-		fetchReleasedAndStartedList,
-		fetchStartedOrStatusList,
-		fetchNoStartedByScoreList,
-		filters,
-		refreshGames,
-		dispatch,
-	])
+	}, [viewMode, filters, refreshGames, fetchGamesList, dispatch])
+
+	// Auto-dismiss error after 5 seconds
+	useEffect(() => {
+		if (viewError) {
+			const timer = setTimeout(() => {
+				setViewError(null)
+			}, 5000)
+			return () => clearTimeout(timer)
+		}
+	}, [viewError])
 
 	// Default list loads only when in default view
 	useEffect(() => {
@@ -130,6 +174,18 @@ const HomeComponent = () => {
 
 	return (
 		<div className='home-component'>
+			{viewError && (
+				<div className='home-component__alert home-component__alert--warning'>
+					<span>{viewError}</span>
+					<button
+						className='home-component__alert-close'
+						onClick={() => setViewError(null)}
+						aria-label='Close alert'>
+						×
+					</button>
+				</div>
+			)}
+
 			{error && (
 				<div className='home-component' style={{ padding: '1rem' }}>
 					<h1>Error: {error}</h1>
@@ -215,9 +271,11 @@ const HomeComponent = () => {
 							value={viewMode}
 							onChange={(e) => dispatch(setViewMode(e.target.value as any))}>
 							<option value='default'>Default</option>
-							<option value='goty2025'>GOTY 2025</option>
-							<option value='goal2025'>Games 2025</option>
-							<option value='noStartedByScore'>Next up</option>
+							{publicGameViews.map((view) => (
+								<option key={view.id} value={view.name}>
+									{view.name}
+								</option>
+							))}
 						</select>
 
 						<select

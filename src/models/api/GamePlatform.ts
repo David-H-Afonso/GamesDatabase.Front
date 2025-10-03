@@ -3,6 +3,7 @@ export interface GamePlatform {
 	name: string
 	isActive: boolean
 	color?: string
+	sortOrder?: number
 }
 
 export interface GamePlatformCreateDto {
@@ -13,4 +14,5 @@ export interface GamePlatformCreateDto {
 
 export interface GamePlatformUpdateDto extends GamePlatformCreateDto {
 	id: number
+	sortOrder?: number
 }

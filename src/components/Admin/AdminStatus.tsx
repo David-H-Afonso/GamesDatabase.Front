@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useGameStatus } from '@/hooks'
-import { updateGameStatus } from '@/services'
+import { reorderGameStatuses } from '@/services'
 import type { GameStatus, GameStatusCreateDto, GameStatusUpdateDto } from '@/models/api/GameStatus'
 import type { QueryParameters } from '@/models/api/Game'
 import './AdminStatus.scss'
@@ -32,7 +32,7 @@ export const AdminStatus: React.FC = () => {
 	// Pagination and sorting state
 	const [queryParams, setQueryParams] = useState<QueryParameters>({
 		page: 1,
-		pageSize: 10,
+		pageSize: 50,
 		// default: no sorting applied
 		sortBy: undefined,
 		sortDescending: false,
@@ -40,10 +40,11 @@ export const AdminStatus: React.FC = () => {
 
 	// Drag and drop state
 	const [draggedId, setDraggedId] = useState<number | null>(null)
+	const [dragOverId, setDragOverId] = useState<number | null>(null)
 	const [isReordering, setIsReordering] = useState(false)
 
 	// Reorder statuses by moving status with id `sourceId` to the position of `targetId`.
-	// This will compute new sortOrder values for affected statuses and persist them.
+	// Uses the new /reorder endpoint for efficient batch updates.
 	const reorderStatuses = async (sourceId: number, targetId: number) => {
 		// Work on a copy ordered by sortOrder if present, otherwise by id
 		const ordered = [...statuses].sort((a, b) => {
@@ -60,44 +61,19 @@ export const AdminStatus: React.FC = () => {
 		const [moved] = ordered.splice(sourceIndex, 1)
 		ordered.splice(targetIndex, 0, moved)
 
-		// Reassign sortOrder sequentially starting from 1
-		const updates = ordered.map((s, idx) => ({ ...s, sortOrder: idx + 1 }))
-
-		// Determine which ones changed
+		// Extract ordered IDs
+		const orderedIds = ordered.map((s) => s.id)
 
 		setIsReordering(true)
-		const failures: Array<{ id: number; error: any }> = []
 		try {
-			for (const u of updates) {
-				const original = statuses.find((s) => s.id === u.id)
-				if (!original) continue
-				const newSort = u.sortOrder
-				if ((original.sortOrder ?? original.id) === newSort) continue
-				const dto = {
-					name: original.name,
-					isActive: original.isActive,
-					color: original.color,
-					statusType: original.statusType,
-					isDefault: original.isDefault,
-					isSpecialStatus: original.isSpecialStatus,
-					sortOrder: newSort,
-				} as any
-				try {
-					// sequential to avoid overloading server
-					await updateGameStatus(u.id, dto)
-				} catch (err) {
-					console.error(`Failed updating status ${u.id} sortOrder -> ${newSort}:`, err)
-					failures.push({ id: u.id, error: err })
-				}
-			}
-			// reload list to reflect server state
+			await reorderGameStatuses(orderedIds)
+			// Reload list to reflect server state
 			await loadStatuses(queryParams)
+		} catch (err) {
+			console.error('Failed to reorder statuses:', err)
+			window.alert('Error al reordenar. Por favor, intenta de nuevo.')
 		} finally {
 			setIsReordering(false)
-		}
-		if (failures.length > 0) {
-			console.warn('Some status updates failed:', failures)
-			window.alert('Algunas actualizaciones fallaron. Revisa la consola para más detalles.')
 		}
 	}
 
@@ -112,21 +88,6 @@ export const AdminStatus: React.FC = () => {
 
 	const handlePageSizeChange = (newPageSize: number) => {
 		setQueryParams((prev) => ({ ...prev, pageSize: newPageSize, page: 1 }))
-	}
-
-	// Sorting handlers
-	const handleSortChange = (sortBy: string) => {
-		setQueryParams((prev) => {
-			if (!sortBy) {
-				// clear sorting
-				return { ...prev, sortBy: undefined, sortDescending: false }
-			}
-			return {
-				...prev,
-				sortBy,
-				sortDescending: prev.sortBy === sortBy ? !prev.sortDescending : false,
-			}
-		})
 	}
 
 	const handleOpenModal = (status?: GameStatus) => {
@@ -217,27 +178,10 @@ export const AdminStatus: React.FC = () => {
 			{error && <div className='alert alert-error'>{error}</div>}
 
 			<div className='admin-controls'>
-				<div className='sort-controls'>
-					<label>Ordenar por:</label>
-					<select
-						value={queryParams.sortBy ?? ''}
-						onChange={(e) => handleSortChange(e.target.value)}>
-						<option value=''>Sin ordenar</option>
-						<option value='name'>Nombre</option>
-						<option value='id'>ID</option>
-						<option value='isActive'>Estado</option>
-					</select>
-					<button
-						className='sort-direction-btn'
-						onClick={() => handleSortChange(queryParams.sortBy || '')}
-						disabled={!queryParams.sortBy}>
-						{queryParams.sortDescending ? '↓' : '↑'}
-					</button>
-				</div>
 				<div className='page-size-control'>
 					<label>Elementos por página:</label>
 					<select
-						value={queryParams.pageSize || 10}
+						value={queryParams.pageSize || 50}
 						onChange={(e) => handlePageSizeChange(Number(e.target.value))}>
 						<option value={5}>5</option>
 						<option value={10}>10</option>
@@ -265,26 +209,32 @@ export const AdminStatus: React.FC = () => {
 								{statuses.map((status) => (
 									<tr
 										key={status.id}
-										draggable={!isReordering}
+										draggable={true}
 										onDragStart={(e) => {
-											if (isReordering) return
 											setDraggedId(status.id)
-											e.dataTransfer!.effectAllowed = 'move'
+											e.dataTransfer.effectAllowed = 'move'
 										}}
 										onDragOver={(e) => {
 											if (isReordering) return
 											e.preventDefault()
+											if (status.id !== draggedId) {
+												setDragOverId(status.id)
+											}
 										}}
-										onDragLeave={() => {}}
+										onDragLeave={() => {
+											setDragOverId(null)
+										}}
 										onDrop={async (e) => {
 											e.preventDefault()
-											if (isReordering) return
-											if (draggedId == null) return
-											if (draggedId === status.id) return
-
-											// compute new ordering and persist
+											setDragOverId(null)
+											if (isReordering || draggedId == null || draggedId === status.id) return
 											await reorderStatuses(draggedId, status.id)
 											setDraggedId(null)
+										}}
+										style={{
+											cursor: 'grab',
+											opacity: draggedId === status.id ? 0.5 : 1,
+											borderTop: dragOverId === status.id ? '2px solid #2563eb' : undefined,
 										}}>
 										<td>{status.name}</td>
 										<td>
@@ -439,6 +389,7 @@ export const AdminStatus: React.FC = () => {
 										value={formData.statusType || 'None'}
 										onChange={(e) => setFormData({ ...formData, statusType: e.target.value })}>
 										<option value='NotFulfilled'>Not Fulfilled</option>
+										<option value='Playing'>Playing</option>
 									</select>
 								</div>
 							)}

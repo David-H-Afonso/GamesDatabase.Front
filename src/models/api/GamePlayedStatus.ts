@@ -3,6 +3,7 @@ export interface GamePlayedStatus {
 	name: string
 	isActive: boolean
 	color?: string
+	sortOrder?: number
 }
 
 export interface GamePlayedStatusCreateDto {
@@ -13,4 +14,5 @@ export interface GamePlayedStatusCreateDto {
 
 export interface GamePlayedStatusUpdateDto extends GamePlayedStatusCreateDto {
 	id: number
+	sortOrder?: number
 }

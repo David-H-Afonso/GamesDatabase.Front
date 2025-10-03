@@ -15,9 +15,6 @@ import {
 	createGame,
 	updateGame,
 	deleteGame,
-	fetchReleasedAndStarted,
-	fetchStartedOrStatus,
-	fetchNoStartedByScore,
 } from '@/store/features/games'
 import { areFiltersEqual } from '@/utils'
 import type { GameCreateDto, GameUpdateDto, GameQueryParameters } from '@/models/api/Game'
@@ -85,24 +82,6 @@ export const useGames = () => {
 		[dispatch]
 	)
 
-	const fetchReleasedAndStartedList = useCallback(
-		async (params: GameQueryParameters & { year: number }) =>
-			dispatchAndUnwrapAsync(dispatch, fetchReleasedAndStarted(params)),
-		[dispatch]
-	)
-
-	const fetchStartedOrStatusList = useCallback(
-		async (params: GameQueryParameters & { year: number; status?: string }) =>
-			dispatchAndUnwrapAsync(dispatch, fetchStartedOrStatus(params)),
-		[dispatch]
-	)
-
-	const fetchNoStartedByScoreList = useCallback(
-		async (params: GameQueryParameters = {}) =>
-			dispatchAndUnwrapAsync(dispatch, fetchNoStartedByScore(params)),
-		[dispatch]
-	)
-
 	return {
 		// State
 		games: gamesList,
@@ -121,9 +100,6 @@ export const useGames = () => {
 		createNewGame,
 		updateGameById,
 		deleteGameById,
-		fetchReleasedAndStartedList,
-		fetchStartedOrStatusList,
-		fetchNoStartedByScoreList,
 
 		// Helper to create selector for specific game
 		selectGameById: (id: number) => selectGameById(id),

@@ -1,16 +1,22 @@
 import type { Game } from '@/models/api/Game'
-import { useState, useRef, useEffect, type FC } from 'react'
+import { useState, useRef, useEffect, memo, type FC } from 'react'
 import './RowView.scss'
 import { formatToLocaleDate, useClickOutside } from '@/utils'
 import { EditableSelect } from '../../EditableSelect/EditableSelect'
+import { EditableMultiSelect } from '../../EditableMultiSelect/EditableMultiSelect'
+import { OptimizedImage } from '@/components/elements'
 import { useAppSelector } from '@/store/hooks'
 import PortalDropdown from '../../PortalDropdown'
 
 interface RowViewProps {
 	game: Game
 	openDetails: (game: Game) => void
-	onFieldUpdate?: (gameId: number, field: string, value: number | undefined) => Promise<void>
-	playWithColor: string | undefined
+	onFieldUpdate?: (
+		gameId: number,
+		field: string,
+		value: number | number[] | undefined
+	) => Promise<void>
+	playWithColors: (string | undefined)[]
 	gameStatusColor: string | undefined
 	platformColor: string | undefined
 	playedStatusColor: string | undefined
@@ -23,7 +29,7 @@ const RowView: FC<RowViewProps> = (props) => {
 	const {
 		game,
 		openDetails,
-		playWithColor,
+		playWithColors,
 		gameStatusColor,
 		platformColor,
 		playedStatusColor,
@@ -114,7 +120,7 @@ const RowView: FC<RowViewProps> = (props) => {
 		setActiveSelector((prev) => (prev === type ? null : type))
 	}
 
-	const handleFieldUpdate = async (field: string, value: number | undefined) => {
+	const handleFieldUpdate = async (field: string, value: number | number[] | undefined) => {
 		if (onFieldUpdate) await onFieldUpdate(game.id, field, value)
 		setActiveSelector(null)
 	}
@@ -136,6 +142,13 @@ const RowView: FC<RowViewProps> = (props) => {
 	const startedText = formatToLocaleDate(game.started) || dash
 	const finishedText = formatToLocaleDate(game.finished) || dash
 	const hasLogo = Boolean(game.logo)
+
+	// Helper para formatear múltiples nombres
+	const formatMultipleNames = (names: string[] | undefined): string => {
+		if (!names || names.length === 0) return 'N/A'
+		if (names.length === 1) return names[0]
+		return `${names[0]} +${names.length - 1}`
+	}
 
 	return (
 		<div
@@ -203,7 +216,15 @@ const RowView: FC<RowViewProps> = (props) => {
 
 			{/* Name */}
 			<div className='game-row-name'>
-				{hasLogo && <img className='game-row-logo' src={game.logo!} alt={`${game.name} logo`} />}
+				{hasLogo && (
+					<OptimizedImage
+						src={game.logo!}
+						alt={`${game.name} logo`}
+						className='game-row-logo'
+						quality='low'
+						loading='lazy'
+					/>
+				)}
 				<h3>{game.name}</h3>
 			</div>
 
@@ -317,20 +338,23 @@ const RowView: FC<RowViewProps> = (props) => {
 				<div>
 					<span
 						className='badge'
-						title={game.playWithName}
-						style={{ backgroundColor: `${playWithColor}88`, borderColor: `${playWithColor}99` }}
+						title={game.playWithNames?.join(', ')}
+						style={{
+							backgroundColor: `${playWithColors[0] || '#333'}88`,
+							borderColor: `${playWithColors[0] || '#333'}99`,
+						}}
 						onClick={(e) => handleBadgeClick(e, 'playWith')}
 						ref={playWithBtnRef}>
-						{game.playWithName ?? 'N/A'}
+						{formatMultipleNames(game.playWithNames)}
 					</span>
 					{activeSelector === 'playWith' && (
 						<PortalDropdown style={playWithPortalStyle} contentRef={playWithRef}>
 							<div className='chip-dropdown' onClick={(e) => e.stopPropagation()}>
-								<EditableSelect
-									value={game.playWithId}
-									displayValue={game.playWithName}
+								<EditableMultiSelect
+									values={game.playWithIds || []}
+									displayValues={game.playWithNames || []}
 									options={playWithOptions}
-									onSave={(value) => handleFieldUpdate('playWithId', value)}
+									onSave={(values) => handleFieldUpdate('playWithIds', values)}
 									placeholder='Select'
 									dropdownOnly
 								/>
@@ -343,4 +367,11 @@ const RowView: FC<RowViewProps> = (props) => {
 	)
 }
 
-export default RowView
+// Memoize RowView to prevent unnecessary re-renders
+export default memo(RowView, (prevProps, nextProps) => {
+	return (
+		prevProps.game.id === nextProps.game.id &&
+		prevProps.game.updatedAt === nextProps.game.updatedAt &&
+		prevProps.isSelected === nextProps.isSelected
+	)
+})

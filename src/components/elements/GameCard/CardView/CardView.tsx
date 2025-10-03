@@ -1,15 +1,21 @@
 import type { Game } from '@/models/api/Game'
-import { useState, type FC } from 'react'
+import { useState, memo, type FC } from 'react'
 import './CardView.scss'
 import { formatToLocaleDate, useClickOutside } from '@/utils'
 import { EditableSelect } from '../../EditableSelect/EditableSelect'
+import { EditableMultiSelect } from '../../EditableMultiSelect/EditableMultiSelect'
+import { OptimizedImage } from '@/components/elements'
 import { useAppSelector } from '@/store/hooks'
 
 interface CardViewProps {
 	game: Game
 	openDetails: (game: Game) => void
-	onFieldUpdate?: (gameId: number, field: string, value: number | undefined) => Promise<void>
-	playWithColor: string | undefined
+	onFieldUpdate?: (
+		gameId: number,
+		field: string,
+		value: number | number[] | undefined
+	) => Promise<void>
+	playWithColors: (string | undefined)[]
 	gameStatusColor: string | undefined
 	platformColor: string | undefined
 	isSelected?: boolean
@@ -21,7 +27,7 @@ const CardView: FC<CardViewProps> = (props) => {
 	const {
 		game,
 		openDetails,
-		playWithColor,
+		playWithColors,
 		gameStatusColor,
 		platformColor,
 		onFieldUpdate,
@@ -66,11 +72,18 @@ const CardView: FC<CardViewProps> = (props) => {
 		setActiveSelector(activeSelector === selectorType ? null : selectorType)
 	}
 
-	const handleFieldUpdate = async (field: string, value: number | undefined) => {
+	const handleFieldUpdate = async (field: string, value: number | number[] | undefined) => {
 		if (onFieldUpdate) {
 			await onFieldUpdate(game.id, field, value)
 		}
 		setActiveSelector(null)
+	}
+
+	// Helper para formatear múltiples nombres
+	const formatMultipleNames = (names: string[] | undefined): string => {
+		if (!names || names.length === 0) return 'N/A'
+		if (names.length === 1) return names[0]
+		return `${names[0]} +${names.length - 1}`
 	}
 
 	const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -102,11 +115,12 @@ const CardView: FC<CardViewProps> = (props) => {
 			<div className='game-card-view-container-hideOverflow'>
 				<div className='game-card-header'>
 					{game.cover && (
-						<img
-							loading='lazy'
+						<OptimizedImage
 							src={game.cover}
 							alt={`${game.name} cover`}
 							className='game-card-cover'
+							quality='medium'
+							loading='lazy'
 						/>
 					)}
 					<div className='game-card-header-score'>
@@ -134,7 +148,13 @@ const CardView: FC<CardViewProps> = (props) => {
 					<div className='game-card-header-info'>
 						<div className='game-card-header-info-logo'>
 							{game.logo && (
-								<img src={game.logo} alt={`${game.name} logo`} className='game-card-logo' />
+								<OptimizedImage
+									src={game.logo}
+									alt={`${game.name} logo`}
+									className='game-card-logo'
+									quality='low'
+									loading='lazy'
+								/>
 							)}
 						</div>
 						<div className='game-card-header-info-tags'>
@@ -190,25 +210,25 @@ const CardView: FC<CardViewProps> = (props) => {
 										)}
 									</div>
 								)}
-								{game.playWithName && (
+								{game.playWithNames && game.playWithNames.length > 0 && (
 									<div className='game-card-tag-container'>
 										<span
-											title={game.playWithName || 'No play with'}
+											title={game.playWithNames.join(', ')}
 											className='game-card-tag game-card-tag--clickable'
 											style={{
-												backgroundColor: `${playWithColor}44`,
-												borderColor: `${playWithColor}99`,
+												backgroundColor: `${playWithColors[0] || '#333'}44`,
+												borderColor: `${playWithColors[0] || '#333'}99`,
 											}}
 											onClick={(e) => handleBadgeClick(e, 'playWith')}>
-											{game.playWithName}
+											{formatMultipleNames(game.playWithNames)}
 										</span>
 										{activeSelector === 'playWith' && (
 											<div className='game-card-tag-selector' ref={playWithRef}>
-												<EditableSelect
-													value={game.playWithId}
-													displayValue={game.playWithName}
+												<EditableMultiSelect
+													values={game.playWithIds || []}
+													displayValues={game.playWithNames || []}
 													options={playWithOptions}
-													onSave={(value) => handleFieldUpdate('playWithId', value)}
+													onSave={(values) => handleFieldUpdate('playWithIds', values)}
 													placeholder='Select play with'
 													dropdownOnly
 												/>
@@ -251,4 +271,11 @@ const CardView: FC<CardViewProps> = (props) => {
 	)
 }
 
-export default CardView
+// Memoize CardView to prevent unnecessary re-renders
+export default memo(CardView, (prevProps, nextProps) => {
+	return (
+		prevProps.game.id === nextProps.game.id &&
+		prevProps.game.updatedAt === nextProps.game.updatedAt &&
+		prevProps.isSelected === nextProps.isSelected
+	)
+})

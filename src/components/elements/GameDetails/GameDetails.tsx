@@ -3,8 +3,9 @@ import type { Game } from '@/models/api/Game'
 import './GameDetails.scss'
 import { formatToLocaleDate, useClickOutside } from '@/utils'
 import DeleteIcon from '@/assets/svgs/trashbin.svg?react'
-import { EditableField } from '@/components/elements'
+import { EditableField, OptimizedImage } from '@/components/elements'
 import { EditableSelect } from '../EditableSelect/EditableSelect'
+import { EditableMultiSelect } from '../EditableMultiSelect/EditableMultiSelect'
 import { useGames } from '@/hooks'
 import { useAppSelector } from '@/store/hooks'
 import { useFormik } from 'formik'
@@ -52,7 +53,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 			started: game.started ?? '',
 			finished: game.finished ?? '',
 			grade: game.grade ?? undefined,
-			playWithId: game.playWithId ?? undefined,
+			playWithIds: game.playWithIds ?? [],
 			logo: game.logo ?? '',
 			cover: game.cover ?? '',
 			comment: game.comment ?? '',
@@ -135,10 +136,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 				</div>
 				<div className='game-details-header-title'>
 					{game.logo ? (
-						<img
-							src={game.logo}
-							alt={`${game.name} logo`}
-							className='game-details__logo'
+						<div
 							onClick={() => {
 								if (!game.name) return
 								const url = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(
@@ -146,8 +144,15 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 								)}`
 								window.open(url, '_blank', 'noopener')
 							}}
-							style={{ cursor: game.name ? 'pointer' : 'default' }}
-						/>
+							style={{ cursor: game.name ? 'pointer' : 'default' }}>
+							<OptimizedImage
+								src={game.logo}
+								alt={`${game.name} logo`}
+								className='game-details__logo'
+								quality='high'
+								loading='eager'
+							/>
+						</div>
 					) : null}
 					<div>
 						<EditableField
@@ -163,10 +168,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 			<div className='game-details-content'>
 				<div className='game-details-content-cover'>
 					{game.cover && (
-						<img
-							src={game.cover}
-							alt={`${game.name} cover`}
-							className='game-details__cover'
+						<div
 							onClick={() => {
 								if (!game.name) return
 								const url = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(
@@ -174,8 +176,15 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 								)}`
 								window.open(url, '_blank', 'noopener')
 							}}
-							style={{ cursor: game.name ? 'pointer' : 'default' }}
-						/>
+							style={{ cursor: game.name ? 'pointer' : 'default' }}>
+							<OptimizedImage
+								src={game.cover}
+								alt={`${game.name} cover`}
+								className='game-details__cover'
+								quality='high'
+								loading='eager'
+							/>
+						</div>
 					)}
 				</div>
 				<div className='game-details-content-infoList'>
@@ -337,12 +346,12 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 					</div>
 					<div className='game-details-content-infoList-item'>
 						<h4>Play With</h4>
-						<EditableSelect
-							value={formik.values.playWithId}
-							displayValue={game.playWithName}
+						<EditableMultiSelect
+							values={formik.values.playWithIds}
+							displayValues={game.playWithNames || []}
 							options={playWithOptions}
-							onSave={(value) => saveField('playWithId', value)}
-							placeholder='Select option'
+							onSave={(values) => saveField('playWithIds', values)}
+							placeholder='Select options'
 						/>
 					</div>
 					<div className='game-details-content-infoList-item'>
