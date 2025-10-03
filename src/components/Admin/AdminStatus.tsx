@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from 'react'
 import { useGameStatus } from '@/hooks'
 import { reorderGameStatuses } from '@/services'
+import { fetchStatuses } from '@/store/features/gameStatus/thunk'
+import { useAppDispatch } from '@/store/hooks'
 import type { GameStatus, GameStatusCreateDto, GameStatusUpdateDto } from '@/models/api/GameStatus'
 import type { QueryParameters } from '@/models/api/Game'
+import { ReorderButtons } from '@/components/elements/ReorderButtons/ReorderButtons'
 import './AdminStatus.scss'
 
 export const AdminStatus: React.FC = () => {
+	const dispatch = useAppDispatch()
 	const {
 		statuses,
 		loading,
@@ -38,14 +42,14 @@ export const AdminStatus: React.FC = () => {
 		sortDescending: false,
 	})
 
-	// Drag and drop state
-	const [draggedId, setDraggedId] = useState<number | null>(null)
-	const [dragOverId, setDragOverId] = useState<number | null>(null)
+	// Reorder state
 	const [isReordering, setIsReordering] = useState(false)
 
-	// Reorder statuses by moving status with id `sourceId` to the position of `targetId`.
+	// Reorder statuses by moving status up or down one position
 	// Uses the new /reorder endpoint for efficient batch updates.
-	const reorderStatuses = async (sourceId: number, targetId: number) => {
+	const moveStatus = async (statusId: number, direction: 'up' | 'down') => {
+		if (isReordering) return // Prevent multiple simultaneous reorders
+
 		// Work on a copy ordered by sortOrder if present, otherwise by id
 		const ordered = [...statuses].sort((a, b) => {
 			const aKey = a.sortOrder ?? a.id
@@ -53,12 +57,14 @@ export const AdminStatus: React.FC = () => {
 			return aKey - bKey
 		})
 
-		const sourceIndex = ordered.findIndex((s) => s.id === sourceId)
-		const targetIndex = ordered.findIndex((s) => s.id === targetId)
-		if (sourceIndex === -1 || targetIndex === -1) return
+		const currentIndex = ordered.findIndex((s) => s.id === statusId)
+		if (currentIndex === -1) return
 
-		// Remove source and insert at targetIndex
-		const [moved] = ordered.splice(sourceIndex, 1)
+		const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
+		if (targetIndex < 0 || targetIndex >= ordered.length) return
+
+		// Swap positions
+		const [moved] = ordered.splice(currentIndex, 1)
 		ordered.splice(targetIndex, 0, moved)
 
 		// Extract ordered IDs
@@ -67,8 +73,8 @@ export const AdminStatus: React.FC = () => {
 		setIsReordering(true)
 		try {
 			await reorderGameStatuses(orderedIds)
-			// Reload list to reflect server state
-			await loadStatuses(queryParams)
+			// Reload list directly using dispatch to ensure fresh data
+			await dispatch(fetchStatuses({ ...queryParams })).unwrap()
 		} catch (err) {
 			console.error('Failed to reorder statuses:', err)
 			window.alert('Error al reordenar. Por favor, intenta de nuevo.')
@@ -199,6 +205,7 @@ export const AdminStatus: React.FC = () => {
 						<table>
 							<thead>
 								<tr>
+									<th style={{ width: '60px' }}>Orden</th>
 									<th>Nombre</th>
 									<th>Color</th>
 									<th>Estado</th>
@@ -206,87 +213,75 @@ export const AdminStatus: React.FC = () => {
 								</tr>
 							</thead>
 							<tbody>
-								{statuses.map((status) => (
-									<tr
-										key={status.id}
-										draggable={true}
-										onDragStart={(e) => {
-											setDraggedId(status.id)
-											e.dataTransfer.effectAllowed = 'move'
-										}}
-										onDragOver={(e) => {
-											if (isReordering) return
-											e.preventDefault()
-											if (status.id !== draggedId) {
-												setDragOverId(status.id)
-											}
-										}}
-										onDragLeave={() => {
-											setDragOverId(null)
-										}}
-										onDrop={async (e) => {
-											e.preventDefault()
-											setDragOverId(null)
-											if (isReordering || draggedId == null || draggedId === status.id) return
-											await reorderStatuses(draggedId, status.id)
-											setDraggedId(null)
-										}}
-										style={{
-											cursor: 'grab',
-											opacity: draggedId === status.id ? 0.5 : 1,
-											borderTop: dragOverId === status.id ? '2px solid #2563eb' : undefined,
-										}}>
-										<td>{status.name}</td>
-										<td>
-											<div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-												{status.color && (
-													<div
-														style={{
-															width: '20px',
-															height: '20px',
-															backgroundColor: status.color,
-															borderRadius: '3px',
-															border: '1px solid #ccc',
-														}}
-													/>
-												)}
-												<span>{status.color || 'Sin color'}</span>
-											</div>
-										</td>
-										<td>
-											<div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-												<span className={`status ${status.isActive ? 'active' : 'inactive'}`}>
-													{status.isActive ? 'Activo' : 'Inactivo'}
-												</span>
-												<span className='meta'>
-													{status.statusType ? `(${status.statusType})` : ''}
-													{/* Default flag hidden in admin list per requirements */}
-													{status.isSpecialStatus ? ' • Special' : ''}
-												</span>
-											</div>
-										</td>
-										<td>
-											<div className='actions'>
-												<button
-													className='btn btn-sm btn-secondary'
-													onClick={() => handleOpenModal(status)}>
-													Editar
-												</button>
-												<button
-													className='btn btn-sm btn-danger'
-													onClick={() => handleDelete(status.id)}
-													disabled={!!status.isSpecialStatus}
-													title={
-														status.isSpecialStatus
-															? 'No se puede eliminar un special status'
-															: 'Eliminar'
-													}>
-													Eliminar
-												</button>
-											</div>
-										</td>
-									</tr>
-								))}
+								{[...statuses]
+									.sort((a, b) => {
+										const aKey = a.sortOrder ?? a.id
+										const bKey = b.sortOrder ?? b.id
+										return aKey - bKey
+									})
+									.map((status, index, array) => (
+										<tr key={status.id}>
+											<td>
+												<ReorderButtons
+													canMoveUp={index > 0}
+													canMoveDown={index < array.length - 1}
+													onMoveUp={() => moveStatus(status.id, 'up')}
+													onMoveDown={() => moveStatus(status.id, 'down')}
+													isProcessing={isReordering}
+													size='small'
+												/>
+											</td>
+											<td>{status.name}</td>
+											<td>
+												<div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+													{status.color && (
+														<div
+															style={{
+																width: '20px',
+																height: '20px',
+																backgroundColor: status.color,
+																borderRadius: '3px',
+																border: '1px solid #ccc',
+															}}
+														/>
+													)}
+													<span>{status.color || 'Sin color'}</span>
+												</div>
+											</td>
+											<td>
+												<div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+													<span className={`status ${status.isActive ? 'active' : 'inactive'}`}>
+														{status.isActive ? 'Activo' : 'Inactivo'}
+													</span>
+													<span className='meta'>
+														{status.statusType ? `(${status.statusType})` : ''}
+														{/* Default flag hidden in admin list per requirements */}
+														{status.isSpecialStatus ? ' • Special' : ''}
+													</span>
+												</div>
+											</td>
+											<td>
+												<div className='actions'>
+													<button
+														className='btn btn-sm btn-secondary'
+														onClick={() => handleOpenModal(status)}>
+														Editar
+													</button>
+													<button
+														className='btn btn-sm btn-danger'
+														onClick={() => handleDelete(status.id)}
+														disabled={!!status.isSpecialStatus}
+														title={
+															status.isSpecialStatus
+																? 'No se puede eliminar un special status'
+																: 'Eliminar'
+														}>
+														Eliminar
+													</button>
+												</div>
+											</td>
+										</tr>
+									))}
 							</tbody>
 						</table>
 					</div>

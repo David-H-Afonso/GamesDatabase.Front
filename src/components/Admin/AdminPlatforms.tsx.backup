@@ -1,42 +1,43 @@
 import React, { useEffect, useState } from 'react'
-import { useGamePlayedStatus } from '@/hooks'
-import { reorderGamePlayedStatuses } from '@/services'
-import { fetchPlayedStatuses } from '@/store/features/gamePlayedStatus/thunk'
+import { useGameStatus } from '@/hooks'
+import { reorderGameStatuses } from '@/services'
+import { fetchStatuses } from '@/store/features/gameStatus/thunk'
 import { useAppDispatch } from '@/store/hooks'
-import type {
-	GamePlayedStatus,
-	GamePlayedStatusCreateDto,
-	GamePlayedStatusUpdateDto,
-} from '@/models/api/GamePlayedStatus'
+import type { GameStatus, GameStatusCreateDto, GameStatusUpdateDto } from '@/models/api/GameStatus'
 import type { QueryParameters } from '@/models/api/Game'
 import { ReorderButtons } from '@/components/elements/ReorderButtons/ReorderButtons'
-import './AdminPlayedStatus.scss'
+import './AdminStatus.scss'
 
-export const AdminPlayedStatus: React.FC = () => {
+export const AdminStatus: React.FC = () => {
 	const dispatch = useAppDispatch()
 	const {
-		playedStatuses,
+		statuses,
 		loading,
 		error,
 		pagination,
-		loadPlayedStatuses,
-		createPlayedStatus,
-		updatePlayedStatus,
-		deletePlayedStatus,
-	} = useGamePlayedStatus()
+		loadStatuses,
+		createStatus,
+		updateStatus,
+		deleteStatus,
+		reassignSpecial,
+	} = useGameStatus()
 
 	const [isModalOpen, setIsModalOpen] = useState(false)
-	const [editingStatus, setEditingStatus] = useState<GamePlayedStatus | null>(null)
-	const [formData, setFormData] = useState<GamePlayedStatusCreateDto>({
+	const [editingStatus, setEditingStatus] = useState<GameStatus | null>(null)
+	const [formData, setFormData] = useState<GameStatusCreateDto>({
 		name: '',
 		isActive: true,
 		color: '#000000',
+		statusType: 'None',
+		isDefault: false,
+		isSpecialStatus: false,
 	})
 
 	// Pagination and sorting state
 	const [queryParams, setQueryParams] = useState<QueryParameters>({
 		page: 1,
-		pageSize: 10,
+		pageSize: 50,
+		// default: no sorting applied
 		sortBy: undefined,
 		sortDescending: false,
 	})
@@ -44,25 +45,13 @@ export const AdminPlayedStatus: React.FC = () => {
 	// Reorder state
 	const [isReordering, setIsReordering] = useState(false)
 
-	useEffect(() => {
-		loadPlayedStatuses(queryParams)
-	}, [loadPlayedStatuses, queryParams])
-
-	// Pagination handlers
-	const handlePageChange = (newPage: number) => {
-		setQueryParams((prev) => ({ ...prev, page: newPage }))
-	}
-
-	const handlePageSizeChange = (newPageSize: number) => {
-		setQueryParams((prev) => ({ ...prev, pageSize: newPageSize, page: 1 }))
-	}
-
-	// Reorder played statuses by moving status up or down one position
-	const movePlayedStatus = async (statusId: number, direction: 'up' | 'down') => {
+	// Reorder statuses by moving status up or down one position
+	// Uses the new /reorder endpoint for efficient batch updates.
+	const moveStatus = async (statusId: number, direction: 'up' | 'down') => {
 		if (isReordering) return // Prevent multiple simultaneous reorders
 
 		// Work on a copy ordered by sortOrder if present, otherwise by id
-		const ordered = [...playedStatuses].sort((a, b) => {
+		const ordered = [...statuses].sort((a, b) => {
 			const aKey = a.sortOrder ?? a.id
 			const bKey = b.sortOrder ?? b.id
 			return aKey - bKey
@@ -83,24 +72,40 @@ export const AdminPlayedStatus: React.FC = () => {
 
 		setIsReordering(true)
 		try {
-			await reorderGamePlayedStatuses(orderedIds)
+			await reorderGameStatuses(orderedIds)
 			// Reload list directly using dispatch to ensure fresh data
-			await dispatch(fetchPlayedStatuses({ ...queryParams })).unwrap()
+			await dispatch(fetchStatuses({ ...queryParams })).unwrap()
 		} catch (err) {
-			console.error('Failed to reorder played statuses:', err)
+			console.error('Failed to reorder statuses:', err)
 			window.alert('Error al reordenar. Por favor, intenta de nuevo.')
 		} finally {
 			setIsReordering(false)
 		}
 	}
 
-	const handleOpenModal = (status?: GamePlayedStatus) => {
+	useEffect(() => {
+		loadStatuses(queryParams)
+	}, [loadStatuses, queryParams])
+
+	// Pagination handlers
+	const handlePageChange = (newPage: number) => {
+		setQueryParams((prev) => ({ ...prev, page: newPage }))
+	}
+
+	const handlePageSizeChange = (newPageSize: number) => {
+		setQueryParams((prev) => ({ ...prev, pageSize: newPageSize, page: 1 }))
+	}
+
+	const handleOpenModal = (status?: GameStatus) => {
 		if (status) {
 			setEditingStatus(status)
 			setFormData({
 				name: status.name,
 				isActive: status.isActive,
 				color: status.color || '#000000',
+				statusType: status.statusType || 'None',
+				isDefault: status.isDefault || false,
+				isSpecialStatus: status.isSpecialStatus || false,
 			})
 		} else {
 			setEditingStatus(null)
@@ -108,6 +113,9 @@ export const AdminPlayedStatus: React.FC = () => {
 				name: '',
 				isActive: true,
 				color: '#000000',
+				statusType: 'None',
+				isDefault: false,
+				isSpecialStatus: false,
 			})
 		}
 		setIsModalOpen(true)
@@ -120,6 +128,9 @@ export const AdminPlayedStatus: React.FC = () => {
 			name: '',
 			isActive: true,
 			color: '#000000',
+			statusType: 'None',
+			isDefault: false,
+			isSpecialStatus: false,
 		})
 	}
 
@@ -127,35 +138,46 @@ export const AdminPlayedStatus: React.FC = () => {
 		e.preventDefault()
 		try {
 			if (editingStatus) {
-				const updateData = { ...formData, id: editingStatus.id } as GamePlayedStatusUpdateDto
-				await updatePlayedStatus(editingStatus.id, updateData)
+				const updateData = { ...formData, id: editingStatus.id } as GameStatusUpdateDto
+				await updateStatus(editingStatus.id, updateData)
+				// If statusType changed to a non-empty value, call reassign endpoint via hook
+				if (formData.statusType && editingStatus?.statusType !== formData.statusType) {
+					try {
+						await reassignSpecial({
+							newDefaultStatusId: editingStatus.id,
+							statusType: formData.statusType,
+						})
+					} catch (err) {
+						console.warn('Failed to reassign special statuses via thunk:', err)
+					}
+				}
 			} else {
-				await createPlayedStatus(formData)
+				await createStatus(formData)
 			}
 			handleCloseModal()
-			await loadPlayedStatuses(queryParams) // Reload data after create/update
+			await loadStatuses(queryParams) // Reload data after create/update
 		} catch (error) {
-			console.error('Error saving played status:', error)
+			console.error('Error saving status:', error)
 		}
 	}
 
 	const handleDelete = async (id: number) => {
-		if (window.confirm('¿Estás seguro de que quieres eliminar este estado?')) {
+		if (window.confirm('¿Estás seguro de que quieres eliminar este status?')) {
 			try {
-				await deletePlayedStatus(id)
-				await loadPlayedStatuses(queryParams) // Reload data after delete
+				await deleteStatus(id)
+				await loadStatuses(queryParams) // Reload data after delete
 			} catch (error) {
-				console.error('Error deleting played status:', error)
+				console.error('Error deleting status:', error)
 			}
 		}
 	}
 
 	return (
-		<div className='admin-played-status'>
+		<div className='admin-status'>
 			<div className='admin-header'>
-				<h1>Gestión de Played Status</h1>
+				<h1>Gestión de Status</h1>
 				<button className='btn btn-primary' onClick={() => handleOpenModal()}>
-					Nuevo Estado
+					Nuevo Status
 				</button>
 			</div>
 
@@ -165,7 +187,7 @@ export const AdminPlayedStatus: React.FC = () => {
 				<div className='page-size-control'>
 					<label>Elementos por página:</label>
 					<select
-						value={queryParams.pageSize || 10}
+						value={queryParams.pageSize || 50}
 						onChange={(e) => handlePageSizeChange(Number(e.target.value))}>
 						<option value={5}>5</option>
 						<option value={10}>10</option>
@@ -179,7 +201,7 @@ export const AdminPlayedStatus: React.FC = () => {
 				<div className='loading'>Cargando...</div>
 			) : (
 				<>
-					<div className='statuses-table'>
+					<div className='status-table'>
 						<table>
 							<thead>
 								<tr>
@@ -191,7 +213,7 @@ export const AdminPlayedStatus: React.FC = () => {
 								</tr>
 							</thead>
 							<tbody>
-								{[...playedStatuses]
+								{[...statuses]
 									.sort((a, b) => {
 										const aKey = a.sortOrder ?? a.id
 										const bKey = b.sortOrder ?? b.id
@@ -203,50 +225,63 @@ export const AdminPlayedStatus: React.FC = () => {
 												<ReorderButtons
 													canMoveUp={index > 0}
 													canMoveDown={index < array.length - 1}
-													onMoveUp={() => movePlayedStatus(status.id, 'up')}
-													onMoveDown={() => movePlayedStatus(status.id, 'down')}
+													onMoveUp={() => moveStatus(status.id, 'up')}
+													onMoveDown={() => moveStatus(status.id, 'down')}
 													isProcessing={isReordering}
 													size='small'
 												/>
 											</td>
-											<td>{status.name}</td>
-											<td>
-												<div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-													{status.color && (
-														<div
-															style={{
-																width: '20px',
-																height: '20px',
-																backgroundColor: status.color,
-																borderRadius: '3px',
-																border: '1px solid #ccc',
-															}}
-														/>
-													)}
-													<span>{status.color || 'Sin color'}</span>
-												</div>
-											</td>
-											<td>
+										<td>{status.name}</td>
+										<td>
+											<div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+												{status.color && (
+													<div
+														style={{
+															width: '20px',
+															height: '20px',
+															backgroundColor: status.color,
+															borderRadius: '3px',
+															border: '1px solid #ccc',
+														}}
+													/>
+												)}
+												<span>{status.color || 'Sin color'}</span>
+											</div>
+										</td>
+										<td>
+											<div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
 												<span className={`status ${status.isActive ? 'active' : 'inactive'}`}>
 													{status.isActive ? 'Activo' : 'Inactivo'}
 												</span>
-											</td>
-											<td>
-												<div className='actions'>
-													<button
-														className='btn btn-sm btn-secondary'
-														onClick={() => handleOpenModal(status)}>
-														Editar
-													</button>
-													<button
-														className='btn btn-sm btn-danger'
-														onClick={() => handleDelete(status.id)}>
-														Eliminar
-													</button>
-												</div>
-											</td>
-										</tr>
-									))}
+												<span className='meta'>
+													{status.statusType ? `(${status.statusType})` : ''}
+													{/* Default flag hidden in admin list per requirements */}
+													{status.isSpecialStatus ? ' • Special' : ''}
+												</span>
+											</div>
+										</td>
+										<td>
+											<div className='actions'>
+												<button
+													className='btn btn-sm btn-secondary'
+													onClick={() => handleOpenModal(status)}>
+													Editar
+												</button>
+												<button
+													className='btn btn-sm btn-danger'
+													onClick={() => handleDelete(status.id)}
+													disabled={!!status.isSpecialStatus}
+													title={
+														status.isSpecialStatus
+															? 'No se puede eliminar un special status'
+															: 'Eliminar'
+													}>
+													Eliminar
+												</button>
+											</div>
+										</td>
+									</tr>
+								))}
 							</tbody>
 						</table>
 					</div>
@@ -275,7 +310,7 @@ export const AdminPlayedStatus: React.FC = () => {
 				<div className='modal-overlay'>
 					<div className='modal'>
 						<div className='modal-header'>
-							<h2>{editingStatus ? 'Editar Estado' : 'Nuevo Estado'}</h2>
+							<h2>{editingStatus ? 'Editar Status' : 'Nuevo Status'}</h2>
 							<button className='close-btn' onClick={handleCloseModal}>
 								×
 							</button>
@@ -322,6 +357,37 @@ export const AdminPlayedStatus: React.FC = () => {
 									Activo
 								</label>
 							</div>
+
+							<div className='form-group'>
+								<label className='checkbox-label'>
+									<input
+										type='checkbox'
+										checked={!!formData.isSpecialStatus}
+										onChange={(e) =>
+											setFormData((prev) => ({
+												...prev,
+												isSpecialStatus: e.target.checked,
+												// reset statusType when unchecked
+												statusType: e.target.checked ? prev.statusType || 'None' : 'None',
+											}))
+										}
+									/>
+									Special Status
+								</label>
+							</div>
+
+							{formData.isSpecialStatus && (
+								<div className='form-group'>
+									<label htmlFor='statusType'>Tipo</label>
+									<select
+										id='statusType'
+										value={formData.statusType || 'None'}
+										onChange={(e) => setFormData({ ...formData, statusType: e.target.value })}>
+										<option value='NotFulfilled'>Not Fulfilled</option>
+										<option value='Playing'>Playing</option>
+									</select>
+								</div>
+							)}
 							<div className='modal-footer'>
 								<button type='button' className='btn btn-secondary' onClick={handleCloseModal}>
 									Cancelar
@@ -338,4 +404,4 @@ export const AdminPlayedStatus: React.FC = () => {
 	)
 }
 
-export default AdminPlayedStatus
+export default AdminStatus

@@ -1,20 +1,24 @@
 import React, { useEffect, useState } from 'react'
 import { useGamePlatform } from '@/hooks'
 import { reorderGamePlatforms } from '@/services'
+import { fetchPlatforms } from '@/store/features/gamePlatform/thunk'
+import { useAppDispatch } from '@/store/hooks'
 import type {
 	GamePlatform,
 	GamePlatformCreateDto,
 	GamePlatformUpdateDto,
 } from '@/models/api/GamePlatform'
 import type { QueryParameters } from '@/models/api/Game'
+import { ReorderButtons } from '@/components/elements/ReorderButtons/ReorderButtons'
 import './AdminPlatforms.scss'
 
 export const AdminPlatforms: React.FC = () => {
+	const dispatch = useAppDispatch()
 	const {
 		platforms,
-		pagination,
 		loading,
 		error,
+		pagination,
 		loadPlatforms,
 		createPlatform,
 		updatePlatform,
@@ -22,7 +26,7 @@ export const AdminPlatforms: React.FC = () => {
 	} = useGamePlatform()
 
 	const [isModalOpen, setIsModalOpen] = useState(false)
-	const [editingPlatform, setEditingPlatform] = useState<GamePlatform | null>(null)
+	const [editingOption, setEditingOption] = useState<GamePlatform | null>(null)
 	const [formData, setFormData] = useState<GamePlatformCreateDto>({
 		name: '',
 		isActive: true,
@@ -32,44 +36,13 @@ export const AdminPlatforms: React.FC = () => {
 	// Pagination and sorting state
 	const [queryParams, setQueryParams] = useState<QueryParameters>({
 		page: 1,
-		pageSize: 50,
+		pageSize: 10,
 		sortBy: undefined,
 		sortDescending: false,
 	})
 
-	// Drag and drop state
-	const [draggedId, setDraggedId] = useState<number | null>(null)
-	const [dragOverId, setDragOverId] = useState<number | null>(null)
+	// Reorder state
 	const [isReordering, setIsReordering] = useState(false)
-
-	// Reorder platforms by moving platform with id `sourceId` to the position of `targetId`.
-	const reorderPlatforms = async (sourceId: number, targetId: number) => {
-		const ordered = [...platforms].sort((a, b) => {
-			const aKey = a.sortOrder ?? a.id
-			const bKey = b.sortOrder ?? b.id
-			return aKey - bKey
-		})
-
-		const sourceIndex = ordered.findIndex((p) => p.id === sourceId)
-		const targetIndex = ordered.findIndex((p) => p.id === targetId)
-		if (sourceIndex === -1 || targetIndex === -1) return
-
-		const [moved] = ordered.splice(sourceIndex, 1)
-		ordered.splice(targetIndex, 0, moved)
-
-		const orderedIds = ordered.map((p) => p.id)
-
-		setIsReordering(true)
-		try {
-			await reorderGamePlatforms(orderedIds)
-			await loadPlatforms(queryParams)
-		} catch (err) {
-			console.error('Failed to reorder platforms:', err)
-			window.alert('Error al reordenar. Por favor, intenta de nuevo.')
-		} finally {
-			setIsReordering(false)
-		}
-	}
 
 	useEffect(() => {
 		loadPlatforms(queryParams)
@@ -84,16 +57,53 @@ export const AdminPlatforms: React.FC = () => {
 		setQueryParams((prev) => ({ ...prev, pageSize: newPageSize, page: 1 }))
 	}
 
-	const handleOpenModal = (platform?: GamePlatform) => {
-		if (platform) {
-			setEditingPlatform(platform)
+	// Reorder platform options by moving option up or down one position
+	const movePlatform = async (PlatformId: number, direction: 'up' | 'down') => {
+		if (isReordering) return // Prevent multiple simultaneous reorders
+
+		// Work on a copy ordered by sortOrder if present, otherwise by id
+		const ordered = [...platforms].sort((a, b) => {
+			const aKey = a.sortOrder ?? a.id
+			const bKey = b.sortOrder ?? b.id
+			return aKey - bKey
+		})
+
+		const currentIndex = ordered.findIndex((s) => s.id === PlatformId)
+		if (currentIndex === -1) return
+
+		const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
+		if (targetIndex < 0 || targetIndex >= ordered.length) return
+
+		// Swap positions
+		const [moved] = ordered.splice(currentIndex, 1)
+		ordered.splice(targetIndex, 0, moved)
+
+		// Extract ordered IDs
+		const orderedIds = ordered.map((s) => s.id)
+
+		setIsReordering(true)
+		try {
+			await reorderGamePlatforms(orderedIds)
+			// Reload list directly using dispatch to ensure fresh data
+			await dispatch(fetchPlatforms({ ...queryParams })).unwrap()
+		} catch (err) {
+			console.error('Failed to reorder platform options:', err)
+			window.alert('Error al reordenar. Por favor, intenta de nuevo.')
+		} finally {
+			setIsReordering(false)
+		}
+	}
+
+	const handleOpenModal = (option?: GamePlatform) => {
+		if (option) {
+			setEditingOption(option)
 			setFormData({
-				name: platform.name,
-				isActive: platform.isActive,
-				color: platform.color || '#000000',
+				name: option.name,
+				isActive: option.isActive,
+				color: option.color || '#000000',
 			})
 		} else {
-			setEditingPlatform(null)
+			setEditingOption(null)
 			setFormData({
 				name: '',
 				isActive: true,
@@ -105,7 +115,7 @@ export const AdminPlatforms: React.FC = () => {
 
 	const handleCloseModal = () => {
 		setIsModalOpen(false)
-		setEditingPlatform(null)
+		setEditingOption(null)
 		setFormData({
 			name: '',
 			isActive: true,
@@ -116,54 +126,51 @@ export const AdminPlatforms: React.FC = () => {
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
 		try {
-			if (editingPlatform) {
-				const updateData = { ...formData, id: editingPlatform.id } as GamePlatformUpdateDto
-				await updatePlatform(editingPlatform.id, updateData)
+			if (editingOption) {
+				const updateData = { ...formData, id: editingOption.id } as GamePlatformUpdateDto
+				await updatePlatform(editingOption.id, updateData)
 			} else {
 				await createPlatform(formData)
 			}
 			handleCloseModal()
-			// Reload current page
-			loadPlatforms(queryParams)
+			await loadPlatforms(queryParams) // Reload data after create/update
 		} catch (error) {
-			console.error('Error saving platform:', error)
+			console.error('Error saving play with option:', error)
 		}
 	}
 
 	const handleDelete = async (id: number) => {
-		if (window.confirm('¿Estás seguro de que quieres eliminar esta plataforma?')) {
+		if (window.confirm('¿Estás seguro de que quieres eliminar esta opción?')) {
 			try {
 				await deletePlatform(id)
-				// Reload current page
-				loadPlatforms(queryParams)
+				await loadPlatforms(queryParams) // Reload data after delete
 			} catch (error) {
-				console.error('Error deleting platform:', error)
+				console.error('Error deleting play with option:', error)
 			}
 		}
 	}
 
 	return (
-		<div className='admin-platforms'>
+		<div className='admin-platform'>
 			<div className='admin-header'>
-				<h1>Gestión de Plataformas</h1>
+				<h1>Gestión de Play With</h1>
 				<button className='btn btn-primary' onClick={() => handleOpenModal()}>
-					Nueva Plataforma
+					Nueva Opción
 				</button>
 			</div>
 
 			{error && <div className='alert alert-error'>{error}</div>}
 
-			{/* Filters and Pagination Controls */}
 			<div className='admin-controls'>
 				<div className='page-size-control'>
 					<label>Elementos por página:</label>
 					<select
-						value={queryParams.pageSize || 50}
+						value={queryParams.pageSize || 10}
 						onChange={(e) => handlePageSizeChange(Number(e.target.value))}>
-						<option value='5'>5</option>
-						<option value='10'>10</option>
-						<option value='25'>25</option>
-						<option value='50'>50</option>
+						<option value={5}>5</option>
+						<option value={10}>10</option>
+						<option value={25}>25</option>
+						<option value={50}>50</option>
 					</select>
 				</div>
 			</div>
@@ -171,117 +178,104 @@ export const AdminPlatforms: React.FC = () => {
 			{loading ? (
 				<div className='loading'>Cargando...</div>
 			) : (
-				<div className='platforms-table'>
-					<table>
-						<thead>
-							<tr>
-								<th>Nombre</th>
-								<th>Color</th>
-								<th>Estado</th>
-								<th>Acciones</th>
-							</tr>
-						</thead>
-						<tbody>
-							{platforms.map((platform) => (
-								<tr
-									key={platform.id}
-									draggable={true}
-									onDragStart={(e) => {
-										setDraggedId(platform.id)
-										e.dataTransfer.effectAllowed = 'move'
-									}}
-									onDragOver={(e) => {
-										if (isReordering) return
-										e.preventDefault()
-										if (platform.id !== draggedId) {
-											setDragOverId(platform.id)
-										}
-									}}
-									onDragLeave={() => {
-										setDragOverId(null)
-									}}
-									onDrop={async (e) => {
-										e.preventDefault()
-										setDragOverId(null)
-										if (isReordering || draggedId == null || draggedId === platform.id) return
-										await reorderPlatforms(draggedId, platform.id)
-										setDraggedId(null)
-									}}
-									style={{
-										cursor: 'grab',
-										opacity: draggedId === platform.id ? 0.5 : 1,
-										borderTop: dragOverId === platform.id ? '2px solid #2563eb' : undefined,
-									}}>
-									<td>{platform.name}</td>
-									<td>
-										<div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-											{platform.color && (
-												<div
-													style={{
-														width: '20px',
-														height: '20px',
-														backgroundColor: platform.color,
-														borderRadius: '3px',
-														border: '1px solid #ccc',
-													}}
-												/>
-											)}
-											<span>{platform.color || 'Sin color'}</span>
-										</div>
-									</td>
-									<td>
-										<span className={`status ${platform.isActive ? 'active' : 'inactive'}`}>
-											{platform.isActive ? 'Activo' : 'Inactivo'}
-										</span>
-									</td>
-									<td>
-										<div className='actions'>
-											<button
-												className='btn btn-sm btn-secondary'
-												onClick={() => handleOpenModal(platform)}>
-												Editar
-											</button>
-											<button
-												className='btn btn-sm btn-danger'
-												onClick={() => handleDelete(platform.id)}>
-												Eliminar
-											</button>
-										</div>
-									</td>
+				<>
+					<div className='options-table'>
+						<table>
+							<thead>
+								<tr>
+									<th style={{ width: '60px' }}>Orden</th>
+									<th>Nombre</th>
+									<th>Color</th>
+									<th>Estado</th>
+									<th>Acciones</th>
 								</tr>
-							))}
-						</tbody>
-					</table>
-				</div>
-			)}
+							</thead>
+							<tbody>
+								{[...platforms]
+									.sort((a, b) => {
+										const aKey = a.sortOrder ?? a.id
+										const bKey = b.sortOrder ?? b.id
+										return aKey - bKey
+									})
+									.map((option, index, array) => (
+										<tr key={option.id}>
+											<td>
+												<ReorderButtons
+													canMoveUp={index > 0}
+													canMoveDown={index < array.length - 1}
+													onMoveUp={() => movePlatform(option.id, 'up')}
+													onMoveDown={() => movePlatform(option.id, 'down')}
+													isProcessing={isReordering}
+													size='small'
+												/>
+											</td>
+											<td>{option.name}</td>
+											<td>
+												<div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+													{option.color && (
+														<div
+															style={{
+																width: '20px',
+																height: '20px',
+																backgroundColor: option.color,
+																borderRadius: '3px',
+																border: '1px solid #ccc',
+															}}
+														/>
+													)}
+													<span>{option.color || 'Sin color'}</span>
+												</div>
+											</td>
+											<td>
+												<span className={`status ${option.isActive ? 'active' : 'inactive'}`}>
+													{option.isActive ? 'Activo' : 'Inactivo'}
+												</span>
+											</td>
+											<td>
+												<div className='actions'>
+													<button
+														className='btn btn-sm btn-secondary'
+														onClick={() => handleOpenModal(option)}>
+														Editar
+													</button>
+													<button
+														className='btn btn-sm btn-danger'
+														onClick={() => handleDelete(option.id)}>
+														Eliminar
+													</button>
+												</div>
+											</td>
+										</tr>
+									))}
+							</tbody>
+						</table>
+					</div>
 
-			{/* Pagination */}
-			{pagination.totalPages > 1 && (
-				<div className='pagination-controls'>
-					<button
-						disabled={!pagination.hasPreviousPage}
-						onClick={() => handlePageChange(pagination.page - 1)}
-						className='pagination-btn'>
-						Anterior
-					</button>
-					<span className='pagination-info'>
-						Página {pagination.page} de {pagination.totalPages}({pagination.totalCount} elementos
-						total)
-					</span>
-					<button
-						disabled={!pagination.hasNextPage}
-						onClick={() => handlePageChange(pagination.page + 1)}
-						className='pagination-btn'>
-						Siguiente
-					</button>
-				</div>
+					<div className='pagination-controls'>
+						<button
+							className='pagination-btn'
+							disabled={pagination.page <= 1}
+							onClick={() => handlePageChange(pagination.page - 1)}>
+							Anterior
+						</button>
+						<span className='pagination-info'>
+							Página {pagination.page} de {pagination.totalPages}({pagination.totalCount} elementos)
+						</span>
+						<button
+							className='pagination-btn'
+							disabled={pagination.page >= pagination.totalPages}
+							onClick={() => handlePageChange(pagination.page + 1)}>
+							Siguiente
+						</button>
+					</div>
+				</>
 			)}
 
 			{isModalOpen && (
 				<div className='modal-overlay'>
 					<div className='modal'>
 						<div className='modal-header'>
-							<h2>{editingPlatform ? 'Editar Plataforma' : 'Nueva Plataforma'}</h2>
+							<h2>{editingOption ? 'Editar Opción' : 'Nueva Opción'}</h2>
 							<button className='close-btn' onClick={handleCloseModal}>
 								×
 							</button>
@@ -333,7 +327,7 @@ export const AdminPlatforms: React.FC = () => {
 									Cancelar
 								</button>
 								<button type='submit' className='btn btn-primary'>
-									{editingPlatform ? 'Actualizar' : 'Crear'}
+									{editingOption ? 'Actualizar' : 'Crear'}
 								</button>
 							</div>
 						</form>

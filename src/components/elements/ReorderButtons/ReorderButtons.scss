@@ -1,0 +1,147 @@
+.reorder-buttons {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	margin-left: auto;
+
+	&--small {
+		.reorder-button {
+			width: 24px;
+			height: 24px;
+
+			svg {
+				width: 12px;
+				height: 12px;
+			}
+		}
+	}
+
+	&--medium {
+		.reorder-button {
+			width: 32px;
+			height: 32px;
+
+			svg {
+				width: 16px;
+				height: 16px;
+			}
+		}
+	}
+
+	&--large {
+		.reorder-button {
+			width: 40px;
+			height: 40px;
+
+			svg {
+				width: 20px;
+				height: 20px;
+			}
+		}
+	}
+}
+
+.reorder-button {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
+	border: 1px solid var(--border-color);
+	border-radius: 6px;
+	background-color: var(--background-secondary);
+	color: var(--text-primary);
+	cursor: pointer;
+	transition: all 0.2s ease;
+	flex-shrink: 0;
+
+	svg {
+		transition: transform 0.2s ease;
+	}
+
+	&:hover:not(:disabled) {
+		background-color: var(--primary-color);
+		border-color: var(--primary-color);
+		color: white;
+		transform: translateY(-1px);
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+
+		svg {
+			transform: scale(1.1);
+		}
+	}
+
+	&:active:not(:disabled) {
+		transform: translateY(0);
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+	}
+
+	&:disabled {
+		opacity: 0.3;
+		cursor: not-allowed;
+		background-color: var(--background-tertiary);
+		border-color: var(--border-color);
+		color: var(--text-secondary);
+	}
+
+	&:focus-visible {
+		outline: 2px solid var(--primary-color);
+		outline-offset: 2px;
+	}
+
+	// Estilos específicos para botón de subir
+	&--up {
+		&:hover:not(:disabled) {
+			svg {
+				animation: bounce-up 0.6s ease-in-out infinite;
+			}
+		}
+	}
+
+	// Estilos específicos para botón de bajar
+	&--down {
+		&:hover:not(:disabled) {
+			svg {
+				animation: bounce-down 0.6s ease-in-out infinite;
+			}
+		}
+	}
+}
+
+// Animaciones
+@keyframes bounce-up {
+	0%,
+	100% {
+		transform: translateY(0);
+	}
+	50% {
+		transform: translateY(-3px);
+	}
+}
+
+@keyframes bounce-down {
+	0%,
+	100% {
+		transform: translateY(0);
+	}
+	50% {
+		transform: translateY(3px);
+	}
+}
+
+// Tema oscuro
+[data-theme='oscuro'] {
+	.reorder-button {
+		background-color: var(--background-secondary);
+		border-color: var(--border-color);
+
+		&:hover:not(:disabled) {
+			background-color: var(--primary-color);
+			border-color: var(--primary-color);
+		}
+
+		&:disabled {
+			background-color: var(--background-tertiary);
+			opacity: 0.25;
+		}
+	}
+}

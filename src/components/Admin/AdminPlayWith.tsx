@@ -1,15 +1,19 @@
 import React, { useEffect, useState } from 'react'
 import { useGamePlayWith } from '@/hooks'
 import { reorderGamePlayWith } from '@/services'
+import { fetchPlayWithOptions } from '@/store/features/gamePlayWith/thunk'
+import { useAppDispatch } from '@/store/hooks'
 import type {
 	GamePlayWith,
 	GamePlayWithCreateDto,
 	GamePlayWithUpdateDto,
 } from '@/models/api/GamePlayWith'
 import type { QueryParameters } from '@/models/api/Game'
+import { ReorderButtons } from '@/components/elements/ReorderButtons/ReorderButtons'
 import './AdminPlayWith.scss'
 
 export const AdminPlayWith: React.FC = () => {
+	const dispatch = useAppDispatch()
 	const {
 		playWiths,
 		loading,
@@ -37,9 +41,7 @@ export const AdminPlayWith: React.FC = () => {
 		sortDescending: false,
 	})
 
-	// Drag and drop state
-	const [draggedId, setDraggedId] = useState<number | null>(null)
-	const [dragOverId, setDragOverId] = useState<number | null>(null)
+	// Reorder state
 	const [isReordering, setIsReordering] = useState(false)
 
 	useEffect(() => {
@@ -55,8 +57,10 @@ export const AdminPlayWith: React.FC = () => {
 		setQueryParams((prev) => ({ ...prev, pageSize: newPageSize, page: 1 }))
 	}
 
-	// Reorder play-with options by moving option with id `sourceId` to the position of `targetId`.
-	const reorderPlayWiths = async (sourceId: number, targetId: number) => {
+	// Reorder play-with options by moving option up or down one position
+	const movePlayWith = async (playWithId: number, direction: 'up' | 'down') => {
+		if (isReordering) return // Prevent multiple simultaneous reorders
+
 		// Work on a copy ordered by sortOrder if present, otherwise by id
 		const ordered = [...playWiths].sort((a, b) => {
 			const aKey = a.sortOrder ?? a.id
@@ -64,12 +68,14 @@ export const AdminPlayWith: React.FC = () => {
 			return aKey - bKey
 		})
 
-		const sourceIndex = ordered.findIndex((s) => s.id === sourceId)
-		const targetIndex = ordered.findIndex((s) => s.id === targetId)
-		if (sourceIndex === -1 || targetIndex === -1) return
+		const currentIndex = ordered.findIndex((s) => s.id === playWithId)
+		if (currentIndex === -1) return
 
-		// Remove source and insert at targetIndex
-		const [moved] = ordered.splice(sourceIndex, 1)
+		const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
+		if (targetIndex < 0 || targetIndex >= ordered.length) return
+
+		// Swap positions
+		const [moved] = ordered.splice(currentIndex, 1)
 		ordered.splice(targetIndex, 0, moved)
 
 		// Extract ordered IDs
@@ -78,8 +84,8 @@ export const AdminPlayWith: React.FC = () => {
 		setIsReordering(true)
 		try {
 			await reorderGamePlayWith(orderedIds)
-			// Reload list to reflect server state
-			await loadPlayWiths(queryParams)
+			// Reload list directly using dispatch to ensure fresh data
+			await dispatch(fetchPlayWithOptions({ ...queryParams })).unwrap()
 		} catch (err) {
 			console.error('Failed to reorder play-with options:', err)
 			window.alert('Error al reordenar. Por favor, intenta de nuevo.')
@@ -177,6 +183,7 @@ export const AdminPlayWith: React.FC = () => {
 						<table>
 							<thead>
 								<tr>
+									<th style={{ width: '60px' }}>Orden</th>
 									<th>Nombre</th>
 									<th>Color</th>
 									<th>Estado</th>
@@ -184,74 +191,62 @@ export const AdminPlayWith: React.FC = () => {
 								</tr>
 							</thead>
 							<tbody>
-								{playWiths.map((option) => (
-									<tr
-										key={option.id}
-										draggable={true}
-										onDragStart={(e) => {
-											setDraggedId(option.id)
-											e.dataTransfer.effectAllowed = 'move'
-										}}
-										onDragOver={(e) => {
-											if (isReordering) return
-											e.preventDefault()
-											if (option.id !== draggedId) {
-												setDragOverId(option.id)
-											}
-										}}
-										onDragLeave={() => {
-											setDragOverId(null)
-										}}
-										onDrop={async (e) => {
-											e.preventDefault()
-											setDragOverId(null)
-											if (isReordering || draggedId == null || draggedId === option.id) return
-											await reorderPlayWiths(draggedId, option.id)
-											setDraggedId(null)
-										}}
-										style={{
-											cursor: 'grab',
-											opacity: draggedId === option.id ? 0.5 : 1,
-											borderTop: dragOverId === option.id ? '2px solid #2563eb' : undefined,
-										}}>
-										<td>{option.name}</td>
-										<td>
-											<div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-												{option.color && (
-													<div
-														style={{
-															width: '20px',
-															height: '20px',
-															backgroundColor: option.color,
-															borderRadius: '3px',
-															border: '1px solid #ccc',
-														}}
-													/>
-												)}
-												<span>{option.color || 'Sin color'}</span>
-											</div>
-										</td>
-										<td>
-											<span className={`status ${option.isActive ? 'active' : 'inactive'}`}>
-												{option.isActive ? 'Activo' : 'Inactivo'}
-											</span>
-										</td>
-										<td>
-											<div className='actions'>
-												<button
-													className='btn btn-sm btn-secondary'
-													onClick={() => handleOpenModal(option)}>
-													Editar
-												</button>
-												<button
-													className='btn btn-sm btn-danger'
-													onClick={() => handleDelete(option.id)}>
-													Eliminar
-												</button>
-											</div>
-										</td>
-									</tr>
-								))}
+								{[...playWiths]
+									.sort((a, b) => {
+										const aKey = a.sortOrder ?? a.id
+										const bKey = b.sortOrder ?? b.id
+										return aKey - bKey
+									})
+									.map((option, index, array) => (
+										<tr key={option.id}>
+											<td>
+												<ReorderButtons
+													canMoveUp={index > 0}
+													canMoveDown={index < array.length - 1}
+													onMoveUp={() => movePlayWith(option.id, 'up')}
+													onMoveDown={() => movePlayWith(option.id, 'down')}
+													isProcessing={isReordering}
+													size='small'
+												/>
+											</td>
+											<td>{option.name}</td>
+											<td>
+												<div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+													{option.color && (
+														<div
+															style={{
+																width: '20px',
+																height: '20px',
+																backgroundColor: option.color,
+																borderRadius: '3px',
+																border: '1px solid #ccc',
+															}}
+														/>
+													)}
+													<span>{option.color || 'Sin color'}</span>
+												</div>
+											</td>
+											<td>
+												<span className={`status ${option.isActive ? 'active' : 'inactive'}`}>
+													{option.isActive ? 'Activo' : 'Inactivo'}
+												</span>
+											</td>
+											<td>
+												<div className='actions'>
+													<button
+														className='btn btn-sm btn-secondary'
+														onClick={() => handleOpenModal(option)}>
+														Editar
+													</button>
+													<button
+														className='btn btn-sm btn-danger'
+														onClick={() => handleDelete(option.id)}>
+														Eliminar
+													</button>
+												</div>
+											</td>
+										</tr>
+									))}
 							</tbody>
 						</table>
 					</div>
