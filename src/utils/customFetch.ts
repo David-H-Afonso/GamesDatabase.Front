@@ -124,12 +124,29 @@ export const customFetch = async <T = any>(
 
 		if (!httpResponse.ok) {
 			if (httpResponse.status === 401) {
-				localStorage.removeItem('authToken')
-				localStorage.removeItem('userId')
-				localStorage.removeItem('username')
-				localStorage.removeItem('userRole')
-				window.location.href = '/login'
-				throw new Error('Authentication required. Redirecting to login...')
+				// Evitar múltiples redirects simultáneos usando una flag global
+				const isRedirecting = sessionStorage.getItem('isRedirectingToLogin')
+
+				if (!isRedirecting) {
+					sessionStorage.setItem('isRedirectingToLogin', 'true')
+
+					// Limpiar autenticación
+					localStorage.removeItem('authToken')
+					localStorage.removeItem('userId')
+					localStorage.removeItem('username')
+					localStorage.removeItem('userRole')
+
+					// Usar setTimeout para evitar interrumpir otras operaciones
+					setTimeout(() => {
+						sessionStorage.removeItem('isRedirectingToLogin')
+						// Solo redirigir si no estamos ya en login
+						if (!window.location.pathname.includes('/login')) {
+							window.location.href = '/#/login'
+						}
+					}, 100)
+				}
+
+				throw new Error('Authentication expired. Please login again.')
 			}
 
 			const errorMessage =

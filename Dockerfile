@@ -23,6 +23,9 @@ RUN npm run build
 FROM nginx:alpine AS runtime
 WORKDIR /usr/share/nginx/html
 
+# Install curl for healthcheck
+RUN apk add --no-cache curl
+
 # Copy built files from build stage
 COPY --from=build /app/dist .
 
