@@ -23,7 +23,7 @@ const getInitialTheme = (): string => {
 const initialState: ThemeState = {
 	currentTheme: getInitialTheme(),
 	availableThemes: [...AVAILABLE_THEMES],
-	cardStyle: 'row',
+	cardStyle: 'card',
 	viewMode: 'default',
 }
 

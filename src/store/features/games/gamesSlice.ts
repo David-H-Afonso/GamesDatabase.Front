@@ -17,7 +17,10 @@ const initialState: GamesState = {
 		hasNextPage: false,
 		hasPreviousPage: false,
 	},
-	filters: {},
+	filters: {
+		sortBy: 'status',
+		sortDescending: false,
+	},
 	lastAppliedFilters: null,
 	isDataFresh: false,
 }
