@@ -57,6 +57,8 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 			logo: game.logo ?? '',
 			cover: game.cover ?? '',
 			comment: game.comment ?? '',
+			isCheaperByKey: game.isCheaperByKey ?? undefined,
+			keyStoreUrl: game.keyStoreUrl ?? '',
 		},
 		enableReinitialize: true,
 		validate: (values) => {
@@ -82,6 +84,8 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 	const saveField = async (field: string, value: any) => {
 		// coerce numeric-like fields
 		let payloadValue: any = value
+
+		// Handle numeric fields (all optional)
 		if (
 			field === 'critic' ||
 			field === 'grade' ||
@@ -89,29 +93,84 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 			field === 'completion' ||
 			field === 'score'
 		) {
-			if (value === '' || value === null || typeof value === 'undefined') payloadValue = null
-			else payloadValue = Number(value)
-		}
-
-		// Special handling for critic and grade: clamp to [0,100], allow clearing
-		if (field === 'critic' || field === 'grade') {
 			if (value === '' || value === null || typeof value === 'undefined') {
-				// cleared by user -> treat as delete
 				payloadValue = null
-				formik.setFieldValue(field as any, '')
+				formik.setFieldValue(field as any, undefined)
 			} else {
 				const n = Number(value)
 				if (isNaN(n)) {
 					formik.setFieldError(field, 'Must be a number')
 					return
 				}
-				// clamp
-				const clamped = Math.min(100, Math.max(0, Math.round(n)))
-				payloadValue = clamped
-				formik.setFieldValue(field as any, clamped)
+				// clamp for critic and grade
+				if (field === 'critic' || field === 'grade') {
+					const clamped = Math.min(100, Math.max(0, Math.round(n)))
+					payloadValue = clamped
+					formik.setFieldValue(field as any, clamped)
+				} else {
+					payloadValue = n
+					formik.setFieldValue(field as any, n)
+				}
 			}
-		} else {
-			// Update formik local state for other fields
+		}
+		// Handle optional string fields (can be cleared)
+		else if (
+			field === 'logo' ||
+			field === 'cover' ||
+			field === 'comment' ||
+			field === 'keyStoreUrl' ||
+			field === 'released' ||
+			field === 'started' ||
+			field === 'finished'
+		) {
+			if (value === '' || value === null || typeof value === 'undefined') {
+				payloadValue = null
+				formik.setFieldValue(field as any, '')
+			} else {
+				payloadValue = value
+				formik.setFieldValue(field as any, value)
+			}
+		}
+		// Handle required fields (cannot be empty)
+		else if (field === 'name') {
+			if (value === '' || value === null || typeof value === 'undefined') {
+				formik.setFieldError(field, 'Name is required')
+				return
+			}
+			payloadValue = value
+			formik.setFieldValue(field as any, value)
+		}
+		// Handle required ID fields (cannot be empty/null)
+		else if (field === 'statusId') {
+			if (value === null || typeof value === 'undefined') {
+				formik.setFieldError(field, 'Status is required')
+				return
+			}
+			payloadValue = value
+			formik.setFieldValue(field as any, value)
+		}
+		// Handle optional ID fields (can be null)
+		else if (field === 'platformId' || field === 'playedStatusId') {
+			if (value === null || typeof value === 'undefined') {
+				payloadValue = null
+			} else {
+				payloadValue = value
+			}
+			formik.setFieldValue(field as any, value)
+		}
+		// Handle optional boolean fields
+		else if (field === 'isCheaperByKey') {
+			// Allow undefined/null for optional boolean
+			if (value === null || typeof value === 'undefined') {
+				payloadValue = null
+			} else {
+				payloadValue = value
+			}
+			formik.setFieldValue(field as any, value)
+		}
+		// Handle other fields (playWithIds, etc.)
+		else {
+			payloadValue = value
 			formik.setFieldValue(field as any, value)
 		}
 
@@ -160,6 +219,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 							type='text'
 							onSave={(value) => saveField('name', value)}
 							placeholder='No name'
+							allowEmpty={false}
 						/>
 					</div>
 				</div>
@@ -393,6 +453,47 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 							placeholder='Enter cover URL (optional)'
 						/>
 					</div>
+
+					<div className='game-details-content-infoList-item'>
+						<h4>Cheaper by Key?</h4>
+						<select
+							value={
+								formik.values.isCheaperByKey === true
+									? 'true'
+									: formik.values.isCheaperByKey === false
+									? 'false'
+									: ''
+							}
+							onChange={async (e) => {
+								const val = e.target.value
+								if (val === '') {
+									await saveField('isCheaperByKey', undefined)
+									// Clear key store URL if setting to undefined
+									if (formik.values.keyStoreUrl) {
+										await saveField('keyStoreUrl', '')
+									}
+								} else {
+									await saveField('isCheaperByKey', val === 'true')
+								}
+							}}
+							className='game-details-select'>
+							<option value=''>Not set</option>
+							<option value='true'>Yes (Cheaper by Key)</option>
+							<option value='false'>No (Cheaper in Store)</option>
+						</select>
+					</div>
+
+					{formik.values.isCheaperByKey !== undefined && (
+						<div className='game-details-content-infoList-item'>
+							<h4>Key Store URL</h4>
+							<EditableField
+								value={formik.values.keyStoreUrl}
+								type='text'
+								onSave={(value) => saveField('keyStoreUrl', value)}
+								placeholder='Enter key store URL (optional)'
+							/>
+						</div>
+					)}
 				</div>
 
 				<div className='game-details-content-comment'>

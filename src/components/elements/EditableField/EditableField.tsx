@@ -10,6 +10,7 @@ interface EditableFieldProps {
 	style?: React.CSSProperties
 	type: string
 	value: string | number | undefined
+	allowEmpty?: boolean // New prop to control if empty values can be saved
 }
 
 export const EditableField: React.FC<EditableFieldProps> = ({
@@ -21,6 +22,7 @@ export const EditableField: React.FC<EditableFieldProps> = ({
 	style,
 	type,
 	value,
+	allowEmpty = true, // Default to true for backwards compatibility
 }) => {
 	const [isEditing, setIsEditing] = useState(false)
 	const [currentValue, setCurrentValue] = useState<string | number | undefined>(value)
@@ -28,9 +30,19 @@ export const EditableField: React.FC<EditableFieldProps> = ({
 	const showTitle = hasValue ? (formatter ? formatter(value) : String(value)) : placeholder
 
 	const handleSave = () => {
-		if (currentValue !== undefined && currentValue !== null) {
-			onSave(currentValue)
+		// Check if value is empty
+		const isEmpty = currentValue === undefined || currentValue === null || currentValue === ''
+
+		// If empty and not allowed, don't save (just close editing)
+		if (isEmpty && !allowEmpty) {
+			setIsEditing(false)
+			setCurrentValue(value) // Reset to original value
+			return
 		}
+
+		// Allow saving empty strings to clear fields (if allowEmpty is true)
+		const valueToSave = isEmpty ? '' : currentValue
+		onSave(valueToSave)
 		setIsEditing(false)
 	}
 

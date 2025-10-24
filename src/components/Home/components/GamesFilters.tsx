@@ -215,6 +215,24 @@ const GamesFilters: React.FC<Props> = ({ value, onChange, isOpen = true, onClear
 				})}
 			</div>
 
+			{/* Price comparison filter */}
+			<div className='gf-row'>
+				<label htmlFor='isCheaperByKey'>Price:</label>
+				<select
+					id='isCheaperByKey'
+					value={
+						value.isCheaperByKey === true ? 'true' : value.isCheaperByKey === false ? 'false' : ''
+					}
+					onChange={(e) => {
+						const val = e.target.value
+						update({ isCheaperByKey: val === '' ? undefined : val === 'true' })
+					}}>
+					<option value=''>All</option>
+					<option value='true'>Cheaper by Key</option>
+					<option value='false'>Cheaper in Store</option>
+				</select>
+			</div>
+
 			<div className='gf-row gf-row--compact'>
 				<button type='button' className='gf-clear-btn' onClick={handleClear}>
 					Clear filters

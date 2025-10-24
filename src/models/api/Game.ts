@@ -23,6 +23,8 @@ export interface Game {
 	story?: number // 0-100
 	createdAt?: string // ISO date string - when the game was created
 	updatedAt?: string // ISO date string - when the game was last modified
+	isCheaperByKey?: boolean // true if game is cheaper by key, false if cheaper in official store
+	keyStoreUrl?: string // URL to key store (only if isCheaperByKey is true)
 }
 
 // DTOs for create and update operations
@@ -41,6 +43,8 @@ export interface GameCreateDto {
 	comment?: string
 	playWithIds?: number[] // Changed to array
 	playedStatusId?: number
+	isCheaperByKey?: boolean
+	keyStoreUrl?: string
 }
 
 export interface GameUpdateDto extends GameCreateDto {
@@ -87,6 +91,8 @@ export interface GameQueryParameters extends QueryParameters {
 	finishedYear?: number
 	// Exclude specific status IDs (can be multiple)
 	excludeStatusIds?: number[]
+	// Filter by price comparison
+	isCheaperByKey?: boolean
 	// View name for custom views
 	viewName?: string
 }
