@@ -27,6 +27,12 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 	const { playedStatuses: playedStatusOptions } = useAppSelector((state) => state.gamePlayedStatus)
 	const { playWithOptions } = useAppSelector((state) => state.gamePlayWith)
 
+	// Options for price comparison (Where's Key)
+	const priceComparisonOptions = [
+		{ id: 1, name: 'Key', color: undefined },
+		{ id: 2, name: 'Store', color: undefined },
+	]
+
 	const panelRef = useClickOutside<HTMLDivElement>(() => {
 		handleClose()
 	})
@@ -455,37 +461,41 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 					</div>
 
 					<div className='game-details-content-infoList-item'>
-						<h4>Cheaper by Key?</h4>
-						<select
+						<h4>Cheaper</h4>
+						<EditableSelect
 							value={
 								formik.values.isCheaperByKey === true
-									? 'true'
+									? 1
 									: formik.values.isCheaperByKey === false
-									? 'false'
-									: ''
+									? 2
+									: undefined
 							}
-							onChange={async (e) => {
-								const val = e.target.value
-								if (val === '') {
+							displayValue={
+								formik.values.isCheaperByKey === true
+									? 'Key'
+									: formik.values.isCheaperByKey === false
+									? 'Store'
+									: undefined
+							}
+							options={priceComparisonOptions}
+							onSave={async (value) => {
+								if (value === undefined) {
 									await saveField('isCheaperByKey', undefined)
 									// Clear key store URL if setting to undefined
 									if (formik.values.keyStoreUrl) {
 										await saveField('keyStoreUrl', '')
 									}
 								} else {
-									await saveField('isCheaperByKey', val === 'true')
+									await saveField('isCheaperByKey', value === 1)
 								}
 							}}
-							className='game-details-select'>
-							<option value=''>Not set</option>
-							<option value='true'>Yes (Cheaper by Key)</option>
-							<option value='false'>No (Cheaper in Store)</option>
-						</select>
+							placeholder='Not set'
+						/>
 					</div>
 
 					{formik.values.isCheaperByKey !== undefined && (
 						<div className='game-details-content-infoList-item'>
-							<h4>Key Store URL</h4>
+							<h4>Key URL</h4>
 							<EditableField
 								value={formik.values.keyStoreUrl}
 								type='text'
