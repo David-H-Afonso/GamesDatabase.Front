@@ -29,23 +29,20 @@ COPY --from=build /app/dist .
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Create script to inject runtime environment variables
-RUN cat > /docker-entrypoint.d/40-update-env.sh << 'EOF'
-#!/bin/sh
-set -e
-
-# Create env-config.js with runtime environment variables
-cat > /usr/share/nginx/html/env-config.js << ENVEOF
-window.ENV = {
-  VITE_API_URL: '${VITE_API_URL:-http://localhost:8080/api}'
-};
-ENVEOF
-
-echo "Environment configuration updated:"
-cat /usr/share/nginx/html/env-config.js
-EOF
-
-RUN chmod +x /docker-entrypoint.d/40-update-env.sh
+# Create entrypoint script to inject runtime environment variables
+RUN echo '#!/bin/sh' > /docker-entrypoint.d/40-update-env.sh && \
+    echo 'set -e' >> /docker-entrypoint.d/40-update-env.sh && \
+    echo '' >> /docker-entrypoint.d/40-update-env.sh && \
+    echo '# Create env-config.js with runtime environment variables' >> /docker-entrypoint.d/40-update-env.sh && \
+    echo 'cat > /usr/share/nginx/html/env-config.js << "ENVEOF"' >> /docker-entrypoint.d/40-update-env.sh && \
+    echo 'window.ENV = {' >> /docker-entrypoint.d/40-update-env.sh && \
+    echo '  VITE_API_URL: '"'"'${VITE_API_URL:-http://localhost:8080/api}'"'"'' >> /docker-entrypoint.d/40-update-env.sh && \
+    echo '};' >> /docker-entrypoint.d/40-update-env.sh && \
+    echo 'ENVEOF' >> /docker-entrypoint.d/40-update-env.sh && \
+    echo '' >> /docker-entrypoint.d/40-update-env.sh && \
+    echo 'echo "Environment configuration updated:"' >> /docker-entrypoint.d/40-update-env.sh && \
+    echo 'cat /usr/share/nginx/html/env-config.js' >> /docker-entrypoint.d/40-update-env.sh && \
+    chmod +x /docker-entrypoint.d/40-update-env.sh
 
 # Environment variable for runtime configuration
 ENV VITE_API_URL=http://localhost:8080/api
