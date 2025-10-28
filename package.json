@@ -1,11 +1,16 @@
 {
 	"name": "gamesdatabase-front",
 	"private": true,
-	"version": "0.9.0",
+	"version": "1.0.0",
 	"type": "module",
 	"author": "David H. Afonso",
-	"description": "Sistema de gestión de base de datos de videojuegos",
-	"homepage": "https://github.com/David-H-Afonso/GamesDatabase",
+	"description": "A modern web application for managing and organizing your personal game collection",
+	"homepage": "https://github.com/David-H-Afonso/GamesDatabase.Front",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/David-H-Afonso/GamesDatabase.Front.git"
+	},
+	"license": "GPL-3.0",
 	"scripts": {
 		"dev": "vite",
 		"build": "tsc -b && vite build",
