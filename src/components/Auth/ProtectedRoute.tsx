@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
+import { useAppSelector } from '@/store/hooks'
+import { selectIsAuthenticated } from '@/store/features/auth/selector'
 import { authService } from '@/services'
 
 interface ProtectedRouteProps {
@@ -8,7 +10,7 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = ({ children, adminOnly = false }: ProtectedRouteProps) => {
-	const isAuthenticated = authService.isAuthenticated()
+	const isAuthenticated = useAppSelector(selectIsAuthenticated)
 	const isAdmin = authService.isAdmin()
 
 	if (!isAuthenticated) {

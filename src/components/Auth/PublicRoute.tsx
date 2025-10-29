@@ -1,13 +1,14 @@
 import type { ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
-import { authService } from '@/services'
+import { useAppSelector } from '@/store/hooks'
+import { selectIsAuthenticated } from '@/store/features/auth/selector'
 
 interface PublicRouteProps {
 	children: ReactNode
 }
 
 export const PublicRoute = ({ children }: PublicRouteProps) => {
-	const isAuthenticated = authService.isAuthenticated()
+	const isAuthenticated = useAppSelector(selectIsAuthenticated)
 
 	if (isAuthenticated) {
 		return <Navigate to='/' replace />
