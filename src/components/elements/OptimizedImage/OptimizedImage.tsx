@@ -36,53 +36,69 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
 	const getOptimizedSrc = (originalSrc: string): string => {
 		if (!originalSrc) return ''
 
-		// For IGDB images (images.igdb.com), use their built-in image optimization
-		if (originalSrc.includes('images.igdb.com')) {
-			// Replace thumb with appropriate size based on quality
-			let sizeParam = 't_720p' // default medium
-			if (quality === 'low') sizeParam = 't_cover_small'
-			else if (quality === 'high') sizeParam = 't_1080p'
+		// Validate URL before processing
+		try {
+			// Check if it's a valid URL
+			const url = new URL(originalSrc, window.location.origin)
 
-			// Replace existing size parameter or add it
-			if (originalSrc.includes('/t_')) {
-				return originalSrc.replace(/\/t_[^/]+\//, `/${sizeParam}/`)
+			// For IGDB images (images.igdb.com), use their built-in image optimization
+			if (originalSrc.includes('images.igdb.com')) {
+				// Replace thumb with appropriate size based on quality
+				let sizeParam = 't_720p' // default medium
+				if (quality === 'low') sizeParam = 't_cover_small'
+				else if (quality === 'high') sizeParam = 't_1080p'
+
+				// Replace existing size parameter or add it
+				if (originalSrc.includes('/t_')) {
+					return originalSrc.replace(/\/t_[^/]+\//, `/${sizeParam}/`)
+				}
+				// Insert before filename
+				const lastSlash = originalSrc.lastIndexOf('/')
+				return (
+					originalSrc.slice(0, lastSlash + 1) + sizeParam + '/' + originalSrc.slice(lastSlash + 1)
+				)
 			}
-			// Insert before filename
-			const lastSlash = originalSrc.lastIndexOf('/')
-			return (
-				originalSrc.slice(0, lastSlash + 1) + sizeParam + '/' + originalSrc.slice(lastSlash + 1)
-			)
+
+			// For other URLs, attempt to add query parameters for quality control
+			// (works with some CDNs like Cloudinary, Imgix, etc.)
+
+			// Cloudinary optimization
+			if (originalSrc.includes('cloudinary.com')) {
+				const qualityMap = { low: 'q_50', medium: 'q_70', high: 'q_90' }
+				const autoFormat = 'f_auto'
+				const transforms = [qualityMap[quality], autoFormat]
+				if (width) transforms.push(`w_${width}`)
+
+				// Insert transformations in Cloudinary URL structure
+				return originalSrc.replace('/upload/', `/upload/${transforms.join(',')}/`)
+			}
+
+			// Imgix optimization
+			if (originalSrc.includes('imgix.net')) {
+				const qualityMap = { low: 50, medium: 70, high: 90 }
+				url.searchParams.set('q', qualityMap[quality].toString())
+				url.searchParams.set('auto', 'format,compress')
+				if (width) url.searchParams.set('w', width.toString())
+				return url.toString()
+			}
+
+			// Return original if no optimization available
+			return originalSrc
+		} catch (error) {
+			// If URL is invalid, log error and return empty string
+			console.error('Invalid image URL:', originalSrc, error)
+			return ''
 		}
-
-		// For other URLs, attempt to add query parameters for quality control
-		// (works with some CDNs like Cloudinary, Imgix, etc.)
-		const url = new URL(originalSrc)
-
-		// Cloudinary optimization
-		if (originalSrc.includes('cloudinary.com')) {
-			const qualityMap = { low: 'q_50', medium: 'q_70', high: 'q_90' }
-			const autoFormat = 'f_auto'
-			const transforms = [qualityMap[quality], autoFormat]
-			if (width) transforms.push(`w_${width}`)
-
-			// Insert transformations in Cloudinary URL structure
-			return originalSrc.replace('/upload/', `/upload/${transforms.join(',')}/`)
-		}
-
-		// Imgix optimization
-		if (originalSrc.includes('imgix.net')) {
-			const qualityMap = { low: 50, medium: 70, high: 90 }
-			url.searchParams.set('q', qualityMap[quality].toString())
-			url.searchParams.set('auto', 'format,compress')
-			if (width) url.searchParams.set('w', width.toString())
-			return url.toString()
-		}
-
-		// Return original if no optimization available
-		return originalSrc
 	}
 
 	const optimizedSrc = getOptimizedSrc(src)
+
+	// If URL is invalid, show error immediately
+	useEffect(() => {
+		if (!optimizedSrc && src) {
+			setHasError(true)
+		}
+	}, [optimizedSrc, src])
 
 	const handleLoad = () => {
 		setIsLoaded(true)

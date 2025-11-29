@@ -34,11 +34,11 @@ RUN echo '#!/bin/sh' > /docker-entrypoint.d/40-update-env.sh && \
     echo 'set -e' >> /docker-entrypoint.d/40-update-env.sh && \
     echo '' >> /docker-entrypoint.d/40-update-env.sh && \
     echo '# Create env-config.js with runtime environment variables' >> /docker-entrypoint.d/40-update-env.sh && \
-    echo 'cat > /usr/share/nginx/html/env-config.js << "ENVEOF"' >> /docker-entrypoint.d/40-update-env.sh && \
+    echo 'cat > /usr/share/nginx/html/env-config.js << EOF' >> /docker-entrypoint.d/40-update-env.sh && \
     echo 'window.ENV = {' >> /docker-entrypoint.d/40-update-env.sh && \
-    echo '  VITE_API_URL: '"'"'${VITE_API_URL:-http://localhost:8080/api}'"'"'' >> /docker-entrypoint.d/40-update-env.sh && \
+    echo '  VITE_API_URL: "${VITE_API_URL:-http://localhost:8080/api}"' >> /docker-entrypoint.d/40-update-env.sh && \
     echo '};' >> /docker-entrypoint.d/40-update-env.sh && \
-    echo 'ENVEOF' >> /docker-entrypoint.d/40-update-env.sh && \
+    echo 'EOF' >> /docker-entrypoint.d/40-update-env.sh && \
     echo '' >> /docker-entrypoint.d/40-update-env.sh && \
     echo 'echo "Environment configuration updated:"' >> /docker-entrypoint.d/40-update-env.sh && \
     echo 'cat /usr/share/nginx/html/env-config.js' >> /docker-entrypoint.d/40-update-env.sh && \
