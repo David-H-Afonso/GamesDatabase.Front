@@ -34,7 +34,7 @@ function isTokenExpired(token: string): boolean {
 	// exp is in seconds, Date.now() is in milliseconds
 	const expirationTime = decoded.exp * 1000
 	// Add 5 second buffer to avoid edge cases
-	return Date.now() >= (expirationTime - 5000)
+	return Date.now() >= expirationTime - 5000
 }
 
 /**
@@ -92,14 +92,14 @@ class AuthService {
 		if (!token) {
 			return null
 		}
-		
+
 		// Check if token is expired
 		if (isTokenExpired(token)) {
 			// Clear expired token
 			this.logout()
 			return null
 		}
-		
+
 		return token
 	}
 
@@ -133,14 +133,14 @@ class AuthService {
 		if (!token) {
 			return false
 		}
-		
+
 		// Verify token is not expired
 		if (isTokenExpired(token)) {
 			// Clear expired credentials
 			this.logout()
 			return false
 		}
-		
+
 		return true
 	}
 
