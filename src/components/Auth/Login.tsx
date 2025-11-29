@@ -9,6 +9,7 @@ import {
 } from '@/store/features/auth/selector'
 import { selectRecentUsers } from '@/store/features/recentUsers/selector'
 import { RecentUsersList } from './RecentUsersList'
+import { authService } from '@/services'
 import './Login.scss'
 
 export const Login = () => {
@@ -30,7 +31,9 @@ export const Login = () => {
 
 	// Redirect if already authenticated
 	useEffect(() => {
-		if (isAuthenticated) {
+		// Only check once on mount to avoid loops
+		const hasValidToken = authService.isAuthenticated()
+		if (isAuthenticated && hasValidToken) {
 			navigate('/', { replace: true })
 		}
 	}, [isAuthenticated, navigate])

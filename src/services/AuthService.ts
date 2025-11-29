@@ -7,6 +7,37 @@ const USERNAME_KEY = 'username'
 const USER_ROLE_KEY = 'userRole'
 
 /**
+ * Decode JWT token (basic implementation without verification)
+ */
+function decodeJWT(token: string): any {
+	try {
+		const parts = token.split('.')
+		if (parts.length !== 3) {
+			return null
+		}
+		const payload = parts[1]
+		const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')))
+		return decoded
+	} catch {
+		return null
+	}
+}
+
+/**
+ * Check if JWT token is expired
+ */
+function isTokenExpired(token: string): boolean {
+	const decoded = decodeJWT(token)
+	if (!decoded || !decoded.exp) {
+		return true
+	}
+	// exp is in seconds, Date.now() is in milliseconds
+	const expirationTime = decoded.exp * 1000
+	// Add 5 second buffer to avoid edge cases
+	return Date.now() >= (expirationTime - 5000)
+}
+
+/**
  * Authentication Service
  * Handles login, logout, and token management
  */
@@ -54,10 +85,22 @@ class AuthService {
 	}
 
 	/**
-	 * Get current JWT token
+	 * Get current JWT token (only if not expired)
 	 */
 	getToken(): string | null {
-		return localStorage.getItem(TOKEN_KEY)
+		const token = localStorage.getItem(TOKEN_KEY)
+		if (!token) {
+			return null
+		}
+		
+		// Check if token is expired
+		if (isTokenExpired(token)) {
+			// Clear expired token
+			this.logout()
+			return null
+		}
+		
+		return token
 	}
 
 	/**
@@ -83,10 +126,22 @@ class AuthService {
 	}
 
 	/**
-	 * Check if user is authenticated
+	 * Check if user is authenticated (with valid non-expired token)
 	 */
 	isAuthenticated(): boolean {
-		return this.getToken() !== null
+		const token = localStorage.getItem(TOKEN_KEY)
+		if (!token) {
+			return false
+		}
+		
+		// Verify token is not expired
+		if (isTokenExpired(token)) {
+			// Clear expired credentials
+			this.logout()
+			return false
+		}
+		
+		return true
 	}
 
 	/**

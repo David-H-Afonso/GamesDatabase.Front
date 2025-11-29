@@ -124,25 +124,28 @@ export const customFetch = async <T = any>(
 
 		if (!httpResponse.ok) {
 			if (httpResponse.status === 401) {
-				// Evitar múltiples redirects simultáneos usando una flag global
+				// Avoid multiple simultaneous redirects
 				const isRedirecting = sessionStorage.getItem('isRedirectingToLogin')
+				const currentPath = window.location.pathname
 
-				if (!isRedirecting) {
+				if (!isRedirecting && !currentPath.includes('/login')) {
 					sessionStorage.setItem('isRedirectingToLogin', 'true')
 
-					// Limpiar autenticación
+					// Clear authentication completely
 					localStorage.removeItem('authToken')
 					localStorage.removeItem('userId')
 					localStorage.removeItem('username')
 					localStorage.removeItem('userRole')
+					
+					// Clear Redux persist
+					localStorage.removeItem('persist:root')
 
-					// Usar setTimeout para evitar interrumpir otras operaciones
+					// Use setTimeout to avoid interrupting other operations
 					setTimeout(() => {
 						sessionStorage.removeItem('isRedirectingToLogin')
-						// Solo redirigir si no estamos ya en login
-						if (!window.location.pathname.includes('/login')) {
-							window.location.href = '/#/login'
-						}
+						// Force full page reload to reset Redux state
+						window.location.href = '/#/login'
+						window.location.reload()
 					}, 100)
 				}
 

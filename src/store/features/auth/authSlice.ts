@@ -63,11 +63,34 @@ const authSlice = createSlice({
 
 		/**
 		 * Restore authentication from localStorage (on app startup)
+		 * This will automatically clear expired tokens
 		 */
 		restoreAuth: (state) => {
-			state.isAuthenticated = authService.isAuthenticated()
-			state.user = authService.getCurrentUser()
-			state.token = authService.getToken()
+			// isAuthenticated() will return false and clear storage if token is expired
+			const isAuth = authService.isAuthenticated()
+			
+			if (!isAuth) {
+				// Token is expired or doesn't exist, clear everything
+				state.isAuthenticated = false
+				state.user = null
+				state.token = null
+			} else {
+				// Token is valid, restore state
+				state.isAuthenticated = true
+				state.user = authService.getCurrentUser()
+				state.token = authService.getToken()
+			}
+		},
+		
+		/**
+		 * Force logout (used when token expires during usage)
+		 */
+		forceLogout: (state) => {
+			authService.logout()
+			state.isAuthenticated = false
+			state.user = null
+			state.token = null
+			state.error = null
 		},
 	},
 	extraReducers: (builder) => {
@@ -106,5 +129,5 @@ const authSlice = createSlice({
 	},
 })
 
-export const { clearError, restoreAuth } = authSlice.actions
+export const { clearError, restoreAuth, forceLogout } = authSlice.actions
 export default authSlice.reducer

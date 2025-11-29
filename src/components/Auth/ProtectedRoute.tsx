@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
 import { useAppSelector } from '@/store/hooks'
 import { selectIsAuthenticated } from '@/store/features/auth/selector'
 import { authService } from '@/services'
@@ -10,11 +10,13 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = ({ children, adminOnly = false }: ProtectedRouteProps) => {
+	const location = useLocation()
 	const isAuthenticated = useAppSelector(selectIsAuthenticated)
 	const isAdmin = authService.isAdmin()
 
 	if (!isAuthenticated) {
-		return <Navigate to='/login' replace />
+		// Redirect to login, preserving the intended destination
+		return <Navigate to='/login' state={{ from: location }} replace />
 	}
 
 	if (adminOnly && !isAdmin) {

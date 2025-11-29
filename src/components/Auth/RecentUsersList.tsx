@@ -41,11 +41,10 @@ export const RecentUsersList = ({ onUserSelect }: RecentUsersListProps) => {
 			<h3 className='recent-users__title'>Are you...?</h3>
 			<div className='recent-users__list'>
 				{recentUsers.map((user) => (
-					<button
+					<div
 						key={user.username}
 						className='recent-user-card'
-						onClick={() => onUserSelect(user.username, user.hasPassword)}
-						type='button'>
+						onClick={() => onUserSelect(user.username, user.hasPassword)}>
 						<div className='recent-user-card__content'>
 							<div className='recent-user-card__avatar'>
 								{user.username.charAt(0).toUpperCase()}
@@ -75,7 +74,7 @@ export const RecentUsersList = ({ onUserSelect }: RecentUsersListProps) => {
 								/>
 							</svg>
 						</button>
-					</button>
+					</div>
 				))}
 			</div>
 		</div>
