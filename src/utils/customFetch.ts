@@ -136,7 +136,7 @@ export const customFetch = async <T = any>(
 					localStorage.removeItem('userId')
 					localStorage.removeItem('username')
 					localStorage.removeItem('userRole')
-					
+
 					// Clear Redux persist
 					localStorage.removeItem('persist:root')
 

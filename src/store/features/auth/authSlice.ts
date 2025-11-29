@@ -68,7 +68,7 @@ const authSlice = createSlice({
 		restoreAuth: (state) => {
 			// isAuthenticated() will return false and clear storage if token is expired
 			const isAuth = authService.isAuthenticated()
-			
+
 			if (!isAuth) {
 				// Token is expired or doesn't exist, clear everything
 				state.isAuthenticated = false
@@ -81,7 +81,7 @@ const authSlice = createSlice({
 				state.token = authService.getToken()
 			}
 		},
-		
+
 		/**
 		 * Force logout (used when token expires during usage)
 		 */
