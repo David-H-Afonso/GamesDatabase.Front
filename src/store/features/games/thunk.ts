@@ -6,8 +6,14 @@ import {
 	getGameById,
 	getGames,
 	deleteGame as deleteGameService,
+	bulkUpdateGames as bulkUpdateGamesService,
 } from '@/services/GamesService'
-import type { GameCreateDto, GameUpdateDto, GameQueryParameters } from '@/models/api/Game'
+import type {
+	GameCreateDto,
+	GameUpdateDto,
+	GameQueryParameters,
+	BulkUpdateGameDto,
+} from '@/models/api/Game'
 
 // Async thunk for fetching games with pagination and filters
 export const fetchGames = createAsyncThunk(
@@ -73,6 +79,19 @@ export const deleteGame = createAsyncThunk(
 			return id
 		} catch (error: any) {
 			return rejectWithValue(error.message || 'Failed to delete game')
+		}
+	}
+)
+
+// Async thunk for bulk updating games
+export const bulkUpdateGames = createAsyncThunk(
+	'games/bulkUpdateGames',
+	async (data: BulkUpdateGameDto, { rejectWithValue }) => {
+		try {
+			const response = await bulkUpdateGamesService(data)
+			return response
+		} catch (error: any) {
+			return rejectWithValue(error.message || 'Failed to bulk update games')
 		}
 	}
 )

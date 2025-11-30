@@ -15,9 +15,15 @@ import {
 	createGame,
 	updateGame,
 	deleteGame,
+	bulkUpdateGames,
 } from '@/store/features/games'
 import { areFiltersEqual } from '@/utils'
-import type { GameCreateDto, GameUpdateDto, GameQueryParameters } from '@/models/api/Game'
+import type {
+	GameCreateDto,
+	GameUpdateDto,
+	GameQueryParameters,
+	BulkUpdateGameDto,
+} from '@/models/api/Game'
 import { dispatchAndUnwrapAsync } from '@/utils'
 
 /**
@@ -82,6 +88,13 @@ export const useGames = () => {
 		[dispatch]
 	)
 
+	const bulkUpdateGamesById = useCallback(
+		async (data: BulkUpdateGameDto) => {
+			return dispatchAndUnwrapAsync(dispatch, bulkUpdateGames(data))
+		},
+		[dispatch]
+	)
+
 	return {
 		// State
 		games: gamesList,
@@ -100,6 +113,7 @@ export const useGames = () => {
 		createNewGame,
 		updateGameById,
 		deleteGameById,
+		bulkUpdateGamesById,
 
 		// Helper to create selector for specific game
 		selectGameById: (id: number) => selectGameById(id),

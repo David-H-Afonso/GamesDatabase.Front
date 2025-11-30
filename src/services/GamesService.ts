@@ -57,3 +57,17 @@ export const deleteGame = async (id: number): Promise<void> => {
 	const endpoint = environment.apiRoutes.games.delete(id)
 	await customFetch<void>(endpoint, { method: 'DELETE', baseURL: environment.baseUrl })
 }
+
+/**
+ * Bulk update multiple games.
+ */
+export const bulkUpdateGames = async (
+	data: import('@/models/api/Game').BulkUpdateGameDto
+): Promise<import('@/models/api/Game').BulkUpdateResult> => {
+	const endpoint = `${BASE}/bulk`
+	return await customFetch<import('@/models/api/Game').BulkUpdateResult>(endpoint, {
+		method: 'PATCH',
+		body: data,
+		baseURL: environment.baseUrl,
+	})
+}

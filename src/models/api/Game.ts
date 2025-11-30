@@ -51,6 +51,18 @@ export interface GameUpdateDto extends GameCreateDto {
 	id: number
 }
 
+export interface BulkUpdateGameDto {
+	gameIds: number[]
+	statusId?: number
+	platformId?: number
+	playWithIds?: number[]
+}
+
+export interface BulkUpdateResult {
+	updatedCount: number
+	totalRequested: number
+}
+
 // Query parameters for API requests
 export type SortByKey =
 	| 'name'
