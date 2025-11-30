@@ -63,6 +63,8 @@ export const apiRoutes = {
 		gamesCSV: '/DataExport/games/csv',
 		fullExport: '/DataExport/full',
 		fullImport: '/DataExport/full',
+		zip: '/Export/zip',
+		syncToNetwork: '/Export/sync-to-network',
 	},
 
 	/** Game Views endpoints */
