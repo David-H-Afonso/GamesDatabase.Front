@@ -1,4 +1,5 @@
 import { environment } from '@/environments'
+import { store } from '@/store'
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS'
 
@@ -92,7 +93,10 @@ export const customFetch = async <T = any>(
 	} = requestOptions
 
 	const completeUrl = baseUrl + endpoint + buildQueryString(queryParams)
-	const token = localStorage.getItem('authToken')
+
+	// Get token from Redux store
+	const token = store.getState().auth.token
+
 	const fetchConfiguration: RequestInit = {
 		method,
 		headers: {
@@ -130,12 +134,6 @@ export const customFetch = async <T = any>(
 
 				if (!isRedirecting && !currentPath.includes('/login')) {
 					sessionStorage.setItem('isRedirectingToLogin', 'true')
-
-					// Clear authentication completely
-					localStorage.removeItem('authToken')
-					localStorage.removeItem('userId')
-					localStorage.removeItem('username')
-					localStorage.removeItem('userRole')
 
 					// Clear Redux persist
 					localStorage.removeItem('persist:root')

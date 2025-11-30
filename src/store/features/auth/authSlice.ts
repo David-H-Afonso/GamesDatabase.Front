@@ -4,11 +4,11 @@ import type { LoginRequest } from '@/models/api/User'
 import type { AuthState } from '@/models/store/AuthState'
 import { addRecentUser } from '../recentUsers/recentUsersSlice'
 
-// Initial state
+// Initial state - will be hydrated from redux-persist
 const initialState: AuthState = {
-	isAuthenticated: authService.isAuthenticated(),
-	user: authService.getCurrentUser(),
-	token: authService.getToken(),
+	isAuthenticated: false,
+	user: null,
+	token: null,
 	loading: false,
 	error: null,
 }
@@ -62,31 +62,17 @@ const authSlice = createSlice({
 		},
 
 		/**
-		 * Restore authentication from localStorage (on app startup)
-		 * This will automatically clear expired tokens
+		 * Restore authentication from redux-persist on app startup
+		 * Redux-persist automatically handles rehydration
 		 */
-		restoreAuth: (state) => {
-			// isAuthenticated() will return false and clear storage if token is expired
-			const isAuth = authService.isAuthenticated()
-
-			if (!isAuth) {
-				// Token is expired or doesn't exist, clear everything
-				state.isAuthenticated = false
-				state.user = null
-				state.token = null
-			} else {
-				// Token is valid, restore state
-				state.isAuthenticated = true
-				state.user = authService.getCurrentUser()
-				state.token = authService.getToken()
-			}
+		restoreAuth: () => {
+			// For now, redux-persist handles state restoration
 		},
 
 		/**
 		 * Force logout (used when token expires during usage)
 		 */
 		forceLogout: (state) => {
-			authService.logout()
 			state.isAuthenticated = false
 			state.user = null
 			state.token = null

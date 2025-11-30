@@ -48,6 +48,8 @@ export {
 	importGamesCSV,
 	exportFullDatabase,
 	importFullDatabase,
+	exportToZip,
+	syncToNetwork,
 } from './DataExportService'
 
 export {

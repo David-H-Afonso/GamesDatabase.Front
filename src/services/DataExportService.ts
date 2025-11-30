@@ -47,7 +47,7 @@ export const exportFullDatabase = async (): Promise<Blob> => {
 		method: 'GET',
 		headers: { Accept: 'text/csv' },
 		baseURL: environment.baseUrl,
-		timeout: environment.api?.timeout,
+		timeout: 180000, // 3 minutes for full database export
 	})
 
 	return new Blob([csvText], { type: 'text/csv' })
@@ -68,8 +68,9 @@ export const importFullDatabase = async (
 		playWiths: { imported: number; updated: number }
 		playedStatuses: { imported: number; updated: number }
 	}
+	views?: { imported: number; updated: number }
 	games: { imported: number; updated: number }
-	errors: string[]
+	errors?: string[]
 }> => {
 	const endpoint = environment.apiRoutes.dataExport.fullImport
 	const formData = new FormData()
@@ -84,13 +85,66 @@ export const importFullDatabase = async (
 }
 
 /**
+ * Exports database to ZIP file (full or partial)
+ * @param fullExport - If true, exports everything. If false, exports only updated data
+ * @returns Blob containing ZIP file
+ */
+export const exportToZip = async (fullExport: boolean = true): Promise<Blob> => {
+	const endpoint = `${environment.apiRoutes.dataExport.zip}?fullExport=${fullExport}`
+
+	const response = await customFetch<ArrayBuffer>(endpoint, {
+		method: 'GET',
+		headers: { Accept: 'application/zip' },
+		baseURL: environment.baseUrl,
+		timeout: 300000, // 5 minutes for ZIP export
+	})
+
+	return new Blob([response], { type: 'application/zip' })
+}
+
+/**
+ * Syncs database to network share (full or partial)
+ * @param fullExport - If true, syncs everything. If false, syncs only updated data
+ * @returns Response message from API with statistics
+ */
+export const syncToNetwork = async (
+	fullExport: boolean = true
+): Promise<{
+	message: string
+	stats?: {
+		elapsedSeconds: number
+		totalGames: number
+		gamesSynced: number
+		gamesSkipped: number
+		imagesSynced: number
+		imagesFailed: number
+		imagesRetried: number
+		filesWritten: number
+	}
+	failedImages?: Array<{
+		gameName: string
+		imageTypes: string[]
+	}>
+}> => {
+	const endpoint = environment.apiRoutes.dataExport.syncToNetwork
+
+	return await customFetch(endpoint, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: { fullExport },
+		baseURL: environment.baseUrl,
+		timeout: 300000, // 5 minutes for network sync
+	})
+}
+
+/**
  * Triggers a download of a Blob using an anchor element. Throws if the Blob is empty.
  * @param blob - The Blob to download
  * @param filename - The desired filename for the downloaded file
  * @returns void
  */
 export const downloadBlob = (blob: Blob, filename: string): void => {
-	if (blob.size === 0) throw new Error('CSV file is empty')
+	if (blob.size === 0) throw new Error('File is empty')
 
 	const objectUrl = window.URL.createObjectURL(blob)
 	const a = document.createElement('a')
