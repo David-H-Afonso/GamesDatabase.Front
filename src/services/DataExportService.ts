@@ -47,7 +47,7 @@ export const exportFullDatabase = async (): Promise<Blob> => {
 		method: 'GET',
 		headers: { Accept: 'text/csv' },
 		baseURL: environment.baseUrl,
-		timeout: 180000, // 3 minutes for full database export
+		// No timeout - let it take as long as needed
 	})
 
 	return new Blob([csvText], { type: 'text/csv' })
@@ -96,7 +96,7 @@ export const exportToZip = async (fullExport: boolean = true): Promise<Blob> => 
 		method: 'GET',
 		headers: { Accept: 'application/zip' },
 		baseURL: environment.baseUrl,
-		timeout: 300000, // 5 minutes for ZIP export
+		// No timeout - let it take as long as needed
 	})
 
 	return new Blob([response], { type: 'application/zip' })
@@ -133,7 +133,7 @@ export const syncToNetwork = async (
 		headers: { 'Content-Type': 'application/json' },
 		body: { fullExport },
 		baseURL: environment.baseUrl,
-		timeout: 300000, // 5 minutes for network sync
+		// No timeout - let sync take as long as needed
 	})
 }
 
