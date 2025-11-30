@@ -1,5 +1,11 @@
 import React, { useState } from 'react'
-import { exportFullDatabase, downloadBlob, importFullDatabase } from '@/services'
+import {
+	exportFullDatabase,
+	downloadBlob,
+	importFullDatabase,
+	exportToZip,
+	syncToNetwork,
+} from '@/services'
 import { useGames } from '@/hooks'
 import './AdminDataExport.scss'
 
@@ -14,7 +20,10 @@ export const AdminDataExport: React.FC = () => {
 	const showMessage = (text: string, type: 'success' | 'error') => {
 		setMessage(text)
 		setMessageType(type)
-		setTimeout(() => setMessage(null), 5000)
+	}
+
+	const closeMessage = () => {
+		setMessage(null)
 	}
 
 	const handleExportFullDatabase = async () => {
@@ -55,13 +64,18 @@ export const AdminDataExport: React.FC = () => {
 				- PlayedStatuses: ${catalogStats.playedStatuses.imported} new, ${
 				catalogStats.playedStatuses.updated
 			} updated
+				${
+					result.views
+						? `\n\t\t\t\t- Views: ${result.views.imported} new, ${result.views.updated} updated`
+						: ''
+				}
 				
 				Games: ${gameStats.imported} new, ${gameStats.updated} updated
 				
-				${result.errors.length > 0 ? `Errors: ${result.errors.join(', ')}` : ''}
+				${result.errors && result.errors.length > 0 ? `Errors: ${result.errors.join(', ')}` : ''}
 			`
 
-			showMessage(detailedMessage, result.errors.length > 0 ? 'error' : 'success')
+			showMessage(detailedMessage, result.errors && result.errors.length > 0 ? 'error' : 'success')
 
 			// Refrescar la lista de juegos para mostrar los nuevos datos
 			await refreshGames(filters)
@@ -75,6 +89,69 @@ export const AdminDataExport: React.FC = () => {
 		}
 	}
 
+	const handleExportToZip = async (fullExport: boolean) => {
+		try {
+			setLoading(true)
+			console.log(`Starting ZIP export (${fullExport ? 'full' : 'partial'})...`)
+			const blob = await exportToZip(fullExport)
+			console.log('ZIP blob received:', blob)
+			const mode = fullExport ? 'full' : 'partial'
+			const filename = `database_${mode}_export_${new Date().toISOString().split('T')[0]}.zip`
+			downloadBlob(blob, filename)
+			showMessage(`Database exported to ZIP successfully (${mode} mode)!`, 'success')
+		} catch (error) {
+			console.error('ZIP export error:', error)
+			showMessage(error instanceof Error ? error.message : 'Error exporting to ZIP', 'error')
+		} finally {
+			setLoading(false)
+		}
+	}
+
+	const handleSyncToNetwork = async (fullExport: boolean) => {
+		try {
+			setLoading(true)
+			console.log(`Starting network sync (${fullExport ? 'full' : 'partial'})...`)
+			const result = await syncToNetwork(fullExport)
+			console.log('Network sync result:', result)
+
+			let detailedMessage = result.message
+
+			if (result.stats) {
+				const s = result.stats
+				detailedMessage = `
+${result.message}
+
+Statistics:
+- Total Games: ${s.totalGames}
+- Games Synced: ${s.gamesSynced}
+- Games Skipped: ${s.gamesSkipped}
+- Images Synced: ${s.imagesSynced}
+- Images Failed: ${s.imagesFailed}
+- Images Retried: ${s.imagesRetried}
+- Files Written: ${s.filesWritten}
+- Elapsed Time: ${s.elapsedSeconds.toFixed(2)}s
+				`
+			}
+
+			if (result.failedImages && result.failedImages.length > 0) {
+				detailedMessage += `\n\n⚠️ Failed Images Report:\n`
+				result.failedImages.forEach((item) => {
+					detailedMessage += `\n- ${item.gameName}:\n`
+					item.imageTypes.forEach((type) => {
+						detailedMessage += `  • ${type}\n`
+					})
+				})
+			}
+
+			showMessage(detailedMessage, 'success')
+		} catch (error) {
+			console.error('Network sync error:', error)
+			showMessage(error instanceof Error ? error.message : 'Error syncing to network', 'error')
+		} finally {
+			setLoading(false)
+		}
+	}
+
 	return (
 		<div className='admin-data-export'>
 			<div className='admin-header'>
@@ -83,6 +160,9 @@ export const AdminDataExport: React.FC = () => {
 
 			{message && (
 				<div className={`alert alert-${messageType}`}>
+					<button className='alert-close' onClick={closeMessage} aria-label='Close message'>
+						×
+					</button>
 					<pre style={{ whiteSpace: 'pre-wrap', margin: 0 }}>{message}</pre>
 				</div>
 			)}
@@ -98,22 +178,25 @@ export const AdminDataExport: React.FC = () => {
 
 					<div className='action-group'>
 						<div className='action-item'>
-							<h3>Exportar Base de Datos Completa</h3>
+							<h3>Exportar Base de Datos Completa (CSV)</h3>
 							<p>Descarga un backup completo en formato CSV único con todos tus datos.</p>
 							<button
 								className='btn btn-primary btn-large'
 								onClick={handleExportFullDatabase}
 								disabled={loading}>
-								{loading ? '⏳ Exportando...' : '📥 Exportar Base de Datos'}
+								{loading ? '⏳ Exportando...' : '📥 Exportar CSV'}
 							</button>
 						</div>
 
 						<div className='action-item'>
-							<h3>Importar Base de Datos Completa</h3>
+							<h3>Importar Base de Datos Completa (CSV)</h3>
 							<p>
 								<strong>Modo MERGE:</strong> Actualiza registros existentes y crea nuevos. Los datos
 								que no están en el CSV se mantienen intactos.
 							</p>
+							<small className='help-text'>
+								⚠️ El CSV debe incluir columna "Type" (Platform/Status/PlayWith/PlayedStatus/Game)
+							</small>
 							<div className='file-input-container'>
 								<input
 									type='file'
@@ -126,12 +209,75 @@ export const AdminDataExport: React.FC = () => {
 								<label
 									htmlFor='csv-full-import'
 									className='file-input-label btn btn-success btn-large'>
-									{loading ? '⏳ Importando...' : '📤 Importar Base de Datos'}
+									{loading ? '⏳ Importando...' : '📤 Importar CSV'}
 								</label>
 							</div>
-							<small className='help-text'>
-								⚠️ El CSV debe incluir columna "Type" (Platform/Status/PlayWith/PlayedStatus/Game)
-							</small>
+						</div>
+					</div>
+				</div>
+
+				{/* ZIP Export Section */}
+				<div className='section zip-export-section'>
+					<h2>📦 Exportar a ZIP</h2>
+					<p className='section-description'>
+						Exporta la base de datos y las imágenes en un archivo ZIP comprimido.
+					</p>
+
+					<div className='action-group'>
+						<div className='action-item'>
+							<h3>Exportar Todo (Full)</h3>
+							<p>Exporta toda la base de datos con todas las imágenes de los juegos.</p>
+							<button
+								className='btn btn-primary btn-large'
+								onClick={() => handleExportToZip(true)}
+								disabled={loading}>
+								{loading ? '⏳ Exportando...' : '📦 Exportar ZIP Full'}
+							</button>
+						</div>
+
+						<div className='action-item'>
+							<h3>Exportar Solo Actualizado (Parcial)</h3>
+							<p>
+								Exporta únicamente los datos y las imágenes que han sido modificados recientemente.
+							</p>
+							<button
+								className='btn btn-secondary btn-large'
+								onClick={() => handleExportToZip(false)}
+								disabled={loading}>
+								{loading ? '⏳ Exportando...' : '📦 Exportar ZIP Parcial'}
+							</button>
+						</div>
+					</div>
+				</div>
+
+				{/* Network Sync Section */}
+				<div className='section network-sync-section'>
+					<h2>🌐 Sincronizar a Red</h2>
+					<p className='section-description'>
+						Sincroniza la base de datos y las imágenes a una ubicación de red compartida.
+					</p>
+
+					<div className='action-group'>
+						<div className='action-item'>
+							<h3>Sincronizar Todo (Full)</h3>
+							<p>Sincroniza toda la base de datos con todas las imágenes a la red.</p>
+							<button
+								className='btn btn-success btn-large'
+								onClick={() => handleSyncToNetwork(true)}
+								disabled={loading}>
+								{loading ? '⏳ Sincronizando...' : '🌐 Sync Full'}
+							</button>
+						</div>
+
+						<div className='action-item'>
+							<h3>Sincronizar Solo Actualizado (Parcial)</h3>
+							<p>Sincroniza únicamente los datos y las imágenes que han sido modificados.</p>
+							<button
+								className='btn btn-secondary btn-large'
+								onClick={() => handleSyncToNetwork(false)}
+								disabled={loading}>
+								{loading ? '⏳ Sincronizando...' : '🌐 Sync Parcial'}
+							</button>
 						</div>
 					</div>
 				</div>
