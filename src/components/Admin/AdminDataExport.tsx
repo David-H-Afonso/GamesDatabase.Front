@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import {
 	exportFullDatabase,
 	downloadBlob,
@@ -16,6 +16,12 @@ export const AdminDataExport: React.FC = () => {
 
 	// Hook para manejar los juegos
 	const { refreshGames, filters } = useGames()
+
+	// Detectar si estamos en localhost o IP local específica
+	const isLocalEnvironment = useMemo(() => {
+		const hostname = window.location.hostname.toLowerCase()
+		return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '192.168.0.32'
+	}, [])
 
 	const showMessage = (text: string, type: 'success' | 'error') => {
 		setMessage(text)
@@ -250,37 +256,39 @@ Statistics:
 					</div>
 				</div>
 
-				{/* Network Sync Section */}
-				<div className='section network-sync-section'>
-					<h2>🌐 Sincronizar a Red</h2>
-					<p className='section-description'>
-						Sincroniza la base de datos y las imágenes a una ubicación de red compartida.
-					</p>
+				{/* Network Sync Section - Only show on local environments */}
+				{isLocalEnvironment && (
+					<div className='section network-sync-section'>
+						<h2>🌐 Sincronizar a Red</h2>
+						<p className='section-description'>
+							Sincroniza la base de datos y las imágenes a una ubicación de red compartida.
+						</p>
 
-					<div className='action-group'>
-						<div className='action-item'>
-							<h3>Sincronizar Todo (Full)</h3>
-							<p>Sincroniza toda la base de datos con todas las imágenes a la red.</p>
-							<button
-								className='btn btn-success btn-large'
-								onClick={() => handleSyncToNetwork(true)}
-								disabled={loading}>
-								{loading ? '⏳ Sincronizando...' : '🌐 Sync Full'}
-							</button>
-						</div>
+						<div className='action-group'>
+							<div className='action-item'>
+								<h3>Sincronizar Todo (Full)</h3>
+								<p>Sincroniza toda la base de datos con todas las imágenes a la red.</p>
+								<button
+									className='btn btn-success btn-large'
+									onClick={() => handleSyncToNetwork(true)}
+									disabled={loading}>
+									{loading ? '⏳ Sincronizando...' : '🌐 Sync Full'}
+								</button>
+							</div>
 
-						<div className='action-item'>
-							<h3>Sincronizar Solo Actualizado (Parcial)</h3>
-							<p>Sincroniza únicamente los datos y las imágenes que han sido modificados.</p>
-							<button
-								className='btn btn-secondary btn-large'
-								onClick={() => handleSyncToNetwork(false)}
-								disabled={loading}>
-								{loading ? '⏳ Sincronizando...' : '🌐 Sync Parcial'}
-							</button>
+							<div className='action-item'>
+								<h3>Sincronizar Solo Actualizado (Parcial)</h3>
+								<p>Sincroniza únicamente los datos y las imágenes que han sido modificados.</p>
+								<button
+									className='btn btn-secondary btn-large'
+									onClick={() => handleSyncToNetwork(false)}
+									disabled={loading}>
+									{loading ? '⏳ Sincronizando...' : '🌐 Sync Parcial'}
+								</button>
+							</div>
 						</div>
 					</div>
-				</div>
+				)}
 			</div>
 
 			{/* Instructions Section */}
