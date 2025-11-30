@@ -229,6 +229,21 @@ const GamesFilters: React.FC<Props> = ({ value, onChange, isOpen = true, onClear
 				<option value='false'>Cheaper in Store</option>
 			</select>
 
+			<div className='gf-checkbox-row' style={{ marginTop: '8px', marginBottom: '8px' }}>
+				<label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+					<input
+						type='checkbox'
+						checked={value.showIncomplete === true}
+						onChange={(e) => update({ showIncomplete: e.target.checked ? true : undefined })}
+						style={{ marginRight: '8px' }}
+					/>
+					<span style={{ fontSize: '13px', fontWeight: 'bold' }}>Show Incomplete Games</span>
+				</label>
+				<div style={{ fontSize: '11px', color: '#888', marginLeft: '24px', marginTop: '2px' }}>
+					(Not Fulfilled, no cover, no logo, or no platform)
+				</div>
+			</div>
+
 			<div className='gf-row gf-row--compact'>
 				<button type='button' className='gf-clear-btn' onClick={handleClear}>
 					Clear filters

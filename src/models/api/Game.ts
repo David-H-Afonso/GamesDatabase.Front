@@ -93,6 +93,8 @@ export interface GameQueryParameters extends QueryParameters {
 	excludeStatusIds?: number[]
 	// Filter by price comparison
 	isCheaperByKey?: boolean
+	// Show incomplete games (Not Fulfilled, no cover, no logo, or no platform)
+	showIncomplete?: boolean
 	// View name for custom views
 	viewName?: string
 }
