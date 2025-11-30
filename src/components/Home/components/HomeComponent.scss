@@ -65,10 +65,11 @@
 		}
 	}
 
-	// Header action buttons (Select / Deselect / Bulk Delete)
+	// Header action buttons (Select / Deselect / Bulk Delete / Bulk Edit)
 	&__select-all-button,
 	&__deselect-selected-button,
-	&__bulk-delete-button {
+	&__bulk-delete-button,
+	&__bulk-edit-button {
 		padding: 8px 12px;
 		border-radius: 8px;
 		border: 1px solid transparent;
@@ -114,6 +115,19 @@
 
 		&:hover {
 			filter: brightness(0.95);
+		}
+	}
+
+	// Specific style for bulk edit button
+	&__bulk-edit-button {
+		background: #3b82f6;
+		color: white;
+		border: 1px solid rgba(59, 130, 246, 0.3);
+		box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+
+		&:hover {
+			background: #2563eb;
+			box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
 		}
 	}
 

@@ -10,10 +10,19 @@ import {
 import { selectGamesFilters } from '@/store/features/games/selector'
 import type { GameQueryParameters } from '@/models/api/Game'
 import GamesFilters from './GamesFilters'
+import BulkEditModal, { type BulkEditData } from './BulkEditModal'
 import './HomeComponent.scss'
 
 const HomeComponent = () => {
-	const { games, error, pagination, fetchGamesList, refreshGames, deleteGameById } = useGames()
+	const {
+		games,
+		error,
+		pagination,
+		fetchGamesList,
+		refreshGames,
+		deleteGameById,
+		bulkUpdateGamesById,
+	} = useGames()
 	const { publicGameViews, loadPublicGameViews } = useGameViews()
 
 	const dispatch = useAppDispatch()
@@ -22,6 +31,7 @@ const HomeComponent = () => {
 	const setFilters = (next: GameQueryParameters) => dispatch(setGamesFilters(next))
 	const [selectedGames, setSelectedGames] = useState<number[]>([])
 	const [filtersOpen, setFiltersOpen] = useState(false)
+	const [bulkEditOpen, setBulkEditOpen] = useState(false)
 	const viewMode = useAppSelector((s) => s.theme.viewMode ?? 'default')
 	const [viewError, setViewError] = useState<string | null>(null)
 
@@ -172,6 +182,25 @@ const HomeComponent = () => {
 		}
 	}
 
+	const handleBulkEdit = async (updates: BulkEditData) => {
+		try {
+			const result = await bulkUpdateGamesById({
+				gameIds: selectedGames,
+				...updates,
+			})
+
+			// Type assertion since we know the shape of the result
+			const bulkResult = result as { updatedCount: number; totalRequested: number }
+			alert(`Successfully updated ${bulkResult.updatedCount} of ${bulkResult.totalRequested} games`)
+			setSelectedGames([])
+			setBulkEditOpen(false)
+			await refreshGames(filters)
+		} catch (err) {
+			console.error('Error bulk editing games', err)
+			throw err
+		}
+	}
+
 	return (
 		<div className='home-component'>
 			{viewError && (
@@ -213,6 +242,14 @@ const HomeComponent = () => {
 								{selectedGames.length > 0 && (
 									<button className='home-component__bulk-delete-button' onClick={handleBulkDelete}>
 										Delete Selected
+									</button>
+								)}
+
+								{selectedGames.length > 0 && (
+									<button
+										className='home-component__bulk-edit-button'
+										onClick={() => setBulkEditOpen(true)}>
+										Edit Selected ({selectedGames.length})
 									</button>
 								)}
 							</>
@@ -362,6 +399,13 @@ const HomeComponent = () => {
 					</button>
 				</div>
 			</div>
+
+			<BulkEditModal
+				isOpen={bulkEditOpen}
+				onClose={() => setBulkEditOpen(false)}
+				selectedCount={selectedGames.length}
+				onSave={handleBulkEdit}
+			/>
 		</div>
 	)
 }
