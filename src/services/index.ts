@@ -50,6 +50,7 @@ export {
 	importFullDatabase,
 	exportToZip,
 	syncToNetwork,
+	analyzeFolders,
 } from './DataExportService'
 
 export {

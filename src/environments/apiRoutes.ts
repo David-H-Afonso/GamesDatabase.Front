@@ -65,6 +65,7 @@ export const apiRoutes = {
 		fullImport: '/DataExport/full',
 		zip: '/Export/zip',
 		syncToNetwork: '/Export/sync-to-network',
+		analyzeFolders: '/DataExport/analyze-folders',
 	},
 
 	/** Game Views endpoints */

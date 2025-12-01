@@ -5,14 +5,36 @@ import {
 	importFullDatabase,
 	exportToZip,
 	syncToNetwork,
+	analyzeFolders,
 } from '@/services'
 import { useGames } from '@/hooks'
 import './AdminDataExport.scss'
+
+interface FolderAnalysisResult {
+	totalGamesInDatabase: number
+	totalFoldersInFilesystem: number
+	difference: number
+	potentialDuplicates: PotentialDuplicate[]
+	orphanFolders: OrphanFolder[]
+}
+
+interface PotentialDuplicate {
+	gameName: string
+	folderNames: string[]
+	reason: string
+}
+
+interface OrphanFolder {
+	folderName: string
+	fullPath: string
+}
 
 export const AdminDataExport: React.FC = () => {
 	const [loading, setLoading] = useState(false)
 	const [message, setMessage] = useState<string | null>(null)
 	const [messageType, setMessageType] = useState<'success' | 'error'>('success')
+	const [analysisResult, setAnalysisResult] = useState<FolderAnalysisResult | null>(null)
+	const [analyzingFolders, setAnalyzingFolders] = useState(false)
 
 	// Hook para manejar los juegos
 	const { refreshGames, filters } = useGames()
@@ -158,6 +180,20 @@ Statistics:
 		}
 	}
 
+	const handleAnalyzeFolders = async () => {
+		try {
+			setAnalyzingFolders(true)
+			const result = await analyzeFolders()
+			setAnalysisResult(result)
+			showMessage('Análisis de carpetas completado', 'success')
+		} catch (error) {
+			console.error('Folder analysis error:', error)
+			showMessage(error instanceof Error ? error.message : 'Error analyzing folders', 'error')
+		} finally {
+			setAnalyzingFolders(false)
+		}
+	}
+
 	return (
 		<div className='admin-data-export'>
 			<div className='admin-header'>
@@ -287,6 +323,106 @@ Statistics:
 								</button>
 							</div>
 						</div>
+					</div>
+				)}
+
+				{isLocalEnvironment && (
+					<div className='section folder-analysis-section'>
+						<h2>📁 Análisis de Carpetas</h2>
+						<p className='section-description'>
+							Detecta duplicados potenciales y carpetas huérfanas comparando la base de datos con el
+							sistema de archivos.
+						</p>
+
+						<button
+							className='btn btn-primary btn-large'
+							onClick={handleAnalyzeFolders}
+							disabled={analyzingFolders}>
+							{analyzingFolders ? '⏳ Analizando...' : '🔍 Analizar Carpetas'}
+						</button>
+
+						{analysisResult && (
+							<div className='analysis-results'>
+								<div className='analysis-summary'>
+									<h3>📊 Resumen</h3>
+									<div className='summary-grid'>
+										<div className='summary-item'>
+											<span className='summary-label'>Juegos en DB:</span>
+											<span className='summary-value'>{analysisResult.totalGamesInDatabase}</span>
+										</div>
+										<div className='summary-item'>
+											<span className='summary-label'>Carpetas en Disco:</span>
+											<span className='summary-value'>
+												{analysisResult.totalFoldersInFilesystem}
+											</span>
+										</div>
+										<div className='summary-item'>
+											<span className='summary-label'>Diferencia:</span>
+											<span
+												className={`summary-value ${
+													analysisResult.difference > 0
+														? 'warning'
+														: analysisResult.difference < 0
+														? 'error'
+														: 'success'
+												}`}>
+												{analysisResult.difference > 0 && '+'}
+												{analysisResult.difference}
+											</span>
+										</div>
+									</div>
+								</div>
+
+								{analysisResult.potentialDuplicates.length > 0 && (
+									<div className='duplicates-section'>
+										<h3>🔍 Duplicados Potenciales ({analysisResult.potentialDuplicates.length})</h3>
+										{analysisResult.potentialDuplicates.map((dup, idx) => (
+											<div key={idx} className='duplicate-item'>
+												<div className='duplicate-header'>
+													<strong>{dup.gameName}</strong>
+													<span className='duplicate-reason'>{dup.reason}</span>
+												</div>
+												<ul className='folder-list'>
+													{dup.folderNames.map((folder, fIdx) => (
+														<li key={fIdx}>
+															<code>{folder}</code>
+														</li>
+													))}
+												</ul>
+											</div>
+										))}
+									</div>
+								)}
+
+								{analysisResult.orphanFolders.length > 0 && (
+									<div className='orphans-section'>
+										<h3>👻 Carpetas Huérfanas ({analysisResult.orphanFolders.length})</h3>
+										<p className='section-note'>
+											Carpetas que no corresponden a ningún juego en la base de datos
+										</p>
+										<ul className='folder-list'>
+											{analysisResult.orphanFolders.map((orphan, idx) => (
+												<li key={idx}>
+													<code>{orphan.folderName}</code>
+												</li>
+											))}
+										</ul>
+									</div>
+								)}
+
+								{analysisResult.potentialDuplicates.length === 0 &&
+									analysisResult.orphanFolders.length === 0 &&
+									analysisResult.difference === 0 && (
+										<div className='analysis-success'>
+											<h3>✅ Todo Correcto</h3>
+											<p>
+												No se encontraron duplicados ni carpetas huérfanas. La base de datos y el
+												sistema de archivos están sincronizados.
+											</p>
+										</div>
+									)}
+							</div>
+						)}
 					</div>
 				)}
 			</div>

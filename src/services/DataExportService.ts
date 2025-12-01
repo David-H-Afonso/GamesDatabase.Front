@@ -138,6 +138,33 @@ export const syncToNetwork = async (
 }
 
 /**
+ * Analyzes folders to detect duplicates and orphan folders
+ * @returns Analysis result with statistics and issues found
+ */
+export const analyzeFolders = async (): Promise<{
+	totalGamesInDatabase: number
+	totalFoldersInFilesystem: number
+	difference: number
+	potentialDuplicates: Array<{
+		gameName: string
+		folderNames: string[]
+		reason: string
+	}>
+	orphanFolders: Array<{
+		folderName: string
+		fullPath: string
+	}>
+}> => {
+	const endpoint = environment.apiRoutes.dataExport.analyzeFolders
+
+	return await customFetch(endpoint, {
+		method: 'GET',
+		baseURL: environment.baseUrl,
+		timeout: environment.api?.timeout,
+	})
+}
+
+/**
  * Triggers a download of a Blob using an anchor element. Throws if the Blob is empty.
  * @param blob - The Blob to download
  * @param filename - The desired filename for the downloaded file
