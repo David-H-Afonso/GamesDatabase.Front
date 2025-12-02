@@ -165,6 +165,26 @@ export const analyzeFolders = async (): Promise<{
 }
 
 /**
+ * Updates image URLs in the database to match the filesystem structure
+ * @returns Result with statistics about updated games
+ */
+export const updateImageUrls = async (): Promise<{
+	totalGames: number
+	updatedGames: number
+	skippedGames: number
+	alreadyCorrect: number
+	noImagesFound: number
+}> => {
+	const endpoint = environment.apiRoutes.dataExport.updateImageUrls
+
+	return await customFetch(endpoint, {
+		method: 'POST',
+		baseURL: environment.baseUrl,
+		timeout: environment.api?.timeout,
+	})
+}
+
+/**
  * Triggers a download of a Blob using an anchor element. Throws if the Blob is empty.
  * @param blob - The Blob to download
  * @param filename - The desired filename for the downloaded file

@@ -6,6 +6,7 @@ import {
 	exportToZip,
 	syncToNetwork,
 	analyzeFolders,
+	updateImageUrls,
 } from '@/services'
 import { useGames } from '@/hooks'
 import './AdminDataExport.scss'
@@ -194,6 +195,28 @@ Statistics:
 		}
 	}
 
+	const handleUpdateImageUrls = async () => {
+		try {
+			setLoading(true)
+			const result = await updateImageUrls()
+			const message = `
+Actualización de URLs de imágenes completada:
+
+✅ Total juegos: ${result.totalGames}
+📝 Actualizados: ${result.updatedGames}
+⏭️ Omitidos: ${result.skippedGames}
+✓ Ya correctos: ${result.alreadyCorrect}
+⚠️ Sin imágenes: ${result.noImagesFound}
+			`
+			showMessage(message, 'success')
+		} catch (error) {
+			console.error('Update image URLs error:', error)
+			showMessage(error instanceof Error ? error.message : 'Error updating image URLs', 'error')
+		} finally {
+			setLoading(false)
+		}
+	}
+
 	return (
 		<div className='admin-data-export'>
 			<div className='admin-header'>
@@ -334,12 +357,21 @@ Statistics:
 							sistema de archivos.
 						</p>
 
-						<button
-							className='btn btn-primary btn-large'
-							onClick={handleAnalyzeFolders}
-							disabled={analyzingFolders}>
-							{analyzingFolders ? '⏳ Analizando...' : '🔍 Analizar Carpetas'}
-						</button>
+						<div className='action-group'>
+							<button
+								className='btn btn-primary btn-large'
+								onClick={handleAnalyzeFolders}
+								disabled={analyzingFolders}>
+								{analyzingFolders ? '⏳ Analizando...' : '🔍 Analizar Carpetas'}
+							</button>
+
+							<button
+								className='btn btn-warning btn-large'
+								onClick={handleUpdateImageUrls}
+								disabled={loading}>
+								{loading ? '⏳ Actualizando...' : '🔄 Actualizar URLs de Imágenes'}
+							</button>
+						</div>
 
 						{analysisResult && (
 							<div className='analysis-results'>

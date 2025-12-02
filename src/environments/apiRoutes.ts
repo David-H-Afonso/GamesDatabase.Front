@@ -66,6 +66,7 @@ export const apiRoutes = {
 		zip: '/Export/zip',
 		syncToNetwork: '/Export/sync-to-network',
 		analyzeFolders: '/DataExport/analyze-folders',
+		updateImageUrls: '/DataExport/update-image-urls',
 	},
 
 	/** Game Views endpoints */

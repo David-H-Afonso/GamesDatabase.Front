@@ -51,6 +51,7 @@ export {
 	exportToZip,
 	syncToNetwork,
 	analyzeFolders,
+	updateImageUrls,
 } from './DataExportService'
 
 export {
