@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useGameStatus, useGamePlatform, useGamePlayWith } from '@/hooks'
+import { useGameStatus, useGamePlatform, useGamePlayWith, useGamePlayedStatus } from '@/hooks'
 import './BulkEditModal.scss'
 
 interface Props {
@@ -13,20 +13,28 @@ export interface BulkEditData {
 	statusId?: number
 	platformId?: number
 	playWithIds?: number[]
+	playedStatusId?: number
+	isCheaperByKey?: boolean
 }
 
 const BulkEditModal: React.FC<Props> = ({ isOpen, onClose, selectedCount, onSave }) => {
 	const { fetchActiveStatusList } = useGameStatus()
 	const { fetchList: fetchPlatforms } = useGamePlatform()
 	const { fetchOptions: fetchPlayWithList } = useGamePlayWith()
+	const { fetchActiveList: fetchPlayedStatusList } = useGamePlayedStatus()
 
 	const [statusId, setStatusId] = useState<number | undefined>()
 	const [platformId, setPlatformId] = useState<number | undefined>()
 	const [playWithIds, setPlayWithIds] = useState<number[]>([])
+	const [playedStatusId, setPlayedStatusId] = useState<number | undefined>()
+	const [isCheaperByKey, setIsCheaperByKey] = useState<boolean | undefined>()
 
 	const [statusOptions, setStatusOptions] = useState<{ value: number; label: string }[]>([])
 	const [platformOptions, setPlatformOptions] = useState<{ value: number; label: string }[]>([])
 	const [playWithOptions, setPlayWithOptions] = useState<{ value: number; label: string }[]>([])
+	const [playedStatusOptions, setPlayedStatusOptions] = useState<
+		{ value: number; label: string }[]
+	>([])
 
 	const [isSaving, setIsSaving] = useState(false)
 
@@ -55,17 +63,25 @@ const BulkEditModal: React.FC<Props> = ({ isOpen, onClose, selectedCount, onSave
 				setPlayWithOptions(
 					pwList.map((p: any) => ({ value: p.id as number, label: String(p.name) }))
 				)
+
+				const ps = await fetchPlayedStatusList()
+				const psList = normalize(ps)
+				setPlayedStatusOptions(
+					psList.map((p: any) => ({ value: p.id as number, label: String(p.name) }))
+				)
 			} catch (err) {
 				console.error('Error loading options', err)
 			}
 		})()
-	}, [fetchActiveStatusList, fetchPlatforms, fetchPlayWithList])
+	}, [fetchActiveStatusList, fetchPlatforms, fetchPlayWithList, fetchPlayedStatusList])
 
 	const handleSave = async () => {
 		const updates: BulkEditData = {}
 		if (statusId !== undefined) updates.statusId = statusId
 		if (platformId !== undefined) updates.platformId = platformId
 		if (playWithIds.length > 0) updates.playWithIds = playWithIds
+		if (playedStatusId !== undefined) updates.playedStatusId = playedStatusId
+		if (isCheaperByKey !== undefined) updates.isCheaperByKey = isCheaperByKey
 
 		if (Object.keys(updates).length === 0) {
 			alert('No changes to save')
@@ -88,6 +104,8 @@ const BulkEditModal: React.FC<Props> = ({ isOpen, onClose, selectedCount, onSave
 		setStatusId(undefined)
 		setPlatformId(undefined)
 		setPlayWithIds([])
+		setPlayedStatusId(undefined)
+		setIsCheaperByKey(undefined)
 		onClose()
 	}
 
@@ -137,6 +155,36 @@ const BulkEditModal: React.FC<Props> = ({ isOpen, onClose, selectedCount, onSave
 									{p.label}
 								</option>
 							))}
+						</select>
+					</div>
+
+					<div className='bulk-edit-modal__field'>
+						<label>Played Status</label>
+						<select
+							value={playedStatusId ?? ''}
+							onChange={(e) =>
+								setPlayedStatusId(e.target.value ? Number(e.target.value) : undefined)
+							}>
+							<option value=''>-- No change --</option>
+							{playedStatusOptions.map((ps) => (
+								<option key={ps.value} value={ps.value}>
+									{ps.label}
+								</option>
+							))}
+						</select>
+					</div>
+
+					<div className='bulk-edit-modal__field'>
+						<label>Cheaper By</label>
+						<select
+							value={isCheaperByKey === undefined ? '' : isCheaperByKey ? 'key' : 'store'}
+							onChange={(e) => {
+								const val = e.target.value
+								setIsCheaperByKey(val === '' ? undefined : val === 'key')
+							}}>
+							<option value=''>-- No change --</option>
+							<option value='key'>Key (Third-party store)</option>
+							<option value='store'>Official Store</option>
 						</select>
 					</div>
 

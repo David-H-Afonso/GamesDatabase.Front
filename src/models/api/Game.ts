@@ -56,6 +56,8 @@ export interface BulkUpdateGameDto {
 	statusId?: number
 	platformId?: number
 	playWithIds?: number[]
+	playedStatusId?: number
+	isCheaperByKey?: boolean
 }
 
 export interface BulkUpdateResult {
