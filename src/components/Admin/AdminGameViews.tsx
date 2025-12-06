@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { useGameViews } from '@/hooks'
+import { reorderGameViews } from '@/services'
 import type { GameView, GameViewQueryParameters } from '@/models/api/GameView'
 import GameViewModal from './GameViewModal'
+import { ReorderButtons } from '@/components/elements/ReorderButtons/ReorderButtons'
 import './AdminGameViews.scss'
 
 export const AdminGameViews: React.FC = () => {
@@ -10,6 +12,7 @@ export const AdminGameViews: React.FC = () => {
 
 	const [isModalOpen, setIsModalOpen] = useState(false)
 	const [editingGameView, setEditingGameView] = useState<GameView | null>(null)
+	const [isReordering, setIsReordering] = useState(false)
 
 	// Pagination and sorting state
 	const [queryParams, setQueryParams] = useState<GameViewQueryParameters>({
@@ -25,11 +28,42 @@ export const AdminGameViews: React.FC = () => {
 		setQueryParams((prev) => ({ ...prev, search: search || undefined, page: 1 }))
 	}
 
+	const moveView = async (viewId: number, direction: 'up' | 'down') => {
+		if (isReordering || !gameViews || gameViews.length < 2) return
+
+		const currentIndex = gameViews.findIndex((v) => v.id === viewId)
+		if (currentIndex === -1) return
+
+		const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
+		if (targetIndex < 0 || targetIndex >= gameViews.length) return
+
+		// Create new array with swapped positions
+		const newOrder = [...gameViews]
+		const temp = newOrder[currentIndex]
+		newOrder[currentIndex] = newOrder[targetIndex]
+		newOrder[targetIndex] = temp
+
+		// Send the new order to backend
+		const orderedIds = newOrder.map((v) => v.id)
+
+		setIsReordering(true)
+		try {
+			await reorderGameViews(orderedIds)
+			// Reload to get fresh data with updated sortOrder
+			await loadGameViews(queryParams)
+		} catch (err) {
+			console.error('Failed to reorder views:', err)
+			window.alert('Error al reordenar las vistas. Por favor, intenta de nuevo.')
+		} finally {
+			setIsReordering(false)
+		}
+	}
+
 	const handleOpenModal = async (gameView?: GameView) => {
 		if (gameView && gameView.id) {
 			// Load the full game view (with configuration) by id before opening the modal
 			try {
-				const full = (await loadGameViews) ? await loadGameViewById(gameView.id) : null
+				const full = await loadGameViewById(gameView.id)
 				setEditingGameView((full as GameView) || gameView)
 			} catch (err) {
 				console.error('Failed to load full game view:', err)
@@ -147,6 +181,7 @@ export const AdminGameViews: React.FC = () => {
 					<table>
 						<thead>
 							<tr>
+								<th style={{ width: '80px' }}>Orden</th>
 								<th>Nombre</th>
 								<th>Configuración</th>
 								<th>Creado</th>
@@ -155,8 +190,17 @@ export const AdminGameViews: React.FC = () => {
 						</thead>
 						<tbody>
 							{gameViews &&
-								gameViews.map((gameView) => (
+								gameViews.map((gameView, index) => (
 									<tr key={gameView.id}>
+										<td>
+											<ReorderButtons
+												canMoveUp={index > 0}
+												canMoveDown={index < gameViews.length - 1}
+												onMoveUp={() => moveView(gameView.id, 'up')}
+												onMoveDown={() => moveView(gameView.id, 'down')}
+												isProcessing={isReordering}
+											/>
+										</td>
 										<td className='view-name'>{gameView.name}</td>
 										<td className='filters-preview' title={formatFiltersPreview(gameView)}>
 											{formatFiltersPreview(gameView)}

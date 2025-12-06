@@ -46,19 +46,18 @@ const HomeComponent = () => {
 		loadPublicGameViews()
 	}, [loadPublicGameViews])
 
-	// Always reload data when Home component mounts (from any route)
-	useEffect(() => {
-		// Reload current view
-		if (viewMode === 'default') {
-			void refreshGames(filters)
-		} else {
-			void fetchGamesList({ ...filters, viewName: viewMode })
-		}
-	}, []) // Empty deps = only run on mount
+	// Force reload on component mount to handle page refresh (F5)
+	const hasMountedRef = useRef(false)
 
 	// Load current view data with error protection
 	useEffect(() => {
 		const load = async () => {
+			const isFirstMount = !hasMountedRef.current
+			// Mark as mounted after first check
+			if (isFirstMount) {
+				hasMountedRef.current = true
+			}
+
 			try {
 				if (viewMode === 'default') {
 					await refreshGames(filters)
@@ -93,10 +92,12 @@ const HomeComponent = () => {
 					return
 				}
 
-				// Use the new GameView system
-				await fetchGamesList({ ...filters, viewName: viewMode })
-
-				// Success - reset retry count
+				// Force refresh on first mount to handle F5 reload, otherwise use cache
+				if (isFirstMount) {
+					await refreshGames({ ...filters, viewName: viewMode })
+				} else {
+					await fetchGamesList({ ...filters, viewName: viewMode })
+				}
 				retryCountRef.current.set(viewMode, 0)
 				setViewError(null)
 			} catch (e) {
@@ -129,11 +130,6 @@ const HomeComponent = () => {
 			return () => clearTimeout(timer)
 		}
 	}, [viewError])
-
-	// Default list loads only when in default view
-	useEffect(() => {
-		if (viewMode === 'default') void fetchGamesList(filters)
-	}, [filters, fetchGamesList, viewMode])
 
 	const hasActiveFilters = (f: GameQueryParameters) => {
 		if (!f) return false

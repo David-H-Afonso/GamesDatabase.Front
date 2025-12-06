@@ -149,6 +149,7 @@ export interface GameView {
 	id: number
 	name: string
 	description?: string
+	sortOrder?: number
 	configuration?: ViewConfiguration // Nueva estructura con grupos
 	// Legacy properties para retrocompatibilidad
 	filters?: string
