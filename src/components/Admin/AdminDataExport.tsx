@@ -3,7 +3,7 @@ import {
 	exportFullDatabase,
 	downloadBlob,
 	importFullDatabase,
-	exportToZip,
+	// exportToZip, // Currently not used - ZIP export UI is disabled
 	syncToNetwork,
 	analyzeFolders,
 	updateImageUrls,
@@ -118,6 +118,7 @@ export const AdminDataExport: React.FC = () => {
 		}
 	}
 
+	/* Commented out - ZIP export UI is currently disabled
 	const handleExportToZip = async (fullExport: boolean) => {
 		try {
 			setLoading(true)
@@ -135,6 +136,7 @@ export const AdminDataExport: React.FC = () => {
 			setLoading(false)
 		}
 	}
+	*/
 
 	const handleSyncToNetwork = async (fullExport: boolean) => {
 		try {
