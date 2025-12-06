@@ -1,7 +1,7 @@
 {
 	"name": "gamesdatabase-front",
 	"private": true,
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"type": "module",
 	"author": "David H. Afonso",
 	"description": "A modern web application for managing and organizing your personal game collection",
