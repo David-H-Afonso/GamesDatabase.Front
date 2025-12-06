@@ -281,7 +281,7 @@ Actualización de URLs de imágenes completada:
 					</div>
 				</div>
 
-				{/* ZIP Export Section */}
+				{/* ZIP Export Section
 				<div className='section zip-export-section'>
 					<h2>📦 Exportar a ZIP</h2>
 					<p className='section-description'>
@@ -313,7 +313,7 @@ Actualización de URLs de imágenes completada:
 							</button>
 						</div>
 					</div>
-				</div>
+				</div> */}
 
 				{/* Network Sync Section - Only show on local environments */}
 				{isLocalEnvironment && (
