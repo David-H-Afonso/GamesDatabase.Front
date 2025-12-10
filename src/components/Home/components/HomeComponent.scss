@@ -179,12 +179,27 @@
 	}
 
 	&__add-button {
-		background: var(--interactive);
-		color: var(--text-inverse);
-		border: none;
-		border-radius: $border-radius-md;
-		padding: $space-sm $space-lg;
+		background: #3b82f6;
+		border: 1px solid #3b82f6;
+		border-radius: 8px;
+		color: #ffffff;
+		padding: 0.5rem 1rem;
 		cursor: pointer;
+		font-size: 0.875rem;
+		font-weight: 600;
+		transition: all 0.2s;
+		box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+
+		&:hover {
+			background: #2563eb;
+			border-color: #2563eb;
+			box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+			transform: translateY(-1px);
+		}
+
+		&:active {
+			transform: translateY(0);
+		}
 	}
 
 	&__main {
@@ -410,54 +425,50 @@
 		box-shadow: $card-shadow;
 	}
 
-	// Estilos de paginación (mismos que admin)
+	// Estilos de paginación modernos
 	.pagination-controls {
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		gap: 16px;
-		margin-top: 24px;
-		flex-wrap: wrap;
+		gap: 1rem;
+		margin-top: 1.5rem;
 		padding: 0 $space-sm;
 
-		.pagination-buttons {
-			display: flex;
-			gap: 8px;
-			flex-wrap: wrap;
-			justify-content: center;
-		}
-
 		.pagination-btn {
-			padding: 8px 16px;
-			background-color: #2563eb;
-			color: #ffffff;
-			border: none;
-			border-radius: 6px;
+			padding: 0.5rem 0.75rem;
+			background: #05060b;
+			border: 1px solid #2a2d3a;
+			border-radius: 8px;
+			color: #f9fafb;
 			cursor: pointer;
+			font-size: 0.875rem;
 			font-weight: 500;
-			min-width: 42px;
-			transition: background-color 0.2s ease;
+			min-width: 40px;
+			transition: all 0.2s;
+			display: flex;
+			align-items: center;
+			justify-content: center;
 
 			&:hover:not(:disabled) {
-				background-color: #1d4ed8;
+				background: #0d0f17;
+				border-color: #4b5563;
+				color: #ffffff;
 			}
 
 			&:disabled {
-				background-color: #d1d5db;
-				color: #9ca3af;
+				background: #05060b;
+				border-color: #1f2937;
+				color: #4b5563;
 				cursor: not-allowed;
+				opacity: 0.5;
 			}
 		}
 
 		.pagination-info {
-			color: #6b7280;
+			color: #9ca3af;
+			font-size: 0.875rem;
 			font-weight: 500;
-			text-align: center;
-			width: 100%;
-
-			@media (min-width: 768px) {
-				width: auto;
-			}
+			padding: 0 0.5rem;
 		}
 	}
 
