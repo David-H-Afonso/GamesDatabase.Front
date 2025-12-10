@@ -7,6 +7,13 @@
 	--surface-light: #222222;
 	--surface-hover: #333;
 	--box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+	
+	// Custom very dark colors for specific UI elements
+	--surface-darker: #111319;
+	--surface-darkest: #05060b;
+	--surface-darkest-hover: #0d0f17;
+	--border-darker: #2a2d3a;
+	--popover-bg: #050814;
 
 	// Background & Surface
 	--bg-primary: var(--gray-50);
@@ -22,6 +29,7 @@
 	--primary: #3b82f6;
 	--primary-hover: #2563eb;
 	--primary-light: #1e3a8a;
+	--primary-lighter: #bfdbfe;
 
 	// Neutrals - Inverted for dark theme
 	--white: #ffffff;
@@ -44,6 +52,7 @@
 	--warning-light: #78350f;
 	--error: #ef4444;
 	--error-light: #7f1d1d;
+	--error-lighter: #fca5a5;
 	--info: #06b6d4;
 	--info-light: #164e63;
 

@@ -1,9 +1,9 @@
 @use '@/assets/styles' as *;
 
 .app-header {
-	background: var(--header-background);
-	border-bottom: 1px solid var(--border);
-	box-shadow: var(--box-shadow);
+	background: var(--surface-darker);
+	border-bottom: 1px solid var(--border-darker);
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 
 	&-container {
 		align-items: center;
@@ -15,7 +15,7 @@
 
 		a {
 			text-decoration: none;
-			color: var(--text-primary);
+			color: var(--gray-50);
 			transition: all 0.2s;
 		}
 
@@ -23,7 +23,7 @@
 			font-weight: 600;
 			font-size: 1.5rem;
 			line-height: 1;
-			color: var(--text-primary);
+			color: var(--gray-50);
 			transition: color 0.2s;
 			display: flex;
 			align-items: center;
@@ -40,7 +40,7 @@
 
 			.nav-link {
 				padding: 0.25rem 0;
-				color: var(--text-secondary);
+				color: var(--gray-400);
 				font-size: 0.9rem;
 				font-weight: 500;
 				transition: all 0.2s;
@@ -48,11 +48,11 @@
 				position: relative;
 
 				&:hover {
-					color: var(--text-primary);
+					color: var(--gray-200);
 				}
 
 				&.active {
-					color: var(--text-primary);
+					color: var(--gray-50);
 					border-bottom-color: var(--primary);
 				}
 			}
@@ -68,32 +68,32 @@
 				align-items: center;
 				gap: 0.5rem;
 				padding-left: 0.75rem;
-				border-left: 1px solid var(--border);
+				border-left: 1px solid var(--border-darker);
 
 				.header-user-icon {
-					color: var(--text-secondary);
+					color: var(--gray-400);
 					flex-shrink: 0;
 				}
 
 				.header-username {
 					font-size: 0.9rem;
 					font-weight: 500;
-					color: var(--text-primary);
+					color: var(--gray-200);
 				}
 
 				.btn-logout {
 					padding: 0.5rem 1rem;
-					background: var(--input-bg);
-					border: 1px solid var(--border);
+					background: var(--surface-darkest);
+					border: 1px solid var(--border-darker);
 					border-radius: 8px;
-					color: var(--text-primary);
+					color: var(--gray-50);
 					cursor: pointer;
 					font-size: 0.875rem;
 					font-weight: 500;
 					transition: all 0.2s;
 
 					&:hover {
-						background: var(--surface-hover);
+						background: var(--surface-darkest-hover);
 						border-color: var(--error);
 						color: var(--error);
 					}

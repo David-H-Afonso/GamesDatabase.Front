@@ -1,10 +1,10 @@
 .game-filters-chips {
-	background: var(--surface);
+	background: var(--surface-darker);
 	border-radius: 16px;
 	padding: 16px 18px 18px;
 	margin-bottom: 24px;
-	box-shadow: 0 20px 45px var(--box-shadow);
-	border: 1px solid var(--border-light);
+	box-shadow: 0 20px 45px rgba(0, 0, 0, 0.7);
+	border: 1px solid var(--gray-800);
 	display: flex;
 	flex-direction: column;
 	gap: 14px;
@@ -14,39 +14,39 @@
 		align-items: center;
 		gap: 10px;
 		padding: 10px 14px;
-		background: var(--input-bg);
-		border: 1px solid var(--border);
+		background: var(--surface-darkest);
+		border: 1px solid var(--border-darker);
 		border-radius: 10px;
 	}
 
 	&__selection-count {
 		font-size: 12px;
 		font-weight: 600;
-		color: var(--text-secondary);
+		color: var(--gray-400);
 	}
 
 	&__selection-btn {
 		padding: 7px 14px;
 		border-radius: 8px;
-		border: 1px solid var(--border);
-		background: var(--input-bg);
-		color: var(--text-primary);
+		border: 1px solid var(--border-darker);
+		background: var(--surface-darkest);
+		color: var(--gray-200);
 		font-size: 12px;
 		font-weight: 500;
 		cursor: pointer;
 		transition: all 0.15s ease;
 
 		&:hover {
-			border-color: var(--input-border);
-			background: var(--surface-hover);
-			color: var(--text-primary);
+			border-color: var(--gray-600);
+			background: var(--surface-darkest-hover);
+			color: var(--gray-50);
 		}
 
 		&--danger {
 			&:hover {
 				border-color: var(--error);
-				background: var(--error-light);
-				color: var(--error-light);
+				background: rgba(239, 68, 68, 0.1);
+				color: var(--error-lighter);
 			}
 		}
 	}
@@ -72,7 +72,7 @@
 		flex-direction: column;
 		gap: 5px;
 		font-size: 11px;
-		color: var(--text-secondary);
+		color: var(--gray-400);
 
 		label {
 			font-size: 11px;
@@ -83,16 +83,16 @@
 		input,
 		select {
 			border-radius: 8px;
-			border: 1px solid var(--border);
-			background: var(--input-bg);
-			color: var(--text-primary);
+			border: 1px solid var(--border-darker);
+			background: var(--surface-darkest);
+			color: var(--gray-50);
 			font-size: 13px;
 			padding: 8px 12px;
 			min-width: 120px;
 			transition: all 0.15s ease;
 
 			&::placeholder {
-				color: var(--input-placeholder);
+				color: var(--gray-500);
 			}
 
 			&:focus {
@@ -124,16 +124,16 @@
 
 	&__input-search {
 		border-radius: 8px;
-		border: 1px solid var(--border);
-		background: var(--input-bg);
-		color: var(--text-primary);
+		border: 1px solid var(--border-darker);
+		background: var(--surface-darkest);
+		color: var(--gray-50);
 		font-size: 13px;
 		padding: 8px 14px;
 		min-width: 200px;
 		transition: all 0.15s ease;
 
 		&::placeholder {
-			color: var(--input-placeholder);
+			color: var(--gray-500);
 		}
 
 		&:focus {
@@ -145,9 +145,9 @@
 
 	&__select-pill {
 		border-radius: 8px;
-		border: 1px solid var(--border);
-		background: var(--input-bg);
-		color: var(--text-primary);
+		border: 1px solid var(--border-darker);
+		background: var(--surface-darkest);
+		color: var(--gray-50);
 		font-size: 13px;
 		padding: 8px 14px;
 		min-width: 160px;
@@ -162,9 +162,9 @@
 
 	&__select-view {
 		border-radius: 8px;
-		border: 1px solid var(--border);
-		background: var(--input-bg);
-		color: var(--text-primary);
+		border: 1px solid var(--border-darker);
+		background: var(--surface-darkest);
+		color: var(--gray-50);
 		font-size: 13px;
 		padding: 8px 14px;
 		min-width: 160px;
@@ -179,9 +179,9 @@
 
 	&__sort-direction {
 		border-radius: 8px;
-		border: 1px solid var(--border);
-		background: var(--input-bg);
-		color: var(--text-secondary);
+		border: 1px solid var(--border-darker);
+		background: var(--surface-darkest);
+		color: var(--gray-400);
 		font-size: 16px;
 		padding: 8px 12px;
 		cursor: pointer;
@@ -193,9 +193,9 @@
 		min-width: 36px;
 
 		&:hover {
-			border-color: var(--input-border);
-			background: var(--surface-hover);
-			color: var(--text-primary);
+			border-color: var(--gray-600);
+			background: var(--surface-darkest-hover);
+			color: var(--gray-50);
 		}
 
 		&:active {
@@ -205,10 +205,10 @@
 
 	&__view-toggle {
 		display: inline-flex;
-		background: var(--input-bg);
+		background: var(--surface-darkest);
 		border-radius: 999px;
 		padding: 3px;
-		border: 1px solid var(--border);
+		border: 1px solid var(--border-darker);
 		gap: 2px;
 	}
 
@@ -219,7 +219,7 @@
 		font-size: 11px;
 		font-weight: 500;
 		background: transparent;
-		color: var(--text-secondary);
+		color: var(--gray-400);
 		cursor: pointer;
 		transition: all 0.15s ease;
 		letter-spacing: 0.01em;
@@ -230,7 +230,7 @@
 
 		&.is-active {
 			background: var(--primary);
-			color: var(--text-inverse);
+			color: var(--white);
 			box-shadow: 0 2px 8px var(--primary-color-alpha);
 		}
 	}
@@ -238,8 +238,8 @@
 	&__advanced-btn {
 		border-radius: 8px;
 		border: 1px solid var(--gray-700);
-		background: var(--bg-secondary);
-		color: var(--text-secondary);
+		background: var(--gray-900);
+		color: var(--gray-400);
 		font-size: 12px;
 		font-weight: 500;
 		padding: 8px 14px;
@@ -250,21 +250,21 @@
 		&:hover {
 			border-color: var(--primary);
 			background: var(--primary-color-alpha);
-			color: var(--primary-light);
+			color: var(--primary-lighter);
 		}
 
 		&.is-active {
 			border-color: var(--primary);
 			background: var(--primary-color-alpha);
-			color: var(--primary-light);
+			color: var(--primary-lighter);
 		}
 	}
 
 	&__action-btn {
 		border-radius: 8px;
 		border: 1px solid var(--gray-700);
-		background: var(--bg-secondary);
-		color: var(--text-primary);
+		background: var(--gray-900);
+		color: var(--gray-200);
 		font-size: 12px;
 		font-weight: 500;
 		padding: 8px 14px;
@@ -273,8 +273,8 @@
 		white-space: nowrap;
 
 		&:hover {
-			border-color: var(--input-border);
-			background: var(--border-light);
+			border-color: var(--gray-600);
+			background: var(--gray-800);
 		}
 	}
 
@@ -287,7 +287,7 @@
 	&__chip {
 		border-radius: 999px;
 		border: 1px solid var(--gray-700);
-		background: var(--input-bg);
+		background: var(--surface-darkest);
 		color: var(--gray-300);
 		font-size: 12px;
 		padding: 6px 14px;
@@ -300,12 +300,12 @@
 
 		span {
 			font-weight: 600;
-			color: var(--text-primary);
+			color: var(--gray-50);
 		}
 
 		&:hover {
-			border-color: var(--input-border);
-			background: var(--surface-hover);
+			border-color: var(--gray-600);
+			background: var(--surface-darkest-hover);
 		}
 
 		&.is-active {
@@ -313,7 +313,7 @@
 			background: var(--primary-color-alpha);
 
 			span {
-				color: var(--primary-light);
+				color: var(--primary-lighter);
 			}
 		}
 
@@ -326,10 +326,10 @@
 		position: relative;
 		margin-top: 4px;
 		align-self: flex-start;
-		background: var(--bg-primary);
+		background: var(--popover-bg);
 		border-radius: 14px;
 		border: 1px solid var(--gray-700);
-		box-shadow: 0 18px 40px var(--box-shadow);
+		box-shadow: 0 18px 40px rgba(0, 0, 0, 0.85);
 		padding: 14px 16px;
 		min-width: 280px;
 		max-width: 420px;
@@ -341,7 +341,7 @@
 			font-size: 11px;
 			text-transform: uppercase;
 			letter-spacing: 0.08em;
-			color: var(--text-secondary);
+			color: var(--gray-400);
 			font-weight: 600;
 		}
 	}
@@ -373,7 +373,7 @@
 		}
 
 		&::-webkit-scrollbar-track {
-			background: var(--surface-hover);
+			background: var(--surface-darkest-hover);
 			border-radius: 3px;
 		}
 
@@ -382,7 +382,7 @@
 			border-radius: 3px;
 
 			&:hover {
-				background: var(--input-border);
+				background: var(--gray-600);
 			}
 		}
 	}
@@ -390,8 +390,8 @@
 	&__option {
 		border-radius: 999px;
 		border: 1px solid var(--gray-700);
-		background: var(--bg-secondary);
-		color: var(--text-primary);
+		background: var(--gray-900);
+		color: var(--gray-200);
 		font-size: 12px;
 		padding: 6px 12px;
 		cursor: pointer;
@@ -399,14 +399,14 @@
 		white-space: nowrap;
 
 		&:hover {
-			border-color: var(--input-border);
-			background: var(--border-light);
+			border-color: var(--gray-600);
+			background: var(--gray-800);
 		}
 
 		&.is-active {
 			border-color: var(--primary);
 			background: var(--primary-color-alpha);
-			color: var(--primary-light);
+			color: var(--primary-lighter);
 			font-weight: 500;
 		}
 	}
@@ -415,8 +415,8 @@
 		width: 100%;
 		border-radius: 8px;
 		border: 1px solid var(--gray-700);
-		background: var(--bg-secondary);
-		color: var(--text-secondary);
+		background: var(--gray-900);
+		color: var(--gray-400);
 		font-size: 12px;
 		padding: 7px;
 		cursor: pointer;
@@ -425,8 +425,8 @@
 
 		&:hover {
 			border-color: var(--error);
-			background: var(--error-light);
-			color: var(--error-light);
+			background: rgba(239, 68, 68, 0.1);
+			color: var(--error-lighter);
 		}
 	}
 
@@ -436,7 +436,7 @@
 		align-items: center;
 		margin-top: 4px;
 		padding-top: 10px;
-		border-top: 1px solid var(--border-light);
+		border-top: 1px solid var(--gray-800);
 	}
 
 	&__checkbox {
@@ -444,7 +444,7 @@
 		align-items: center;
 		gap: 8px;
 		font-size: 12px;
-		color: var(--text-primary);
+		color: var(--gray-200);
 		cursor: pointer;
 		user-select: none;
 
@@ -460,7 +460,7 @@
 		}
 
 		&:hover {
-			color: var(--text-primary);
+			color: var(--gray-50);
 		}
 	}
 
