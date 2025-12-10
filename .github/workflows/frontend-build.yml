@@ -1,0 +1,42 @@
+name: Frontend Build
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'GamesDatabase.Front/**'
+      - '.github/workflows/frontend-build.yml'
+  push:
+    branches:
+      - master
+    paths:
+      - 'GamesDatabase.Front/**'
+      - '.github/workflows/frontend-build.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: './GamesDatabase.Front/package-lock.json'
+        
+    - name: Install dependencies
+      working-directory: ./GamesDatabase.Front
+      run: npm ci
+      
+    - name: Lint
+      working-directory: ./GamesDatabase.Front
+      run: npm run lint
+      
+    - name: Build
+      working-directory: ./GamesDatabase.Front
+      run: npm run build
