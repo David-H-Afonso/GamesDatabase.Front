@@ -6,13 +6,6 @@
 	--surface: var(--white);
 	--surface-hover: #f3f4f6;
 	--box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-	
-	// Custom surface colors for specific UI elements (lighter in light theme)
-	--surface-darker: var(--gray-50);
-	--surface-darkest: var(--white);
-	--surface-darkest-hover: var(--gray-100);
-	--border-darker: var(--gray-300);
-	--popover-bg: var(--white);
 
 	// Background & Surface
 	--bg-primary: var(--white);
@@ -28,7 +21,6 @@
 	--primary: #2563eb;
 	--primary-hover: #1d4ed8;
 	--primary-light: #dbeafe;
-	--primary-lighter: #3b82f6;
 
 	// Neutrals
 	--white: #ffffff;
@@ -51,9 +43,21 @@
 	--warning-light: #fef3c7;
 	--error: #dc2626;
 	--error-light: #fee2e2;
-	--error-lighter: #ef4444;
+	--error-lighter: #fca5a5;
 	--info: #0891b2;
 	--info-light: #cffafe;
+	
+	// Additional custom colors for specific UI elements (light theme equivalents)
+	--color-05060b: #fafafa;
+	--color-050814: #f9fafb;
+	--color-0d0f17: #f3f4f6;
+	--color-111319: #f9fafb;
+	--color-2a2d3a: #d1d5db;
+	--color-bfdbfe: #3b82f6;
+	--color-c62828: #c62828;
+	--color-f44336: #f44336;
+	--color-f57c00: #f57c00;
+	--color-ff9800: #ff9800;
 
 	--bg-tertiary: var(--gray-100);
 	--surface-elevated: var(--white);

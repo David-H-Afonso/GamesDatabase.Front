@@ -20,15 +20,15 @@
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 
 		&--warning {
-			background-color: #ff9800;
-			color: #000;
-			border-left: 4px solid #f57c00;
+			background-color: var(--color-ff9800);
+			color: var(--black);
+			border-left: 4px solid var(--color-f57c00);
 		}
 
 		&--error {
-			background-color: #f44336;
-			color: #fff;
-			border-left: 4px solid #c62828;
+			background-color: var(--color-f44336);
+			color: var(--white);
+			border-left: 4px solid var(--color-c62828);
 		}
 
 		span {
@@ -123,11 +123,11 @@
 		background: var(--primary);
 		color: white;
 		border: 1px solid rgba(59, 130, 246, 0.3);
-		box-shadow: 0 2px 4px var(--primary-color-alpha);
+		box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
 
 		&:hover {
 			background: var(--primary-hover);
-			box-shadow: 0 4px 8px var(--primary-color-alpha);
+			box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
 		}
 	}
 
@@ -182,18 +182,18 @@
 		background: var(--primary);
 		border: 1px solid var(--primary);
 		border-radius: 8px;
-		color: var(--text-inverse);
+		color: var(--white);
 		padding: 0.5rem 1rem;
 		cursor: pointer;
 		font-size: 0.875rem;
 		font-weight: 600;
 		transition: all 0.2s;
-		box-shadow: 0 2px 4px var(--primary-color-alpha);
+		box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
 
 		&:hover {
 			background: var(--primary-hover);
 			border-color: var(--primary-hover);
-			box-shadow: 0 4px 8px var(--primary-color-alpha);
+			box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
 			transform: translateY(-1px);
 		}
 
@@ -436,8 +436,8 @@
 
 		.pagination-btn {
 			padding: 0.5rem 0.75rem;
-			background: var(--surface-darkest);
-			border: 1px solid var(--border-darker);
+			background: var(--color-05060b);
+			border: 1px solid var(--color-2a2d3a);
 			border-radius: 8px;
 			color: var(--gray-50);
 			cursor: pointer;
@@ -450,13 +450,13 @@
 			justify-content: center;
 
 			&:hover:not(:disabled) {
-				background: var(--surface-darkest-hover);
+				background: var(--color-0d0f17);
 				border-color: var(--gray-600);
-				color: var(--text-inverse);
+				color: var(--white);
 			}
 
 			&:disabled {
-				background: var(--surface-darkest);
+				background: var(--color-05060b);
 				border-color: var(--gray-800);
 				color: var(--gray-600);
 				cursor: not-allowed;

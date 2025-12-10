@@ -1,8 +1,8 @@
 @use '@/assets/styles' as *;
 
 .app-header {
-	background: var(--surface-darker);
-	border-bottom: 1px solid var(--border-darker);
+	background: var(--color-111319);
+	border-bottom: 1px solid var(--color-2a2d3a);
 	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 
 	&-container {
@@ -68,7 +68,7 @@
 				align-items: center;
 				gap: 0.5rem;
 				padding-left: 0.75rem;
-				border-left: 1px solid var(--border-darker);
+				border-left: 1px solid var(--color-2a2d3a);
 
 				.header-user-icon {
 					color: var(--gray-400);
@@ -83,8 +83,8 @@
 
 				.btn-logout {
 					padding: 0.5rem 1rem;
-					background: var(--surface-darkest);
-					border: 1px solid var(--border-darker);
+					background: var(--color-05060b);
+					border: 1px solid var(--color-2a2d3a);
 					border-radius: 8px;
 					color: var(--gray-50);
 					cursor: pointer;
@@ -93,7 +93,7 @@
 					transition: all 0.2s;
 
 					&:hover {
-						background: var(--surface-darkest-hover);
+						background: var(--color-0d0f17);
 						border-color: var(--error);
 						color: var(--error);
 					}
