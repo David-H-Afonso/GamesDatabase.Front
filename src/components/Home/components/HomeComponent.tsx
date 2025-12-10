@@ -3,13 +3,10 @@ import { Button, GameCard } from '@/components/elements'
 import { useGames, useGameViews } from '@/hooks'
 import { useAppSelector, useAppDispatch } from '@/store/hooks'
 import { setCardStyle, setViewMode } from '@/store/features/theme/themeSlice'
-import {
-	setFilters as setGamesFilters,
-	resetFilters as resetGamesFilters,
-} from '@/store/features/games/gamesSlice'
+import { setFilters as setGamesFilters } from '@/store/features/games/gamesSlice'
 import { selectGamesFilters } from '@/store/features/games/selector'
 import type { GameQueryParameters } from '@/models/api/Game'
-import GamesFilters from './GamesFilters'
+import GameFiltersChips from './GameFiltersChips'
 import BulkEditModal, { type BulkEditData } from './BulkEditModal'
 import './HomeComponent.scss'
 
@@ -30,7 +27,6 @@ const HomeComponent = () => {
 	const filters = useAppSelector(selectGamesFilters)
 	const setFilters = (next: GameQueryParameters) => dispatch(setGamesFilters(next))
 	const [selectedGames, setSelectedGames] = useState<number[]>([])
-	const [filtersOpen, setFiltersOpen] = useState(false)
 	const [bulkEditOpen, setBulkEditOpen] = useState(false)
 	const viewMode = useAppSelector((s) => s.theme.viewMode ?? 'default')
 	const [viewError, setViewError] = useState<string | null>(null)
@@ -46,19 +42,18 @@ const HomeComponent = () => {
 		loadPublicGameViews()
 	}, [loadPublicGameViews])
 
-	// Always reload data when Home component mounts (from any route)
-	useEffect(() => {
-		// Reload current view
-		if (viewMode === 'default') {
-			void refreshGames(filters)
-		} else {
-			void fetchGamesList({ ...filters, viewName: viewMode })
-		}
-	}, []) // Empty deps = only run on mount
+	// Force reload on component mount to handle page refresh (F5)
+	const hasMountedRef = useRef(false)
 
 	// Load current view data with error protection
 	useEffect(() => {
 		const load = async () => {
+			const isFirstMount = !hasMountedRef.current
+			// Mark as mounted after first check
+			if (isFirstMount) {
+				hasMountedRef.current = true
+			}
+
 			try {
 				if (viewMode === 'default') {
 					await refreshGames(filters)
@@ -93,10 +88,12 @@ const HomeComponent = () => {
 					return
 				}
 
-				// Use the new GameView system
-				await fetchGamesList({ ...filters, viewName: viewMode })
-
-				// Success - reset retry count
+				// Force refresh on first mount to handle F5 reload, otherwise use cache
+				if (isFirstMount) {
+					await refreshGames({ ...filters, viewName: viewMode })
+				} else {
+					await fetchGamesList({ ...filters, viewName: viewMode })
+				}
 				retryCountRef.current.set(viewMode, 0)
 				setViewError(null)
 			} catch (e) {
@@ -129,21 +126,6 @@ const HomeComponent = () => {
 			return () => clearTimeout(timer)
 		}
 	}, [viewError])
-
-	// Default list loads only when in default view
-	useEffect(() => {
-		if (viewMode === 'default') void fetchGamesList(filters)
-	}, [filters, fetchGamesList, viewMode])
-
-	const hasActiveFilters = (f: GameQueryParameters) => {
-		if (!f) return false
-		const ignore = ['page', 'pageSize', 'sortBy', 'sortDescending']
-		return Object.keys(f).some((k) => {
-			if (ignore.includes(k)) return false
-			const val = (f as any)[k]
-			return val !== undefined && val !== null && val !== ''
-		})
-	}
 
 	const toggleGameSelection = (gameId: number, isSelected: boolean) => {
 		setSelectedGames((prev) =>
@@ -223,123 +205,21 @@ const HomeComponent = () => {
 			)}
 
 			<div className='home-component__main'>
-				<div className='admin-controls'>
-					<div className='controls-left'>
-						{games.length > 0 && (
-							<>
-								{selectedGames.length > 0 && selectedGames.length !== games.length && (
-									<button
-										className='home-component__deselect-selected-button'
-										onClick={() => setSelectedGames([])}>
-										Deselect Selected
-									</button>
-								)}
-
-								<button className='home-component__select-all-button' onClick={handleSelectAll}>
-									{selectedGames.length === games.length ? 'Deselect All' : 'Select All'}
-								</button>
-
-								{selectedGames.length > 0 && (
-									<button className='home-component__bulk-delete-button' onClick={handleBulkDelete}>
-										Delete Selected
-									</button>
-								)}
-
-								{selectedGames.length > 0 && (
-									<button
-										className='home-component__bulk-edit-button'
-										onClick={() => setBulkEditOpen(true)}>
-										Edit Selected ({selectedGames.length})
-									</button>
-								)}
-							</>
-						)}
-					</div>
-
-					<div className='controls-right'>
-						<div className='search-controls'>
-							<input
-								type='text'
-								placeholder='Buscar juegos...'
-								value={filters.search || ''}
-								onChange={(e) => handleSearchChange((e.target as HTMLInputElement).value)}
-								className='controls-input'
-							/>
-						</div>
-
-						<div className='sort-controls'>
-							<label>Ordenar por:</label>
-							<select
-								value={filters.sortBy || 'name'}
-								onChange={(e) =>
-									handleSortChange(
-										(e.target as HTMLSelectElement).value,
-										filters.sortDescending || false
-									)
-								}>
-								<option value='name'>Nombre</option>
-								<option value='grade'>Calificación</option>
-								<option value='critic'>Puntuación Crítica</option>
-								<option value='released'>Fecha de Lanzamiento</option>
-								<option value='started'>Fecha de Inicio</option>
-								<option value='score'>Score</option>
-								<option value='storyDuration'>Story</option>
-								<option value='completionDuration'>Completion</option>
-								<option value='status'>Status</option>
-								<option value='createdat'>Fecha de Creación</option>
-								<option value='updatedat'>Última Modificación</option>
-							</select>
-							<button
-								className='sort-direction-btn'
-								onClick={() => handleSortChange(filters.sortBy || 'name', !filters.sortDescending)}>
-								{filters.sortDescending ? '↓' : '↑'}
-							</button>
-						</div>
-
-						<button className='controls-button' onClick={() => setFiltersOpen((s) => !s)}>
-							{filtersOpen
-								? 'Hide filters'
-								: `Show filters${hasActiveFilters(filters) ? ' *' : ''}`}
-						</button>
-
-						<select
-							className='controls-input'
-							style={{ marginLeft: 8 }}
-							value={viewMode}
-							onChange={(e) => dispatch(setViewMode(e.target.value as any))}>
-							<option value='default'>Default</option>
-							{publicGameViews.map((view) => (
-								<option key={view.id} value={view.name}>
-									{view.name}
-								</option>
-							))}
-						</select>
-
-						<select
-							className='controls-input'
-							value={cardStyle}
-							onChange={(e) => dispatch(setCardStyle(e.target.value as 'card' | 'row' | 'tile'))}
-							style={{
-								textTransform: 'capitalize',
-								padding: '8px 12px',
-								borderRadius: '6px',
-								marginLeft: 8,
-							}}>
-							<option value='card'>Card</option>
-							<option value='row'>Row</option>
-							<option value='tile'>Tile</option>
-						</select>
-					</div>
-				</div>
-
-				<GamesFilters
-					value={filters}
-					onChange={(patch) => setFilters({ ...filters, ...patch })}
-					onClear={() => {
-						dispatch(resetGamesFilters())
-						fetchGamesList({})
-					}}
-					isOpen={filtersOpen}
+				<GameFiltersChips
+					filters={filters}
+					onFiltersChange={(patch) => setFilters({ ...filters, ...patch })}
+					onSearchChange={handleSearchChange}
+					onSortChange={handleSortChange}
+					viewMode={cardStyle}
+					onViewModeChange={(mode) => dispatch(setCardStyle(mode))}
+					publicGameViews={publicGameViews}
+					currentView={viewMode}
+					onViewChange={(viewName) => dispatch(setViewMode(viewName as any))}
+					selectedCount={selectedGames.length}
+					onSelectAll={handleSelectAll}
+					onDeselectAll={() => setSelectedGames([])}
+					onBulkDelete={handleBulkDelete}
+					onBulkEdit={() => setBulkEditOpen(true)}
 				/>
 
 				<div className={`home-component-games-${cardStyle}`}>
@@ -389,7 +269,7 @@ const HomeComponent = () => {
 						&lt;
 					</button>
 					<span className='pagination-info'>
-						Página {pagination.page} de {pagination.totalPages} ({pagination.totalCount} elementos)
+						Página {pagination.page} de {pagination.totalPages} ({pagination.totalCount} juegos)
 					</span>
 					<button
 						className='pagination-btn'

@@ -62,6 +62,7 @@ export {
 	updateGameViewConfiguration,
 	deleteGameView,
 	getPublicGameViews,
+	reorderGameViews,
 } from './GameViewService'
 
 export { GameViewMigrationService } from './GameViewMigrationService'

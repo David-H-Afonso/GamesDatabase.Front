@@ -1,39 +1,34 @@
+@use '@/assets/styles' as *;
+
 .theme-selector {
 	display: flex;
 	align-items: center;
-	gap: 0.5rem;
-	margin-left: auto;
-
-	&__label {
-		font-size: 0.9rem;
-		font-weight: 500;
-		color: var(--text-primary);
-		white-space: nowrap;
-	}
 
 	&__select {
-		padding: 0.25rem 0.5rem;
-		border: 1px solid var(--border);
-		border-radius: 4px;
-		background-color: var(--input-bg);
-		color: var(--text-primary);
-		font-size: 0.9rem;
+		padding: 0.5rem 0.75rem;
+		border: 1px solid $color-border-primary;
+		border-radius: 8px;
+		background-color: $color-bg-secondary;
+		color: $color-text-primary;
+		font-size: 0.875rem;
+		font-weight: 500;
 		cursor: pointer;
-		transition: border-color 0.2s ease;
+		transition: all 0.2s;
 
 		&:hover {
-			border-color: var(--interactive);
+			background: $color-bg-tertiary;
+			border-color: $color-border-hover;
 		}
 
 		&:focus {
 			outline: none;
-			border-color: var(--interactive);
-			box-shadow: 0 0 0 2px var(--primary-color-alpha);
+			border-color: $color-primary;
+			box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
 		}
 
 		option {
-			background-color: var(--input-bg);
-			color: var(--text-primary);
+			background-color: $color-bg-secondary;
+			color: $color-text-primary;
 		}
 	}
 }

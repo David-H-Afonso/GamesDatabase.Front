@@ -166,3 +166,15 @@ export const updateGameViewConfiguration = async (
 		baseURL: environment.baseUrl,
 	})
 }
+
+/**
+ * Reorder game views by providing an ordered list of IDs.
+ */
+export const reorderGameViews = async (orderedIds: number[]): Promise<void> => {
+	const endpoint = `${BASE}/reorder`
+	await customFetch<void>(endpoint, {
+		method: 'POST',
+		body: { orderedIds },
+		baseURL: environment.baseUrl,
+	})
+}

@@ -297,14 +297,6 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 								// If includes T, split
 								out.value = s.split('T')[0]
 							}
-							// secondValue for Between
-							if (f.operator === FilterOperator.Between) {
-								if (f.secondValue === '' || f.secondValue === null || f.secondValue === undefined) {
-									out.secondValue = null
-								} else {
-									out.secondValue = String(f.secondValue).split('T')[0]
-								}
-							}
 							return out
 						}
 
@@ -327,21 +319,8 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 									out.value = String(f.value)
 								}
 							}
-							if (f.operator === FilterOperator.Between) {
-								if (f.secondValue === '' || f.secondValue === null || f.secondValue === undefined) {
-									out.secondValue = null
-								} else {
-									try {
-										out.secondValue = new Date(String(f.secondValue)).toISOString()
-									} catch {
-										out.secondValue = String(f.secondValue)
-									}
-								}
-							}
 							return out
-						}
-
-						// Convert selector string values to numbers
+						} // Convert selector string values to numbers
 						if (
 							[
 								FilterField.StatusId,
@@ -374,14 +353,6 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 									out.value = [f.value]
 								}
 							}
-						}
-
-						// Ensure Between has secondValue (if not previously set by date handlers)
-						if (
-							f.operator === FilterOperator.Between &&
-							(out.secondValue === undefined || out.secondValue === null)
-						) {
-							out.secondValue = f.secondValue ?? null
 						}
 
 						return out
@@ -444,7 +415,6 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 		{ value: FilterOperator.GreaterThanOrEqual, label: 'Mayor o igual' },
 		{ value: FilterOperator.LessThan, label: 'Menor que' },
 		{ value: FilterOperator.LessThanOrEqual, label: 'Menor o igual' },
-		{ value: FilterOperator.Between, label: 'Entre' },
 		{ value: FilterOperator.In, label: 'En' },
 		{ value: FilterOperator.NotIn, label: 'No en' },
 		{ value: FilterOperator.IsNull, label: 'Es nulo' },
@@ -622,6 +592,7 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 		if (isDateLikeField(filter.field)) {
 			// date input expects YYYY-MM-DD
 			const value = filter.value ? String(filter.value).split('T')[0] : ''
+
 			return (
 				<input
 					type='date'
@@ -645,6 +616,7 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 					console.warn('Failed to parse datetime value for input:', filter.value, err)
 				}
 			}
+
 			return (
 				<input
 					type='datetime-local'
