@@ -182,7 +182,7 @@
 		background: var(--primary);
 		border: 1px solid var(--primary);
 		border-radius: 8px;
-		color: var(--white);
+		color: var(--text-inverse);
 		padding: 0.5rem 1rem;
 		cursor: pointer;
 		font-size: 0.875rem;
@@ -452,7 +452,7 @@
 			&:hover:not(:disabled) {
 				background: var(--surface-darkest-hover);
 				border-color: var(--gray-600);
-				color: var(--white);
+				color: var(--text-inverse);
 			}
 
 			&:disabled {
