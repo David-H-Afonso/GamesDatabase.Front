@@ -489,7 +489,7 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 			]
 		}
 
-		// Date field operators - Equals/GreaterThanOrEqual/LessThanOrEqual/Between/IsNull/IsNotNull
+		// Date field operators - Equals/GreaterThanOrEqual/LessThanOrEqual/IsNull/IsNotNull
 		if (DATE_FIELDS.includes(field as any) || DATETIME_FIELDS.includes(field as any)) {
 			return [
 				{ value: FilterOperator.Equals, label: 'Fecha exacta' },

@@ -179,21 +179,21 @@
 	}
 
 	&__add-button {
-		background: #3b82f6;
-		border: 1px solid #3b82f6;
+		background: var(--interactive);
+		border: 1px solid var(--interactive);
 		border-radius: 8px;
-		color: #ffffff;
+		color: var(--text-inverse);
 		padding: 0.5rem 1rem;
 		cursor: pointer;
 		font-size: 0.875rem;
 		font-weight: 600;
 		transition: all 0.2s;
-		box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+		box-shadow: 0 2px 4px var(--primary-color-alpha);
 
 		&:hover {
-			background: #2563eb;
-			border-color: #2563eb;
-			box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+			background: var(--interactive-hover);
+			border-color: var(--interactive-hover);
+			box-shadow: 0 4px 8px var(--primary-color-alpha);
 			transform: translateY(-1px);
 		}
 
@@ -436,10 +436,10 @@
 
 		.pagination-btn {
 			padding: 0.5rem 0.75rem;
-			background: #05060b;
-			border: 1px solid #2a2d3a;
+			background: var(--input-bg);
+			border: 1px solid var(--border);
 			border-radius: 8px;
-			color: #f9fafb;
+			color: var(--text-primary);
 			cursor: pointer;
 			font-size: 0.875rem;
 			font-weight: 500;
@@ -450,22 +450,22 @@
 			justify-content: center;
 
 			&:hover:not(:disabled) {
-				background: #0d0f17;
-				border-color: #4b5563;
-				color: #ffffff;
+				background: var(--surface-hover);
+				border-color: var(--input-border);
+				color: var(--text-primary);
 			}
 
 			&:disabled {
-				background: #05060b;
-				border-color: #1f2937;
-				color: #4b5563;
+				background: var(--input-bg);
+				border-color: var(--border-light);
+				color: var(--interactive-disabled);
 				cursor: not-allowed;
 				opacity: 0.5;
 			}
 		}
 
 		.pagination-info {
-			color: #9ca3af;
+			color: var(--text-secondary);
 			font-size: 0.875rem;
 			font-weight: 500;
 			padding: 0 0.5rem;

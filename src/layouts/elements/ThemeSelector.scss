@@ -4,29 +4,29 @@
 
 	&__select {
 		padding: 0.5rem 0.75rem;
-		border: 1px solid #2a2d3a;
+		border: 1px solid var(--border);
 		border-radius: 8px;
-		background-color: #05060b;
-		color: #f9fafb;
+		background-color: var(--input-bg);
+		color: var(--text-primary);
 		font-size: 0.875rem;
 		font-weight: 500;
 		cursor: pointer;
 		transition: all 0.2s;
 
 		&:hover {
-			background: #0d0f17;
-			border-color: #4b5563;
+			background: var(--surface-hover);
+			border-color: var(--input-border);
 		}
 
 		&:focus {
 			outline: none;
-			border-color: #3b82f6;
-			box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+			border-color: var(--input-border-focus);
+			box-shadow: 0 0 0 2px var(--primary-color-alpha);
 		}
 
 		option {
-			background-color: #05060b;
-			color: #f9fafb;
+			background-color: var(--input-bg);
+			color: var(--text-primary);
 		}
 	}
 }
