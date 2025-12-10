@@ -1,10 +1,12 @@
+@use '@/assets/styles' as *;
+
 .game-filters-chips {
-	background: #111319;
+	background: $color-bg-primary;
 	border-radius: 16px;
 	padding: 16px 18px 18px;
 	margin-bottom: 24px;
 	box-shadow: 0 20px 45px rgba(0, 0, 0, 0.7);
-	border: 1px solid #1f2937;
+	border: 1px solid $color-border-tertiary;
 	display: flex;
 	flex-direction: column;
 	gap: 14px;
@@ -14,39 +16,39 @@
 		align-items: center;
 		gap: 10px;
 		padding: 10px 14px;
-		background: #05060b;
-		border: 1px solid #2a2d3a;
+		background: $color-bg-secondary;
+		border: 1px solid $color-border-primary;
 		border-radius: 10px;
 	}
 
 	&__selection-count {
 		font-size: 12px;
 		font-weight: 600;
-		color: #9ca3af;
+		color: $color-text-muted;
 	}
 
 	&__selection-btn {
 		padding: 7px 14px;
 		border-radius: 8px;
-		border: 1px solid #2a2d3a;
-		background: #05060b;
-		color: #e5e7eb;
+		border: 1px solid $color-border-primary;
+		background: $color-bg-secondary;
+		color: $color-text-secondary;
 		font-size: 12px;
 		font-weight: 500;
 		cursor: pointer;
 		transition: all 0.15s ease;
 
 		&:hover {
-			border-color: #4b5563;
-			background: #0d0f17;
-			color: #f9fafb;
+			border-color: $color-border-hover;
+			background: $color-bg-tertiary;
+			color: $color-text-primary;
 		}
 
 		&--danger {
 			&:hover {
-				border-color: #ef4444;
+				border-color: $color-error;
 				background: rgba(239, 68, 68, 0.1);
-				color: #fca5a5;
+				color: $color-error-light;
 			}
 		}
 	}
@@ -72,7 +74,7 @@
 		flex-direction: column;
 		gap: 5px;
 		font-size: 11px;
-		color: #9ca3af;
+		color: $color-text-muted;
 
 		label {
 			font-size: 11px;
@@ -83,21 +85,21 @@
 		input,
 		select {
 			border-radius: 8px;
-			border: 1px solid #2a2d3a;
-			background: #05060b;
-			color: #f9fafb;
+			border: 1px solid $color-border-primary;
+			background: $color-bg-secondary;
+			color: $color-text-primary;
 			font-size: 13px;
 			padding: 8px 12px;
 			min-width: 120px;
 			transition: all 0.15s ease;
 
 			&::placeholder {
-				color: #6b7280;
+				color: $color-text-disabled;
 			}
 
 			&:focus {
 				outline: none;
-				border-color: #3b82f6;
+				border-color: $color-primary;
 				box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 			}
 		}
@@ -124,30 +126,30 @@
 
 	&__input-search {
 		border-radius: 8px;
-		border: 1px solid #2a2d3a;
-		background: #05060b;
-		color: #f9fafb;
+		border: 1px solid $color-border-primary;
+		background: $color-bg-secondary;
+		color: $color-text-primary;
 		font-size: 13px;
 		padding: 8px 14px;
 		min-width: 200px;
 		transition: all 0.15s ease;
 
 		&::placeholder {
-			color: #6b7280;
+			color: $color-text-disabled;
 		}
 
 		&:focus {
 			outline: none;
-			border-color: #3b82f6;
+			border-color: $color-primary;
 			box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 		}
 	}
 
 	&__select-pill {
 		border-radius: 8px;
-		border: 1px solid #2a2d3a;
-		background: #05060b;
-		color: #f9fafb;
+		border: 1px solid $color-border-primary;
+		background: $color-bg-secondary;
+		color: $color-text-primary;
 		font-size: 13px;
 		padding: 8px 14px;
 		min-width: 160px;
@@ -155,16 +157,16 @@
 
 		&:focus {
 			outline: none;
-			border-color: #3b82f6;
+			border-color: $color-primary;
 			box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 		}
 	}
 
 	&__select-view {
 		border-radius: 8px;
-		border: 1px solid #2a2d3a;
-		background: #05060b;
-		color: #f9fafb;
+		border: 1px solid $color-border-primary;
+		background: $color-bg-secondary;
+		color: $color-text-primary;
 		font-size: 13px;
 		padding: 8px 14px;
 		min-width: 160px;
@@ -172,16 +174,16 @@
 
 		&:focus {
 			outline: none;
-			border-color: #3b82f6;
+			border-color: $color-primary;
 			box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 		}
 	}
 
 	&__sort-direction {
 		border-radius: 8px;
-		border: 1px solid #2a2d3a;
-		background: #05060b;
-		color: #9ca3af;
+		border: 1px solid $color-border-primary;
+		background: $color-bg-secondary;
+		color: $color-text-muted;
 		font-size: 16px;
 		padding: 8px 12px;
 		cursor: pointer;
@@ -193,9 +195,9 @@
 		min-width: 36px;
 
 		&:hover {
-			border-color: #4b5563;
-			background: #0d0f17;
-			color: #f9fafb;
+			border-color: $color-border-hover;
+			background: $color-bg-tertiary;
+			color: $color-text-primary;
 		}
 
 		&:active {
@@ -205,10 +207,10 @@
 
 	&__view-toggle {
 		display: inline-flex;
-		background: #05060b;
+		background: $color-bg-secondary;
 		border-radius: 999px;
 		padding: 3px;
-		border: 1px solid #2a2d3a;
+		border: 1px solid $color-border-primary;
 		gap: 2px;
 	}
 
@@ -219,27 +221,27 @@
 		font-size: 11px;
 		font-weight: 500;
 		background: transparent;
-		color: #9ca3af;
+		color: $color-text-muted;
 		cursor: pointer;
 		transition: all 0.15s ease;
 		letter-spacing: 0.01em;
 
 		&:hover {
-			color: #d1d5db;
+			color: $color-text-tertiary;
 		}
 
 		&.is-active {
-			background: #3b82f6;
-			color: #ffffff;
+			background: $color-primary;
+			color: $color-white;
 			box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 		}
 	}
 
 	&__advanced-btn {
 		border-radius: 8px;
-		border: 1px solid #374151;
-		background: #111827;
-		color: #9ca3af;
+		border: 1px solid $color-border-secondary;
+		background: $color-bg-quaternary;
+		color: $color-text-muted;
 		font-size: 12px;
 		font-weight: 500;
 		padding: 8px 14px;
@@ -248,23 +250,23 @@
 		white-space: nowrap;
 
 		&:hover {
-			border-color: #3b82f6;
+			border-color: $color-primary;
 			background: rgba(59, 130, 246, 0.1);
-			color: #bfdbfe;
+			color: $color-primary-light;
 		}
 
 		&.is-active {
-			border-color: #3b82f6;
+			border-color: $color-primary;
 			background: rgba(59, 130, 246, 0.15);
-			color: #bfdbfe;
+			color: $color-primary-light;
 		}
 	}
 
 	&__action-btn {
 		border-radius: 8px;
-		border: 1px solid #374151;
-		background: #111827;
-		color: #e5e7eb;
+		border: 1px solid $color-border-secondary;
+		background: $color-bg-quaternary;
+		color: $color-text-secondary;
 		font-size: 12px;
 		font-weight: 500;
 		padding: 8px 14px;
@@ -273,8 +275,8 @@
 		white-space: nowrap;
 
 		&:hover {
-			border-color: #4b5563;
-			background: #1f2937;
+			border-color: $color-border-hover;
+			background: $color-border-tertiary;
 		}
 	}
 
@@ -286,9 +288,9 @@
 
 	&__chip {
 		border-radius: 999px;
-		border: 1px solid #374151;
-		background: #05060b;
-		color: #d1d5db;
+		border: 1px solid $color-border-secondary;
+		background: $color-bg-secondary;
+		color: $color-text-tertiary;
 		font-size: 12px;
 		padding: 6px 14px;
 		cursor: pointer;
@@ -300,20 +302,20 @@
 
 		span {
 			font-weight: 600;
-			color: #f9fafb;
+			color: $color-text-primary;
 		}
 
 		&:hover {
-			border-color: #4b5563;
-			background: #0d0f17;
+			border-color: $color-border-hover;
+			background: $color-bg-tertiary;
 		}
 
 		&.is-active {
-			border-color: #3b82f6;
+			border-color: $color-primary;
 			background: rgba(59, 130, 246, 0.08);
 
 			span {
-				color: #bfdbfe;
+				color: $color-primary-light;
 			}
 		}
 
@@ -326,9 +328,9 @@
 		position: relative;
 		margin-top: 4px;
 		align-self: flex-start;
-		background: #050814;
+		background: $color-bg-surface;
 		border-radius: 14px;
-		border: 1px solid #374151;
+		border: 1px solid $color-border-secondary;
 		box-shadow: 0 18px 40px rgba(0, 0, 0, 0.85);
 		padding: 14px 16px;
 		min-width: 280px;
@@ -341,7 +343,7 @@
 			font-size: 11px;
 			text-transform: uppercase;
 			letter-spacing: 0.08em;
-			color: #9ca3af;
+			color: $color-text-muted;
 			font-weight: 600;
 		}
 	}
@@ -373,25 +375,25 @@
 		}
 
 		&::-webkit-scrollbar-track {
-			background: #0d0f17;
+			background: $color-bg-tertiary;
 			border-radius: 3px;
 		}
 
 		&::-webkit-scrollbar-thumb {
-			background: #374151;
+			background: $color-border-secondary;
 			border-radius: 3px;
 
 			&:hover {
-				background: #4b5563;
+				background: $color-border-hover;
 			}
 		}
 	}
 
 	&__option {
 		border-radius: 999px;
-		border: 1px solid #374151;
-		background: #111827;
-		color: #e5e7eb;
+		border: 1px solid $color-border-secondary;
+		background: $color-bg-quaternary;
+		color: $color-text-secondary;
 		font-size: 12px;
 		padding: 6px 12px;
 		cursor: pointer;
@@ -399,14 +401,14 @@
 		white-space: nowrap;
 
 		&:hover {
-			border-color: #4b5563;
-			background: #1f2937;
+			border-color: $color-border-hover;
+			background: $color-border-tertiary;
 		}
 
 		&.is-active {
-			border-color: #3b82f6;
+			border-color: $color-primary;
 			background: rgba(59, 130, 246, 0.15);
-			color: #bfdbfe;
+			color: $color-primary-light;
 			font-weight: 500;
 		}
 	}
@@ -414,9 +416,9 @@
 	&__clear-btn {
 		width: 100%;
 		border-radius: 8px;
-		border: 1px solid #374151;
-		background: #111827;
-		color: #9ca3af;
+		border: 1px solid $color-border-secondary;
+		background: $color-bg-quaternary;
+		color: $color-text-muted;
 		font-size: 12px;
 		padding: 7px;
 		cursor: pointer;
@@ -424,9 +426,9 @@
 		font-weight: 500;
 
 		&:hover {
-			border-color: #ef4444;
+			border-color: $color-error;
 			background: rgba(239, 68, 68, 0.1);
-			color: #fca5a5;
+			color: $color-error-light;
 		}
 	}
 
@@ -436,7 +438,7 @@
 		align-items: center;
 		margin-top: 4px;
 		padding-top: 10px;
-		border-top: 1px solid #1f2937;
+		border-top: 1px solid $color-border-tertiary;
 	}
 
 	&__checkbox {
@@ -444,7 +446,7 @@
 		align-items: center;
 		gap: 8px;
 		font-size: 12px;
-		color: #e5e7eb;
+		color: $color-text-secondary;
 		cursor: pointer;
 		user-select: none;
 
@@ -452,7 +454,7 @@
 			width: 16px;
 			height: 16px;
 			cursor: pointer;
-			accent-color: #3b82f6;
+			accent-color: $color-primary;
 		}
 
 		span {
@@ -460,7 +462,7 @@
 		}
 
 		&:hover {
-			color: #f9fafb;
+			color: $color-text-primary;
 		}
 	}
 

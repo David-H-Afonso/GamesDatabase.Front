@@ -96,6 +96,49 @@ $transition-base: 0.2s ease;
 $transition-slow: 0.3s ease;
 
 // =============================================================================
+// COLOR SYSTEM - Shared colors across components
+// =============================================================================
+
+// Background Colors
+$color-bg-primary: #111319;
+$color-bg-secondary: #05060b;
+$color-bg-tertiary: #0d0f17;
+$color-bg-quaternary: #111827;
+$color-bg-surface: #050814;
+
+// Border Colors
+$color-border-primary: #2a2d3a;
+$color-border-secondary: #374151;
+$color-border-tertiary: #1f2937;
+$color-border-hover: #4b5563;
+
+// Text Colors
+$color-text-primary: #f9fafb;
+$color-text-secondary: #e5e7eb;
+$color-text-tertiary: #d1d5db;
+$color-text-muted: #9ca3af;
+$color-text-disabled: #6b7280;
+
+// Accent/Interactive Colors
+$color-primary: #3b82f6;
+$color-primary-hover: #2563eb;
+$color-primary-light: #bfdbfe;
+
+// Error/Danger Colors
+$color-error: #ef4444;
+$color-error-light: #fca5a5;
+$color-error-dark: #c62828;
+$color-error-bright: #f44336;
+
+// Warning Colors
+$color-warning: #ff9800;
+$color-warning-dark: #f57c00;
+
+// Additional Colors
+$color-white: #ffffff;
+$color-black: #000000;
+
+// =============================================================================
 // LEGACY SCSS VARIABLES - Bridge to CSS Custom Properties
 // =============================================================================
 

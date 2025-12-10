@@ -1,8 +1,8 @@
 @use '@/assets/styles' as *;
 
 .app-header {
-	background: #111319;
-	border-bottom: 1px solid #2a2d3a;
+	background: $color-bg-primary;
+	border-bottom: 1px solid $color-border-primary;
 	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 
 	&-container {
@@ -15,7 +15,7 @@
 
 		a {
 			text-decoration: none;
-			color: #f9fafb;
+			color: $color-text-primary;
 			transition: all 0.2s;
 		}
 
@@ -23,13 +23,13 @@
 			font-weight: 600;
 			font-size: 1.5rem;
 			line-height: 1;
-			color: #f9fafb;
+			color: $color-text-primary;
 			transition: color 0.2s;
 			display: flex;
 			align-items: center;
 
 			&:hover {
-				color: #3b82f6;
+				color: $color-primary;
 			}
 		}
 
@@ -40,7 +40,7 @@
 
 			.nav-link {
 				padding: 0.25rem 0;
-				color: #9ca3af;
+				color: $color-text-muted;
 				font-size: 0.9rem;
 				font-weight: 500;
 				transition: all 0.2s;
@@ -48,12 +48,12 @@
 				position: relative;
 
 				&:hover {
-					color: #e5e7eb;
+					color: $color-text-secondary;
 				}
 
 				&.active {
-					color: #f9fafb;
-					border-bottom-color: #3b82f6;
+					color: $color-text-primary;
+					border-bottom-color: $color-primary;
 				}
 			}
 		}
@@ -68,34 +68,34 @@
 				align-items: center;
 				gap: 0.5rem;
 				padding-left: 0.75rem;
-				border-left: 1px solid #2a2d3a;
+				border-left: 1px solid $color-border-primary;
 
 				.header-user-icon {
-					color: #9ca3af;
+					color: $color-text-muted;
 					flex-shrink: 0;
 				}
 
 				.header-username {
 					font-size: 0.9rem;
 					font-weight: 500;
-					color: #e5e7eb;
+					color: $color-text-secondary;
 				}
 
 				.btn-logout {
 					padding: 0.5rem 1rem;
-					background: #05060b;
-					border: 1px solid #2a2d3a;
+					background: $color-bg-secondary;
+					border: 1px solid $color-border-primary;
 					border-radius: 8px;
-					color: #f9fafb;
+					color: $color-text-primary;
 					cursor: pointer;
 					font-size: 0.875rem;
 					font-weight: 500;
 					transition: all 0.2s;
 
 					&:hover {
-						background: #0d0f17;
-						border-color: #ef4444;
-						color: #ef4444;
+						background: $color-bg-tertiary;
+						border-color: $color-error;
+						color: $color-error;
 					}
 				}
 			}

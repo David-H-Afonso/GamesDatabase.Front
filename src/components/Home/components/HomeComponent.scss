@@ -20,15 +20,15 @@
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 
 		&--warning {
-			background-color: #ff9800;
-			color: #000;
-			border-left: 4px solid #f57c00;
+			background-color: $color-warning;
+			color: $color-black;
+			border-left: 4px solid $color-warning-dark;
 		}
 
 		&--error {
-			background-color: #f44336;
-			color: #fff;
-			border-left: 4px solid #c62828;
+			background-color: $color-error-bright;
+			color: $color-white;
+			border-left: 4px solid $color-error-dark;
 		}
 
 		span {
@@ -120,13 +120,13 @@
 
 	// Specific style for bulk edit button
 	&__bulk-edit-button {
-		background: #3b82f6;
-		color: white;
+		background: $color-primary;
+		color: $color-white;
 		border: 1px solid rgba(59, 130, 246, 0.3);
 		box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
 
 		&:hover {
-			background: #2563eb;
+			background: $color-primary-hover;
 			box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
 		}
 	}
@@ -179,10 +179,10 @@
 	}
 
 	&__add-button {
-		background: #3b82f6;
-		border: 1px solid #3b82f6;
+		background: $color-primary;
+		border: 1px solid $color-primary;
 		border-radius: 8px;
-		color: #ffffff;
+		color: $color-white;
 		padding: 0.5rem 1rem;
 		cursor: pointer;
 		font-size: 0.875rem;
@@ -191,8 +191,8 @@
 		box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
 
 		&:hover {
-			background: #2563eb;
-			border-color: #2563eb;
+			background: $color-primary-hover;
+			border-color: $color-primary-hover;
 			box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
 			transform: translateY(-1px);
 		}
@@ -436,10 +436,10 @@
 
 		.pagination-btn {
 			padding: 0.5rem 0.75rem;
-			background: #05060b;
-			border: 1px solid #2a2d3a;
+			background: $color-bg-secondary;
+			border: 1px solid $color-border-primary;
 			border-radius: 8px;
-			color: #f9fafb;
+			color: $color-text-primary;
 			cursor: pointer;
 			font-size: 0.875rem;
 			font-weight: 500;
@@ -450,22 +450,22 @@
 			justify-content: center;
 
 			&:hover:not(:disabled) {
-				background: #0d0f17;
-				border-color: #4b5563;
-				color: #ffffff;
+				background: $color-bg-tertiary;
+				border-color: $color-border-hover;
+				color: $color-white;
 			}
 
 			&:disabled {
-				background: #05060b;
-				border-color: #1f2937;
-				color: #4b5563;
+				background: $color-bg-secondary;
+				border-color: $color-border-tertiary;
+				color: $color-border-hover;
 				cursor: not-allowed;
 				opacity: 0.5;
 			}
 		}
 
 		.pagination-info {
-			color: #9ca3af;
+			color: $color-text-muted;
 			font-size: 0.875rem;
 			font-weight: 500;
 			padding: 0 0.5rem;
