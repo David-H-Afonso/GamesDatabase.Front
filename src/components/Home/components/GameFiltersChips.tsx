@@ -239,25 +239,25 @@ const GameFiltersChips: React.FC<Props> = ({
 	}
 
 	return (
-		<section className='gdfilters'>
+		<section className='game-filters-chips'>
 			{/* SELECTION CONTROLS */}
 			{selectedCount > 0 && (
-				<div className='gdfilters__selection'>
-					<span className='gdfilters__selection-count'>{selectedCount} seleccionado(s)</span>
+				<div className='game-filters-chips__selection'>
+					<span className='game-filters-chips__selection-count'>{selectedCount} seleccionado(s)</span>
 					{onDeselectAll && (
-						<button type='button' className='gdfilters__selection-btn' onClick={onDeselectAll}>
+						<button type='button' className='game-filters-chips__selection-btn' onClick={onDeselectAll}>
 							Deseleccionar
 						</button>
 					)}
 					{onBulkEdit && (
-						<button type='button' className='gdfilters__selection-btn' onClick={onBulkEdit}>
+						<button type='button' className='game-filters-chips__selection-btn' onClick={onBulkEdit}>
 							Editar
 						</button>
 					)}
 					{onBulkDelete && (
 						<button
 							type='button'
-							className='gdfilters__selection-btn gdfilters__selection-btn--danger'
+							className='game-filters-chips__selection-btn game-filters-chips__selection-btn--danger'
 							onClick={onBulkDelete}>
 							Eliminar
 						</button>
@@ -266,22 +266,22 @@ const GameFiltersChips: React.FC<Props> = ({
 			)}
 
 			{/* TOP ROW */}
-			<div className='gdfilters__top'>
-				<div className='gdfilters__top-left'>
-					<div className='gdfilters__field gdfilters__field--inline'>
+			<div className='game-filters-chips__top'>
+				<div className='game-filters-chips__top-left'>
+					<div className='game-filters-chips__field game-filters-chips__field--inline'>
 						<label>Buscar</label>
 						<input
-							className='gdfilters__input-search'
+							className='game-filters-chips__input-search'
 							placeholder='Buscar juegos…'
 							value={filters.search || ''}
 							onChange={(e) => onSearchChange(e.target.value)}
 						/>
 					</div>
 
-					<div className='gdfilters__field gdfilters__field--inline'>
+					<div className='game-filters-chips__field game-filters-chips__field--inline'>
 						<label>Ordenar por</label>
 						<select
-							className='gdfilters__select-pill'
+							className='game-filters-chips__select-pill'
 							value={filters.sortBy || 'name'}
 							onChange={(e) => onSortChange(e.target.value, filters.sortDescending || false)}>
 							<option value='name'>Nombre</option>
@@ -298,7 +298,7 @@ const GameFiltersChips: React.FC<Props> = ({
 						</select>
 						<button
 							type='button'
-							className='gdfilters__sort-direction'
+							className='game-filters-chips__sort-direction'
 							onClick={() => onSortChange(filters.sortBy || 'name', !filters.sortDescending)}
 							title={filters.sortDescending ? 'Descendente' : 'Ascendente'}>
 							{filters.sortDescending ? '↓' : '↑'}
@@ -306,18 +306,18 @@ const GameFiltersChips: React.FC<Props> = ({
 					</div>
 
 					{onSelectAll && (
-						<button type='button' className='gdfilters__action-btn' onClick={onSelectAll}>
+						<button type='button' className='game-filters-chips__action-btn' onClick={onSelectAll}>
 							{selectedCount > 0 ? 'Deseleccionar todos' : 'Seleccionar todos'}
 						</button>
 					)}
 				</div>
 
-				<div className='gdfilters__top-right'>
+				<div className='game-filters-chips__top-right'>
 					{onViewChange && (
-						<div className='gdfilters__field gdfilters__field--inline'>
+						<div className='game-filters-chips__field game-filters-chips__field--inline'>
 							<label>Vista</label>
 							<select
-								className='gdfilters__select-view'
+								className='game-filters-chips__select-view'
 								value={currentView}
 								onChange={(e) => onViewChange(e.target.value)}>
 								<option value='default'>Predeterminada</option>
@@ -331,16 +331,16 @@ const GameFiltersChips: React.FC<Props> = ({
 					)}
 
 					{onViewModeChange && viewMode && (
-						<div className='gdfilters__view-toggle'>
+						<div className='game-filters-chips__view-toggle'>
 							<button
 								type='button'
-								className={'gdfilters__view-btn' + (viewMode === 'card' ? ' is-active' : '')}
+								className={'game-filters-chips__view-btn' + (viewMode === 'card' ? ' is-active' : '')}
 								onClick={() => onViewModeChange('card')}>
 								Tarjetas
 							</button>
 							<button
 								type='button'
-								className={'gdfilters__view-btn' + (viewMode === 'row' ? ' is-active' : '')}
+								className={'game-filters-chips__view-btn' + (viewMode === 'row' ? ' is-active' : '')}
 								onClick={() => onViewModeChange('row')}>
 								Fila
 							</button>
@@ -349,7 +349,7 @@ const GameFiltersChips: React.FC<Props> = ({
 
 					<button
 						type='button'
-						className={'gdfilters__advanced-btn' + (showAdvancedFilters ? ' is-active' : '')}
+						className={'game-filters-chips__advanced-btn' + (showAdvancedFilters ? ' is-active' : '')}
 						onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}>
 						{showAdvancedFilters ? '✕ Cerrar filtros' : '⚙ Filtros avanzados'}
 					</button>
@@ -360,66 +360,66 @@ const GameFiltersChips: React.FC<Props> = ({
 			{showAdvancedFilters && (
 				<>
 					{/* CHIPS ROW */}
-					<div className='gdfilters__chips-row' ref={chipsContainerRef}>
+					<div className='game-filters-chips__chips-row' ref={chipsContainerRef}>
 						<button
 							type='button'
-							className={'gdfilters__chip' + (hasActiveFilter('platform') ? ' is-active' : '')}
+							className={'game-filters-chips__chip' + (hasActiveFilter('platform') ? ' is-active' : '')}
 							onClick={() => togglePopover('platform')}>
 							Plataforma: <span>{platformLabel()}</span>
 						</button>
 
 						<button
 							type='button'
-							className={'gdfilters__chip' + (hasActiveFilter('playWith') ? ' is-active' : '')}
+							className={'game-filters-chips__chip' + (hasActiveFilter('playWith') ? ' is-active' : '')}
 							onClick={() => togglePopover('playWith')}>
 							Jugar con: <span>{playWithLabel()}</span>
 						</button>
 
 						<button
 							type='button'
-							className={'gdfilters__chip' + (hasActiveFilter('status') ? ' is-active' : '')}
+							className={'game-filters-chips__chip' + (hasActiveFilter('status') ? ' is-active' : '')}
 							onClick={() => togglePopover('status')}>
 							Status: <span>{statusLabel()}</span>
 						</button>
 
 						<button
 							type='button'
-							className={'gdfilters__chip' + (hasActiveFilter('playedStatus') ? ' is-active' : '')}
+							className={'game-filters-chips__chip' + (hasActiveFilter('playedStatus') ? ' is-active' : '')}
 							onClick={() => togglePopover('playedStatus')}>
 							Jugado: <span>{playedStatusLabel()}</span>
 						</button>
 
 						<button
 							type='button'
-							className={'gdfilters__chip' + (hasActiveFilter('grades') ? ' is-active' : '')}
+							className={'game-filters-chips__chip' + (hasActiveFilter('grades') ? ' is-active' : '')}
 							onClick={() => togglePopover('grades')}>
 							Nota: <span>{gradesLabel()}</span>
 						</button>
 
 						<button
 							type='button'
-							className={'gdfilters__chip' + (hasActiveFilter('years') ? ' is-active' : '')}
+							className={'game-filters-chips__chip' + (hasActiveFilter('years') ? ' is-active' : '')}
 							onClick={() => togglePopover('years')}>
 							Años: <span>{yearsLabel()}</span>
 						</button>
 
 						<button
 							type='button'
-							className={'gdfilters__chip' + (hasActiveFilter('price') ? ' is-active' : '')}
+							className={'game-filters-chips__chip' + (hasActiveFilter('price') ? ' is-active' : '')}
 							onClick={() => togglePopover('price')}>
 							Precio: <span>{priceLabel()}</span>
 						</button>
 
 						<button
 							type='button'
-							className={'gdfilters__chip' + (hasActiveFilter('excluded') ? ' is-active' : '')}
+							className={'game-filters-chips__chip' + (hasActiveFilter('excluded') ? ' is-active' : '')}
 							onClick={() => togglePopover('excluded')}>
 							Exclusiones: <span>{excludedLabel()}</span>
 						</button>
 
 						<button
 							type='button'
-							className={'gdfilters__chip' + (hasActiveFilter('pageSize') ? ' is-active' : '')}
+							className={'game-filters-chips__chip' + (hasActiveFilter('pageSize') ? ' is-active' : '')}
 							onClick={() => togglePopover('pageSize')}>
 							Página: <span>{pageSizeLabel()}</span>
 						</button>
@@ -427,14 +427,14 @@ const GameFiltersChips: React.FC<Props> = ({
 
 					{/* POPOVERS */}
 					{openPopover && (
-						<div className='gdfilters__popover' ref={popoverRef}>
+						<div className='game-filters-chips__popover' ref={popoverRef}>
 							{openPopover === 'platform' && (
 								<>
 									<h4>Plataforma</h4>
-									<div className='gdfilters__popover-options'>
+									<div className='game-filters-chips__popover-options'>
 										<button
 											type='button'
-											className={'gdfilters__option' + (!filters.platformId ? ' is-active' : '')}
+											className={'game-filters-chips__option' + (!filters.platformId ? ' is-active' : '')}
 											onClick={() => setFilters({ platformId: undefined })}>
 											Todas
 										</button>
@@ -443,7 +443,7 @@ const GameFiltersChips: React.FC<Props> = ({
 												key={p.value}
 												type='button'
 												className={
-													'gdfilters__option' + (filters.platformId === p.value ? ' is-active' : '')
+													'game-filters-chips__option' + (filters.platformId === p.value ? ' is-active' : '')
 												}
 												onClick={() => setFilters({ platformId: p.value })}>
 												{p.label}
@@ -456,10 +456,10 @@ const GameFiltersChips: React.FC<Props> = ({
 							{openPopover === 'playWith' && (
 								<>
 									<h4>Jugar con</h4>
-									<div className='gdfilters__popover-options'>
+									<div className='game-filters-chips__popover-options'>
 										<button
 											type='button'
-											className={'gdfilters__option' + (!filters.playWithId ? ' is-active' : '')}
+											className={'game-filters-chips__option' + (!filters.playWithId ? ' is-active' : '')}
 											onClick={() => setFilters({ playWithId: undefined })}>
 											Todos
 										</button>
@@ -468,7 +468,7 @@ const GameFiltersChips: React.FC<Props> = ({
 												key={p.value}
 												type='button'
 												className={
-													'gdfilters__option' + (filters.playWithId === p.value ? ' is-active' : '')
+													'game-filters-chips__option' + (filters.playWithId === p.value ? ' is-active' : '')
 												}
 												onClick={() => setFilters({ playWithId: p.value })}>
 												{p.label}
@@ -481,10 +481,10 @@ const GameFiltersChips: React.FC<Props> = ({
 							{openPopover === 'status' && (
 								<>
 									<h4>Status</h4>
-									<div className='gdfilters__popover-options'>
+									<div className='game-filters-chips__popover-options'>
 										<button
 											type='button'
-											className={'gdfilters__option' + (!filters.statusId ? ' is-active' : '')}
+											className={'game-filters-chips__option' + (!filters.statusId ? ' is-active' : '')}
 											onClick={() => setFilters({ statusId: undefined })}>
 											Todos
 										</button>
@@ -493,7 +493,7 @@ const GameFiltersChips: React.FC<Props> = ({
 												key={s.value}
 												type='button'
 												className={
-													'gdfilters__option' + (filters.statusId === s.value ? ' is-active' : '')
+													'game-filters-chips__option' + (filters.statusId === s.value ? ' is-active' : '')
 												}
 												onClick={() => setFilters({ statusId: s.value })}>
 												{s.label}
@@ -506,11 +506,11 @@ const GameFiltersChips: React.FC<Props> = ({
 							{openPopover === 'playedStatus' && (
 								<>
 									<h4>Estado Jugado</h4>
-									<div className='gdfilters__popover-options'>
+									<div className='game-filters-chips__popover-options'>
 										<button
 											type='button'
 											className={
-												'gdfilters__option' + (!filters.playedStatusId ? ' is-active' : '')
+												'game-filters-chips__option' + (!filters.playedStatusId ? ' is-active' : '')
 											}
 											onClick={() => setFilters({ playedStatusId: undefined })}>
 											Todos
@@ -520,7 +520,7 @@ const GameFiltersChips: React.FC<Props> = ({
 												key={s.value}
 												type='button'
 												className={
-													'gdfilters__option' +
+													'game-filters-chips__option' +
 													(filters.playedStatusId === s.value ? ' is-active' : '')
 												}
 												onClick={() => setFilters({ playedStatusId: s.value })}>
@@ -534,8 +534,8 @@ const GameFiltersChips: React.FC<Props> = ({
 							{openPopover === 'grades' && (
 								<>
 									<h4>Nota</h4>
-									<div className='gdfilters__popover-grid'>
-										<div className='gdfilters__field'>
+									<div className='game-filters-chips__popover-grid'>
+										<div className='game-filters-chips__field'>
 											<label>Mínimo</label>
 											<input
 												type='number'
@@ -550,7 +550,7 @@ const GameFiltersChips: React.FC<Props> = ({
 												}
 											/>
 										</div>
-										<div className='gdfilters__field'>
+										<div className='game-filters-chips__field'>
 											<label>Máximo</label>
 											<input
 												type='number'
@@ -568,7 +568,7 @@ const GameFiltersChips: React.FC<Props> = ({
 									</div>
 									<button
 										type='button'
-										className='gdfilters__clear-btn'
+										className='game-filters-chips__clear-btn'
 										onClick={() => setFilters({ minGrade: undefined, maxGrade: undefined })}>
 										Limpiar
 									</button>
@@ -578,8 +578,8 @@ const GameFiltersChips: React.FC<Props> = ({
 							{openPopover === 'years' && (
 								<>
 									<h4>Años</h4>
-									<div className='gdfilters__popover-grid'>
-										<div className='gdfilters__field'>
+									<div className='game-filters-chips__popover-grid'>
+										<div className='game-filters-chips__field'>
 											<label>Lanzamiento</label>
 											<input
 												type='number'
@@ -594,7 +594,7 @@ const GameFiltersChips: React.FC<Props> = ({
 												}
 											/>
 										</div>
-										<div className='gdfilters__field'>
+										<div className='game-filters-chips__field'>
 											<label>Inicio</label>
 											<input
 												type='number'
@@ -609,7 +609,7 @@ const GameFiltersChips: React.FC<Props> = ({
 												}
 											/>
 										</div>
-										<div className='gdfilters__field'>
+										<div className='game-filters-chips__field'>
 											<label>Finalización</label>
 											<input
 												type='number'
@@ -627,7 +627,7 @@ const GameFiltersChips: React.FC<Props> = ({
 									</div>
 									<button
 										type='button'
-										className='gdfilters__clear-btn'
+										className='game-filters-chips__clear-btn'
 										onClick={() =>
 											setFilters({
 												releasedYear: undefined,
@@ -643,11 +643,11 @@ const GameFiltersChips: React.FC<Props> = ({
 							{openPopover === 'price' && (
 								<>
 									<h4>Precio</h4>
-									<div className='gdfilters__popover-options'>
+									<div className='game-filters-chips__popover-options'>
 										<button
 											type='button'
 											className={
-												'gdfilters__option' +
+												'game-filters-chips__option' +
 												(filters.isCheaperByKey === undefined || filters.isCheaperByKey === null
 													? ' is-active'
 													: '')
@@ -658,7 +658,7 @@ const GameFiltersChips: React.FC<Props> = ({
 										<button
 											type='button'
 											className={
-												'gdfilters__option' + (filters.isCheaperByKey === true ? ' is-active' : '')
+												'game-filters-chips__option' + (filters.isCheaperByKey === true ? ' is-active' : '')
 											}
 											onClick={() => setFilters({ isCheaperByKey: true })}>
 											Más barato por clave
@@ -666,7 +666,7 @@ const GameFiltersChips: React.FC<Props> = ({
 										<button
 											type='button'
 											className={
-												'gdfilters__option' + (filters.isCheaperByKey === false ? ' is-active' : '')
+												'game-filters-chips__option' + (filters.isCheaperByKey === false ? ' is-active' : '')
 											}
 											onClick={() => setFilters({ isCheaperByKey: false })}>
 											Más barato en tienda
@@ -678,11 +678,11 @@ const GameFiltersChips: React.FC<Props> = ({
 							{openPopover === 'excluded' && (
 								<>
 									<h4>Excluir Status</h4>
-									<div className='gdfilters__popover-checkboxes'>
+									<div className='game-filters-chips__popover-checkboxes'>
 										{statusOptions.map((status) => {
 											const isExcluded = (filters.excludeStatusIds || []).includes(status.value)
 											return (
-												<label key={status.value} className='gdfilters__checkbox'>
+												<label key={status.value} className='game-filters-chips__checkbox'>
 													<input
 														type='checkbox'
 														checked={isExcluded}
@@ -697,7 +697,7 @@ const GameFiltersChips: React.FC<Props> = ({
 									</div>
 									<button
 										type='button'
-										className='gdfilters__clear-btn'
+										className='game-filters-chips__clear-btn'
 										onClick={() => setFilters({ excludeStatusIds: undefined })}>
 										Limpiar
 									</button>
@@ -707,13 +707,13 @@ const GameFiltersChips: React.FC<Props> = ({
 							{openPopover === 'pageSize' && (
 								<>
 									<h4>Tamaño de página</h4>
-									<div className='gdfilters__popover-options'>
+									<div className='game-filters-chips__popover-options'>
 										{[10, 25, 50, 100, 200].map((size) => (
 											<button
 												key={size}
 												type='button'
 												className={
-													'gdfilters__option' +
+													'game-filters-chips__option' +
 													((filters.pageSize || 25) === size ? ' is-active' : '')
 												}
 												onClick={() => setFilters({ pageSize: size })}>
@@ -727,8 +727,8 @@ const GameFiltersChips: React.FC<Props> = ({
 					)}
 
 					{/* BOTTOM ROW */}
-					<div className='gdfilters__bottom'>
-						<label className='gdfilters__checkbox'>
+					<div className='game-filters-chips__bottom'>
+						<label className='game-filters-chips__checkbox'>
 							<input
 								type='checkbox'
 								checked={filters.showIncomplete === true}
