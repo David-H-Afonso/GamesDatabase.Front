@@ -28,6 +28,7 @@ type PopoverKey =
 	| 'grades'
 	| 'years'
 	| 'price'
+	| 'criticProvider'
 	| 'excluded'
 	| 'pageSize'
 
@@ -183,13 +184,55 @@ const GameFiltersChips: React.FC<Props> = ({
 		return filters.isCheaperByKey ? 'Por clave' : 'En tienda'
 	}
 
+	const criticProviderLabel = () => {
+		if (!filters.criticProvider) return 'Todos'
+		if (filters.criticProvider === 'Default') return 'Por defecto'
+		return filters.criticProvider
+	}
+
 	const excludedLabel = () => {
 		if (!filters.excludeStatusIds?.length) return 'Sin exclusiones'
 		return `${filters.excludeStatusIds.length} activa(s)`
 	}
 
 	const pageSizeLabel = () => {
-		return filters.pageSize ? `${filters.pageSize} juegos` : '25 juegos'
+		if (!filters.pageSize) return 'Por defecto (50)'
+		return `${filters.pageSize} juegos`
+	}
+
+	const resetAllFilters = () => {
+		onFiltersChange({
+			platformId: undefined,
+			playWithId: undefined,
+			statusId: undefined,
+			playedStatusId: undefined,
+			minGrade: undefined,
+			maxGrade: undefined,
+			releasedYear: undefined,
+			startedYear: undefined,
+			finishedYear: undefined,
+			isCheaperByKey: undefined,
+			criticProvider: undefined,
+			excludeStatusIds: undefined,
+			pageSize: 50,
+		})
+	}
+
+	const hasAnyActiveFilter = () => {
+		return (
+			!!filters.platformId ||
+			!!filters.playWithId ||
+			!!filters.statusId ||
+			!!filters.playedStatusId ||
+			!!filters.minGrade ||
+			!!filters.maxGrade ||
+			!!filters.releasedYear ||
+			!!filters.startedYear ||
+			!!filters.finishedYear ||
+			(filters.isCheaperByKey !== undefined && filters.isCheaperByKey !== null) ||
+			!!filters.criticProvider ||
+			!!filters.excludeStatusIds?.length
+		)
 	}
 
 	const hasActiveFilter = (key: PopoverKey): boolean => {
@@ -208,10 +251,12 @@ const GameFiltersChips: React.FC<Props> = ({
 				return !!filters.releasedYear || !!filters.startedYear || !!filters.finishedYear
 			case 'price':
 				return filters.isCheaperByKey !== undefined && filters.isCheaperByKey !== null
+			case 'criticProvider':
+				return !!filters.criticProvider
 			case 'excluded':
 				return !!filters.excludeStatusIds?.length
 			case 'pageSize':
-				return !!filters.pageSize && filters.pageSize !== 25
+				return false
 			default:
 				return false
 		}
@@ -243,14 +288,22 @@ const GameFiltersChips: React.FC<Props> = ({
 			{/* SELECTION CONTROLS */}
 			{selectedCount > 0 && (
 				<div className='game-filters-chips__selection'>
-					<span className='game-filters-chips__selection-count'>{selectedCount} seleccionado(s)</span>
+					<span className='game-filters-chips__selection-count'>
+						{selectedCount} seleccionado(s)
+					</span>
 					{onDeselectAll && (
-						<button type='button' className='game-filters-chips__selection-btn' onClick={onDeselectAll}>
+						<button
+							type='button'
+							className='game-filters-chips__selection-btn'
+							onClick={onDeselectAll}>
 							Deseleccionar
 						</button>
 					)}
 					{onBulkEdit && (
-						<button type='button' className='game-filters-chips__selection-btn' onClick={onBulkEdit}>
+						<button
+							type='button'
+							className='game-filters-chips__selection-btn'
+							onClick={onBulkEdit}>
 							Editar
 						</button>
 					)}
@@ -334,13 +387,17 @@ const GameFiltersChips: React.FC<Props> = ({
 						<div className='game-filters-chips__view-toggle'>
 							<button
 								type='button'
-								className={'game-filters-chips__view-btn' + (viewMode === 'card' ? ' is-active' : '')}
+								className={
+									'game-filters-chips__view-btn' + (viewMode === 'card' ? ' is-active' : '')
+								}
 								onClick={() => onViewModeChange('card')}>
 								Tarjetas
 							</button>
 							<button
 								type='button'
-								className={'game-filters-chips__view-btn' + (viewMode === 'row' ? ' is-active' : '')}
+								className={
+									'game-filters-chips__view-btn' + (viewMode === 'row' ? ' is-active' : '')
+								}
 								onClick={() => onViewModeChange('row')}>
 								Fila
 							</button>
@@ -349,7 +406,9 @@ const GameFiltersChips: React.FC<Props> = ({
 
 					<button
 						type='button'
-						className={'game-filters-chips__advanced-btn' + (showAdvancedFilters ? ' is-active' : '')}
+						className={
+							'game-filters-chips__advanced-btn' + (showAdvancedFilters ? ' is-active' : '')
+						}
 						onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}>
 						{showAdvancedFilters ? '✕ Cerrar filtros' : '⚙ Filtros avanzados'}
 					</button>
@@ -363,63 +422,90 @@ const GameFiltersChips: React.FC<Props> = ({
 					<div className='game-filters-chips__chips-row' ref={chipsContainerRef}>
 						<button
 							type='button'
-							className={'game-filters-chips__chip' + (hasActiveFilter('platform') ? ' is-active' : '')}
+							className={
+								'game-filters-chips__chip' + (hasActiveFilter('platform') ? ' is-active' : '')
+							}
 							onClick={() => togglePopover('platform')}>
 							Plataforma: <span>{platformLabel()}</span>
 						</button>
 
 						<button
 							type='button'
-							className={'game-filters-chips__chip' + (hasActiveFilter('playWith') ? ' is-active' : '')}
+							className={
+								'game-filters-chips__chip' + (hasActiveFilter('playWith') ? ' is-active' : '')
+							}
 							onClick={() => togglePopover('playWith')}>
 							Jugar con: <span>{playWithLabel()}</span>
 						</button>
 
 						<button
 							type='button'
-							className={'game-filters-chips__chip' + (hasActiveFilter('status') ? ' is-active' : '')}
+							className={
+								'game-filters-chips__chip' + (hasActiveFilter('status') ? ' is-active' : '')
+							}
 							onClick={() => togglePopover('status')}>
 							Status: <span>{statusLabel()}</span>
 						</button>
 
 						<button
 							type='button'
-							className={'game-filters-chips__chip' + (hasActiveFilter('playedStatus') ? ' is-active' : '')}
+							className={
+								'game-filters-chips__chip' + (hasActiveFilter('playedStatus') ? ' is-active' : '')
+							}
 							onClick={() => togglePopover('playedStatus')}>
 							Jugado: <span>{playedStatusLabel()}</span>
 						</button>
 
 						<button
 							type='button'
-							className={'game-filters-chips__chip' + (hasActiveFilter('grades') ? ' is-active' : '')}
+							className={
+								'game-filters-chips__chip' + (hasActiveFilter('grades') ? ' is-active' : '')
+							}
 							onClick={() => togglePopover('grades')}>
 							Nota: <span>{gradesLabel()}</span>
 						</button>
 
 						<button
 							type='button'
-							className={'game-filters-chips__chip' + (hasActiveFilter('years') ? ' is-active' : '')}
+							className={
+								'game-filters-chips__chip' + (hasActiveFilter('years') ? ' is-active' : '')
+							}
 							onClick={() => togglePopover('years')}>
 							Años: <span>{yearsLabel()}</span>
 						</button>
 
 						<button
 							type='button'
-							className={'game-filters-chips__chip' + (hasActiveFilter('price') ? ' is-active' : '')}
+							className={
+								'game-filters-chips__chip' + (hasActiveFilter('price') ? ' is-active' : '')
+							}
 							onClick={() => togglePopover('price')}>
 							Precio: <span>{priceLabel()}</span>
 						</button>
 
 						<button
 							type='button'
-							className={'game-filters-chips__chip' + (hasActiveFilter('excluded') ? ' is-active' : '')}
+							className={
+								'game-filters-chips__chip' + (hasActiveFilter('criticProvider') ? ' is-active' : '')
+							}
+							onClick={() => togglePopover('criticProvider')}>
+							Proveedor: <span>{criticProviderLabel()}</span>
+						</button>
+
+						<button
+							type='button'
+							className={
+								'game-filters-chips__chip' + (hasActiveFilter('excluded') ? ' is-active' : '')
+							}
 							onClick={() => togglePopover('excluded')}>
 							Exclusiones: <span>{excludedLabel()}</span>
 						</button>
 
 						<button
 							type='button'
-							className={'game-filters-chips__chip' + (hasActiveFilter('pageSize') ? ' is-active' : '')}
+							className={
+								'game-filters-chips__chip' + (hasActiveFilter('pageSize') ? ' is-active' : '')
+							}
 							onClick={() => togglePopover('pageSize')}>
 							Página: <span>{pageSizeLabel()}</span>
 						</button>
@@ -434,7 +520,9 @@ const GameFiltersChips: React.FC<Props> = ({
 									<div className='game-filters-chips__popover-options'>
 										<button
 											type='button'
-											className={'game-filters-chips__option' + (!filters.platformId ? ' is-active' : '')}
+											className={
+												'game-filters-chips__option' + (!filters.platformId ? ' is-active' : '')
+											}
 											onClick={() => setFilters({ platformId: undefined })}>
 											Todas
 										</button>
@@ -443,7 +531,8 @@ const GameFiltersChips: React.FC<Props> = ({
 												key={p.value}
 												type='button'
 												className={
-													'game-filters-chips__option' + (filters.platformId === p.value ? ' is-active' : '')
+													'game-filters-chips__option' +
+													(filters.platformId === p.value ? ' is-active' : '')
 												}
 												onClick={() => setFilters({ platformId: p.value })}>
 												{p.label}
@@ -459,7 +548,9 @@ const GameFiltersChips: React.FC<Props> = ({
 									<div className='game-filters-chips__popover-options'>
 										<button
 											type='button'
-											className={'game-filters-chips__option' + (!filters.playWithId ? ' is-active' : '')}
+											className={
+												'game-filters-chips__option' + (!filters.playWithId ? ' is-active' : '')
+											}
 											onClick={() => setFilters({ playWithId: undefined })}>
 											Todos
 										</button>
@@ -468,7 +559,8 @@ const GameFiltersChips: React.FC<Props> = ({
 												key={p.value}
 												type='button'
 												className={
-													'game-filters-chips__option' + (filters.playWithId === p.value ? ' is-active' : '')
+													'game-filters-chips__option' +
+													(filters.playWithId === p.value ? ' is-active' : '')
 												}
 												onClick={() => setFilters({ playWithId: p.value })}>
 												{p.label}
@@ -484,7 +576,9 @@ const GameFiltersChips: React.FC<Props> = ({
 									<div className='game-filters-chips__popover-options'>
 										<button
 											type='button'
-											className={'game-filters-chips__option' + (!filters.statusId ? ' is-active' : '')}
+											className={
+												'game-filters-chips__option' + (!filters.statusId ? ' is-active' : '')
+											}
 											onClick={() => setFilters({ statusId: undefined })}>
 											Todos
 										</button>
@@ -493,7 +587,8 @@ const GameFiltersChips: React.FC<Props> = ({
 												key={s.value}
 												type='button'
 												className={
-													'game-filters-chips__option' + (filters.statusId === s.value ? ' is-active' : '')
+													'game-filters-chips__option' +
+													(filters.statusId === s.value ? ' is-active' : '')
 												}
 												onClick={() => setFilters({ statusId: s.value })}>
 												{s.label}
@@ -658,7 +753,8 @@ const GameFiltersChips: React.FC<Props> = ({
 										<button
 											type='button'
 											className={
-												'game-filters-chips__option' + (filters.isCheaperByKey === true ? ' is-active' : '')
+												'game-filters-chips__option' +
+												(filters.isCheaperByKey === true ? ' is-active' : '')
 											}
 											onClick={() => setFilters({ isCheaperByKey: true })}>
 											Más barato por clave
@@ -666,10 +762,64 @@ const GameFiltersChips: React.FC<Props> = ({
 										<button
 											type='button'
 											className={
-												'game-filters-chips__option' + (filters.isCheaperByKey === false ? ' is-active' : '')
+												'game-filters-chips__option' +
+												(filters.isCheaperByKey === false ? ' is-active' : '')
 											}
 											onClick={() => setFilters({ isCheaperByKey: false })}>
 											Más barato en tienda
+										</button>
+									</div>
+								</>
+							)}
+
+							{openPopover === 'criticProvider' && (
+								<>
+									<h4>Proveedor de Crítica</h4>
+									<div className='game-filters-chips__popover-options'>
+										<button
+											type='button'
+											className={
+												'game-filters-chips__option' +
+												(!filters.criticProvider ? ' is-active' : '')
+											}
+											onClick={() => setFilters({ criticProvider: undefined })}>
+											Todos
+										</button>
+										<button
+											type='button'
+											className={
+												'game-filters-chips__option' +
+												(filters.criticProvider === 'Default' ? ' is-active' : '')
+											}
+											onClick={() => setFilters({ criticProvider: 'Default' })}>
+											Por defecto
+										</button>
+										<button
+											type='button'
+											className={
+												'game-filters-chips__option' +
+												(filters.criticProvider === 'Metacritic' ? ' is-active' : '')
+											}
+											onClick={() => setFilters({ criticProvider: 'Metacritic' })}>
+											Metacritic
+										</button>
+										<button
+											type='button'
+											className={
+												'game-filters-chips__option' +
+												(filters.criticProvider === 'OpenCritic' ? ' is-active' : '')
+											}
+											onClick={() => setFilters({ criticProvider: 'OpenCritic' })}>
+											OpenCritic
+										</button>
+										<button
+											type='button'
+											className={
+												'game-filters-chips__option' +
+												(filters.criticProvider === 'SteamDB' ? ' is-active' : '')
+											}
+											onClick={() => setFilters({ criticProvider: 'SteamDB' })}>
+											SteamDB
 										</button>
 									</div>
 								</>
@@ -704,25 +854,34 @@ const GameFiltersChips: React.FC<Props> = ({
 								</>
 							)}
 
-							{openPopover === 'pageSize' && (
-								<>
-									<h4>Tamaño de página</h4>
-									<div className='game-filters-chips__popover-options'>
-										{[10, 25, 50, 100, 200].map((size) => (
-											<button
-												key={size}
-												type='button'
-												className={
-													'game-filters-chips__option' +
-													((filters.pageSize || 25) === size ? ' is-active' : '')
-												}
-												onClick={() => setFilters({ pageSize: size })}>
-												{size} juegos
-											</button>
-										))}
-									</div>
-								</>
-							)}
+						{openPopover === 'pageSize' && (
+							<>
+								<h4>Tamaño de página</h4>
+								<div className='game-filters-chips__popover-options'>
+								<button
+									type='button'
+									className={
+										'game-filters-chips__option' +
+										((!filters.pageSize || filters.pageSize === 50) ? ' is-active' : '')
+									}
+									onClick={() => setFilters({ pageSize: 50 })}>
+									Por defecto
+								</button>
+									{[10, 25, 50, 100, 200].map((size) => (
+										<button
+											key={size}
+											type='button'
+											className={
+												'game-filters-chips__option' +
+												(filters.pageSize === size ? ' is-active' : '')
+											}
+											onClick={() => setFilters({ pageSize: size })}>
+											{size} juegos
+										</button>
+									))}
+								</div>
+							</>
+						)}
 						</div>
 					)}
 
@@ -736,6 +895,15 @@ const GameFiltersChips: React.FC<Props> = ({
 							/>
 							<span>Mostrar juegos incompletos</span>
 						</label>
+
+						{hasAnyActiveFilter() && (
+							<button
+								type='button'
+								className='game-filters-chips__reset-btn'
+								onClick={resetAllFilters}>
+								Resetear filtros
+							</button>
+						)}
 					</div>
 				</>
 			)}

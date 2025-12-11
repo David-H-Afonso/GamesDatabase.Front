@@ -27,6 +27,25 @@
 		color: $color-text-muted;
 	}
 
+	&__reset-btn {
+		padding: 7px 14px;
+		border-radius: 8px;
+		border: 1px solid $color-border-primary;
+		background: $color-bg-secondary;
+		color: $color-text-secondary;
+		font-size: 12px;
+		font-weight: 600;
+		cursor: pointer;
+		transition: all 0.15s ease;
+		white-space: nowrap;
+
+		&:hover {
+			border-color: $color-primary;
+			background: rgba($color-primary, 0.1);
+			color: $color-primary;
+		}
+	}
+
 	&__selection-btn {
 		padding: 7px 14px;
 		border-radius: 8px;
