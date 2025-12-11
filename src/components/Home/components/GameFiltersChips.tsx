@@ -388,7 +388,7 @@ const GameFiltersChips: React.FC<Props> = ({
 					)}
 
 					{onViewModeChange && viewMode && (
-						<div className='game-filters-chips__view-toggle'>
+						<div className='game-filters-chips__mobile-controls-viewtoggle game-filters-chips__view-toggle'>
 							<button
 								type='button'
 								className={
@@ -425,6 +425,83 @@ const GameFiltersChips: React.FC<Props> = ({
 			{/* ADVANCED FILTERS */}
 			{showAdvancedFilters && (
 				<>
+					{/* MOVED CONTROLS (hidden controls from top row) */}
+					<div className='game-filters-chips__moved-controls'>
+						{onSelectAll && (
+							<button
+								type='button'
+								className='game-filters-chips__moved-controls-selectall game-filters-chips__action-btn'
+								onClick={onSelectAll}>
+								{selectedCount > 0 ? 'Deseleccionar todos' : 'Seleccionar todos'}
+							</button>
+						)}
+
+						{onViewModeChange && viewMode && (
+							<div className='game-filters-chips__moved-controls-viewtoggle game-filters-chips__view-toggle'>
+								<button
+									type='button'
+									className={
+										'game-filters-chips__view-btn' + (viewMode === 'card' ? ' is-active' : '')
+									}
+									onClick={() => onViewModeChange('card')}>
+									Tarjetas
+								</button>
+								<button
+									type='button'
+									className={
+										'game-filters-chips__view-btn' + (viewMode === 'row' ? ' is-active' : '')
+									}
+									onClick={() => onViewModeChange('row')}>
+									Fila
+								</button>
+							</div>
+						)}
+
+						{onViewChange && (
+							<div className='game-filters-chips__moved-controls-view game-filters-chips__field game-filters-chips__field--inline'>
+								<label>Vista</label>
+								<select
+									className='game-filters-chips__select-view'
+									value={currentView}
+									onChange={(e) => onViewChange(e.target.value)}>
+									<option value='default'>Predeterminada</option>
+									{publicGameViews.map((view) => (
+										<option key={view.id} value={view.name}>
+											{view.name}
+										</option>
+									))}
+								</select>
+							</div>
+						)}
+
+						<div className='game-filters-chips__moved-controls-sort game-filters-chips__field game-filters-chips__field--inline'>
+							<label>Ordenar por</label>
+							<select
+								className='game-filters-chips__select-pill'
+								value={filters.sortBy || 'name'}
+								onChange={(e) => onSortChange(e.target.value, filters.sortDescending || false)}>
+								<option value='name'>Nombre</option>
+								<option value='grade'>Calificación</option>
+								<option value='critic'>Puntuación Crítica</option>
+								<option value='released'>Fecha de Lanzamiento</option>
+								<option value='started'>Fecha de Inicio</option>
+								<option value='score'>Score</option>
+								<option value='storyDuration'>Story</option>
+								<option value='completionDuration'>Completion</option>
+								<option value='status'>Status</option>
+								<option value='createdat'>Fecha de Creación</option>
+								<option value='updatedat'>Última Modificación</option>
+							</select>
+							<button
+								type='button'
+								className='game-filters-chips__sort-direction'
+								onClick={() => onSortChange(filters.sortBy || 'name', !filters.sortDescending)}
+								title={filters.sortDescending ? 'Descendente' : 'Ascendente'}>
+								{filters.sortDescending ? '↓' : '↑'}
+							</button>
+						</div>
+					</div>
+
 					{/* CHIPS ROW */}
 					<div className='game-filters-chips__chips-row' ref={chipsContainerRef}>
 						<button
@@ -516,83 +593,6 @@ const GameFiltersChips: React.FC<Props> = ({
 							onClick={() => togglePopover('pageSize')}>
 							Página: <span>{pageSizeLabel()}</span>
 						</button>
-					</div>
-
-					{/* MOBILE CONTROLS (hidden controls from top row) */}
-					<div className='game-filters-chips__mobile-controls'>
-						<div className='game-filters-chips__mobile-controls-sort game-filters-chips__field game-filters-chips__field--inline'>
-							<label>Ordenar por</label>
-							<select
-								className='game-filters-chips__select-pill'
-								value={filters.sortBy || 'name'}
-								onChange={(e) => onSortChange(e.target.value, filters.sortDescending || false)}>
-								<option value='name'>Nombre</option>
-								<option value='grade'>Calificación</option>
-								<option value='critic'>Puntuación Crítica</option>
-								<option value='released'>Fecha de Lanzamiento</option>
-								<option value='started'>Fecha de Inicio</option>
-								<option value='score'>Score</option>
-								<option value='storyDuration'>Story</option>
-								<option value='completionDuration'>Completion</option>
-								<option value='status'>Status</option>
-								<option value='createdat'>Fecha de Creación</option>
-								<option value='updatedat'>Última Modificación</option>
-							</select>
-							<button
-								type='button'
-								className='game-filters-chips__sort-direction'
-								onClick={() => onSortChange(filters.sortBy || 'name', !filters.sortDescending)}
-								title={filters.sortDescending ? 'Descendente' : 'Ascendente'}>
-								{filters.sortDescending ? '↓' : '↑'}
-							</button>
-						</div>
-
-						{onViewChange && (
-							<div className='game-filters-chips__field game-filters-chips__field--inline'>
-								<label>Vista</label>
-								<select
-									className='game-filters-chips__select-view'
-									value={currentView}
-									onChange={(e) => onViewChange(e.target.value)}>
-									<option value='default'>Predeterminada</option>
-									{publicGameViews.map((view) => (
-										<option key={view.id} value={view.name}>
-											{view.name}
-										</option>
-									))}
-								</select>
-							</div>
-						)}
-
-						{onViewModeChange && viewMode && (
-							<div className='game-filters-chips__view-toggle'>
-								<button
-									type='button'
-									className={
-										'game-filters-chips__view-btn' + (viewMode === 'card' ? ' is-active' : '')
-									}
-									onClick={() => onViewModeChange('card')}>
-									Tarjetas
-								</button>
-								<button
-									type='button'
-									className={
-										'game-filters-chips__view-btn' + (viewMode === 'row' ? ' is-active' : '')
-									}
-									onClick={() => onViewModeChange('row')}>
-									Fila
-								</button>
-							</div>
-						)}
-
-						{onSelectAll && (
-							<button
-								type='button'
-								className='game-filters-chips__action-btn'
-								onClick={onSelectAll}>
-								{selectedCount > 0 ? 'Deseleccionar todos' : 'Seleccionar todos'}
-							</button>
-						)}
 					</div>
 
 					{/* POPOVERS */}

@@ -19,12 +19,23 @@
 		background: $color-bg-secondary;
 		border: 1px solid $color-border-primary;
 		border-radius: 10px;
+		flex-wrap: wrap;
+
+		@media (max-width: 768px) {
+			gap: 8px;
+			padding: 8px 10px;
+		}
 	}
 
 	&__selection-count {
 		font-size: 12px;
 		font-weight: 600;
 		color: $color-text-muted;
+		white-space: nowrap;
+
+		@media (max-width: 768px) {
+			font-size: 11px;
+		}
 	}
 
 	&__reset-btn {
@@ -56,6 +67,12 @@
 		font-weight: 500;
 		cursor: pointer;
 		transition: all 0.15s ease;
+		white-space: nowrap;
+
+		@media (max-width: 768px) {
+			padding: 6px 10px;
+			font-size: 11px;
+		}
 
 		&:hover {
 			border-color: $color-border-hover;
@@ -77,7 +94,7 @@
 		justify-content: space-between;
 		align-items: flex-end;
 		gap: 12px;
-		flex-wrap: wrap;
+		// flex-wrap: wrap;
 	}
 
 	&__top-left,
@@ -85,7 +102,7 @@
 		display: flex;
 		align-items: flex-end;
 		gap: 12px;
-		flex-wrap: wrap;
+		// flex-wrap: wrap;
 	}
 
 	&__field {
@@ -331,18 +348,15 @@
 		gap: 8px;
 	}
 
-	&__mobile-controls {
-		display: none;
-		flex-direction: column;
+	&__moved-controls {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		align-items: center;
 		gap: 12px;
-		padding: 12px 0;
-		border-top: 1px solid $color-border-tertiary;
+		padding: 0 0 12px 0;
 
-		@media (max-width: 768px) {
-			display: flex;
-		}
-
-		// Sort by control: only show on very small screens where it's hidden from top
+		// Sort by control: only show when hidden from top
 		&-sort {
 			display: none;
 
@@ -351,35 +365,37 @@
 			}
 		}
 
-		.game-filters-chips__field {
-			display: flex;
-			flex-direction: row;
-			align-items: center;
-			gap: 8px;
+		// View selector: show when hidden from top
+		&-view {
+			display: none;
 
-			label {
-				white-space: nowrap;
-			}
-
-			select {
-				flex: 1;
-				min-width: 0;
+			@media (max-width: 974px) {
+				display: flex;
 			}
 		}
 
-		.game-filters-chips__view-toggle {
-			display: flex;
-			width: 100%;
-			justify-content: space-between;
+		// View toggle: show when hidden from top
+		&-viewtoggle {
+			display: none;
+
+			@media (max-width: 1110px) {
+				display: flex;
+			}
 		}
 
-		.game-filters-chips__view-btn {
-			flex: 1;
-		}
+		// Select all button: show when hidden from top
+		&-selectall {
+			display: none;
 
-		.game-filters-chips__action-btn {
-			display: block;
-			width: 100%;
+			@media (max-width: 1247px) {
+				display: flex;
+			}
+
+			@media (max-width: 768px) {
+				display: flex;
+				width: 100%;
+				max-width: max-content;
+			}
 		}
 	}
 
@@ -599,17 +615,14 @@
 				min-width: 0;
 			}
 
-			// Hide view selector and select all button in mobile
+			// Hide view selector in mobile
 			&--view {
 				display: none;
 			}
 		}
 
-		&__action-btn {
-			display: none;
-		}
-
-		&__view-toggle {
+		// Hide action button (select all) from top bar in mobile
+		&__top-left &__action-btn {
 			display: none;
 		}
 
@@ -624,13 +637,32 @@
 		}
 		.game-filters-chips__select-pill {
 			min-width: 100px;
-			max-width: 100px;
+			max-width: 50%;
 		}
 	}
 
 	// Very small screens: hide sort by
 	@media (max-width: 370px) {
 		&__field--sort {
+			display: none;
+		}
+	}
+
+	// Progressive hiding for desktop elements - hide from top bar
+	@media (max-width: 1247px) {
+		&__top-left &__action-btn {
+			display: none;
+		}
+	}
+
+	@media (max-width: 1110px) {
+		&__top-right &__view-toggle {
+			display: none;
+		}
+	}
+
+	@media (max-width: 974px) {
+		&__top-right &__field--view {
 			display: none;
 		}
 	}
