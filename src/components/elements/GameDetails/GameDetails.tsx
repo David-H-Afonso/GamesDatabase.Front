@@ -51,6 +51,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 			statusId: game.statusId ?? undefined,
 			released: game.released ?? '',
 			critic: game.critic ?? undefined,
+			criticProvider: game.criticProvider ?? undefined,
 			story: game.story ?? undefined,
 			completion: game.completion ?? undefined,
 			score: game.score ?? undefined,
@@ -289,6 +290,37 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 							type='number'
 							onSave={(value) => saveField('critic', value)}
 							placeholder='No score'
+						/>
+					</div>
+					<div className='game-details-content-infoList-item'>
+						<h4>Critic Logo</h4>
+						<EditableSelect
+							value={
+								formik.values.criticProvider
+									? formik.values.criticProvider === 'Metacritic'
+										? 1
+										: formik.values.criticProvider === 'OpenCritic'
+										? 2
+										: 3
+									: undefined
+							}
+							displayValue={formik.values.criticProvider ?? 'Default'}
+							options={[
+								{ id: 0, name: 'Default', color: undefined },
+								{ id: 1, name: 'Metacritic', color: undefined },
+								{ id: 2, name: 'OpenCritic', color: undefined },
+								{ id: 3, name: 'SteamDB', color: undefined },
+							]}
+							onSave={async (value) => {
+								if (value === 0 || value === undefined) {
+									await saveField('criticProvider', null)
+								} else {
+									const provider =
+										value === 1 ? 'Metacritic' : value === 2 ? 'OpenCritic' : 'SteamDB'
+									await saveField('criticProvider', provider)
+								}
+							}}
+							placeholder='Use default'
 						/>
 					</div>
 					<div className='game-details-content-infoList-item'>

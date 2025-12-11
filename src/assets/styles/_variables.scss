@@ -138,6 +138,11 @@ $color-warning-dark: #f57c00;
 $color-white: #ffffff;
 $color-black: #000000;
 
+// Metacritic Score Colors
+$color-metacritic-high: #66cc33; // 75-100 (Green)
+$color-metacritic-medium: #ffcc33; // 50-74 (Yellow)
+$color-metacritic-low: #ff0000; // 0-49 (Red)
+
 // =============================================================================
 // LEGACY SCSS VARIABLES - Bridge to CSS Custom Properties
 // =============================================================================

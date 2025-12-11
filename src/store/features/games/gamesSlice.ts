@@ -1,7 +1,6 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import type { GamesState } from '@/models/store/GamesState'
 import type { Game, GameQueryParameters, PagedResult } from '@/models/api/Game'
-import { environment } from '@/environments'
 import { fetchGames, fetchGameById, createGame, updateGame, deleteGame } from './thunk'
 
 const initialState: GamesState = {
@@ -11,7 +10,7 @@ const initialState: GamesState = {
 	error: null,
 	pagination: {
 		page: 1,
-		pageSize: environment.pagination.defaultPageSize,
+		pageSize: 50,
 		totalCount: 0,
 		totalPages: 0,
 		hasNextPage: false,

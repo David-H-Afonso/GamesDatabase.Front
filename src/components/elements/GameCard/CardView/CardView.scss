@@ -261,21 +261,37 @@
 				.game-card-score {
 					display: flex;
 					align-items: center;
-					gap: 10px;
+					gap: 6px;
+					width: 149px;
+					padding: 0px 0px 0 10px;
+					justify-content: space-between;
 
 					.game-card-score-value {
 						display: flex;
 						border: 1px solid var(--border-color-light);
 						border-radius: 5px;
 						gap: 5px;
-						padding: 0px 10px;
 						font-family: monospace;
 						justify-content: center;
+						width: 100%;
+						max-width: 90px;
+						font-size: 0.9rem;
 					}
 				}
 
 				.game-card-release-date {
 					display: flex;
+					width: 149px;
+					align-items: center;
+					gap: 6px;
+					padding: 0px 5px;
+					justify-content: space-between;
+
+					p {
+						overflow: hidden;
+						text-overflow: ellipsis;
+						white-space: nowrap;
+					}
 				}
 			}
 		}

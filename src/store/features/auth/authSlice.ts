@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit'
-import { authService } from '@/services'
+import { authService, userService } from '@/services'
 import type { LoginRequest } from '@/models/api/User'
 import type { AuthState } from '@/models/store/AuthState'
 import { addRecentUser } from '../recentUsers/recentUsersSlice'
@@ -48,6 +48,57 @@ export const logoutUser = createAsyncThunk('auth/logout', async () => {
 })
 
 /**
+ * Async thunk: Fetch user preferences
+ */
+export const fetchUserPreferences = createAsyncThunk(
+	'auth/fetchUserPreferences',
+	async (userId: number, { rejectWithValue }) => {
+		try {
+			const user = await userService.getUserById(userId)
+			return { useScoreColors: user.useScoreColors, scoreProvider: user.scoreProvider }
+		} catch (error) {
+			if (error instanceof Error) {
+				return rejectWithValue(error.message)
+			}
+			return rejectWithValue('Failed to fetch user preferences')
+		}
+	}
+)
+
+/**
+ * Async thunk: Update user preferences
+ */
+export const updateUserPreferences = createAsyncThunk(
+	'auth/updateUserPreferences',
+	async (
+		{
+			userId,
+			useScoreColors,
+			scoreProvider,
+		}: { userId: number; useScoreColors?: boolean; scoreProvider?: string },
+		{ rejectWithValue, dispatch }
+	) => {
+		try {
+			const updates: { useScoreColors?: boolean; scoreProvider?: string } = {}
+			if (useScoreColors !== undefined) updates.useScoreColors = useScoreColors
+			if (scoreProvider !== undefined) updates.scoreProvider = scoreProvider
+
+			await userService.updateUser(userId, updates)
+
+			// Fetch fresh user data after update
+			await dispatch(fetchUserPreferences(userId))
+
+			return updates
+		} catch (error) {
+			if (error instanceof Error) {
+				return rejectWithValue(error.message)
+			}
+			return rejectWithValue('Failed to update user preferences')
+		}
+	}
+)
+
+/**
  * Authentication slice
  */
 const authSlice = createSlice({
@@ -77,6 +128,23 @@ const authSlice = createSlice({
 			state.user = null
 			state.token = null
 			state.error = null
+		},
+
+		/**
+		 * Update user preferences in local state
+		 */
+		setUserPreferences: (
+			state,
+			action: PayloadAction<{ useScoreColors?: boolean; scoreProvider?: string }>
+		) => {
+			if (state.user) {
+				if (action.payload.useScoreColors !== undefined) {
+					state.user.useScoreColors = action.payload.useScoreColors
+				}
+				if (action.payload.scoreProvider !== undefined) {
+					state.user.scoreProvider = action.payload.scoreProvider
+				}
+			}
 		},
 	},
 	extraReducers: (builder) => {
@@ -112,8 +180,34 @@ const authSlice = createSlice({
 			state.token = null
 			state.error = null
 		})
+
+		// Fetch user preferences
+		builder.addCase(
+			fetchUserPreferences.fulfilled,
+			(state, action: PayloadAction<{ useScoreColors: boolean; scoreProvider: string }>) => {
+				if (state.user) {
+					state.user.useScoreColors = action.payload.useScoreColors
+					state.user.scoreProvider = action.payload.scoreProvider
+				}
+			}
+		)
+
+		// Update user preferences
+		builder.addCase(
+			updateUserPreferences.fulfilled,
+			(state, action: PayloadAction<{ useScoreColors?: boolean; scoreProvider?: string }>) => {
+				if (state.user) {
+					if (action.payload.useScoreColors !== undefined) {
+						state.user.useScoreColors = action.payload.useScoreColors
+					}
+					if (action.payload.scoreProvider !== undefined) {
+						state.user.scoreProvider = action.payload.scoreProvider
+					}
+				}
+			}
+		)
 	},
 })
 
-export const { clearError, restoreAuth, forceLogout } = authSlice.actions
+export const { clearError, restoreAuth, forceLogout, setUserPreferences } = authSlice.actions
 export default authSlice.reducer
