@@ -31,12 +31,46 @@
 			&:hover {
 				color: $color-primary;
 			}
+
+			@media (max-width: 768px) {
+				display: none;
+			}
+		}
+
+		.header-logo-icon {
+			display: none;
+
+			@media (max-width: 768px) {
+				display: flex;
+				align-items: center;
+
+				img {
+					height: 40px;
+					width: auto;
+				}
+			}
+		}
+
+		.sr-only {
+			position: absolute;
+			width: 1px;
+			height: 1px;
+			padding: 0;
+			margin: -1px;
+			overflow: hidden;
+			clip: rect(0, 0, 0, 0);
+			white-space: nowrap;
+			border-width: 0;
 		}
 
 		&-navigation {
 			display: flex;
 			align-items: center;
 			gap: 1.5rem;
+
+			@media (max-width: 768px) {
+				display: none;
+			}
 
 			.nav-link {
 				padding: 0.25rem 0;
@@ -62,6 +96,10 @@
 			display: flex;
 			align-items: center;
 			gap: 0.75rem;
+
+			@media (max-width: 768px) {
+				display: none;
+			}
 
 			.header-user-menu {
 				display: flex;
@@ -98,6 +136,41 @@
 						color: $color-error;
 					}
 				}
+			}
+		}
+
+		&-mobile-actions {
+			display: none;
+			align-items: center;
+			gap: 0.75rem;
+
+			@media (max-width: 768px) {
+				display: flex;
+			}
+		}
+
+		.header-burger-btn {
+			display: flex;
+			flex-direction: column;
+			justify-content: space-around;
+			width: 28px;
+			height: 24px;
+			background: transparent;
+			border: none;
+			cursor: pointer;
+			padding: 0;
+			z-index: 10;
+
+			span {
+				width: 28px;
+				height: 3px;
+				background: $color-text-primary;
+				border-radius: 2px;
+				transition: all 0.3s ease;
+			}
+
+			&:hover span {
+				background: $color-primary;
 			}
 		}
 	}
