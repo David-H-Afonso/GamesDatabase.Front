@@ -51,6 +51,11 @@ export const AdminLayout = () => {
 							className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
 							Vistas de Juego
 						</NavLink>
+						<NavLink
+							to='/admin/preferences'
+							className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
+							Preferencias
+						</NavLink>
 					</nav>
 				</div>
 				<div className='admin-content'>
