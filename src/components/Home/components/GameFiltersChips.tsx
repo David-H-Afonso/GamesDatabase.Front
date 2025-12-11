@@ -779,8 +779,7 @@ const GameFiltersChips: React.FC<Props> = ({
 										<button
 											type='button'
 											className={
-												'game-filters-chips__option' +
-												(!filters.criticProvider ? ' is-active' : '')
+												'game-filters-chips__option' + (!filters.criticProvider ? ' is-active' : '')
 											}
 											onClick={() => setFilters({ criticProvider: undefined })}>
 											Todos
@@ -854,34 +853,34 @@ const GameFiltersChips: React.FC<Props> = ({
 								</>
 							)}
 
-						{openPopover === 'pageSize' && (
-							<>
-								<h4>Tamaño de página</h4>
-								<div className='game-filters-chips__popover-options'>
-								<button
-									type='button'
-									className={
-										'game-filters-chips__option' +
-										((!filters.pageSize || filters.pageSize === 50) ? ' is-active' : '')
-									}
-									onClick={() => setFilters({ pageSize: 50 })}>
-									Por defecto
-								</button>
-									{[10, 25, 50, 100, 200].map((size) => (
+							{openPopover === 'pageSize' && (
+								<>
+									<h4>Tamaño de página</h4>
+									<div className='game-filters-chips__popover-options'>
 										<button
-											key={size}
 											type='button'
 											className={
 												'game-filters-chips__option' +
-												(filters.pageSize === size ? ' is-active' : '')
+												(!filters.pageSize || filters.pageSize === 50 ? ' is-active' : '')
 											}
-											onClick={() => setFilters({ pageSize: size })}>
-											{size} juegos
+											onClick={() => setFilters({ pageSize: 50 })}>
+											Por defecto
 										</button>
-									))}
-								</div>
-							</>
-						)}
+										{[10, 25, 50, 100, 200].map((size) => (
+											<button
+												key={size}
+												type='button'
+												className={
+													'game-filters-chips__option' +
+													(filters.pageSize === size ? ' is-active' : '')
+												}
+												onClick={() => setFilters({ pageSize: size })}>
+												{size} juegos
+											</button>
+										))}
+									</div>
+								</>
+							)}
 						</div>
 					)}
 
