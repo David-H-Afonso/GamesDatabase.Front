@@ -1,0 +1,225 @@
+@use '@/assets/styles' as *;
+
+.admin-preferences {
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: $space-lg;
+
+	&__header {
+		margin-bottom: $space-xl;
+
+		h1 {
+			font-size: $font-size-2xl;
+			font-weight: $font-weight-bold;
+			color: var(--text-primary);
+			margin: 0 0 $space-sm 0;
+		}
+	}
+
+	&__subtitle {
+		font-size: $font-size-base;
+		color: var(--text-secondary);
+		margin: 0;
+	}
+
+	&__loading {
+		text-align: center;
+		padding: $space-xl;
+		color: var(--text-secondary);
+	}
+
+	&__content {
+		display: flex;
+		flex-direction: column;
+		gap: $space-xl;
+	}
+
+	&__section {
+		background: var(--bg-secondary);
+		border: 1px solid var(--border);
+		border-radius: $border-radius-lg;
+		padding: $space-lg;
+		box-shadow: var(--card-shadow);
+	}
+
+	&__section-title {
+		font-size: $font-size-lg;
+		font-weight: $font-weight-semibold;
+		color: var(--text-primary);
+		margin: 0 0 $space-lg 0;
+		padding-bottom: $space-sm;
+		border-bottom: 1px solid var(--border);
+	}
+
+	&__option {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
+		gap: $space-lg;
+		padding: $space-md 0;
+	}
+
+	&__option-info {
+		flex: 1;
+	}
+
+	&__option-label {
+		display: block;
+		font-size: $font-size-base;
+		font-weight: $font-weight-medium;
+		color: var(--text-primary);
+		margin-bottom: $space-xs;
+		cursor: pointer;
+	}
+
+	&__option-description {
+		font-size: $font-size-sm;
+		color: var(--text-secondary);
+		line-height: $line-height-relaxed;
+		margin: 0;
+	}
+
+	&__toggle {
+		position: relative;
+		display: inline-block;
+		width: 50px;
+		height: 26px;
+		flex-shrink: 0;
+		cursor: pointer;
+	}
+
+	&__toggle-input {
+		opacity: 0;
+		width: 0;
+		height: 0;
+
+		&:checked + .admin-preferences__toggle-slider {
+			background-color: $color-primary;
+		}
+
+		&:checked + .admin-preferences__toggle-slider::before {
+			transform: translateX(24px);
+		}
+
+		&:disabled + .admin-preferences__toggle-slider {
+			opacity: 0.5;
+			cursor: not-allowed;
+		}
+	}
+
+	&__toggle-slider {
+		position: absolute;
+		cursor: pointer;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: $color-border-hover;
+		transition: $transition-base;
+		border-radius: $border-radius-full;
+
+		&::before {
+			position: absolute;
+			content: '';
+			height: 20px;
+			width: 20px;
+			left: 3px;
+			bottom: 3px;
+			background-color: $color-white;
+			transition: $transition-base;
+			border-radius: 50%;
+		}
+	}
+
+	&__select {
+		padding: $space-sm $space-md;
+		background: var(--bg-tertiary);
+		border: 1px solid var(--border);
+		border-radius: $border-radius-md;
+		color: var(--text-primary);
+		font-size: $font-size-sm;
+		font-weight: $font-weight-medium;
+		cursor: pointer;
+		transition: $transition-base;
+		min-width: 150px;
+
+		&:hover {
+			border-color: $color-border-hover;
+		}
+
+		&:focus {
+			outline: none;
+			border-color: $color-primary;
+			box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+		}
+
+		&:disabled {
+			opacity: 0.5;
+			cursor: not-allowed;
+		}
+	}
+
+	&__message {
+		margin-top: $space-md;
+		padding: $space-sm $space-md;
+		border-radius: $border-radius-md;
+		font-size: $font-size-sm;
+		font-weight: $font-weight-medium;
+
+		&--success {
+			background-color: rgba(102, 204, 51, 0.1);
+			color: #66cc33;
+			border: 1px solid rgba(102, 204, 51, 0.3);
+		}
+
+		&--error {
+			background-color: rgba(239, 68, 68, 0.1);
+			color: $color-error;
+			border: 1px solid rgba(239, 68, 68, 0.3);
+		}
+	}
+
+	&__info-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+		gap: $space-md;
+	}
+
+	&__info-item {
+		display: flex;
+		flex-direction: column;
+		gap: $space-xs;
+		padding: $space-md;
+		background: var(--bg-tertiary);
+		border-radius: $border-radius-md;
+		border: 1px solid var(--border);
+	}
+
+	&__info-label {
+		font-size: $font-size-xs;
+		font-weight: $font-weight-medium;
+		color: var(--text-secondary);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	&__info-value {
+		font-size: $font-size-base;
+		font-weight: $font-weight-medium;
+		color: var(--text-primary);
+	}
+
+	@media (max-width: $breakpoint-md) {
+		padding: $space-md;
+
+		&__option {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: $space-md;
+		}
+
+		&__info-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+}
