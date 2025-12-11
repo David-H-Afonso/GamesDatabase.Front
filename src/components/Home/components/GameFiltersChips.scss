@@ -279,6 +279,29 @@
 			background: rgba(59, 130, 246, 0.15);
 			color: $color-primary-light;
 		}
+
+		// Icon-only in mobile
+		&__text {
+			display: inline;
+		}
+
+		&__icon {
+			display: none;
+		}
+
+		@media (max-width: 768px) {
+			padding: 8px;
+			min-width: 36px;
+			font-size: 16px;
+
+			&__text {
+				display: none;
+			}
+
+			&__icon {
+				display: inline;
+			}
+		}
 	}
 
 	&__action-btn {
@@ -303,6 +326,58 @@
 		display: flex;
 		flex-wrap: wrap;
 		gap: 8px;
+	}
+
+	&__mobile-controls {
+		display: none;
+		flex-direction: column;
+		gap: 12px;
+		padding: 12px 0;
+		border-top: 1px solid $color-border-tertiary;
+
+		@media (max-width: 768px) {
+			display: flex;
+		}
+
+		// Sort by control: only show on very small screens where it's hidden from top
+		&-sort {
+			display: none;
+
+			@media (max-width: 600px) {
+				display: flex;
+			}
+		}
+
+		.game-filters-chips__field {
+			display: flex;
+			flex-direction: row;
+			align-items: center;
+			gap: 8px;
+
+			label {
+				white-space: nowrap;
+			}
+
+			select {
+				flex: 1;
+				min-width: 0;
+			}
+		}
+
+		.game-filters-chips__view-toggle {
+			display: flex;
+			width: 100%;
+			justify-content: space-between;
+		}
+
+		.game-filters-chips__view-btn {
+			flex: 1;
+		}
+
+		.game-filters-chips__action-btn {
+			display: block;
+			width: 100%;
+		}
 	}
 
 	&__chip {
@@ -495,35 +570,46 @@
 		}
 
 		&__top {
-			flex-direction: column;
-			align-items: stretch;
+			align-items: center;
 		}
 
-		&__top-left,
+		&__top-left {
+			flex: 1;
+			min-width: 0;
+		}
+
 		&__top-right {
-			width: 100%;
+			flex-shrink: 0;
 		}
 
 		&__field {
-			flex: 1;
-			min-width: 0;
-
 			input {
 				min-width: 0;
 			}
+
+			// Hide view selector and select all button in mobile
+			&--view {
+				display: none;
+			}
+		}
+
+		&__action-btn {
+			display: none;
 		}
 
 		&__view-toggle {
-			width: 100%;
-			justify-content: space-between;
-		}
-
-		&__view-btn {
-			flex: 1;
+			display: none;
 		}
 
 		&__popover {
 			max-width: calc(100vw - 40px);
+		}
+	}
+
+	// Very small screens: hide sort by
+	@media (max-width: 600px) {
+		&__field--sort {
+			display: none;
 		}
 	}
 }
