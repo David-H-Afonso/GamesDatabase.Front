@@ -322,7 +322,9 @@ const GameFiltersChips: React.FC<Props> = ({
 			<div className='game-filters-chips__top'>
 				<div className='game-filters-chips__top-left'>
 					<div className='game-filters-chips__field game-filters-chips__field--inline'>
-						<label>Buscar</label>
+						<label className='game-filters-chips__input-label' htmlFor='search-input'>
+							Buscar
+						</label>
 						<input
 							className='game-filters-chips__input-search'
 							placeholder='Buscar juegos…'
@@ -332,7 +334,9 @@ const GameFiltersChips: React.FC<Props> = ({
 					</div>
 
 					<div className='game-filters-chips__field game-filters-chips__field--inline game-filters-chips__field--sort'>
-						<label>Ordenar por</label>
+						<label className='game-filters-chips__input-label' htmlFor='sort-select'>
+							Ordenar por
+						</label>
 						<select
 							className='game-filters-chips__select-pill'
 							value={filters.sortBy || 'name'}

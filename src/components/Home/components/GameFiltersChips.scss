@@ -173,6 +173,9 @@
 		padding: 8px 14px;
 		min-width: 160px;
 		transition: all 0.15s ease;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 
 		&:focus {
 			outline: none;
@@ -569,6 +572,15 @@
 			min-width: 160px;
 		}
 
+		&__input-search {
+			min-width: 0;
+			max-width: 180px;
+		}
+
+		&__input-label {
+			display: none;
+		}
+
 		&__top {
 			align-items: center;
 		}
@@ -606,8 +618,18 @@
 		}
 	}
 
+	@media (max-width: 508px) {
+		&__input-search {
+			max-width: 120px;
+		}
+		.game-filters-chips__select-pill {
+			min-width: 100px;
+			max-width: 100px;
+		}
+	}
+
 	// Very small screens: hide sort by
-	@media (max-width: 600px) {
+	@media (max-width: 370px) {
 		&__field--sort {
 			display: none;
 		}
