@@ -1,78 +1,260 @@
 @use '@/assets/styles' as *;
 
 .create-game-modal {
-	.add-game-rows {
-		margin-bottom: 1rem;
-		.add-game-row {
-			display: flex;
-			gap: 0.8rem;
-			align-items: center;
-			margin-bottom: 0.5rem;
+	background: transparent;
 
-			.name-input {
-				padding: 8px;
-				border: 1px solid var(--border);
-				border-radius: 4px;
-				font-size: 16px;
-				color: var(--text-primary);
-				background-color: var(--bg-secondary);
-				flex: 1;
+	&__rows {
+		display: flex;
+		flex-direction: column;
+		gap: 0;
+		margin-bottom: 16px;
+	}
 
-				&:focus {
-					outline: none;
-					border-color: var(--interactive);
-					box-shadow: 0 0 0 2px var(--interactive);
-				}
-			}
+	&__actions {
+		display: flex;
+		gap: 12px;
+		align-items: center;
+		padding-top: 16px;
+		border-top: 1px solid $color-border-tertiary;
+		justify-content: space-between;
+	}
 
-			.status-select {
-				padding: 8px;
-				border: 1px solid var(--border);
-				border-radius: 4px;
-				font-size: 16px;
-				color: var(--text-primary);
-				background-color: var(--bg-secondary);
-				flex: 1;
+	&__add-row {
+		width: 40px;
+		height: 40px;
+		border-radius: 8px;
+		border: 1px solid $color-border-secondary;
+		background: $color-bg-secondary;
+		color: $color-text-secondary;
+		font-size: 20px;
+		font-weight: 500;
+		cursor: pointer;
+		transition: all 0.15s ease;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
 
-				&:focus {
-					outline: none;
-					border-color: var(--interactive);
-					box-shadow: 0 0 0 2px var(--interactive);
-				}
-			}
+		&:hover {
+			border-color: $color-primary;
+			background: rgba($color-primary, 0.1);
+			color: $color-primary;
+		}
 
-			.delete-row {
-				background: none;
-				border: none;
-				font-size: 24px;
-				color: var(--text-secondary);
-				cursor: pointer;
-				padding: 8px;
-				border-radius: 4px;
-				transition: all 0.15s ease;
-				width: 32px;
-				height: 32px;
-				display: flex;
-				align-items: center;
-				justify-content: center;
+		&:active {
+			transform: scale(0.95);
+		}
+	}
 
-				&:hover {
-					background-color: var(--bg-tertiary);
-					color: var(--text-primary);
-				}
+	&__submit {
+		padding: 10px 20px;
+		border-radius: 8px;
+		border: 1px solid $color-primary;
+		background: $color-primary;
+		color: $color-white;
+		font-size: 14px;
+		font-weight: 600;
+		cursor: pointer;
+		transition: all 0.15s ease;
+		white-space: nowrap;
+		max-width: 200px;
+		margin-left: auto;
 
-				&:focus {
-					outline: none;
-					background-color: var(--bg-tertiary);
-					box-shadow: 0 0 0 2px var(--interactive);
-				}
-			}
+		&:hover:not(:disabled) {
+			background: $color-primary-light;
+			box-shadow: 0 4px 12px rgba($color-primary, 0.3);
+		}
+
+		&:active:not(:disabled) {
+			transform: scale(0.98);
+		}
+
+		&:disabled {
+			opacity: 0.6;
+			cursor: not-allowed;
+		}
+
+		@media (max-width: 768px) {
+			padding: 10px 16px;
+			font-size: 13px;
 		}
 	}
 }
 
-.field-error {
-	margin: -8px 0 6px 0;
-	padding: 0;
-	color: var(--error);
+.add-game-row {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	padding: 5px 14px;
+	transition: all 0.15s ease;
+
+	&:hover {
+		border-radius: 20px;
+		background: rgba($color-bg-tertiary, 0.5);
+	}
+
+	&__main {
+		display: flex;
+		gap: 10px;
+		align-items: center;
+
+		@media (max-width: 768px) {
+			flex-wrap: wrap;
+		}
+	}
+
+	&__name-input {
+		flex: 1;
+		min-width: 200px;
+		padding: 9px 12px;
+		border-radius: 8px;
+		border: 1px solid $color-border-primary;
+		background: $color-bg-primary;
+		color: $color-text-primary;
+		font-size: 14px;
+		transition: all 0.15s ease;
+
+		&::placeholder {
+			color: $color-text-disabled;
+		}
+
+		&:focus {
+			outline: none;
+			border-color: $color-primary;
+			box-shadow: 0 0 0 3px rgba($color-primary, 0.1);
+		}
+
+		@media (max-width: 768px) {
+			min-width: 0;
+			width: 100%;
+			order: -1;
+		}
+	}
+
+	&__status-select {
+		min-width: 140px;
+		padding: 9px 12px;
+		border-radius: 8px;
+		border: 1px solid $color-border-primary;
+		background: $color-bg-primary;
+		color: $color-text-primary;
+		font-size: 13px;
+		transition: all 0.15s ease;
+		cursor: pointer;
+
+		&:focus {
+			outline: none;
+			border-color: $color-primary;
+			box-shadow: 0 0 0 3px rgba($color-primary, 0.1);
+		}
+
+		@media (max-width: 768px) {
+			flex: 1;
+			min-width: 0;
+		}
+	}
+
+	&__extra-toggle {
+		width: 36px;
+		height: 36px;
+		border-radius: 8px;
+		border: 1px solid $color-border-secondary;
+		background: $color-bg-quaternary;
+		color: $color-text-secondary;
+		font-size: 18px;
+		font-weight: 600;
+		cursor: pointer;
+		transition: all 0.15s ease;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+
+		&:hover {
+			border-color: $color-primary;
+			background: rgba($color-primary, 0.1);
+			color: $color-primary;
+		}
+
+		&:active {
+			transform: scale(0.95);
+		}
+	}
+
+	&__delete {
+		width: 36px;
+		height: 36px;
+		border-radius: 8px;
+		border: 1px solid $color-border-secondary;
+		background: $color-bg-quaternary;
+		color: $color-text-muted;
+		font-size: 22px;
+		cursor: pointer;
+		transition: all 0.15s ease;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+
+		&:hover:not(:disabled) {
+			border-color: $color-error;
+			background: rgba($color-error, 0.1);
+			color: $color-error;
+		}
+
+		&:active:not(:disabled) {
+			transform: scale(0.95);
+		}
+
+		&:disabled {
+			opacity: 0.3;
+			cursor: not-allowed;
+		}
+	}
+
+	&__extra {
+		padding: 10px 0 4px;
+		border-top: 1px solid $color-border-tertiary;
+	}
+
+	&__extra-field {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		font-size: 13px;
+
+		label {
+			color: $color-text-secondary;
+			white-space: nowrap;
+			font-weight: 500;
+		}
+
+		select {
+			min-width: 120px;
+			padding: 7px 10px;
+			border-radius: 8px;
+			border: 1px solid $color-border-primary;
+			background: $color-bg-primary;
+			color: $color-text-primary;
+			font-size: 13px;
+			transition: all 0.15s ease;
+			cursor: pointer;
+
+			&:focus {
+				outline: none;
+				border-color: $color-primary;
+				box-shadow: 0 0 0 3px rgba($color-primary, 0.1);
+			}
+		}
+	}
+
+	&__error {
+		margin-bottom: 5px;
+		padding: 9px 12px;
+		font-size: 13px;
+		color: $color-error-light;
+		background: rgba($color-error, 0.1);
+		border-radius: 8px;
+		border: 1px solid rgba($color-error, 0.3);
+	}
 }
