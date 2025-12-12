@@ -11,6 +11,7 @@ import {
 	AdminDataExport,
 	AdminGameViews,
 	AdminUsers,
+	AdminPreferences,
 } from '@/components/Admin'
 import { RouteError, NotFound } from '@/components/errors'
 
@@ -83,6 +84,14 @@ export const router = createHashRouter([
 				element: (
 					<ProtectedRoute adminOnly={true}>
 						<AdminUsers />
+					</ProtectedRoute>
+				),
+			},
+			{
+				path: 'preferences',
+				element: (
+					<ProtectedRoute>
+						<AdminPreferences />
 					</ProtectedRoute>
 				),
 			},

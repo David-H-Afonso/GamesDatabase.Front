@@ -4,6 +4,7 @@ export interface Game {
 	completion?: number // 0-100
 	cover?: string
 	critic?: number // 0-100
+	criticProvider?: string // 'Metacritic' | 'OpenCritic' | 'SteamDB'
 	finished?: string // ISO date string
 	grade?: number // 0-100
 	id: number
@@ -33,6 +34,7 @@ export interface GameCreateDto {
 	name: string
 	grade?: number
 	critic?: number
+	criticProvider?: string
 	story?: number
 	completion?: number
 	// score is calculated by the backend, not provided on create
@@ -109,6 +111,8 @@ export interface GameQueryParameters extends QueryParameters {
 	isCheaperByKey?: boolean
 	// Show incomplete games (Not Fulfilled, no cover, no logo, or no platform)
 	showIncomplete?: boolean
+	// Filter by critic provider
+	criticProvider?: string
 	// View name for custom views
 	viewName?: string
 }

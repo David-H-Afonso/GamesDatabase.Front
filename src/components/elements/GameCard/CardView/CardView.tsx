@@ -1,11 +1,21 @@
 import type { Game } from '@/models/api/Game'
 import { useState, memo, type FC } from 'react'
 import './CardView.scss'
-import { formatToLocaleDate, useClickOutside } from '@/utils'
+import { formatToLocaleDate, useClickOutside, getMetacriticColor } from '@/utils'
 import { EditableSelect } from '../../EditableSelect/EditableSelect'
 import { EditableMultiSelect } from '../../EditableMultiSelect/EditableMultiSelect'
 import { OptimizedImage } from '@/components/elements'
 import { useAppSelector } from '@/store/hooks'
+import CalendarIcon from '@/assets/svgs/calendar.svg?react'
+import ScoreIcon from '@/assets/svgs/score.svg?react'
+import CriticIcon from '@/assets/svgs/critic.svg?react'
+import OpenCriticIcon from '@/assets/svgs/opencritic.svg?react'
+import SteamDBIcon from '@/assets/svgs/steamdb.svg?react'
+import {
+	getCriticScoreUrl,
+	resolveEffectiveProvider,
+	type CriticProvider,
+} from '@/helpers/criticScoreHelper'
 
 interface CardViewProps {
 	game: Game
@@ -43,6 +53,39 @@ const CardView: FC<CardViewProps> = (props) => {
 	const { activeStatuses: statusOptions } = useAppSelector((state) => state.gameStatus)
 	const { platforms: platformOptions } = useAppSelector((state) => state.gamePlatform)
 	const { playWithOptions } = useAppSelector((state) => state.gamePlayWith)
+
+	// Get user preferences
+	const useScoreColors = useAppSelector((state) => state.auth.user?.useScoreColors ?? false)
+	const userScoreProvider = useAppSelector(
+		(state) => state.auth.user?.scoreProvider ?? 'Metacritic'
+	) as CriticProvider
+
+	const released = formatToLocaleDate(game.released)
+
+	// Use per-game provider if set, otherwise fall back to user preference
+	const effectiveProvider = resolveEffectiveProvider(
+		game.criticProvider as CriticProvider | undefined,
+		userScoreProvider
+	)
+
+	// Get critic score color if enabled
+	const criticScoreColor =
+		useScoreColors && game.critic != null ? getMetacriticColor(game.critic) : '#f9fafb'
+
+	// Select icon based on effective provider
+	const ScoreProviderIcon =
+		effectiveProvider === 'OpenCritic'
+			? OpenCriticIcon
+			: effectiveProvider === 'SteamDB'
+			? SteamDBIcon
+			: CriticIcon
+
+	const handleCriticScoreClick = (e: React.MouseEvent) => {
+		e.preventDefault()
+		e.stopPropagation()
+		const url = getCriticScoreUrl(game.name, effectiveProvider)
+		window.open(url, '_blank', 'noopener,noreferrer')
+	}
 
 	const menuRef = useClickOutside<HTMLDivElement>(() => {
 		setActiveSelector(null)
@@ -138,9 +181,21 @@ const CardView: FC<CardViewProps> = (props) => {
 						<div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
 							<span className='game-card-score'>{game.grade ?? 'N/A'}</span>
 							{game.critic != null && !isNaN(game.critic) && (
-								<span className='game-card-score'>
-									<span style={{ color: '#ccc', fontWeight: 'normal' }}>Critic: </span>
-									<span style={{ fontFamily: 'monospace' }}>{game.critic ?? 'N/A'}</span>
+								<span
+									className='game-card-score'
+									onClick={handleCriticScoreClick}
+									style={{ cursor: 'pointer' }}
+									title={`Click to search on ${effectiveProvider}`}>
+									<ScoreProviderIcon
+										width={13}
+										height={13}
+										color={criticScoreColor === '#f9fafb' ? '#9ca3af' : criticScoreColor}
+										title={`${effectiveProvider} icon`}
+										focusable={false}
+									/>
+									<span style={{ fontFamily: 'monospace', color: criticScoreColor }}>
+										{game.critic ?? 'N/A'}
+									</span>
 								</span>
 							)}
 						</div>
@@ -244,25 +299,44 @@ const CardView: FC<CardViewProps> = (props) => {
 				<div className='game-card-body'>
 					<div className='game-card-duration'>
 						<div className='game-card-duration-item'>
-							<p className='game-card-duration-label'>Story: </p>
+							<p className='game-card-duration-label'>Story</p>
 							<p className='game-card-duration-value'>{game.story ? `${game.story}h` : 'N/A'}</p>
 						</div>
 						<div className='game-card-duration-item'>
-							<p className='game-card-duration-label'>100%: </p>
+							<p className='game-card-duration-label'>100%</p>
 							<p className='game-card-duration-value'>
 								{game.completion ? `${game.completion}h` : 'N/A'}
 							</p>
 						</div>
 					</div>
-					<div className='game-card-metadata'>
-						<div className='game-card-score'>
-							<p>Score</p>
+					<div className='game-card-metadata' role='group' aria-label='Game metadata'>
+						<div
+							className='game-card-score'
+							role='group'
+							aria-label={`Score: ${game.score ?? 'N/A'} / 10`}>
+							<ScoreIcon
+								width={20}
+								height={20}
+								color='#9ca3af'
+								title='Score icon'
+								focusable={false}
+							/>
 							<div className='game-card-score-value'>
 								<p>{game.score ?? 'N/A'} / 10</p>
 							</div>
 						</div>
-						<div className='game-card-release-date'>
-							<p>Released: {formatToLocaleDate(game.released)}</p>
+						<div
+							className='game-card-release-date'
+							role='group'
+							aria-label={`Released: ${released}`}>
+							<CalendarIcon
+								width={20}
+								height={20}
+								color='#9ca3af'
+								title='Released icon'
+								focusable={false}
+							/>
+							<p>{released}</p>
 						</div>
 					</div>
 				</div>

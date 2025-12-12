@@ -8,6 +8,17 @@ import { useAppSelector } from '@/store/hooks'
 import { selectGameById } from '@/store/features/games'
 import './CreateGame.scss'
 
+/**
+ * Maps cheaperBy string value to boolean isCheaperByKey
+ * @param cheaperBy - The cheaper by value ('key', 'store', or undefined)
+ * @returns True if 'key', false if 'store', undefined otherwise
+ */
+const mapCheaperByToBoolean = (cheaperBy: string | undefined): boolean | undefined => {
+	if (cheaperBy === 'key') return true
+	if (cheaperBy === 'store') return false
+	return undefined
+}
+
 const CreateGame: FC = () => {
 	const [isModalOpen, setIsModalOpen] = useState(false)
 	const [isSubmitting, setIsSubmitting] = useState(false)
@@ -21,7 +32,9 @@ const CreateGame: FC = () => {
 
 	const openAddGameModal = () => {
 		// initialize fresh row when opening
-		formik.setFieldValue('games', [{ name: '', statusId: defaultStatusId ?? '' }])
+		formik.setFieldValue('games', [
+			{ name: '', statusId: defaultStatusId ?? '', showExtraFields: false },
+		])
 		setIsModalOpen(true)
 	}
 
@@ -29,19 +42,26 @@ const CreateGame: FC = () => {
 		setIsModalOpen(false)
 		setIsSubmitting(false)
 		formik.resetForm()
-		formik.setFieldValue('games', [{ name: '', statusId: defaultStatusId ?? '' }])
+		formik.setFieldValue('games', [
+			{ name: '', statusId: defaultStatusId ?? '', showExtraFields: false },
+		])
 	}
 
 	const { fetchActiveStatusList, fetchSpecialStatusList } = useGameStatus()
 	const [statusOptions, setStatusOptions] = useState<{ value: number; label: string }[]>([])
 	const [defaultStatusId, setDefaultStatusId] = useState<number | undefined>(undefined)
 
-	// Formik will manage `games`: array of { name, statusId }
+	// Formik will manage `games`: array of { name, statusId, cheaperBy }
 	interface GameForm {
-		games: { name: string; statusId: number | '' }[]
+		games: {
+			name: string
+			statusId: number | ''
+			cheaperBy?: 'key' | 'store'
+			showExtraFields?: boolean
+		}[]
 	}
 	const formik = useFormik<GameForm>({
-		initialValues: { games: [{ name: '', statusId: '' as number | '' }] },
+		initialValues: { games: [{ name: '', statusId: '' as number | '', showExtraFields: false }] },
 		validate: (values: GameForm) => {
 			const errors: Partial<GameForm & { games?: Array<{ name?: string } | undefined> }> = {}
 			const gameErrors: Array<{ name?: string } | undefined> = []
@@ -98,18 +118,31 @@ const CreateGame: FC = () => {
 	const addRow = () =>
 		formik.setFieldValue('games', [
 			...formik.values.games,
-			{ name: '', statusId: defaultStatusId ?? '' },
+			{ name: '', statusId: defaultStatusId ?? '', showExtraFields: false },
 		])
 	const removeRow = (index: number) => {
 		if (formik.values.games.length <= 1) return // do not remove last row
 		const newGames = formik.values.games.filter((_: any, i: number) => i !== index)
 		formik.setFieldValue('games', newGames)
 	}
-	const updateRow = (index: number, patch: Partial<{ name: string; statusId: number | '' }>) => {
+	const updateRow = (
+		index: number,
+		patch: Partial<{
+			name: string
+			statusId: number | ''
+			cheaperBy?: 'key' | 'store'
+			showExtraFields?: boolean
+		}>
+	) => {
 		const newGames = formik.values.games.map((r: any, i: number) =>
 			i === index ? { ...r, ...patch } : r
 		)
 		formik.setFieldValue('games', newGames)
+	}
+
+	const toggleExtraFields = (index: number) => {
+		const currentValue = formik.values.games[index].showExtraFields
+		updateRow(index, { showExtraFields: !currentValue })
 	}
 
 	const handleBatchSubmit = async () => {
@@ -134,6 +167,7 @@ const CreateGame: FC = () => {
 						({
 							name: r.name,
 							statusId: r.statusId === '' ? defaultStatusId : (r.statusId as number | undefined),
+							isCheaperByKey: mapCheaperByToBoolean(r.cheaperBy),
 						} as unknown as GameCreateDto)
 				)
 
@@ -155,7 +189,9 @@ const CreateGame: FC = () => {
 			} else {
 				closeModal()
 				// reset form to initial single empty row
-				formik.setValues({ games: [{ name: '', statusId: defaultStatusId ?? '' }] })
+				formik.setValues({
+					games: [{ name: '', statusId: defaultStatusId ?? '', showExtraFields: false }],
+				})
 				fetchGamesList()
 			}
 		} catch (err) {
@@ -165,52 +201,87 @@ const CreateGame: FC = () => {
 		}
 	}
 
-	const gameRow = (row: { name: string; statusId: number | '' }, id: number) => {
+	const gameRow = (
+		row: {
+			name: string
+			statusId: number | ''
+			cheaperBy?: 'key' | 'store'
+			showExtraFields?: boolean
+		},
+		id: number
+	) => {
 		// cast per-row errors/touched to a shaped type to safely access .name
 		const error = formik.errors?.games && (formik.errors.games[id] as any)
 		const touched = formik.touched?.games && (formik.touched.games[id] as any)
 		return (
 			<>
 				<div key={id} className='add-game-row'>
-					<input
-						type='text'
-						className='name-input'
-						placeholder='Game Title'
-						value={row.name}
-						onChange={(e) => updateRow(id, { name: e.target.value })}
-						onBlur={() => formik.setFieldTouched(`games.${id}.name`, true)}
-						style={{ flex: 1 }}
-					/>
+					<div className='add-game-row__main'>
+						<input
+							type='text'
+							className='add-game-row__name-input'
+							placeholder='Título del juego'
+							value={row.name}
+							onChange={(e) => updateRow(id, { name: e.target.value })}
+							onBlur={() => formik.setFieldTouched(`games.${id}.name`, true)}
+						/>
 
-					<select
-						value={row.statusId}
-						onChange={(e) =>
-							updateRow(id, { statusId: e.target.value === '' ? '' : parseInt(e.target.value, 10) })
-						}
-						className='status-select'
-						style={{ minWidth: '160px' }}>
-						{statusOptions.length === 0 && <option value=''>Loading statuses...</option>}
-						{statusOptions.map((opt) => (
-							<option key={opt.value} value={opt.value}>
-								{opt.label}
-							</option>
-						))}
-					</select>
+						<select
+							value={row.statusId}
+							onChange={(e) =>
+								updateRow(id, {
+									statusId: e.target.value === '' ? '' : parseInt(e.target.value, 10),
+								})
+							}
+							className='add-game-row__status-select'>
+							{statusOptions.length === 0 && <option value=''>Cargando...</option>}
+							{statusOptions.map((opt) => (
+								<option key={opt.value} value={opt.value}>
+									{opt.label}
+								</option>
+							))}
+						</select>
 
-					<button
-						type='button'
-						className='delete-row'
-						onClick={() => removeRow(id)}
-						disabled={formik.values.games.length <= 1}
-						title={
-							formik.values.games.length <= 1
-								? 'No se puede eliminar la única fila'
-								: 'Eliminar fila'
-						}>
-						×
-					</button>
+						<button
+							type='button'
+							className='add-game-row__extra-toggle'
+							onClick={() => toggleExtraFields(id)}
+							title={row.showExtraFields ? 'Ocultar campos extra' : 'Mostrar campos extra'}>
+							{row.showExtraFields ? '−' : '+'}
+						</button>
+
+						<button
+							type='button'
+							className='add-game-row__delete'
+							onClick={() => removeRow(id)}
+							disabled={formik.values.games.length <= 1}
+							title={
+								formik.values.games.length <= 1
+									? 'No se puede eliminar la única fila'
+									: 'Eliminar fila'
+							}>
+							×
+						</button>
+					</div>
+
+					{row.showExtraFields && (
+						<div className='add-game-row__extra'>
+							<div className='add-game-row__extra-field'>
+								<label>Más barato por:</label>
+								<select
+									value={row.cheaperBy ?? ''}
+									onChange={(e) =>
+										updateRow(id, { cheaperBy: e.target.value as 'key' | 'store' | undefined })
+									}>
+									<option value=''>Ninguno</option>
+									<option value='key'>Clave</option>
+									<option value='store'>Tienda</option>
+								</select>
+							</div>
+						</div>
+					)}
 				</div>
-				{touched && error?.name && <div className='field-error'>{error.name}</div>}
+				{touched && error?.name && <div className='add-game-row__error'>{error.name}</div>}
 			</>
 		)
 	}
@@ -219,26 +290,36 @@ const CreateGame: FC = () => {
 		<>
 			{/* Game Form Modal */}
 			{isModalOpen && (
-				<Modal isOpen={isModalOpen} onClose={closeModal} title={'Add New Games'}>
+				<Modal
+					isOpen={isModalOpen}
+					onClose={closeModal}
+					title={'Añadir Juegos'}
+					bodyPadding='14px'
+					hideBorders={true}
+					headerPaddingBottom='14px'>
 					<div className='create-game-modal'>
-						<div className='add-game-rows'>
+						<div className='create-game-modal__rows'>
 							{formik.values.games.map((r: any, i: number) => gameRow(r, i))}
 						</div>
 
-						<div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
-							<button type='button' className='btn' onClick={addRow}>
-								+ Add Row
+						<div className='create-game-modal__actions'>
+							<button
+								type='button'
+								className='create-game-modal__add-row'
+								onClick={addRow}
+								title='Añadir otra fila'>
+								+
 							</button>
 							<button
 								type='button'
-								className='btn btn-primary'
+								className='create-game-modal__submit'
 								onClick={handleBatchSubmit}
 								disabled={isSubmitting}>
 								{isSubmitting
-									? 'Adding...'
+									? 'Añadiendo...'
 									: formik.values.games.length === 1
-									? 'Add game'
-									: 'Add games'}
+									? 'Añadir juego'
+									: `Añadir ${formik.values.games.length} juegos`}
 							</button>
 						</div>
 					</div>

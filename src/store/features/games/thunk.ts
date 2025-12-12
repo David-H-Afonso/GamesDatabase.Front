@@ -1,5 +1,4 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
-import { environment } from '@/environments'
 import {
 	createGame as createGameService,
 	updateGame as updateGameService,
@@ -14,13 +13,14 @@ import type {
 	GameQueryParameters,
 	BulkUpdateGameDto,
 } from '@/models/api/Game'
+import { DEFAULT_PAGE_SIZE } from '@/utils'
 
 // Async thunk for fetching games with pagination and filters
 export const fetchGames = createAsyncThunk(
 	'games/fetchGames',
 	async (params: GameQueryParameters = {}, { rejectWithValue }) => {
 		try {
-			const query = { pageSize: environment.pagination.defaultPageSize, ...(params || {}) }
+			const query = { pageSize: DEFAULT_PAGE_SIZE, ...(params || {}) }
 			const response = await getGames(query)
 			return response
 		} catch (error: any) {

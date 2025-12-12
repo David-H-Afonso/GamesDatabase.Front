@@ -1,12 +1,17 @@
 import type { Game } from '@/models/api/Game'
 import { useState, useRef, useEffect, memo, type FC } from 'react'
 import './RowView.scss'
-import { formatToLocaleDate, useClickOutside } from '@/utils'
+import { formatToLocaleDate, useClickOutside, getMetacriticColor } from '@/utils'
 import { EditableSelect } from '../../EditableSelect/EditableSelect'
 import { EditableMultiSelect } from '../../EditableMultiSelect/EditableMultiSelect'
 import { OptimizedImage } from '@/components/elements'
 import { useAppSelector } from '@/store/hooks'
 import PortalDropdown from '../../PortalDropdown'
+import {
+	getCriticScoreUrl,
+	resolveEffectiveProvider,
+	type CriticProvider,
+} from '@/helpers/criticScoreHelper'
 
 interface RowViewProps {
 	game: Game
@@ -48,6 +53,25 @@ const RowView: FC<RowViewProps> = (props) => {
 	const { platforms: platformOptions } = useAppSelector((state) => state.gamePlatform)
 	const { playWithOptions } = useAppSelector((state) => state.gamePlayWith)
 	const { playedStatuses: playedStatusOptions } = useAppSelector((state) => state.gamePlayedStatus)
+
+	// Get user preferences
+	const useScoreColors = useAppSelector((state) => state.auth.user?.useScoreColors ?? false)
+	const userScoreProvider = useAppSelector(
+		(state) => state.auth.user?.scoreProvider ?? 'Metacritic'
+	) as CriticProvider
+
+	// Use per-game provider if set, otherwise fall back to user preference
+	const effectiveProvider = resolveEffectiveProvider(
+		game.criticProvider as CriticProvider | undefined,
+		userScoreProvider
+	)
+
+	const handleCriticScoreClick = (e: React.MouseEvent) => {
+		e.preventDefault()
+		e.stopPropagation()
+		const url = getCriticScoreUrl(game.name, effectiveProvider)
+		window.open(url, '_blank', 'noopener,noreferrer')
+	}
 
 	const rowRef = useClickOutside<HTMLDivElement>(() => setActiveSelector(null))
 	const statusRef = useClickOutside<HTMLDivElement>(() => setActiveSelector(null))
@@ -138,6 +162,10 @@ const RowView: FC<RowViewProps> = (props) => {
 	const storyText = game.story ? `${game.story}h` : dash
 	const completionText = game.completion ? `${game.completion}h` : dash
 	const scoreText = game.score ?? dash
+
+	// Get critic score color if enabled
+	const criticScoreColor =
+		useScoreColors && game.critic != null ? getMetacriticColor(game.critic) : '#f9fafb'
 	const releasedText = formatToLocaleDate(game.released) || dash
 	const startedText = formatToLocaleDate(game.started) || dash
 	const finishedText = formatToLocaleDate(game.finished) || dash
@@ -237,8 +265,14 @@ const RowView: FC<RowViewProps> = (props) => {
 
 			{/* Critic */}
 			<div className='game-row-critic'>
-				<div aria-label='Critic' title={`Critic: ${criticText}`}>
-					<span>{criticText}</span>
+				<div
+					aria-label='Critic'
+					title={`Click to search on ${effectiveProvider}`}
+					onClick={handleCriticScoreClick}
+					style={{ cursor: 'pointer' }}>
+					<span style={{ color: criticScoreColor, fontWeight: useScoreColors ? 600 : 'normal' }}>
+						{criticText}
+					</span>
 				</div>
 			</div>
 

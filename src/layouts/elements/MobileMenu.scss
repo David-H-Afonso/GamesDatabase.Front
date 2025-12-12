@@ -1,0 +1,138 @@
+@use '@/assets/styles' as *;
+
+.mobile-menu-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(0, 0, 0, 0.5);
+	z-index: 998;
+	backdrop-filter: blur(4px);
+}
+
+.mobile-menu {
+	position: fixed;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	width: 280px;
+	background: $color-bg-primary;
+	box-shadow: -4px 0 20px rgba(0, 0, 0, 0.3);
+	z-index: 999;
+	display: flex;
+	flex-direction: column;
+	animation: slideIn 0.3s ease;
+
+	@keyframes slideIn {
+		from {
+			transform: translateX(100%);
+		}
+		to {
+			transform: translateX(0);
+		}
+	}
+
+	&__header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 20px;
+		border-bottom: 1px solid $color-border-primary;
+
+		h2 {
+			margin: 0;
+			font-size: 18px;
+			font-weight: 600;
+			color: $color-text-primary;
+		}
+	}
+
+	&__close {
+		background: none;
+		border: none;
+		font-size: 24px;
+		color: $color-text-muted;
+		cursor: pointer;
+		padding: 4px 8px;
+		transition: color 0.2s;
+
+		&:hover {
+			color: $color-text-primary;
+		}
+	}
+
+	&__nav {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		padding: 16px 0;
+		overflow-y: auto;
+	}
+
+	&__link {
+		display: flex;
+		align-items: center;
+		padding: 14px 20px;
+		color: $color-text-secondary;
+		text-decoration: none;
+		font-size: 15px;
+		font-weight: 500;
+		transition: all 0.2s;
+		border-left: 3px solid transparent;
+
+		&:hover {
+			background: $color-bg-secondary;
+			color: $color-text-primary;
+		}
+
+		&.active {
+			background: $color-bg-tertiary;
+			color: $color-primary;
+			border-left-color: $color-primary;
+		}
+	}
+
+	&__footer {
+		padding: 16px 20px;
+		border-top: 1px solid $color-border-primary;
+	}
+
+	&__user {
+		margin-top: 12px;
+		padding-top: 12px;
+		border-top: 1px solid $color-border-primary;
+	}
+
+	&__user-info {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		margin-bottom: 12px;
+		color: $color-text-secondary;
+		font-size: 14px;
+
+		svg {
+			flex-shrink: 0;
+		}
+	}
+
+	&__logout {
+		width: 100%;
+		padding: 10px;
+		background: $color-bg-secondary;
+		border: 1px solid $color-border-primary;
+		border-radius: 6px;
+		color: $color-text-secondary;
+		font-size: 14px;
+		font-weight: 500;
+		cursor: pointer;
+		transition: all 0.2s;
+
+		&:hover {
+			background: $color-bg-tertiary;
+			border-color: $color-error;
+			color: $color-error;
+		}
+	}
+}

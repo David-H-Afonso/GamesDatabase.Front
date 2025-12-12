@@ -7,6 +7,8 @@ export interface AuthState {
 		id: number
 		username: string
 		role: 'Admin' | 'Standard'
+		useScoreColors?: boolean
+		scoreProvider?: string
 	} | null
 	token: string | null
 	loading: boolean

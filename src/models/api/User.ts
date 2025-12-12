@@ -11,6 +11,9 @@ export interface User {
 	username: string
 	role: UserRole
 	isDefault: boolean
+	hasPassword: boolean
+	useScoreColors: boolean
+	scoreProvider: string
 	createdAt: string
 	updatedAt: string
 }
@@ -36,6 +39,8 @@ export interface UserCreateDto {
 export interface UserUpdateDto {
 	username?: string
 	role?: UserRole
+	useScoreColors?: boolean
+	scoreProvider?: string
 }
 
 export interface ChangePasswordDto {

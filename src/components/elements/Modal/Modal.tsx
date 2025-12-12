@@ -9,6 +9,9 @@ interface ModalProps {
 	children: ReactNode
 	footer?: ReactNode
 	maxWidth?: string
+	bodyPadding?: string
+	hideBorders?: boolean
+	headerPaddingBottom?: string
 }
 
 export const Modal: FC<ModalProps> = ({
@@ -18,6 +21,9 @@ export const Modal: FC<ModalProps> = ({
 	children,
 	footer,
 	maxWidth = '600px',
+	bodyPadding,
+	hideBorders = false,
+	headerPaddingBottom,
 }) => {
 	// Close modal on escape key
 	useEffect(() => {
@@ -43,14 +49,25 @@ export const Modal: FC<ModalProps> = ({
 	return createPortal(
 		<div className='modal-overlay' onClick={onClose}>
 			<div className='modal-content' style={{ maxWidth }} onClick={(e) => e.stopPropagation()}>
-				<div className='modal-header'>
+				<div
+					className='modal-header'
+					style={{
+						...(hideBorders ? { borderBottom: 'none' } : {}),
+						...(headerPaddingBottom ? { paddingBottom: headerPaddingBottom } : {}),
+					}}>
 					<h2 className='modal-title'>{title}</h2>
 					<button className='modal-close' onClick={onClose} aria-label='Close modal'>
 						×
 					</button>
 				</div>
-				<div className='modal-body'>{children}</div>
-				{footer && <div className='modal-footer'>{footer}</div>}
+				<div className='modal-body' style={bodyPadding ? { padding: bodyPadding } : undefined}>
+					{children}
+				</div>
+				{footer && (
+					<div className='modal-footer' style={hideBorders ? { borderTop: 'none' } : undefined}>
+						{footer}
+					</div>
+				)}
 			</div>
 		</div>,
 		document.body

@@ -9,6 +9,14 @@ import { EditableMultiSelect } from '../EditableMultiSelect/EditableMultiSelect'
 import { useGames } from '@/hooks'
 import { useAppSelector } from '@/store/hooks'
 import { useFormik } from 'formik'
+import {
+	getCriticScoreUrl,
+	getCriticProviderIdFromName,
+	getCriticProviderNameFromId,
+	resolveEffectiveProvider,
+	type CriticProvider,
+} from '@/helpers/criticScoreHelper'
+import { store } from '@/store'
 
 interface GameDetailsProps {
 	game: Game
@@ -51,6 +59,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 			statusId: game.statusId ?? undefined,
 			released: game.released ?? '',
 			critic: game.critic ?? undefined,
+			criticProvider: game.criticProvider ?? undefined,
 			story: game.story ?? undefined,
 			completion: game.completion ?? undefined,
 			score: game.score ?? undefined,
@@ -279,7 +288,13 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 							className='clickable'
 							onClick={() => {
 								if (!game.name) return
-								const url = `https://www.metacritic.com/search/${encodeURIComponent(game.name)}/`
+								const userProvider = (store.getState().auth.user?.scoreProvider ??
+									'Metacritic') as CriticProvider
+								const provider = resolveEffectiveProvider(
+									game.criticProvider as CriticProvider | undefined,
+									userProvider
+								)
+								const url = getCriticScoreUrl(game.name, provider)
 								window.open(url, '_blank', 'noopener')
 							}}>
 							Critic Score
@@ -289,6 +304,28 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 							type='number'
 							onSave={(value) => saveField('critic', value)}
 							placeholder='No score'
+						/>
+					</div>
+					<div className='game-details-content-infoList-item'>
+						<h4>Critic Logo</h4>
+						<EditableSelect
+							value={getCriticProviderIdFromName(formik.values.criticProvider)}
+							displayValue={formik.values.criticProvider ?? 'Default'}
+							options={[
+								{ id: 0, name: 'Default', color: undefined },
+								{ id: 1, name: 'Metacritic', color: undefined },
+								{ id: 2, name: 'OpenCritic', color: undefined },
+								{ id: 3, name: 'SteamDB', color: undefined },
+							]}
+							onSave={async (value) => {
+								if (value === 0 || value === undefined) {
+									await saveField('criticProvider', null)
+								} else {
+									const provider = getCriticProviderNameFromId(value)
+									await saveField('criticProvider', provider)
+								}
+							}}
+							placeholder='Use default'
 						/>
 					</div>
 					<div className='game-details-content-infoList-item'>
