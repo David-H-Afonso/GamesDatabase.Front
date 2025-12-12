@@ -301,7 +301,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 						/>
 					</div>
 					<div className='game-details-content-infoList-item'>
-						<h4>Critic Provider</h4>
+						<h4>Critic Logo</h4>
 						<EditableSelect
 							value={getCriticProviderIdFromName(formik.values.criticProvider)}
 							displayValue={formik.values.criticProvider ?? 'Default'}
