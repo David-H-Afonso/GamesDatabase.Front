@@ -13,13 +13,14 @@ import type {
 	GameQueryParameters,
 	BulkUpdateGameDto,
 } from '@/models/api/Game'
+import { DEFAULT_PAGE_SIZE } from '@/utils'
 
 // Async thunk for fetching games with pagination and filters
 export const fetchGames = createAsyncThunk(
 	'games/fetchGames',
 	async (params: GameQueryParameters = {}, { rejectWithValue }) => {
 		try {
-			const query = { pageSize: 50, ...(params || {}) }
+			const query = { pageSize: DEFAULT_PAGE_SIZE, ...(params || {}) }
 			const response = await getGames(query)
 			return response
 		} catch (error: any) {

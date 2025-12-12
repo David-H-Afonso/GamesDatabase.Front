@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import type { Game } from '@/models/api/Game'
 import './GameDetails.scss'
-import { formatToLocaleDate, useClickOutside } from '@/utils'
+import { formatToLocaleDate, useClickOutside, getCriticProviderIdFromName, getCriticProviderNameFromId } from '@/utils'
 import DeleteIcon from '@/assets/svgs/trashbin.svg?react'
 import { EditableField, OptimizedImage } from '@/components/elements'
 import { EditableSelect } from '../EditableSelect/EditableSelect'
@@ -295,17 +295,9 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 						/>
 					</div>
 					<div className='game-details-content-infoList-item'>
-						<h4>Critic Logo</h4>
+						<h4>Critic Provider</h4>
 						<EditableSelect
-							value={
-								formik.values.criticProvider
-									? formik.values.criticProvider === 'Metacritic'
-										? 1
-										: formik.values.criticProvider === 'OpenCritic'
-										? 2
-										: 3
-									: undefined
-							}
+							value={getCriticProviderIdFromName(formik.values.criticProvider)}
 							displayValue={formik.values.criticProvider ?? 'Default'}
 							options={[
 								{ id: 0, name: 'Default', color: undefined },
@@ -317,8 +309,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 								if (value === 0 || value === undefined) {
 									await saveField('criticProvider', null)
 								} else {
-									const provider =
-										value === 1 ? 'Metacritic' : value === 2 ? 'OpenCritic' : 'SteamDB'
+									const provider = getCriticProviderNameFromId(value)
 									await saveField('criticProvider', provider)
 								}
 							}}

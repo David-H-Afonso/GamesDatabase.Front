@@ -182,7 +182,7 @@ const CardView: FC<CardViewProps> = (props) => {
 									<ScoreProviderIcon
 										width={13}
 										height={13}
-										color={criticScoreColor == '#f9fafb' ? '#9ca3af' : criticScoreColor}
+										color={criticScoreColor === '#f9fafb' ? '#9ca3af' : criticScoreColor}
 										title={`${effectiveProvider} icon`}
 										focusable={false}
 									/>
@@ -312,11 +312,10 @@ const CardView: FC<CardViewProps> = (props) => {
 								height={20}
 								color='#9ca3af'
 								title='Score icon'
-								aria-label='Score icon'
 								focusable={false}
 							/>
 							<div className='game-card-score-value'>
-								<p aria-label={`${game.score ?? 'N/A'} / 10`}>{game.score ?? 'N/A'} / 10</p>
+								<p>{game.score ?? 'N/A'} / 10</p>
 							</div>
 						</div>
 						<div
@@ -328,10 +327,9 @@ const CardView: FC<CardViewProps> = (props) => {
 								height={20}
 								color='#9ca3af'
 								title='Released icon'
-								aria-label='Released icon'
 								focusable={false}
 							/>
-							<p aria-label={`${released}`}>{released}</p>
+							<p>{released}</p>
 						</div>
 					</div>
 				</div>
