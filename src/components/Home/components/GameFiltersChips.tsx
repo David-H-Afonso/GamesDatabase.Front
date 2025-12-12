@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react'
 import type { GameQueryParameters } from '@/models/api/Game'
 import { useGamePlatform, useGamePlayedStatus, useGamePlayWith, useGameStatus } from '@/hooks'
 import { DEFAULT_PAGE_SIZE } from '@/utils'
+import { useAppSelector, useAppDispatch } from '@/store/hooks'
+import { fetchUserPreferences } from '@/store/features/auth/authSlice'
 import './GameFiltersChips.scss'
 
 interface Props {
@@ -54,6 +56,8 @@ const GameFiltersChips: React.FC<Props> = ({
 	const popoverRef = useRef<HTMLDivElement | null>(null)
 	const chipsContainerRef = useRef<HTMLDivElement | null>(null)
 
+	const dispatch = useAppDispatch()
+	const currentUser = useAppSelector((state) => state.auth.user)
 	const { fetchList: fetchPlatforms } = useGamePlatform()
 	const { fetchOptions: fetchPlayWithList } = useGamePlayWith()
 	const { fetchActiveStatusList } = useGameStatus()
@@ -77,6 +81,11 @@ const GameFiltersChips: React.FC<Props> = ({
 
 		void (async () => {
 			try {
+				// Load user preferences
+				if (currentUser?.id) {
+					dispatch(fetchUserPreferences(currentUser.id))
+				}
+
 				const plat = await fetchPlatforms()
 				const platList = normalize(plat)
 				setPlatformOptions(
@@ -102,7 +111,14 @@ const GameFiltersChips: React.FC<Props> = ({
 				console.error('Error loading filter options', err)
 			}
 		})()
-	}, [fetchPlatforms, fetchPlayWithList, fetchActiveStatusList, fetchPlayedStatusList])
+	}, [
+		fetchPlatforms,
+		fetchPlayWithList,
+		fetchActiveStatusList,
+		fetchPlayedStatusList,
+		currentUser?.id,
+		dispatch,
+	])
 
 	// Close popover when clicking outside
 	useEffect(() => {

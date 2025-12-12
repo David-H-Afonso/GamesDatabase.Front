@@ -10,6 +10,7 @@ import { useGames } from '@/hooks'
 import { useAppSelector } from '@/store/hooks'
 import { useFormik } from 'formik'
 import { getCriticScoreUrl, getCriticProviderIdFromName, getCriticProviderNameFromId } from '@/helpers/criticScoreHelper'
+import { store } from '@/store'
 
 interface GameDetailsProps {
 	game: Game
@@ -281,7 +282,12 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 							className='clickable'
 							onClick={() => {
 								if (!game.name) return
-								const provider = game.criticProvider ?? 'Metacritic'
+								const userProvider = (store.getState().auth.user?.scoreProvider ??
+									'Metacritic') as CriticProvider
+								const provider = resolveEffectiveProvider(
+									game.criticProvider as CriticProvider | undefined,
+									userProvider
+								)
 								const url = getCriticScoreUrl(game.name, provider)
 								window.open(url, '_blank', 'noopener')
 							}}>
