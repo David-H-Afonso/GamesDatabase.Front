@@ -9,7 +9,13 @@ import { EditableMultiSelect } from '../EditableMultiSelect/EditableMultiSelect'
 import { useGames } from '@/hooks'
 import { useAppSelector } from '@/store/hooks'
 import { useFormik } from 'formik'
-import { getCriticScoreUrl, getCriticProviderIdFromName, getCriticProviderNameFromId } from '@/helpers/criticScoreHelper'
+import {
+	getCriticScoreUrl,
+	getCriticProviderIdFromName,
+	getCriticProviderNameFromId,
+	resolveEffectiveProvider,
+	type CriticProvider,
+} from '@/helpers/criticScoreHelper'
 import { store } from '@/store'
 
 interface GameDetailsProps {
