@@ -8,6 +8,17 @@ import { useAppSelector } from '@/store/hooks'
 import { selectGameById } from '@/store/features/games'
 import './CreateGame.scss'
 
+/**
+ * Maps cheaperBy string value to boolean isCheaperByKey
+ * @param cheaperBy - The cheaper by value ('key', 'store', or undefined)
+ * @returns True if 'key', false if 'store', undefined otherwise
+ */
+const mapCheaperByToBoolean = (cheaperBy: string | undefined): boolean | undefined => {
+	if (cheaperBy === 'key') return true
+	if (cheaperBy === 'store') return false
+	return undefined
+}
+
 const CreateGame: FC = () => {
 	const [isModalOpen, setIsModalOpen] = useState(false)
 	const [isSubmitting, setIsSubmitting] = useState(false)
@@ -156,8 +167,7 @@ const CreateGame: FC = () => {
 						({
 							name: r.name,
 							statusId: r.statusId === '' ? defaultStatusId : (r.statusId as number | undefined),
-							isCheaperByKey:
-								r.cheaperBy === 'key' ? true : r.cheaperBy === 'store' ? false : undefined,
+							isCheaperByKey: mapCheaperByToBoolean(r.cheaperBy),
 						} as unknown as GameCreateDto)
 				)
 

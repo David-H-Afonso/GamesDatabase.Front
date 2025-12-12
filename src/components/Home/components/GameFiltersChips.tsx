@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import type { GameQueryParameters } from '@/models/api/Game'
 import { useGamePlatform, useGamePlayedStatus, useGamePlayWith, useGameStatus } from '@/hooks'
+import { DEFAULT_PAGE_SIZE } from '@/utils'
 import { useAppSelector, useAppDispatch } from '@/store/hooks'
 import { fetchUserPreferences } from '@/store/features/auth/authSlice'
 import './GameFiltersChips.scss'
@@ -202,7 +203,6 @@ const GameFiltersChips: React.FC<Props> = ({
 
 	const criticProviderLabel = () => {
 		if (!filters.criticProvider) return 'Todos'
-		if (filters.criticProvider === 'Default') return 'Por defecto'
 		return filters.criticProvider
 	}
 
@@ -212,7 +212,7 @@ const GameFiltersChips: React.FC<Props> = ({
 	}
 
 	const pageSizeLabel = () => {
-		if (!filters.pageSize) return 'Por defecto (50)'
+		if (!filters.pageSize) return `Por defecto (${DEFAULT_PAGE_SIZE})`
 		return `${filters.pageSize} juegos`
 	}
 
@@ -230,7 +230,7 @@ const GameFiltersChips: React.FC<Props> = ({
 			isCheaperByKey: undefined,
 			criticProvider: undefined,
 			excludeStatusIds: undefined,
-			pageSize: 50,
+			pageSize: undefined,
 		})
 	}
 

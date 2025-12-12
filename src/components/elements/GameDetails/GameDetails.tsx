@@ -9,11 +9,7 @@ import { EditableMultiSelect } from '../EditableMultiSelect/EditableMultiSelect'
 import { useGames } from '@/hooks'
 import { useAppSelector } from '@/store/hooks'
 import { useFormik } from 'formik'
-import {
-	getCriticScoreUrl,
-	resolveEffectiveProvider,
-	type CriticProvider,
-} from '@/helpers/criticScoreHelper'
+import { getCriticScoreUrl, getCriticProviderIdFromName, getCriticProviderNameFromId } from '@/helpers/criticScoreHelper'
 import { store } from '@/store'
 
 interface GameDetailsProps {
@@ -307,15 +303,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 					<div className='game-details-content-infoList-item'>
 						<h4>Critic Logo</h4>
 						<EditableSelect
-							value={
-								formik.values.criticProvider
-									? formik.values.criticProvider === 'Metacritic'
-										? 1
-										: formik.values.criticProvider === 'OpenCritic'
-										? 2
-										: 3
-									: undefined
-							}
+							value={getCriticProviderIdFromName(formik.values.criticProvider)}
 							displayValue={formik.values.criticProvider ?? 'Default'}
 							options={[
 								{ id: 0, name: 'Default', color: undefined },
@@ -327,8 +315,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 								if (value === 0 || value === undefined) {
 									await saveField('criticProvider', null)
 								} else {
-									const provider =
-										value === 1 ? 'Metacritic' : value === 2 ? 'OpenCritic' : 'SteamDB'
+									const provider = getCriticProviderNameFromId(value)
 									await saveField('criticProvider', provider)
 								}
 							}}

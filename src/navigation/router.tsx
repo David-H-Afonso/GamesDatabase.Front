@@ -89,7 +89,11 @@ export const router = createHashRouter([
 			},
 			{
 				path: 'preferences',
-				element: <AdminPreferences />,
+				element: (
+					<ProtectedRoute>
+						<AdminPreferences />
+					</ProtectedRoute>
+				),
 			},
 		],
 	},

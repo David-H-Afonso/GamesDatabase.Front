@@ -26,7 +26,7 @@ export const AdminPreferences = () => {
 			setUseScoreColors(user.useScoreColors ?? false)
 			setScoreProvider(user.scoreProvider ?? 'Metacritic')
 		}
-	}, [user?.useScoreColors, user?.scoreProvider])
+	}, [user])
 
 	const handleToggleScoreColors = async (checked: boolean) => {
 		if (!user?.id) return
@@ -37,10 +37,10 @@ export const AdminPreferences = () => {
 
 		try {
 			await dispatch(updateUserPreferences({ userId: user.id, useScoreColors: checked })).unwrap()
-			setSaveMessage('Preferences saved successfully')
+			setSaveMessage('Score colors preference saved')
 			setTimeout(() => setSaveMessage(null), 3000)
 		} catch (error) {
-			setSaveMessage('Failed to save preferences')
+			setSaveMessage('Failed to save score colors preference')
 			setUseScoreColors(!checked) // Revert on error
 			setTimeout(() => setSaveMessage(null), 3000)
 		} finally {
@@ -57,10 +57,10 @@ export const AdminPreferences = () => {
 
 		try {
 			await dispatch(updateUserPreferences({ userId: user.id, scoreProvider: provider })).unwrap()
-			setSaveMessage('Preferences saved successfully')
+			setSaveMessage('Score provider preference saved')
 			setTimeout(() => setSaveMessage(null), 3000)
 		} catch (error) {
-			setSaveMessage('Failed to save preferences')
+			setSaveMessage('Failed to save score provider preference')
 			setScoreProvider(user.scoreProvider ?? 'Metacritic') // Revert on error
 			setTimeout(() => setSaveMessage(null), 3000)
 		} finally {
