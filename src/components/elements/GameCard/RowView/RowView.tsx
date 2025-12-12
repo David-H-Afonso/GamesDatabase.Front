@@ -7,6 +7,7 @@ import { EditableMultiSelect } from '../../EditableMultiSelect/EditableMultiSele
 import { OptimizedImage } from '@/components/elements'
 import { useAppSelector } from '@/store/hooks'
 import PortalDropdown from '../../PortalDropdown'
+import { getCriticScoreUrl } from '@/helpers/criticScoreHelper'
 
 interface RowViewProps {
 	game: Game
@@ -58,24 +59,10 @@ const RowView: FC<RowViewProps> = (props) => {
 	// Use per-game provider if set, otherwise fall back to user preference
 	const effectiveProvider = game.criticProvider ?? userScoreProvider
 
-	// Get search URL based on provider
-	const getSearchUrl = (gameName: string, provider: string): string => {
-		const query = encodeURIComponent(gameName)
-		switch (provider) {
-			case 'OpenCritic':
-				return `https://opencritic.com/search?q=${query}`
-			case 'SteamDB':
-				return `https://steamdb.info/search/?a=app&q=${query}`
-			case 'Metacritic':
-			default:
-				return `https://www.metacritic.com/search/${query}/`
-		}
-	}
-
 	const handleCriticScoreClick = (e: React.MouseEvent) => {
 		e.preventDefault()
 		e.stopPropagation()
-		const url = getSearchUrl(game.name, effectiveProvider)
+		const url = getCriticScoreUrl(game.name, effectiveProvider)
 		window.open(url, '_blank', 'noopener,noreferrer')
 	}
 

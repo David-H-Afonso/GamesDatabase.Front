@@ -11,6 +11,7 @@ import ScoreIcon from '@/assets/svgs/score.svg?react'
 import CriticIcon from '@/assets/svgs/critic.svg?react'
 import OpenCriticIcon from '@/assets/svgs/opencritic.svg?react'
 import SteamDBIcon from '@/assets/svgs/steamdb.svg?react'
+import { getCriticScoreUrl } from '@/helpers/criticScoreHelper'
 
 interface CardViewProps {
 	game: Game
@@ -72,24 +73,10 @@ const CardView: FC<CardViewProps> = (props) => {
 			? SteamDBIcon
 			: CriticIcon
 
-	// Get search URL based on provider
-	const getSearchUrl = (gameName: string, provider: string): string => {
-		const query = encodeURIComponent(gameName)
-		switch (provider) {
-			case 'OpenCritic':
-				return `https://opencritic.com/search?q=${query}`
-			case 'SteamDB':
-				return `https://steamdb.info/search/?a=app&q=${query}`
-			case 'Metacritic':
-			default:
-				return `https://www.metacritic.com/search/${query}/`
-		}
-	}
-
 	const handleCriticScoreClick = (e: React.MouseEvent) => {
 		e.preventDefault()
 		e.stopPropagation()
-		const url = getSearchUrl(game.name, effectiveProvider)
+		const url = getCriticScoreUrl(game.name, effectiveProvider)
 		window.open(url, '_blank', 'noopener,noreferrer')
 	}
 

@@ -9,6 +9,7 @@ import { EditableMultiSelect } from '../EditableMultiSelect/EditableMultiSelect'
 import { useGames } from '@/hooks'
 import { useAppSelector } from '@/store/hooks'
 import { useFormik } from 'formik'
+import { getCriticScoreUrl } from '@/helpers/criticScoreHelper'
 
 interface GameDetailsProps {
 	game: Game
@@ -280,7 +281,8 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 							className='clickable'
 							onClick={() => {
 								if (!game.name) return
-								const url = `https://www.metacritic.com/search/${encodeURIComponent(game.name)}/`
+								const provider = game.criticProvider ?? 'Metacritic'
+								const url = getCriticScoreUrl(game.name, provider)
 								window.open(url, '_blank', 'noopener')
 							}}>
 							Critic Score
