@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import type { Game } from '@/models/api/Game'
 import './GameDetails.scss'
-import { formatToLocaleDate, useClickOutside, getCriticProviderIdFromName, getCriticProviderNameFromId } from '@/utils'
+import { formatToLocaleDate, useClickOutside } from '@/utils'
 import DeleteIcon from '@/assets/svgs/trashbin.svg?react'
 import { EditableField, OptimizedImage } from '@/components/elements'
 import { EditableSelect } from '../EditableSelect/EditableSelect'
@@ -9,7 +9,7 @@ import { EditableMultiSelect } from '../EditableMultiSelect/EditableMultiSelect'
 import { useGames } from '@/hooks'
 import { useAppSelector } from '@/store/hooks'
 import { useFormik } from 'formik'
-import { getCriticScoreUrl } from '@/helpers/criticScoreHelper'
+import { getCriticScoreUrl, getCriticProviderIdFromName, getCriticProviderNameFromId } from '@/helpers/criticScoreHelper'
 
 interface GameDetailsProps {
 	game: Game
