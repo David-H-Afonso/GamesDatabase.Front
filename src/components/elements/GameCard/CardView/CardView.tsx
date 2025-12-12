@@ -11,7 +11,11 @@ import ScoreIcon from '@/assets/svgs/score.svg?react'
 import CriticIcon from '@/assets/svgs/critic.svg?react'
 import OpenCriticIcon from '@/assets/svgs/opencritic.svg?react'
 import SteamDBIcon from '@/assets/svgs/steamdb.svg?react'
-import { getCriticScoreUrl } from '@/helpers/criticScoreHelper'
+import {
+	getCriticScoreUrl,
+	resolveEffectiveProvider,
+	type CriticProvider,
+} from '@/helpers/criticScoreHelper'
 
 interface CardViewProps {
 	game: Game
@@ -54,12 +58,15 @@ const CardView: FC<CardViewProps> = (props) => {
 	const useScoreColors = useAppSelector((state) => state.auth.user?.useScoreColors ?? false)
 	const userScoreProvider = useAppSelector(
 		(state) => state.auth.user?.scoreProvider ?? 'Metacritic'
-	)
+	) as CriticProvider
 
 	const released = formatToLocaleDate(game.released)
 
 	// Use per-game provider if set, otherwise fall back to user preference
-	const effectiveProvider = game.criticProvider ?? userScoreProvider
+	const effectiveProvider = resolveEffectiveProvider(
+		game.criticProvider as CriticProvider | undefined,
+		userScoreProvider
+	)
 
 	// Get critic score color if enabled
 	const criticScoreColor =

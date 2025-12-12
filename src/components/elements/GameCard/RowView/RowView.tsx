@@ -7,7 +7,11 @@ import { EditableMultiSelect } from '../../EditableMultiSelect/EditableMultiSele
 import { OptimizedImage } from '@/components/elements'
 import { useAppSelector } from '@/store/hooks'
 import PortalDropdown from '../../PortalDropdown'
-import { getCriticScoreUrl } from '@/helpers/criticScoreHelper'
+import {
+	getCriticScoreUrl,
+	resolveEffectiveProvider,
+	type CriticProvider,
+} from '@/helpers/criticScoreHelper'
 
 interface RowViewProps {
 	game: Game
@@ -54,10 +58,13 @@ const RowView: FC<RowViewProps> = (props) => {
 	const useScoreColors = useAppSelector((state) => state.auth.user?.useScoreColors ?? false)
 	const userScoreProvider = useAppSelector(
 		(state) => state.auth.user?.scoreProvider ?? 'Metacritic'
-	)
+	) as CriticProvider
 
 	// Use per-game provider if set, otherwise fall back to user preference
-	const effectiveProvider = game.criticProvider ?? userScoreProvider
+	const effectiveProvider = resolveEffectiveProvider(
+		game.criticProvider as CriticProvider | undefined,
+		userScoreProvider
+	)
 
 	const handleCriticScoreClick = (e: React.MouseEvent) => {
 		e.preventDefault()
