@@ -1,7 +1,70 @@
 import { environment } from '@/environments'
 import { store } from '@/store'
+import { forceLogout } from '@/store/features/auth/authSlice'
+import { persistor } from '@/store'
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS'
+
+// Flag to prevent multiple simultaneous logout operations
+let isHandlingUnauthorized = false
+
+// AbortController to cancel all pending requests on logout
+const pendingRequests = new Set<AbortController>()
+
+/**
+ * Handle unauthorized access (401) - clear all state and redirect to login
+ */
+const handleUnauthorizedAccess = () => {
+	// Prevent multiple simultaneous logout operations
+	if (isHandlingUnauthorized) {
+		return
+	}
+
+	isHandlingUnauthorized = true
+	const currentPath = window.location.pathname
+
+	// Cancel all pending requests to stop infinite loops
+	pendingRequests.forEach((controller) => {
+		try {
+			controller.abort('Session expired')
+		} catch (error) {
+			// Ignore abort errors
+		}
+	})
+	pendingRequests.clear()
+
+	// Only redirect if not already on login page
+	if (!currentPath.includes('/login')) {
+		console.warn('Session expired - redirecting to login and clearing all state')
+
+		// 1. Dispatch logout action to Redux
+		store.dispatch(forceLogout())
+
+		// 2. Purge redux-persist storage completely
+		persistor.purge().catch(() => {
+			// Fallback: manually clear localStorage
+			localStorage.removeItem('persist:root')
+		})
+
+		// 3. Clear any other storage
+		sessionStorage.clear()
+
+		// 4. Clear any IndexedDB or other storage
+		try {
+			localStorage.clear()
+		} catch (error) {
+			// Ignore errors
+		}
+
+		// 5. Redirect to login (without reload to avoid loops)
+		setTimeout(() => {
+			isHandlingUnauthorized = false
+			window.location.hash = '#/login'
+		}, 100)
+	} else {
+		isHandlingUnauthorized = false
+	}
+}
 
 type CustomFetchOptions = {
 	method?: HttpMethod
@@ -97,13 +160,23 @@ export const customFetch = async <T = any>(
 	// Get token from Redux store
 	const token = store.getState().auth.token
 
+	// Create or use existing AbortController to track this request
+	let controller: AbortController | undefined
+	let signalToUse = abortSignal
+
+	if (!abortSignal) {
+		controller = new AbortController()
+		signalToUse = controller.signal
+		pendingRequests.add(controller)
+	}
+
 	const fetchConfiguration: RequestInit = {
 		method,
 		headers: {
 			...customHeaders,
 			...(token && { Authorization: `Bearer ${token}` }),
 		},
-		signal: abortSignal,
+		signal: signalToUse,
 	}
 
 	if (requestBody !== undefined && method !== 'GET' && method !== 'HEAD') {
@@ -128,26 +201,9 @@ export const customFetch = async <T = any>(
 
 		if (!httpResponse.ok) {
 			if (httpResponse.status === 401) {
-				// Avoid multiple simultaneous redirects
-				const isRedirecting = sessionStorage.getItem('isRedirectingToLogin')
-				const currentPath = window.location.pathname
-
-				if (!isRedirecting && !currentPath.includes('/login')) {
-					sessionStorage.setItem('isRedirectingToLogin', 'true')
-
-					// Clear Redux persist
-					localStorage.removeItem('persist:root')
-
-					// Use setTimeout to avoid interrupting other operations
-					setTimeout(() => {
-						sessionStorage.removeItem('isRedirectingToLogin')
-						// Force full page reload to reset Redux state
-						window.location.href = '/#/login'
-						window.location.reload()
-					}, 100)
-				}
-
-				throw new Error('Authentication expired. Please login again.')
+				// Handle token expiration - redirect to login and clear all state
+				handleUnauthorizedAccess()
+				throw new Error('Session expired. Please login again.')
 			}
 
 			const errorMessage =
@@ -158,9 +214,19 @@ export const customFetch = async <T = any>(
 
 		return responseData as T
 	} catch (fetchError) {
+		// Check if request was aborted due to logout
+		if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+			throw new Error('Request cancelled')
+		}
+
 		if (fetchError instanceof Error) {
 			throw new Error(`Request failed for ${method} ${completeUrl}: ${fetchError.message}`)
 		}
 		throw fetchError
+	} finally {
+		// Clean up: remove controller from pending requests
+		if (controller) {
+			pendingRequests.delete(controller)
+		}
 	}
 }
