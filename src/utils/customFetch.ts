@@ -45,7 +45,9 @@ const handleUnauthorizedAccess = () => {
 		store.dispatch(forceLogout())
 
 		// 2. Purge redux-persist storage completely
-		persistor.purge()
+		persistor.purge().catch((error) => {
+			console.error('Failed to purge persisted state:', error)
+		})
 
 		// 3. Clear any other storage
 		sessionStorage.clear()
