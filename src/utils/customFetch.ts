@@ -2,6 +2,7 @@ import { environment } from '@/environments'
 import { store } from '@/store'
 import { forceLogout } from '@/store/features/auth/authSlice'
 import { persistor } from '@/store'
+import { router } from '@/navigation/router'
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS'
 
@@ -10,6 +11,9 @@ let isHandlingUnauthorized = false
 
 // AbortController to cancel all pending requests on logout
 const pendingRequests = new Set<AbortController>()
+
+// Delay before redirect to allow state cleanup to complete
+const REDIRECT_DELAY_MS = 100
 
 /**
  * Handle unauthorized access (401) - clear all state and redirect to login
@@ -41,9 +45,8 @@ const handleUnauthorizedAccess = () => {
 		store.dispatch(forceLogout())
 
 		// 2. Purge redux-persist storage completely
-		persistor.purge().catch(() => {
-			// Fallback: manually clear localStorage
-			localStorage.removeItem('persist:root')
+		persistor.purge().catch((error) => {
+			console.error('Failed to purge persisted state:', error)
 		})
 
 		// 3. Clear any other storage
@@ -56,11 +59,11 @@ const handleUnauthorizedAccess = () => {
 			// Ignore errors
 		}
 
-		// 5. Redirect to login (without reload to avoid loops)
+		// 5. Redirect to login using router navigation
 		setTimeout(() => {
 			isHandlingUnauthorized = false
-			window.location.hash = '#/login'
-		}, 100)
+			router.navigate('/login')
+		}, REDIRECT_DELAY_MS)
 	} else {
 		isHandlingUnauthorized = false
 	}
@@ -160,14 +163,22 @@ export const customFetch = async <T = any>(
 	// Get token from Redux store
 	const token = store.getState().auth.token
 
-	// Create or use existing AbortController to track this request
-	let controller: AbortController | undefined
-	let signalToUse = abortSignal
+	// Always create a controller to track this request in pendingRequests
+	const controller = new AbortController()
+	pendingRequests.add(controller)
 
-	if (!abortSignal) {
-		controller = new AbortController()
-		signalToUse = controller.signal
-		pendingRequests.add(controller)
+	// If caller provided their own signal, link it to our controller
+	const signalToUse = controller.signal
+	if (abortSignal) {
+		// If the caller's signal is already aborted, abort our controller too
+		if (abortSignal.aborted) {
+			controller.abort(abortSignal.reason)
+		} else {
+			// Listen for abort on the caller's signal and forward it to our controller
+			abortSignal.addEventListener('abort', () => {
+				controller.abort(abortSignal.reason)
+			})
+		}
 	}
 
 	const fetchConfiguration: RequestInit = {
@@ -225,8 +236,6 @@ export const customFetch = async <T = any>(
 		throw fetchError
 	} finally {
 		// Clean up: remove controller from pending requests
-		if (controller) {
-			pendingRequests.delete(controller)
-		}
+		pendingRequests.delete(controller)
 	}
 }
