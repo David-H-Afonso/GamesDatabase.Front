@@ -11,15 +11,7 @@ import BulkEditModal, { type BulkEditData } from './BulkEditModal'
 import './HomeComponent.scss'
 
 const HomeComponent = () => {
-	const {
-		games,
-		error,
-		pagination,
-		fetchGamesList,
-		refreshGames,
-		deleteGameById,
-		bulkUpdateGamesById,
-	} = useGames()
+	const { games, error, pagination, fetchGamesList, refreshGames, deleteGameById, bulkUpdateGamesById } = useGames()
 	const { publicGameViews, loadPublicGameViews } = useGameViews()
 
 	const dispatch = useAppDispatch()
@@ -78,9 +70,7 @@ const HomeComponent = () => {
 
 				// If we've exceeded max retries, fallback to default view
 				if (retryCount >= MAX_RETRIES) {
-					console.error(
-						`View "${viewMode}" failed ${MAX_RETRIES} times. Falling back to default view.`
-					)
+					console.error(`View "${viewMode}" failed ${MAX_RETRIES} times. Falling back to default view.`)
 					setViewError(`Failed to load view "${viewMode}". Switched to default view.`)
 					dispatch(setViewMode('default'))
 					retryCountRef.current.delete(viewMode)
@@ -128,9 +118,7 @@ const HomeComponent = () => {
 	}, [viewError])
 
 	const toggleGameSelection = (gameId: number, isSelected: boolean) => {
-		setSelectedGames((prev) =>
-			isSelected ? [...prev, gameId] : prev.filter((id) => id !== gameId)
-		)
+		setSelectedGames((prev) => (isSelected ? [...prev, gameId] : prev.filter((id) => id !== gameId)))
 	}
 
 	const handleSelectAll = () => {
@@ -151,8 +139,7 @@ const HomeComponent = () => {
 
 	const handlePageChange = (newPage: number) => setFilters({ ...filters, page: newPage })
 	const handleSearchChange = (search: string) => setFilters({ ...filters, search, page: 1 })
-	const handleSortChange = (sortBy: string, sortDescending: boolean) =>
-		setFilters({ ...filters, sortBy, sortDescending })
+	const handleSortChange = (sortBy: string, sortDescending: boolean) => setFilters({ ...filters, sortBy, sortDescending })
 
 	const handleDeleteGame = async (id: number) => {
 		if (!window.confirm('Are you sure you want to delete this game?')) return
@@ -188,10 +175,7 @@ const HomeComponent = () => {
 			{viewError && (
 				<div className='home-component__alert home-component__alert--warning'>
 					<span>{viewError}</span>
-					<button
-						className='home-component__alert-close'
-						onClick={() => setViewError(null)}
-						aria-label='Close alert'>
+					<button className='home-component__alert-close' onClick={() => setViewError(null)} aria-label='Close alert'>
 						×
 					</button>
 				</div>
@@ -245,8 +229,7 @@ const HomeComponent = () => {
 
 					{(() => {
 						const list = games
-						if (!list || list.length === 0)
-							return <p className='home-component__no-games'>No games found.</p>
+						if (!list || list.length === 0) return <p className='home-component__no-games'>No games found.</p>
 						return list.map((game: any) => (
 							<GameCard
 								key={game.id}
@@ -262,30 +245,19 @@ const HomeComponent = () => {
 				</div>
 
 				<div className='pagination-controls'>
-					<button
-						className='pagination-btn'
-						disabled={pagination.page <= 1}
-						onClick={() => handlePageChange(pagination.page - 1)}>
+					<button className='pagination-btn' disabled={pagination.page <= 1} onClick={() => handlePageChange(pagination.page - 1)}>
 						&lt;
 					</button>
 					<span className='pagination-info'>
 						Página {pagination.page} de {pagination.totalPages} ({pagination.totalCount} juegos)
 					</span>
-					<button
-						className='pagination-btn'
-						disabled={pagination.page >= pagination.totalPages}
-						onClick={() => handlePageChange(pagination.page + 1)}>
+					<button className='pagination-btn' disabled={pagination.page >= pagination.totalPages} onClick={() => handlePageChange(pagination.page + 1)}>
 						&gt;
 					</button>
 				</div>
 			</div>
 
-			<BulkEditModal
-				isOpen={bulkEditOpen}
-				onClose={() => setBulkEditOpen(false)}
-				selectedCount={selectedGames.length}
-				onSave={handleBulkEdit}
-			/>
+			<BulkEditModal isOpen={bulkEditOpen} onClose={() => setBulkEditOpen(false)} selectedCount={selectedGames.length} onSave={handleBulkEdit} />
 		</div>
 	)
 }

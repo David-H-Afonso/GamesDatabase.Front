@@ -35,14 +35,7 @@ export const environment = {
 		maxPageSize: 200,
 	},
 	cors: {
-		allowedOrigins: [
-			'localhost:3000',
-			'localhost:4200',
-			'localhost:8080',
-			'192.168.0.32:3000',
-			'192.168.0.32:4200',
-			'192.168.0.32:8080',
-		],
+		allowedOrigins: ['localhost:3000', 'localhost:4200', 'localhost:8080', '192.168.0.32:3000', '192.168.0.32:4200', '192.168.0.32:8080'],
 	},
 	auth: {
 		defaultUsername: 'Admin',

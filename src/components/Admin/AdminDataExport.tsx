@@ -90,14 +90,8 @@ export const AdminDataExport: React.FC = () => {
 				- Platforms: ${catalogStats.platforms.imported} new, ${catalogStats.platforms.updated} updated
 				- Statuses: ${catalogStats.statuses.imported} new, ${catalogStats.statuses.updated} updated
 				- PlayWith: ${catalogStats.playWiths.imported} new, ${catalogStats.playWiths.updated} updated
-				- PlayedStatuses: ${catalogStats.playedStatuses.imported} new, ${
-				catalogStats.playedStatuses.updated
-			} updated
-				${
-					result.views
-						? `\n\t\t\t\t- Views: ${result.views.imported} new, ${result.views.updated} updated`
-						: ''
-				}
+				- PlayedStatuses: ${catalogStats.playedStatuses.imported} new, ${catalogStats.playedStatuses.updated} updated
+				${result.views ? `\n\t\t\t\t- Views: ${result.views.imported} new, ${result.views.updated} updated` : ''}
 				
 				Games: ${gameStats.imported} new, ${gameStats.updated} updated
 				
@@ -239,18 +233,15 @@ Actualización de URLs de imágenes completada:
 				<div className='section full-export-section highlight-section'>
 					<h2>🗄️ Exportar e Importar Base de Datos</h2>
 					<p className='section-description'>
-						Exporta o importa <strong>toda la base de datos</strong> incluyendo juegos y todos los
-						catálogos (Platforms, Status, PlayWith, PlayedStatus) con sus colores y configuración.
+						Exporta o importa <strong>toda la base de datos</strong> incluyendo juegos y todos los catálogos (Platforms, Status, PlayWith, PlayedStatus) con sus colores y
+						configuración.
 					</p>
 
 					<div className='action-group'>
 						<div className='action-item'>
 							<h3>Exportar Base de Datos Completa (CSV)</h3>
 							<p>Descarga un backup completo en formato CSV único con todos tus datos.</p>
-							<button
-								className='btn btn-primary btn-large'
-								onClick={handleExportFullDatabase}
-								disabled={loading}>
+							<button className='btn btn-primary btn-large' onClick={handleExportFullDatabase} disabled={loading}>
 								{loading ? '⏳ Exportando...' : '📥 Exportar CSV'}
 							</button>
 						</div>
@@ -258,24 +249,12 @@ Actualización de URLs de imágenes completada:
 						<div className='action-item'>
 							<h3>Importar Base de Datos Completa (CSV)</h3>
 							<p>
-								<strong>Modo MERGE:</strong> Actualiza registros existentes y crea nuevos. Los datos
-								que no están en el CSV se mantienen intactos.
+								<strong>Modo MERGE:</strong> Actualiza registros existentes y crea nuevos. Los datos que no están en el CSV se mantienen intactos.
 							</p>
-							<small className='help-text'>
-								⚠️ El CSV debe incluir columna "Type" (Platform/Status/PlayWith/PlayedStatus/Game)
-							</small>
+							<small className='help-text'>⚠️ El CSV debe incluir columna "Type" (Platform/Status/PlayWith/PlayedStatus/Game)</small>
 							<div className='file-input-container'>
-								<input
-									type='file'
-									accept='.csv'
-									onChange={handleImportFullDatabase}
-									disabled={loading}
-									id='csv-full-import'
-									className='file-input'
-								/>
-								<label
-									htmlFor='csv-full-import'
-									className='file-input-label btn btn-success btn-large'>
+								<input type='file' accept='.csv' onChange={handleImportFullDatabase} disabled={loading} id='csv-full-import' className='file-input' />
+								<label htmlFor='csv-full-import' className='file-input-label btn btn-success btn-large'>
 									{loading ? '⏳ Importando...' : '📤 Importar CSV'}
 								</label>
 							</div>
@@ -321,18 +300,13 @@ Actualización de URLs de imágenes completada:
 				{isLocalEnvironment && (
 					<div className='section network-sync-section'>
 						<h2>🌐 Sincronizar a Red</h2>
-						<p className='section-description'>
-							Sincroniza la base de datos y las imágenes a una ubicación de red compartida.
-						</p>
+						<p className='section-description'>Sincroniza la base de datos y las imágenes a una ubicación de red compartida.</p>
 
 						<div className='action-group'>
 							<div className='action-item'>
 								<h3>Sincronizar Todo (Full)</h3>
 								<p>Sincroniza toda la base de datos con todas las imágenes a la red.</p>
-								<button
-									className='btn btn-success btn-large'
-									onClick={() => handleSyncToNetwork(true)}
-									disabled={loading}>
+								<button className='btn btn-success btn-large' onClick={() => handleSyncToNetwork(true)} disabled={loading}>
 									{loading ? '⏳ Sincronizando...' : '🌐 Sync Full'}
 								</button>
 							</div>
@@ -340,10 +314,7 @@ Actualización de URLs de imágenes completada:
 							<div className='action-item'>
 								<h3>Sincronizar Solo Actualizado (Parcial)</h3>
 								<p>Sincroniza únicamente los datos y las imágenes que han sido modificados.</p>
-								<button
-									className='btn btn-secondary btn-large'
-									onClick={() => handleSyncToNetwork(false)}
-									disabled={loading}>
+								<button className='btn btn-secondary btn-large' onClick={() => handleSyncToNetwork(false)} disabled={loading}>
 									{loading ? '⏳ Sincronizando...' : '🌐 Sync Parcial'}
 								</button>
 							</div>
@@ -354,23 +325,14 @@ Actualización de URLs de imágenes completada:
 				{isLocalEnvironment && (
 					<div className='section folder-analysis-section'>
 						<h2>📁 Análisis de Carpetas</h2>
-						<p className='section-description'>
-							Detecta duplicados potenciales y carpetas huérfanas comparando la base de datos con el
-							sistema de archivos.
-						</p>
+						<p className='section-description'>Detecta duplicados potenciales y carpetas huérfanas comparando la base de datos con el sistema de archivos.</p>
 
 						<div className='action-group'>
-							<button
-								className='btn btn-primary btn-large'
-								onClick={handleAnalyzeFolders}
-								disabled={analyzingFolders}>
+							<button className='btn btn-primary btn-large' onClick={handleAnalyzeFolders} disabled={analyzingFolders}>
 								{analyzingFolders ? '⏳ Analizando...' : '🔍 Analizar Carpetas'}
 							</button>
 
-							<button
-								className='btn btn-warning btn-large'
-								onClick={handleUpdateImageUrls}
-								disabled={loading}>
+							<button className='btn btn-warning btn-large' onClick={handleUpdateImageUrls} disabled={loading}>
 								{loading ? '⏳ Actualizando...' : '🔄 Actualizar URLs de Imágenes'}
 							</button>
 						</div>
@@ -386,20 +348,11 @@ Actualización de URLs de imágenes completada:
 										</div>
 										<div className='summary-item'>
 											<span className='summary-label'>Carpetas en Disco:</span>
-											<span className='summary-value'>
-												{analysisResult.totalFoldersInFilesystem}
-											</span>
+											<span className='summary-value'>{analysisResult.totalFoldersInFilesystem}</span>
 										</div>
 										<div className='summary-item'>
 											<span className='summary-label'>Diferencia:</span>
-											<span
-												className={`summary-value ${
-													analysisResult.difference > 0
-														? 'warning'
-														: analysisResult.difference < 0
-														? 'error'
-														: 'success'
-												}`}>
+											<span className={`summary-value ${analysisResult.difference > 0 ? 'warning' : analysisResult.difference < 0 ? 'error' : 'success'}`}>
 												{analysisResult.difference > 0 && '+'}
 												{analysisResult.difference}
 											</span>
@@ -431,9 +384,7 @@ Actualización de URLs de imágenes completada:
 								{analysisResult.orphanFolders.length > 0 && (
 									<div className='orphans-section'>
 										<h3>👻 Carpetas Huérfanas ({analysisResult.orphanFolders.length})</h3>
-										<p className='section-note'>
-											Carpetas que no corresponden a ningún juego en la base de datos
-										</p>
+										<p className='section-note'>Carpetas que no corresponden a ningún juego en la base de datos</p>
 										<ul className='folder-list'>
 											{analysisResult.orphanFolders.map((orphan, idx) => (
 												<li key={idx}>
@@ -444,17 +395,12 @@ Actualización de URLs de imágenes completada:
 									</div>
 								)}
 
-								{analysisResult.potentialDuplicates.length === 0 &&
-									analysisResult.orphanFolders.length === 0 &&
-									analysisResult.difference === 0 && (
-										<div className='analysis-success'>
-											<h3>✅ Todo Correcto</h3>
-											<p>
-												No se encontraron duplicados ni carpetas huérfanas. La base de datos y el
-												sistema de archivos están sincronizados.
-											</p>
-										</div>
-									)}
+								{analysisResult.potentialDuplicates.length === 0 && analysisResult.orphanFolders.length === 0 && analysisResult.difference === 0 && (
+									<div className='analysis-success'>
+										<h3>✅ Todo Correcto</h3>
+										<p>No se encontraron duplicados ni carpetas huérfanas. La base de datos y el sistema de archivos están sincronizados.</p>
+									</div>
+								)}
 							</div>
 						)}
 					</div>
@@ -482,8 +428,7 @@ Actualización de URLs de imágenes completada:
 						<h3>📤 Importar Base de Datos (Modo MERGE)</h3>
 						<ul>
 							<li>
-								<strong>Actualiza</strong> registros existentes con los datos del CSV
-								(identificación por nombre)
+								<strong>Actualiza</strong> registros existentes con los datos del CSV (identificación por nombre)
 							</li>
 							<li>
 								<strong>Crea</strong> nuevos registros que no existen en la base de datos
@@ -501,24 +446,19 @@ Actualización de URLs de imágenes completada:
 						<h3>💡 Casos de Uso</h3>
 						<ul>
 							<li>
-								<strong>Backup y Restauración:</strong> Exporta regularmente → Guarda el CSV →
-								Importa cuando necesites restaurar
+								<strong>Backup y Restauración:</strong> Exporta regularmente → Guarda el CSV → Importa cuando necesites restaurar
 							</li>
 							<li>
-								<strong>Migración:</strong> Exporta de una instancia → Importa en otra (modo MERGE
-								combina datos automáticamente)
+								<strong>Migración:</strong> Exporta de una instancia → Importa en otra (modo MERGE combina datos automáticamente)
 							</li>
 							<li>
-								<strong>Sincronización entre equipos:</strong> Exporta cambios de un equipo →
-								Importa en otros (los datos únicos de cada equipo se mantienen)
+								<strong>Sincronización entre equipos:</strong> Exporta cambios de un equipo → Importa en otros (los datos únicos de cada equipo se mantienen)
 							</li>
 							<li>
-								<strong>Edición masiva:</strong> Exporta → Edita en Excel/LibreOffice → Reimporta
-								(actualiza solo lo modificado en el CSV)
+								<strong>Edición masiva:</strong> Exporta → Edita en Excel/LibreOffice → Reimporta (actualiza solo lo modificado en el CSV)
 							</li>
 							<li>
-								<strong>Compartir configuración:</strong> Exporta tus catálogos personalizados →
-								Comparte con otros usuarios
+								<strong>Compartir configuración:</strong> Exporta tus catálogos personalizados → Comparte con otros usuarios
 							</li>
 						</ul>
 					</div>
@@ -527,16 +467,13 @@ Actualización de URLs de imágenes completada:
 						<h3>⚠️ Notas Importantes</h3>
 						<ul>
 							<li>
-								<strong>Identificación:</strong> Los registros se identifican por nombre
-								(case-insensitive, sin distinguir mayúsculas)
+								<strong>Identificación:</strong> Los registros se identifican por nombre (case-insensitive, sin distinguir mayúsculas)
 							</li>
 							<li>
-								<strong>Orden CSV:</strong> Los catálogos deben ir antes que los juegos en el
-								archivo
+								<strong>Orden CSV:</strong> Los catálogos deben ir antes que los juegos en el archivo
 							</li>
 							<li>
-								<strong>Columna Type:</strong> Obligatoria
-								(Platform/Status/PlayWith/PlayedStatus/Game)
+								<strong>Columna Type:</strong> Obligatoria (Platform/Status/PlayWith/PlayedStatus/Game)
 							</li>
 							<li>
 								<strong>Formato Fechas:</strong> Usar YYYY-MM-DD (ej: 2025-10-01) o dejar vacío
@@ -545,8 +482,7 @@ Actualización de URLs de imágenes completada:
 								<strong>Colores:</strong> Formato hexadecimal con # (ej: #2a475e)
 							</li>
 							<li>
-								<strong>Score:</strong> Se calcula automáticamente, no es necesario incluirlo en el
-								CSV
+								<strong>Score:</strong> Se calcula automáticamente, no es necesario incluirlo en el CSV
 							</li>
 							<li>
 								<strong>Valores booleanos:</strong> True/False para IsActive, IsDefault, etc.

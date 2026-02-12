@@ -7,8 +7,7 @@ import { ReorderButtons } from '@/components/elements/ReorderButtons/ReorderButt
 import './AdminGameViews.scss'
 
 export const AdminGameViews: React.FC = () => {
-	const { gameViews, loading, error, loadGameViews, loadGameViewById, deleteGameView } =
-		useGameViews()
+	const { gameViews, loading, error, loadGameViews, loadGameViewById, deleteGameView } = useGameViews()
 
 	const [isModalOpen, setIsModalOpen] = useState(false)
 	const [editingGameView, setEditingGameView] = useState<GameView | null>(null)
@@ -165,13 +164,7 @@ export const AdminGameViews: React.FC = () => {
 			)}
 
 			<div className='controls'>
-				<input
-					type='text'
-					placeholder='Buscar vistas...'
-					value={queryParams.search || ''}
-					onChange={(e) => handleSearchChange(e.target.value)}
-					className='search-input'
-				/>
+				<input type='text' placeholder='Buscar vistas...' value={queryParams.search || ''} onChange={(e) => handleSearchChange(e.target.value)} className='search-input' />
 			</div>
 
 			{loading ? (
@@ -210,9 +203,7 @@ export const AdminGameViews: React.FC = () => {
 											<button className='action-btn edit' onClick={() => handleOpenModal(gameView)}>
 												Editar
 											</button>
-											<button
-												className='action-btn delete'
-												onClick={() => handleDelete(gameView.id, gameView.name)}>
+											<button className='action-btn delete' onClick={() => handleDelete(gameView.id, gameView.name)}>
 												Eliminar
 											</button>
 										</td>
@@ -236,13 +227,7 @@ export const AdminGameViews: React.FC = () => {
 				</div>
 			)}
 
-			{isModalOpen && (
-				<GameViewModal
-					gameView={editingGameView}
-					onClose={handleCloseModal}
-					onSave={handleSaveComplete}
-				/>
-			)}
+			{isModalOpen && <GameViewModal gameView={editingGameView} onClose={handleCloseModal} onSave={handleSaveComplete} />}
 		</div>
 	)
 }

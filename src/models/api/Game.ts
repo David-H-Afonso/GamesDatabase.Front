@@ -68,19 +68,7 @@ export interface BulkUpdateResult {
 }
 
 // Query parameters for API requests
-export type SortByKey =
-	| 'name'
-	| 'grade'
-	| 'critic'
-	| 'released'
-	| 'started'
-	| 'score'
-	| 'storyDuration'
-	| 'completionDuration'
-	| 'status'
-	| 'createdat'
-	| 'updatedat'
-	| string
+export type SortByKey = 'name' | 'grade' | 'critic' | 'released' | 'started' | 'score' | 'storyDuration' | 'completionDuration' | 'status' | 'createdat' | 'updatedat' | string
 
 export interface QueryParameters {
 	page?: number

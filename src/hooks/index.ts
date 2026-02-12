@@ -5,10 +5,4 @@ export { useGamePlayWith } from './useGamePlayWith'
 export { useGamePlayedStatus } from './useGamePlayedStatus'
 export { useGameViews } from './useGameViews'
 export { useTheme } from './useTheme'
-export {
-	useIsElectron,
-	useAppVersion,
-	useApiUrl,
-	useElectronEnv,
-	useOpenExternal,
-} from './useElectron'
+export { useIsElectron, useAppVersion, useApiUrl, useElectronEnv, useOpenExternal } from './useElectron'

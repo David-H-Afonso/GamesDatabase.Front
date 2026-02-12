@@ -6,19 +6,10 @@ import {
 	updatePlayedStatus as updatePlayedStatusThunk,
 	deletePlayedStatus as deletePlayedStatusThunk,
 } from '@/store/features/gamePlayedStatus/thunk'
-import type {
-	GamePlayedStatusCreateDto,
-	GamePlayedStatusUpdateDto,
-} from '@/models/api/GamePlayedStatus'
+import type { GamePlayedStatusCreateDto, GamePlayedStatusUpdateDto } from '@/models/api/GamePlayedStatus'
 import type { QueryParameters } from '@/models/api/Game'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import {
-	selectPlayedStatuses,
-	selectActivePlayedStatuses,
-	selectPlayedLoading,
-	selectPlayedError,
-	selectPlayedPagination,
-} from '@/store/features/gamePlayedStatus/selector'
+import { selectPlayedStatuses, selectActivePlayedStatuses, selectPlayedLoading, selectPlayedError, selectPlayedPagination } from '@/store/features/gamePlayedStatus/selector'
 import { dispatchAndUnwrapAsync } from '@/utils'
 
 /**
@@ -50,10 +41,7 @@ export const useGamePlayedStatus = () => {
 	// Create a played-status entry
 	const createItem = useCallback(
 		async (payload: GamePlayedStatusCreateDto) => {
-			const result = (await dispatchAndUnwrapAsync(
-				dispatch,
-				createPlayedStatusThunk(payload)
-			)) as any
+			const result = (await dispatchAndUnwrapAsync(dispatch, createPlayedStatusThunk(payload))) as any
 			if ((result as any).isActive) await fetchActiveList()
 			return result
 		},
@@ -63,10 +51,7 @@ export const useGamePlayedStatus = () => {
 	// Update an entry
 	const updateItem = useCallback(
 		async (id: number, payload: GamePlayedStatusUpdateDto) => {
-			const updated = (await dispatchAndUnwrapAsync(
-				dispatch,
-				updatePlayedStatusThunk({ id, data: payload })
-			)) as any
+			const updated = (await dispatchAndUnwrapAsync(dispatch, updatePlayedStatusThunk({ id, data: payload }))) as any
 			await fetchActiveList()
 			return updated
 		},

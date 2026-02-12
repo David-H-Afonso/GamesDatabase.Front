@@ -31,27 +31,14 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, onLogou
 				</div>
 
 				<nav className='mobile-menu__nav'>
-					<Link
-						to='/'
-						className={`mobile-menu__link ${location.pathname === '/' ? 'active' : ''}`}
-						onClick={onClose}>
+					<Link to='/' className={`mobile-menu__link ${location.pathname === '/' ? 'active' : ''}`} onClick={onClose}>
 						Home
 					</Link>
-					<Link
-						to='/admin/platforms'
-						className={`mobile-menu__link ${
-							location.pathname.startsWith('/admin') ? 'active' : ''
-						}`}
-						onClick={onClose}>
+					<Link to='/admin/platforms' className={`mobile-menu__link ${location.pathname.startsWith('/admin') ? 'active' : ''}`} onClick={onClose}>
 						Admin
 					</Link>
 					{isAdmin && (
-						<Link
-							to='/admin/users'
-							className={`mobile-menu__link ${
-								location.pathname === '/admin/users' ? 'active' : ''
-							}`}
-							onClick={onClose}>
+						<Link to='/admin/users' className={`mobile-menu__link ${location.pathname === '/admin/users' ? 'active' : ''}`} onClick={onClose}>
 							Users
 						</Link>
 					)}

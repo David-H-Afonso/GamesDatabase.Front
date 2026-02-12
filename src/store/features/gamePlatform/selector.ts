@@ -25,5 +25,4 @@ export const selectPlatformFilters = (state: RootState) => selectState(state).fi
 export const selectPlatformState = (state: RootState) => selectState(state)
 
 // Selector for a specific platform by ID
-export const selectPlatformById = (state: RootState, id: number) =>
-	selectState(state).platforms.find((p) => p.id === id) || null
+export const selectPlatformById = (state: RootState, id: number) => selectState(state).platforms.find((p) => p.id === id) || null

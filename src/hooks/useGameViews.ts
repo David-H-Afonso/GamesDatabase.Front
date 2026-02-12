@@ -19,11 +19,7 @@ import {
 	setFilters,
 	resetFilters,
 } from '@/store/features/gameViews'
-import type {
-	GameViewCreateDto,
-	GameViewUpdateDto,
-	GameViewQueryParameters,
-} from '@/models/api/GameView'
+import type { GameViewCreateDto, GameViewUpdateDto, GameViewQueryParameters } from '@/models/api/GameView'
 import { dispatchAndUnwrapAsync } from '@/utils'
 
 /**

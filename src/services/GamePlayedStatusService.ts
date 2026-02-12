@@ -1,10 +1,6 @@
 import { customFetch } from '@/utils/customFetch'
 import { environment } from '@/environments'
-import type {
-	GamePlayedStatus,
-	GamePlayedStatusCreateDto,
-	GamePlayedStatusUpdateDto,
-} from '@/models/api/GamePlayedStatus'
+import type { GamePlayedStatus, GamePlayedStatusCreateDto, GamePlayedStatusUpdateDto } from '@/models/api/GamePlayedStatus'
 import type { QueryParameters, PagedResult } from '@/models/api/Game'
 
 const BASE = environment.apiRoutes.gamePlayedStatus.base
@@ -13,9 +9,7 @@ const BASE = environment.apiRoutes.gamePlayedStatus.base
  * Returns a paged list of game played statuses.
  * Supports pagination, filtering and sorting via `params`.
  */
-export const getGamePlayedStatuses = async (
-	params?: QueryParameters
-): Promise<PagedResult<GamePlayedStatus>> => {
+export const getGamePlayedStatuses = async (params?: QueryParameters): Promise<PagedResult<GamePlayedStatus>> => {
 	const endpoint = BASE
 	return await customFetch<PagedResult<GamePlayedStatus>>(endpoint, {
 		method: 'GET',
@@ -49,9 +43,7 @@ export const getGamePlayedStatusById = async (id: number): Promise<GamePlayedSta
 /**
  * Creates a new game played status and returns the created resource.
  */
-export const createGamePlayedStatus = async (
-	gamePlayedStatus: GamePlayedStatusCreateDto
-): Promise<GamePlayedStatus> => {
+export const createGamePlayedStatus = async (gamePlayedStatus: GamePlayedStatusCreateDto): Promise<GamePlayedStatus> => {
 	const endpoint = environment.apiRoutes.gamePlayedStatus.create
 	return await customFetch<GamePlayedStatus>(endpoint, {
 		method: 'POST',
@@ -63,10 +55,7 @@ export const createGamePlayedStatus = async (
 /**
  * Updates an existing game played status.
  */
-export const updateGamePlayedStatus = async (
-	id: number,
-	gamePlayedStatus: GamePlayedStatusUpdateDto
-): Promise<void> => {
+export const updateGamePlayedStatus = async (id: number, gamePlayedStatus: GamePlayedStatusUpdateDto): Promise<void> => {
 	const endpoint = environment.apiRoutes.gamePlayedStatus.update(id)
 	await customFetch<void>(endpoint, {
 		method: 'PUT',

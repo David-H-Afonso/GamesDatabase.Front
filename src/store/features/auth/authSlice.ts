@@ -16,32 +16,29 @@ const initialState: AuthState = {
 /**
  * Async thunk: Login user
  */
-export const loginUser = createAsyncThunk(
-	'auth/login',
-	async (credentials: LoginRequest, { rejectWithValue, dispatch }) => {
-		try {
-			const response = await authService.login(credentials)
+export const loginUser = createAsyncThunk('auth/login', async (credentials: LoginRequest, { rejectWithValue, dispatch }) => {
+	try {
+		const response = await authService.login(credentials)
 
-			// Add user to recent users list
-			dispatch(
-				addRecentUser({
-					username: credentials.username,
-					hasPassword: credentials.password.length > 0,
-				})
-			)
+		// Add user to recent users list
+		dispatch(
+			addRecentUser({
+				username: credentials.username,
+				hasPassword: credentials.password.length > 0,
+			})
+		)
 
-			// Load preferences immediately after login
-			await dispatch(fetchUserPreferences(response.userId))
+		// Load preferences immediately after login
+		await dispatch(fetchUserPreferences(response.userId))
 
-			return response
-		} catch (error) {
-			if (error instanceof Error) {
-				return rejectWithValue(error.message)
-			}
-			return rejectWithValue('Login failed')
+		return response
+	} catch (error) {
+		if (error instanceof Error) {
+			return rejectWithValue(error.message)
 		}
+		return rejectWithValue('Login failed')
 	}
-)
+})
 
 /**
  * Async thunk: Logout user
@@ -53,24 +50,21 @@ export const logoutUser = createAsyncThunk('auth/logout', async () => {
 /**
  * Async thunk: Fetch user preferences
  */
-export const fetchUserPreferences = createAsyncThunk(
-	'auth/fetchUserPreferences',
-	async (userId: number, { rejectWithValue }) => {
-		try {
-			const user = await userService.getUserById(userId)
-			return {
-				useScoreColors: user.useScoreColors,
-				scoreProvider: user.scoreProvider,
-				showPriceComparisonIcon: user.showPriceComparisonIcon,
-			}
-		} catch (error) {
-			if (error instanceof Error) {
-				return rejectWithValue(error.message)
-			}
-			return rejectWithValue('Failed to fetch user preferences')
+export const fetchUserPreferences = createAsyncThunk('auth/fetchUserPreferences', async (userId: number, { rejectWithValue }) => {
+	try {
+		const user = await userService.getUserById(userId)
+		return {
+			useScoreColors: user.useScoreColors,
+			scoreProvider: user.scoreProvider,
+			showPriceComparisonIcon: user.showPriceComparisonIcon,
 		}
+	} catch (error) {
+		if (error instanceof Error) {
+			return rejectWithValue(error.message)
+		}
+		return rejectWithValue('Failed to fetch user preferences')
 	}
-)
+})
 
 /**
  * Async thunk: Update user preferences
@@ -99,8 +93,7 @@ export const updateUserPreferences = createAsyncThunk(
 			} = {}
 			if (useScoreColors !== undefined) updates.useScoreColors = useScoreColors
 			if (scoreProvider !== undefined) updates.scoreProvider = scoreProvider
-			if (showPriceComparisonIcon !== undefined)
-				updates.showPriceComparisonIcon = showPriceComparisonIcon
+			if (showPriceComparisonIcon !== undefined) updates.showPriceComparisonIcon = showPriceComparisonIcon
 
 			await userService.updateUser(userId, updates)
 

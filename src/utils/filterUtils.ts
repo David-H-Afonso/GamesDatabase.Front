@@ -50,10 +50,7 @@ const areValuesEqual = (a: unknown, b: unknown): boolean => {
  * Compare two filter objects to determine if they are equivalent.
  * - Normalizes null to undefined to avoid false differences.
  */
-export const areFiltersEqual = (
-	filters1: GameQueryParameters | null,
-	filters2: GameQueryParameters | null
-): boolean => {
+export const areFiltersEqual = (filters1: GameQueryParameters | null, filters2: GameQueryParameters | null): boolean => {
 	// both empty -> equal
 	if (!filters1 && !filters2) return true
 

@@ -42,9 +42,7 @@ const parseHexColor = (input: string): [number, number, number] | null => {
  */
 const parseRgbColor = (input: string): [number, number, number] | null => {
 	// matches: rgb(255, 0, 100) or rgba(255,0,100,0.5) with optional spaces
-	const m = input
-		.trim()
-		.match(/^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,\s*[\d.]+\s*)?\)$/i)
+	const m = input.trim().match(/^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,\s*[\d.]+\s*)?\)$/i)
 	if (!m) return null
 
 	const r = clamp8(Number(m[1]))

@@ -23,17 +23,7 @@ interface Props {
 	onBulkEdit?: () => void
 }
 
-type PopoverKey =
-	| 'platform'
-	| 'playWith'
-	| 'status'
-	| 'playedStatus'
-	| 'grades'
-	| 'years'
-	| 'price'
-	| 'criticProvider'
-	| 'excluded'
-	| 'pageSize'
+type PopoverKey = 'platform' | 'playWith' | 'status' | 'playedStatus' | 'grades' | 'years' | 'price' | 'criticProvider' | 'excluded' | 'pageSize'
 
 const GameFiltersChips: React.FC<Props> = ({
 	filters,
@@ -66,9 +56,7 @@ const GameFiltersChips: React.FC<Props> = ({
 	const [platformOptions, setPlatformOptions] = useState<{ value: number; label: string }[]>([])
 	const [playWithOptions, setPlayWithOptions] = useState<{ value: number; label: string }[]>([])
 	const [statusOptions, setStatusOptions] = useState<{ value: number; label: string }[]>([])
-	const [playedStatusOptions, setPlayedStatusOptions] = useState<
-		{ value: number; label: string }[]
-	>([])
+	const [playedStatusOptions, setPlayedStatusOptions] = useState<{ value: number; label: string }[]>([])
 
 	// Load filter options
 	useEffect(() => {
@@ -88,15 +76,11 @@ const GameFiltersChips: React.FC<Props> = ({
 
 				const plat = await fetchPlatforms()
 				const platList = normalize(plat)
-				setPlatformOptions(
-					platList.map((p: any) => ({ value: p.id as number, label: String(p.name) }))
-				)
+				setPlatformOptions(platList.map((p: any) => ({ value: p.id as number, label: String(p.name) })))
 
 				const pw = await fetchPlayWithList()
 				const pwList = normalize(pw)
-				setPlayWithOptions(
-					pwList.map((p: any) => ({ value: p.id as number, label: String(p.name) }))
-				)
+				setPlayWithOptions(pwList.map((p: any) => ({ value: p.id as number, label: String(p.name) })))
 
 				const st = await fetchActiveStatusList()
 				const stList = normalize(st)
@@ -104,21 +88,12 @@ const GameFiltersChips: React.FC<Props> = ({
 
 				const ps = await fetchPlayedStatusList()
 				const psList = normalize(ps)
-				setPlayedStatusOptions(
-					psList.map((s: any) => ({ value: s.id as number, label: String(s.name) }))
-				)
+				setPlayedStatusOptions(psList.map((s: any) => ({ value: s.id as number, label: String(s.name) })))
 			} catch (err) {
 				console.error('Error loading filter options', err)
 			}
 		})()
-	}, [
-		fetchPlatforms,
-		fetchPlayWithList,
-		fetchActiveStatusList,
-		fetchPlayedStatusList,
-		currentUser?.id,
-		dispatch,
-	])
+	}, [fetchPlatforms, fetchPlayWithList, fetchActiveStatusList, fetchPlayedStatusList, currentUser?.id, dispatch])
 
 	// Close popover when clicking outside
 	useEffect(() => {
@@ -126,10 +101,7 @@ const GameFiltersChips: React.FC<Props> = ({
 			if (!popoverRef.current) return
 			const target = ev.target as Node
 			// Don't close if clicking inside popover or on any chip button
-			if (
-				popoverRef.current.contains(target) ||
-				(chipsContainerRef.current && chipsContainerRef.current.contains(target))
-			) {
+			if (popoverRef.current.contains(target) || (chipsContainerRef.current && chipsContainerRef.current.contains(target))) {
 				return
 			}
 			setOpenPopover(null)
@@ -188,9 +160,7 @@ const GameFiltersChips: React.FC<Props> = ({
 
 	const yearsLabel = () => {
 		const { releasedYear, startedYear, finishedYear } = filters
-		const years = [releasedYear, startedYear, finishedYear].filter(
-			(y): y is number => y !== undefined && y !== null
-		)
+		const years = [releasedYear, startedYear, finishedYear].filter((y): y is number => y !== undefined && y !== null)
 		if (years.length === 0) return 'Cualquier año'
 		if (years.length === 1) return `${years[0]}`
 		return `${Math.min(...years)} – ${Math.max(...years)}`
@@ -304,30 +274,19 @@ const GameFiltersChips: React.FC<Props> = ({
 			{/* SELECTION CONTROLS */}
 			{selectedCount > 0 && (
 				<div className='game-filters-chips__selection'>
-					<span className='game-filters-chips__selection-count'>
-						{selectedCount} seleccionado(s)
-					</span>
+					<span className='game-filters-chips__selection-count'>{selectedCount} seleccionado(s)</span>
 					{onDeselectAll && (
-						<button
-							type='button'
-							className='game-filters-chips__selection-btn'
-							onClick={onDeselectAll}>
+						<button type='button' className='game-filters-chips__selection-btn' onClick={onDeselectAll}>
 							Deseleccionar
 						</button>
 					)}
 					{onBulkEdit && (
-						<button
-							type='button'
-							className='game-filters-chips__selection-btn'
-							onClick={onBulkEdit}>
+						<button type='button' className='game-filters-chips__selection-btn' onClick={onBulkEdit}>
 							Editar
 						</button>
 					)}
 					{onBulkDelete && (
-						<button
-							type='button'
-							className='game-filters-chips__selection-btn game-filters-chips__selection-btn--danger'
-							onClick={onBulkDelete}>
+						<button type='button' className='game-filters-chips__selection-btn game-filters-chips__selection-btn--danger' onClick={onBulkDelete}>
 							Eliminar
 						</button>
 					)}
@@ -341,22 +300,14 @@ const GameFiltersChips: React.FC<Props> = ({
 						<label className='game-filters-chips__input-label' htmlFor='search-input'>
 							Buscar
 						</label>
-						<input
-							className='game-filters-chips__input-search'
-							placeholder='Buscar juegos…'
-							value={filters.search || ''}
-							onChange={(e) => onSearchChange(e.target.value)}
-						/>
+						<input className='game-filters-chips__input-search' placeholder='Buscar juegos…' value={filters.search || ''} onChange={(e) => onSearchChange(e.target.value)} />
 					</div>
 
 					<div className='game-filters-chips__field game-filters-chips__field--inline game-filters-chips__field--sort'>
 						<label className='game-filters-chips__input-label' htmlFor='sort-select'>
 							Ordenar por
 						</label>
-						<select
-							className='game-filters-chips__select-pill'
-							value={filters.sortBy || 'name'}
-							onChange={(e) => onSortChange(e.target.value, filters.sortDescending || false)}>
+						<select className='game-filters-chips__select-pill' value={filters.sortBy || 'name'} onChange={(e) => onSortChange(e.target.value, filters.sortDescending || false)}>
 							<option value='name'>Nombre</option>
 							<option value='grade'>Calificación</option>
 							<option value='critic'>Puntuación Crítica</option>
@@ -389,10 +340,7 @@ const GameFiltersChips: React.FC<Props> = ({
 					{onViewChange && (
 						<div className='game-filters-chips__field game-filters-chips__field--inline game-filters-chips__field--view'>
 							<label>Vista</label>
-							<select
-								className='game-filters-chips__select-view'
-								value={currentView}
-								onChange={(e) => onViewChange(e.target.value)}>
+							<select className='game-filters-chips__select-view' value={currentView} onChange={(e) => onViewChange(e.target.value)}>
 								<option value='default'>Predeterminada</option>
 								{publicGameViews.map((view) => (
 									<option key={view.id} value={view.name}>
@@ -405,20 +353,10 @@ const GameFiltersChips: React.FC<Props> = ({
 
 					{onViewModeChange && viewMode && (
 						<div className='game-filters-chips__mobile-controls-viewtoggle game-filters-chips__view-toggle'>
-							<button
-								type='button'
-								className={
-									'game-filters-chips__view-btn' + (viewMode === 'card' ? ' is-active' : '')
-								}
-								onClick={() => onViewModeChange('card')}>
+							<button type='button' className={'game-filters-chips__view-btn' + (viewMode === 'card' ? ' is-active' : '')} onClick={() => onViewModeChange('card')}>
 								Tarjetas
 							</button>
-							<button
-								type='button'
-								className={
-									'game-filters-chips__view-btn' + (viewMode === 'row' ? ' is-active' : '')
-								}
-								onClick={() => onViewModeChange('row')}>
+							<button type='button' className={'game-filters-chips__view-btn' + (viewMode === 'row' ? ' is-active' : '')} onClick={() => onViewModeChange('row')}>
 								Fila
 							</button>
 						</div>
@@ -426,13 +364,9 @@ const GameFiltersChips: React.FC<Props> = ({
 
 					<button
 						type='button'
-						className={
-							'game-filters-chips__advanced-btn' + (showAdvancedFilters ? ' is-active' : '')
-						}
+						className={'game-filters-chips__advanced-btn' + (showAdvancedFilters ? ' is-active' : '')}
 						onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}>
-						<span className='game-filters-chips__advanced-btn__text'>
-							{showAdvancedFilters ? '✕ Cerrar filtros' : '⚙ Filtros avanzados'}
-						</span>
+						<span className='game-filters-chips__advanced-btn__text'>{showAdvancedFilters ? '✕ Cerrar filtros' : '⚙ Filtros avanzados'}</span>
 						<span className='game-filters-chips__advanced-btn__icon'>⚙</span>
 					</button>
 				</div>
@@ -444,30 +378,17 @@ const GameFiltersChips: React.FC<Props> = ({
 					{/* MOVED CONTROLS (hidden controls from top row) */}
 					<div className='game-filters-chips__moved-controls'>
 						{onSelectAll && (
-							<button
-								type='button'
-								className='game-filters-chips__moved-controls-selectall game-filters-chips__action-btn'
-								onClick={onSelectAll}>
+							<button type='button' className='game-filters-chips__moved-controls-selectall game-filters-chips__action-btn' onClick={onSelectAll}>
 								{selectedCount > 0 ? 'Deseleccionar todos' : 'Seleccionar todos'}
 							</button>
 						)}
 
 						{onViewModeChange && viewMode && (
 							<div className='game-filters-chips__moved-controls-viewtoggle game-filters-chips__view-toggle'>
-								<button
-									type='button'
-									className={
-										'game-filters-chips__view-btn' + (viewMode === 'card' ? ' is-active' : '')
-									}
-									onClick={() => onViewModeChange('card')}>
+								<button type='button' className={'game-filters-chips__view-btn' + (viewMode === 'card' ? ' is-active' : '')} onClick={() => onViewModeChange('card')}>
 									Tarjetas
 								</button>
-								<button
-									type='button'
-									className={
-										'game-filters-chips__view-btn' + (viewMode === 'row' ? ' is-active' : '')
-									}
-									onClick={() => onViewModeChange('row')}>
+								<button type='button' className={'game-filters-chips__view-btn' + (viewMode === 'row' ? ' is-active' : '')} onClick={() => onViewModeChange('row')}>
 									Fila
 								</button>
 							</div>
@@ -476,10 +397,7 @@ const GameFiltersChips: React.FC<Props> = ({
 						{onViewChange && (
 							<div className='game-filters-chips__moved-controls-view game-filters-chips__field game-filters-chips__field--inline'>
 								<label>Vista</label>
-								<select
-									className='game-filters-chips__select-view'
-									value={currentView}
-									onChange={(e) => onViewChange(e.target.value)}>
+								<select className='game-filters-chips__select-view' value={currentView} onChange={(e) => onViewChange(e.target.value)}>
 									<option value='default'>Predeterminada</option>
 									{publicGameViews.map((view) => (
 										<option key={view.id} value={view.name}>
@@ -492,10 +410,7 @@ const GameFiltersChips: React.FC<Props> = ({
 
 						<div className='game-filters-chips__moved-controls-sort game-filters-chips__field game-filters-chips__field--inline'>
 							<label>Ordenar por</label>
-							<select
-								className='game-filters-chips__select-pill'
-								value={filters.sortBy || 'name'}
-								onChange={(e) => onSortChange(e.target.value, filters.sortDescending || false)}>
+							<select className='game-filters-chips__select-pill' value={filters.sortBy || 'name'} onChange={(e) => onSortChange(e.target.value, filters.sortDescending || false)}>
 								<option value='name'>Nombre</option>
 								<option value='grade'>Calificación</option>
 								<option value='critic'>Puntuación Crítica</option>
@@ -520,93 +435,43 @@ const GameFiltersChips: React.FC<Props> = ({
 
 					{/* CHIPS ROW */}
 					<div className='game-filters-chips__chips-row' ref={chipsContainerRef}>
-						<button
-							type='button'
-							className={
-								'game-filters-chips__chip' + (hasActiveFilter('platform') ? ' is-active' : '')
-							}
-							onClick={() => togglePopover('platform')}>
+						<button type='button' className={'game-filters-chips__chip' + (hasActiveFilter('platform') ? ' is-active' : '')} onClick={() => togglePopover('platform')}>
 							Plataforma: <span>{platformLabel()}</span>
 						</button>
 
-						<button
-							type='button'
-							className={
-								'game-filters-chips__chip' + (hasActiveFilter('playWith') ? ' is-active' : '')
-							}
-							onClick={() => togglePopover('playWith')}>
+						<button type='button' className={'game-filters-chips__chip' + (hasActiveFilter('playWith') ? ' is-active' : '')} onClick={() => togglePopover('playWith')}>
 							Jugar con: <span>{playWithLabel()}</span>
 						</button>
 
-						<button
-							type='button'
-							className={
-								'game-filters-chips__chip' + (hasActiveFilter('status') ? ' is-active' : '')
-							}
-							onClick={() => togglePopover('status')}>
+						<button type='button' className={'game-filters-chips__chip' + (hasActiveFilter('status') ? ' is-active' : '')} onClick={() => togglePopover('status')}>
 							Status: <span>{statusLabel()}</span>
 						</button>
 
-						<button
-							type='button'
-							className={
-								'game-filters-chips__chip' + (hasActiveFilter('playedStatus') ? ' is-active' : '')
-							}
-							onClick={() => togglePopover('playedStatus')}>
+						<button type='button' className={'game-filters-chips__chip' + (hasActiveFilter('playedStatus') ? ' is-active' : '')} onClick={() => togglePopover('playedStatus')}>
 							Jugado: <span>{playedStatusLabel()}</span>
 						</button>
 
-						<button
-							type='button'
-							className={
-								'game-filters-chips__chip' + (hasActiveFilter('grades') ? ' is-active' : '')
-							}
-							onClick={() => togglePopover('grades')}>
+						<button type='button' className={'game-filters-chips__chip' + (hasActiveFilter('grades') ? ' is-active' : '')} onClick={() => togglePopover('grades')}>
 							Nota: <span>{gradesLabel()}</span>
 						</button>
 
-						<button
-							type='button'
-							className={
-								'game-filters-chips__chip' + (hasActiveFilter('years') ? ' is-active' : '')
-							}
-							onClick={() => togglePopover('years')}>
+						<button type='button' className={'game-filters-chips__chip' + (hasActiveFilter('years') ? ' is-active' : '')} onClick={() => togglePopover('years')}>
 							Años: <span>{yearsLabel()}</span>
 						</button>
 
-						<button
-							type='button'
-							className={
-								'game-filters-chips__chip' + (hasActiveFilter('price') ? ' is-active' : '')
-							}
-							onClick={() => togglePopover('price')}>
+						<button type='button' className={'game-filters-chips__chip' + (hasActiveFilter('price') ? ' is-active' : '')} onClick={() => togglePopover('price')}>
 							Precio: <span>{priceLabel()}</span>
 						</button>
 
-						<button
-							type='button'
-							className={
-								'game-filters-chips__chip' + (hasActiveFilter('criticProvider') ? ' is-active' : '')
-							}
-							onClick={() => togglePopover('criticProvider')}>
+						<button type='button' className={'game-filters-chips__chip' + (hasActiveFilter('criticProvider') ? ' is-active' : '')} onClick={() => togglePopover('criticProvider')}>
 							Proveedor: <span>{criticProviderLabel()}</span>
 						</button>
 
-						<button
-							type='button'
-							className={
-								'game-filters-chips__chip' + (hasActiveFilter('excluded') ? ' is-active' : '')
-							}
-							onClick={() => togglePopover('excluded')}>
+						<button type='button' className={'game-filters-chips__chip' + (hasActiveFilter('excluded') ? ' is-active' : '')} onClick={() => togglePopover('excluded')}>
 							Exclusiones: <span>{excludedLabel()}</span>
 						</button>
 
-						<button
-							type='button'
-							className={
-								'game-filters-chips__chip' + (hasActiveFilter('pageSize') ? ' is-active' : '')
-							}
-							onClick={() => togglePopover('pageSize')}>
+						<button type='button' className={'game-filters-chips__chip' + (hasActiveFilter('pageSize') ? ' is-active' : '')} onClick={() => togglePopover('pageSize')}>
 							Página: <span>{pageSizeLabel()}</span>
 						</button>
 					</div>
@@ -620,9 +485,7 @@ const GameFiltersChips: React.FC<Props> = ({
 									<div className='game-filters-chips__popover-options'>
 										<button
 											type='button'
-											className={
-												'game-filters-chips__option' + (!filters.platformId ? ' is-active' : '')
-											}
+											className={'game-filters-chips__option' + (!filters.platformId ? ' is-active' : '')}
 											onClick={() => setFilters({ platformId: undefined })}>
 											Todas
 										</button>
@@ -630,10 +493,7 @@ const GameFiltersChips: React.FC<Props> = ({
 											<button
 												key={p.value}
 												type='button'
-												className={
-													'game-filters-chips__option' +
-													(filters.platformId === p.value ? ' is-active' : '')
-												}
+												className={'game-filters-chips__option' + (filters.platformId === p.value ? ' is-active' : '')}
 												onClick={() => setFilters({ platformId: p.value })}>
 												{p.label}
 											</button>
@@ -648,9 +508,7 @@ const GameFiltersChips: React.FC<Props> = ({
 									<div className='game-filters-chips__popover-options'>
 										<button
 											type='button'
-											className={
-												'game-filters-chips__option' + (!filters.playWithId ? ' is-active' : '')
-											}
+											className={'game-filters-chips__option' + (!filters.playWithId ? ' is-active' : '')}
 											onClick={() => setFilters({ playWithId: undefined })}>
 											Todos
 										</button>
@@ -658,10 +516,7 @@ const GameFiltersChips: React.FC<Props> = ({
 											<button
 												key={p.value}
 												type='button'
-												className={
-													'game-filters-chips__option' +
-													(filters.playWithId === p.value ? ' is-active' : '')
-												}
+												className={'game-filters-chips__option' + (filters.playWithId === p.value ? ' is-active' : '')}
 												onClick={() => setFilters({ playWithId: p.value })}>
 												{p.label}
 											</button>
@@ -674,22 +529,14 @@ const GameFiltersChips: React.FC<Props> = ({
 								<>
 									<h4>Status</h4>
 									<div className='game-filters-chips__popover-options'>
-										<button
-											type='button'
-											className={
-												'game-filters-chips__option' + (!filters.statusId ? ' is-active' : '')
-											}
-											onClick={() => setFilters({ statusId: undefined })}>
+										<button type='button' className={'game-filters-chips__option' + (!filters.statusId ? ' is-active' : '')} onClick={() => setFilters({ statusId: undefined })}>
 											Todos
 										</button>
 										{statusOptions.map((s) => (
 											<button
 												key={s.value}
 												type='button'
-												className={
-													'game-filters-chips__option' +
-													(filters.statusId === s.value ? ' is-active' : '')
-												}
+												className={'game-filters-chips__option' + (filters.statusId === s.value ? ' is-active' : '')}
 												onClick={() => setFilters({ statusId: s.value })}>
 												{s.label}
 											</button>
@@ -704,9 +551,7 @@ const GameFiltersChips: React.FC<Props> = ({
 									<div className='game-filters-chips__popover-options'>
 										<button
 											type='button'
-											className={
-												'game-filters-chips__option' + (!filters.playedStatusId ? ' is-active' : '')
-											}
+											className={'game-filters-chips__option' + (!filters.playedStatusId ? ' is-active' : '')}
 											onClick={() => setFilters({ playedStatusId: undefined })}>
 											Todos
 										</button>
@@ -714,10 +559,7 @@ const GameFiltersChips: React.FC<Props> = ({
 											<button
 												key={s.value}
 												type='button'
-												className={
-													'game-filters-chips__option' +
-													(filters.playedStatusId === s.value ? ' is-active' : '')
-												}
+												className={'game-filters-chips__option' + (filters.playedStatusId === s.value ? ' is-active' : '')}
 												onClick={() => setFilters({ playedStatusId: s.value })}>
 												{s.label}
 											</button>
@@ -761,10 +603,7 @@ const GameFiltersChips: React.FC<Props> = ({
 											/>
 										</div>
 									</div>
-									<button
-										type='button'
-										className='game-filters-chips__clear-btn'
-										onClick={() => setFilters({ minGrade: undefined, maxGrade: undefined })}>
+									<button type='button' className='game-filters-chips__clear-btn' onClick={() => setFilters({ minGrade: undefined, maxGrade: undefined })}>
 										Limpiar
 									</button>
 								</>
@@ -841,30 +680,19 @@ const GameFiltersChips: React.FC<Props> = ({
 									<div className='game-filters-chips__popover-options'>
 										<button
 											type='button'
-											className={
-												'game-filters-chips__option' +
-												(filters.isCheaperByKey === undefined || filters.isCheaperByKey === null
-													? ' is-active'
-													: '')
-											}
+											className={'game-filters-chips__option' + (filters.isCheaperByKey === undefined || filters.isCheaperByKey === null ? ' is-active' : '')}
 											onClick={() => setFilters({ isCheaperByKey: undefined })}>
 											Todos
 										</button>
 										<button
 											type='button'
-											className={
-												'game-filters-chips__option' +
-												(filters.isCheaperByKey === true ? ' is-active' : '')
-											}
+											className={'game-filters-chips__option' + (filters.isCheaperByKey === true ? ' is-active' : '')}
 											onClick={() => setFilters({ isCheaperByKey: true })}>
 											Más barato por clave
 										</button>
 										<button
 											type='button'
-											className={
-												'game-filters-chips__option' +
-												(filters.isCheaperByKey === false ? ' is-active' : '')
-											}
+											className={'game-filters-chips__option' + (filters.isCheaperByKey === false ? ' is-active' : '')}
 											onClick={() => setFilters({ isCheaperByKey: false })}>
 											Más barato en tienda
 										</button>
@@ -878,45 +706,31 @@ const GameFiltersChips: React.FC<Props> = ({
 									<div className='game-filters-chips__popover-options'>
 										<button
 											type='button'
-											className={
-												'game-filters-chips__option' + (!filters.criticProvider ? ' is-active' : '')
-											}
+											className={'game-filters-chips__option' + (!filters.criticProvider ? ' is-active' : '')}
 											onClick={() => setFilters({ criticProvider: undefined })}>
 											Todos
 										</button>
 										<button
 											type='button'
-											className={
-												'game-filters-chips__option' +
-												(filters.criticProvider === 'Default' ? ' is-active' : '')
-											}
+											className={'game-filters-chips__option' + (filters.criticProvider === 'Default' ? ' is-active' : '')}
 											onClick={() => setFilters({ criticProvider: 'Default' })}>
 											Por defecto
 										</button>
 										<button
 											type='button'
-											className={
-												'game-filters-chips__option' +
-												(filters.criticProvider === 'Metacritic' ? ' is-active' : '')
-											}
+											className={'game-filters-chips__option' + (filters.criticProvider === 'Metacritic' ? ' is-active' : '')}
 											onClick={() => setFilters({ criticProvider: 'Metacritic' })}>
 											Metacritic
 										</button>
 										<button
 											type='button'
-											className={
-												'game-filters-chips__option' +
-												(filters.criticProvider === 'OpenCritic' ? ' is-active' : '')
-											}
+											className={'game-filters-chips__option' + (filters.criticProvider === 'OpenCritic' ? ' is-active' : '')}
 											onClick={() => setFilters({ criticProvider: 'OpenCritic' })}>
 											OpenCritic
 										</button>
 										<button
 											type='button'
-											className={
-												'game-filters-chips__option' +
-												(filters.criticProvider === 'SteamDB' ? ' is-active' : '')
-											}
+											className={'game-filters-chips__option' + (filters.criticProvider === 'SteamDB' ? ' is-active' : '')}
 											onClick={() => setFilters({ criticProvider: 'SteamDB' })}>
 											SteamDB
 										</button>
@@ -932,22 +746,13 @@ const GameFiltersChips: React.FC<Props> = ({
 											const isExcluded = (filters.excludeStatusIds || []).includes(status.value)
 											return (
 												<label key={status.value} className='game-filters-chips__checkbox'>
-													<input
-														type='checkbox'
-														checked={isExcluded}
-														onChange={(e) =>
-															handleExcludeStatusChange(status.value, e.target.checked)
-														}
-													/>
+													<input type='checkbox' checked={isExcluded} onChange={(e) => handleExcludeStatusChange(status.value, e.target.checked)} />
 													<span>{status.label}</span>
 												</label>
 											)
 										})}
 									</div>
-									<button
-										type='button'
-										className='game-filters-chips__clear-btn'
-										onClick={() => setFilters({ excludeStatusIds: undefined })}>
+									<button type='button' className='game-filters-chips__clear-btn' onClick={() => setFilters({ excludeStatusIds: undefined })}>
 										Limpiar
 									</button>
 								</>
@@ -959,10 +764,7 @@ const GameFiltersChips: React.FC<Props> = ({
 									<div className='game-filters-chips__popover-options'>
 										<button
 											type='button'
-											className={
-												'game-filters-chips__option' +
-												(!filters.pageSize || filters.pageSize === 50 ? ' is-active' : '')
-											}
+											className={'game-filters-chips__option' + (!filters.pageSize || filters.pageSize === 50 ? ' is-active' : '')}
 											onClick={() => setFilters({ pageSize: 50 })}>
 											Por defecto
 										</button>
@@ -970,10 +772,7 @@ const GameFiltersChips: React.FC<Props> = ({
 											<button
 												key={size}
 												type='button'
-												className={
-													'game-filters-chips__option' +
-													(filters.pageSize === size ? ' is-active' : '')
-												}
+												className={'game-filters-chips__option' + (filters.pageSize === size ? ' is-active' : '')}
 												onClick={() => setFilters({ pageSize: size })}>
 												{size} juegos
 											</button>
@@ -987,19 +786,12 @@ const GameFiltersChips: React.FC<Props> = ({
 					{/* BOTTOM ROW */}
 					<div className='game-filters-chips__bottom'>
 						<label className='game-filters-chips__checkbox'>
-							<input
-								type='checkbox'
-								checked={filters.showIncomplete === true}
-								onChange={(e) => setFilters({ showIncomplete: e.target.checked || undefined })}
-							/>
+							<input type='checkbox' checked={filters.showIncomplete === true} onChange={(e) => setFilters({ showIncomplete: e.target.checked || undefined })} />
 							<span>Mostrar juegos incompletos</span>
 						</label>
 
 						{hasAnyActiveFilter() && (
-							<button
-								type='button'
-								className='game-filters-chips__reset-btn'
-								onClick={resetAllFilters}>
+							<button type='button' className='game-filters-chips__reset-btn' onClick={resetAllFilters}>
 								Resetear filtros
 							</button>
 						)}

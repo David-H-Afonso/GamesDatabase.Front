@@ -9,13 +9,7 @@ interface PortalDropdownProps {
 	onClick?: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void
 }
 
-export default function PortalDropdown({
-	children,
-	style,
-	containerId = 'dropdown-portal',
-	contentRef,
-	onClick,
-}: PortalDropdownProps) {
+export default function PortalDropdown({ children, style, containerId = 'dropdown-portal', contentRef, onClick }: PortalDropdownProps) {
 	const elRef = useRef<HTMLDivElement | null>(null)
 
 	if (!elRef.current) elRef.current = document.createElement('div')

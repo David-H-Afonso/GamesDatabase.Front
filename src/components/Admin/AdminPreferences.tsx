@@ -10,9 +10,7 @@ export const AdminPreferences = () => {
 	const user = useAppSelector((state) => state.auth.user)
 	const [useScoreColors, setUseScoreColors] = useState(user?.useScoreColors ?? false)
 	const [scoreProvider, setScoreProvider] = useState(user?.scoreProvider ?? 'Metacritic')
-	const [showPriceComparisonIcon, setShowPriceComparisonIcon] = useState(
-		user?.showPriceComparisonIcon ?? false
-	)
+	const [showPriceComparisonIcon, setShowPriceComparisonIcon] = useState(user?.showPriceComparisonIcon ?? false)
 	const [isSaving, setIsSaving] = useState(false)
 	const [saveMessage, setSaveMessage] = useState<string | null>(null)
 
@@ -80,9 +78,7 @@ export const AdminPreferences = () => {
 		setSaveMessage(null)
 
 		try {
-			await dispatch(
-				updateUserPreferences({ userId: user.id, showPriceComparisonIcon: checked })
-			).unwrap()
+			await dispatch(updateUserPreferences({ userId: user.id, showPriceComparisonIcon: checked })).unwrap()
 			setSaveMessage('Price comparison icon preference saved')
 			setTimeout(() => setSaveMessage(null), 3000)
 		} catch (error) {
@@ -121,8 +117,7 @@ export const AdminPreferences = () => {
 							<p className='admin-preferences__option-description'>
 								Apply color-coded styling to critic scores based on Metacritic's rating system:
 								<br />
-								<span style={{ color: '#66cc33', fontWeight: 'bold' }}>● Green (75-100)</span>,{' '}
-								<span style={{ color: '#ffcc33', fontWeight: 'bold' }}>● Yellow (50-74)</span>,{' '}
+								<span style={{ color: '#66cc33', fontWeight: 'bold' }}>● Green (75-100)</span>, <span style={{ color: '#ffcc33', fontWeight: 'bold' }}>● Yellow (50-74)</span>,{' '}
 								<span style={{ color: '#ff0000', fontWeight: 'bold' }}>● Red (0-49)</span>
 							</p>
 						</div>
@@ -144,16 +139,9 @@ export const AdminPreferences = () => {
 							<label htmlFor='score-provider' className='admin-preferences__option-label'>
 								Score Provider Logo
 							</label>
-							<p className='admin-preferences__option-description'>
-								Select which logo to display next to critic scores in the game cards
-							</p>
+							<p className='admin-preferences__option-description'>Select which logo to display next to critic scores in the game cards</p>
 						</div>
-						<select
-							id='score-provider'
-							value={scoreProvider}
-							onChange={(e) => handleScoreProviderChange(e.target.value)}
-							disabled={isSaving}
-							className='admin-preferences__select'>
+						<select id='score-provider' value={scoreProvider} onChange={(e) => handleScoreProviderChange(e.target.value)} disabled={isSaving} className='admin-preferences__select'>
 							{SCORE_PROVIDER_OPTIONS.map((option) => (
 								<option key={option} value={option}>
 									{option}
@@ -167,10 +155,7 @@ export const AdminPreferences = () => {
 							<label htmlFor='price-comparison-icon' className='admin-preferences__option-label'>
 								Price Comparison Icon
 							</label>
-							<p className='admin-preferences__option-description'>
-								Show a small key or store icon next to the user note when the price comparison field
-								is defined for a game
-							</p>
+							<p className='admin-preferences__option-description'>Show a small key or store icon next to the user note when the price comparison field is defined for a game</p>
 						</div>
 						<label className='admin-preferences__toggle'>
 							<input
@@ -186,12 +171,7 @@ export const AdminPreferences = () => {
 					</div>
 
 					{saveMessage && (
-						<div
-							className={`admin-preferences__message ${
-								saveMessage.includes('success')
-									? 'admin-preferences__message--success'
-									: 'admin-preferences__message--error'
-							}`}>
+						<div className={`admin-preferences__message ${saveMessage.includes('success') ? 'admin-preferences__message--success' : 'admin-preferences__message--error'}`}>
 							{saveMessage}
 						</div>
 					)}

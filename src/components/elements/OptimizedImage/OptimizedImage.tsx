@@ -17,17 +17,7 @@ interface OptimizedImageProps {
  * OptimizedImage component with lazy loading, quality control, and error handling
  * Reduces image quality for URLs when possible to improve performance
  */
-const OptimizedImage: React.FC<OptimizedImageProps> = ({
-	src,
-	alt,
-	className = '',
-	width,
-	height,
-	quality = 'medium',
-	loading = 'lazy',
-	onLoad,
-	onError,
-}) => {
+const OptimizedImage: React.FC<OptimizedImageProps> = ({ src, alt, className = '', width, height, quality = 'medium', loading = 'lazy', onLoad, onError }) => {
 	const [isLoaded, setIsLoaded] = useState(false)
 	const [hasError, setHasError] = useState(false)
 	const imgRef = useRef<HTMLImageElement>(null)
@@ -54,9 +44,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
 				}
 				// Insert before filename
 				const lastSlash = originalSrc.lastIndexOf('/')
-				return (
-					originalSrc.slice(0, lastSlash + 1) + sizeParam + '/' + originalSrc.slice(lastSlash + 1)
-				)
+				return originalSrc.slice(0, lastSlash + 1) + sizeParam + '/' + originalSrc.slice(lastSlash + 1)
 			}
 
 			// For other URLs, attempt to add query parameters for quality control

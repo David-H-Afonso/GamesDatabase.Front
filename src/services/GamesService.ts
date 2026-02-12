@@ -1,12 +1,6 @@
 import { customFetch } from '@/utils/customFetch'
 import { environment } from '@/environments'
-import type {
-	Game,
-	GameCreateDto,
-	GameUpdateDto,
-	GameQueryParameters,
-	PagedResult,
-} from '@/models/api/Game'
+import type { Game, GameCreateDto, GameUpdateDto, GameQueryParameters, PagedResult } from '@/models/api/Game'
 
 const BASE = environment.apiRoutes.games.base
 
@@ -61,9 +55,7 @@ export const deleteGame = async (id: number): Promise<void> => {
 /**
  * Bulk update multiple games.
  */
-export const bulkUpdateGames = async (
-	data: import('@/models/api/Game').BulkUpdateGameDto
-): Promise<import('@/models/api/Game').BulkUpdateResult> => {
+export const bulkUpdateGames = async (data: import('@/models/api/Game').BulkUpdateGameDto): Promise<import('@/models/api/Game').BulkUpdateResult> => {
 	const endpoint = `${BASE}/bulk`
 	return await customFetch<import('@/models/api/Game').BulkUpdateResult>(endpoint, {
 		method: 'PATCH',

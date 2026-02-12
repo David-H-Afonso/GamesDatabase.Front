@@ -85,14 +85,6 @@ const themeSlice = createSlice({
 	},
 })
 
-export const {
-	setTheme,
-	addTheme,
-	removeTheme,
-	initializeTheme,
-	setCardStyle,
-	setViewMode,
-	reset,
-} = themeSlice.actions
+export const { setTheme, addTheme, removeTheme, initializeTheme, setCardStyle, setViewMode, reset } = themeSlice.actions
 
 export default themeSlice.reducer

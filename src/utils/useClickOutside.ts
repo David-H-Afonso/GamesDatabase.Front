@@ -7,10 +7,7 @@ import { useEffect, useRef } from 'react'
  * @param externalElementRef - Optional external reference to the target element.
  * @returns A reference to be attached to the target element.
  */
-export const useClickOutside = <ElementType extends HTMLElement>(
-	onOutsideClick: () => void,
-	externalElementRef?: React.RefObject<ElementType>
-) => {
+export const useClickOutside = <ElementType extends HTMLElement>(onOutsideClick: () => void, externalElementRef?: React.RefObject<ElementType>) => {
 	// Internal reference to the target element if no external reference is provided
 	const internalElementRef = useRef<ElementType>(null)
 	const targetElementRef = externalElementRef || internalElementRef

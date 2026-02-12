@@ -17,15 +17,7 @@ interface EditableSelectProps {
 	dropdownOnly?: boolean
 }
 
-export const EditableSelect: React.FC<EditableSelectProps> = ({
-	value,
-	displayValue,
-	options,
-	onSave,
-	placeholder = 'Select...',
-	className = '',
-	dropdownOnly = false,
-}) => {
+export const EditableSelect: React.FC<EditableSelectProps> = ({ value, displayValue, options, onSave, placeholder = 'Select...', className = '', dropdownOnly = false }) => {
 	const [isOpen, setIsOpen] = useState(dropdownOnly)
 	const [isSaving, setIsSaving] = useState(false)
 	const dropdownRef = useRef<HTMLDivElement>(null)
@@ -70,20 +62,14 @@ export const EditableSelect: React.FC<EditableSelectProps> = ({
 
 	const [hoveredOption, setHoveredOption] = useState<Option | null>(null)
 	const selectedOption = options.find((option) => option.id === value)
-	const showTitle = hoveredOption
-		? hoveredOption.name
-		: selectedOption
-		? selectedOption.name
-		: placeholder
+	const showTitle = hoveredOption ? hoveredOption.name : selectedOption ? selectedOption.name : placeholder
 
 	return (
 		<div ref={dropdownRef} className={`editable-select ${className}`} title={showTitle}>
 			{!dropdownOnly && (
 				<span
 					onClick={handleClick}
-					className={`editable-select__trigger ${isOpen ? 'editable-select__trigger--open' : ''} ${
-						!displayValue ? 'editable-select__trigger--empty' : ''
-					}`}>
+					className={`editable-select__trigger ${isOpen ? 'editable-select__trigger--open' : ''} ${!displayValue ? 'editable-select__trigger--empty' : ''}`}>
 					<span className='editable-select__trigger-text'>{displayValue || placeholder}</span>
 					<span className='editable-select__arrow'>▼</span>
 				</span>
@@ -97,14 +83,8 @@ export const EditableSelect: React.FC<EditableSelectProps> = ({
 							onMouseEnter={() => setHoveredOption(option)}
 							onMouseLeave={() => setHoveredOption(null)}
 							onClick={() => handleSelect(option.id)}
-							className={`editable-select__option ${
-								option.id === value ? 'editable-select__option--selected' : ''
-							}`}
-							style={
-								option.color
-									? ({ ['--option-bg' as any]: option.color } as React.CSSProperties)
-									: undefined
-							}>
+							className={`editable-select__option ${option.id === value ? 'editable-select__option--selected' : ''}`}
+							style={option.color ? ({ ['--option-bg' as any]: option.color } as React.CSSProperties) : undefined}>
 							<span
 								style={{
 									background: `${option.color}66`,

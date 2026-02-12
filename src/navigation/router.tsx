@@ -2,17 +2,7 @@ import { createHashRouter } from 'react-router-dom'
 import { AppLayout, EmptyLayout } from '@/layouts'
 import Home from '@/components/Home/containers/Home'
 import { Login, ProtectedRoute, PublicRoute } from '@/components/Auth'
-import {
-	AdminLayout,
-	AdminPlatforms,
-	AdminStatus,
-	AdminPlayWith,
-	AdminPlayedStatus,
-	AdminDataExport,
-	AdminGameViews,
-	AdminUsers,
-	AdminPreferences,
-} from '@/components/Admin'
+import { AdminLayout, AdminPlatforms, AdminStatus, AdminPlayWith, AdminPlayedStatus, AdminDataExport, AdminGameViews, AdminUsers, AdminPreferences } from '@/components/Admin'
 import { RouteError, NotFound } from '@/components/errors'
 
 export const router = createHashRouter([

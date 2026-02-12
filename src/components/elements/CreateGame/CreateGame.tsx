@@ -26,15 +26,11 @@ const CreateGame: FC = () => {
 	const [createdGameId, setCreatedGameId] = useState<number | null>(null)
 	const [createdGameFallback, setCreatedGameFallback] = useState<Game | null>(null)
 	const [isDetailsOpen, setIsDetailsOpen] = useState(false)
-	const storeCreatedGame = useAppSelector((state) =>
-		createdGameId ? selectGameById(createdGameId)(state) : undefined
-	)
+	const storeCreatedGame = useAppSelector((state) => (createdGameId ? selectGameById(createdGameId)(state) : undefined))
 
 	const openAddGameModal = () => {
 		// initialize fresh row when opening
-		formik.setFieldValue('games', [
-			{ name: '', statusId: defaultStatusId ?? '', showExtraFields: false },
-		])
+		formik.setFieldValue('games', [{ name: '', statusId: defaultStatusId ?? '', showExtraFields: false }])
 		setIsModalOpen(true)
 	}
 
@@ -42,9 +38,7 @@ const CreateGame: FC = () => {
 		setIsModalOpen(false)
 		setIsSubmitting(false)
 		formik.resetForm()
-		formik.setFieldValue('games', [
-			{ name: '', statusId: defaultStatusId ?? '', showExtraFields: false },
-		])
+		formik.setFieldValue('games', [{ name: '', statusId: defaultStatusId ?? '', showExtraFields: false }])
 	}
 
 	const { fetchActiveStatusList, fetchSpecialStatusList } = useGameStatus()
@@ -70,8 +64,7 @@ const CreateGame: FC = () => {
 					gameErrors[i] = { name: 'Required' }
 				}
 			})
-			if (gameErrors.length > 0 && gameErrors.some((ge) => ge !== undefined))
-				errors.games = gameErrors as any
+			if (gameErrors.length > 0 && gameErrors.some((ge) => ge !== undefined)) errors.games = gameErrors as any
 			return errors
 		},
 		onSubmit: () => {
@@ -115,11 +108,7 @@ const CreateGame: FC = () => {
 		void getStatusOptions()
 	}, [])
 
-	const addRow = () =>
-		formik.setFieldValue('games', [
-			...formik.values.games,
-			{ name: '', statusId: defaultStatusId ?? '', showExtraFields: false },
-		])
+	const addRow = () => formik.setFieldValue('games', [...formik.values.games, { name: '', statusId: defaultStatusId ?? '', showExtraFields: false }])
 	const removeRow = (index: number) => {
 		if (formik.values.games.length <= 1) return // do not remove last row
 		const newGames = formik.values.games.filter((_: any, i: number) => i !== index)
@@ -134,9 +123,7 @@ const CreateGame: FC = () => {
 			showExtraFields?: boolean
 		}>
 	) => {
-		const newGames = formik.values.games.map((r: any, i: number) =>
-			i === index ? { ...r, ...patch } : r
-		)
+		const newGames = formik.values.games.map((r: any, i: number) => (i === index ? { ...r, ...patch } : r))
 		formik.setFieldValue('games', newGames)
 	}
 
@@ -168,14 +155,12 @@ const CreateGame: FC = () => {
 							name: r.name,
 							statusId: r.statusId === '' ? defaultStatusId : (r.statusId as number | undefined),
 							isCheaperByKey: mapCheaperByToBoolean(r.cheaperBy),
-						} as unknown as GameCreateDto)
+						}) as unknown as GameCreateDto
 				)
 
 			const results = await Promise.allSettled(payloads.map((p) => createNewGame(p)))
 
-			const fulfilled = results.filter(
-				(r) => r.status === 'fulfilled'
-			) as PromiseFulfilledResult<any>[]
+			const fulfilled = results.filter((r) => r.status === 'fulfilled') as PromiseFulfilledResult<any>[]
 			const rejected = results.filter((r) => r.status === 'rejected')
 			if (rejected.length > 0) console.warn('Some creates failed:', rejected)
 
@@ -255,11 +240,7 @@ const CreateGame: FC = () => {
 							className='add-game-row__delete'
 							onClick={() => removeRow(id)}
 							disabled={formik.values.games.length <= 1}
-							title={
-								formik.values.games.length <= 1
-									? 'No se puede eliminar la única fila'
-									: 'Eliminar fila'
-							}>
+							title={formik.values.games.length <= 1 ? 'No se puede eliminar la única fila' : 'Eliminar fila'}>
 							×
 						</button>
 					</div>
@@ -268,11 +249,7 @@ const CreateGame: FC = () => {
 						<div className='add-game-row__extra'>
 							<div className='add-game-row__extra-field'>
 								<label>Más barato por:</label>
-								<select
-									value={row.cheaperBy ?? ''}
-									onChange={(e) =>
-										updateRow(id, { cheaperBy: e.target.value as 'key' | 'store' | undefined })
-									}>
+								<select value={row.cheaperBy ?? ''} onChange={(e) => updateRow(id, { cheaperBy: e.target.value as 'key' | 'store' | undefined })}>
 									<option value=''>Ninguno</option>
 									<option value='key'>Clave</option>
 									<option value='store'>Tienda</option>
@@ -290,36 +267,16 @@ const CreateGame: FC = () => {
 		<>
 			{/* Game Form Modal */}
 			{isModalOpen && (
-				<Modal
-					isOpen={isModalOpen}
-					onClose={closeModal}
-					title={'Añadir Juegos'}
-					bodyPadding='14px'
-					hideBorders={true}
-					headerPaddingBottom='14px'>
+				<Modal isOpen={isModalOpen} onClose={closeModal} title={'Añadir Juegos'} bodyPadding='14px' hideBorders={true} headerPaddingBottom='14px'>
 					<div className='create-game-modal'>
-						<div className='create-game-modal__rows'>
-							{formik.values.games.map((r: any, i: number) => gameRow(r, i))}
-						</div>
+						<div className='create-game-modal__rows'>{formik.values.games.map((r: any, i: number) => gameRow(r, i))}</div>
 
 						<div className='create-game-modal__actions'>
-							<button
-								type='button'
-								className='create-game-modal__add-row'
-								onClick={addRow}
-								title='Añadir otra fila'>
+							<button type='button' className='create-game-modal__add-row' onClick={addRow} title='Añadir otra fila'>
 								+
 							</button>
-							<button
-								type='button'
-								className='create-game-modal__submit'
-								onClick={handleBatchSubmit}
-								disabled={isSubmitting}>
-								{isSubmitting
-									? 'Añadiendo...'
-									: formik.values.games.length === 1
-									? 'Añadir juego'
-									: `Añadir ${formik.values.games.length} juegos`}
+							<button type='button' className='create-game-modal__submit' onClick={handleBatchSubmit} disabled={isSubmitting}>
+								{isSubmitting ? 'Añadiendo...' : formik.values.games.length === 1 ? 'Añadir juego' : `Añadir ${formik.values.games.length} juegos`}
 							</button>
 						</div>
 					</div>

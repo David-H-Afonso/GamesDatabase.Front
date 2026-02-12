@@ -16,9 +16,7 @@ export const getSpecialGameStatuses = async (): Promise<GameStatus[]> => {
 /**
  * Fetch paged game statuses with optional query params.
  */
-export const getGameStatuses = async (
-	params?: QueryParameters
-): Promise<PagedResult<GameStatus>> => {
+export const getGameStatuses = async (params?: QueryParameters): Promise<PagedResult<GameStatus>> => {
 	const endpoint = BASE
 	return await customFetch<PagedResult<GameStatus>>(endpoint, {
 		method: 'GET',
@@ -58,10 +56,7 @@ export const createGameStatus = async (gameStatus: GameStatusCreateDto): Promise
 /**
  * Update an existing game status.
  */
-export const updateGameStatus = async (
-	id: number,
-	gameStatus: GameStatusUpdateDto
-): Promise<void> => {
+export const updateGameStatus = async (id: number, gameStatus: GameStatusUpdateDto): Promise<void> => {
 	const endpoint = environment.apiRoutes.gameStatus.update(id)
 	await customFetch<void>(endpoint, {
 		method: 'PUT',
@@ -81,10 +76,7 @@ export const deleteGameStatus = async (id: number): Promise<void> => {
 /**
  * Reassign special statuses of a given statusType to a new default status id.
  */
-export const reassignSpecialStatuses = async (payload: {
-	newDefaultStatusId: number
-	statusType: string
-}): Promise<void> => {
+export const reassignSpecialStatuses = async (payload: { newDefaultStatusId: number; statusType: string }): Promise<void> => {
 	const endpoint = environment.apiRoutes.gameStatus.reassignSpecial
 	await customFetch<void>(endpoint, { method: 'POST', body: payload, baseURL: environment.baseUrl })
 }

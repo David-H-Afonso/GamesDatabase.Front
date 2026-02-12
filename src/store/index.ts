@@ -57,14 +57,7 @@ export const store = configureStore({
 	middleware: (getDefaultMiddleware) =>
 		getDefaultMiddleware({
 			serializableCheck: {
-				ignoredActions: [
-					'persist/FLUSH',
-					'persist/REHYDRATE',
-					'persist/PAUSE',
-					'persist/PERSIST',
-					'persist/PURGE',
-					'persist/REGISTER',
-				],
+				ignoredActions: ['persist/FLUSH', 'persist/REHYDRATE', 'persist/PAUSE', 'persist/PERSIST', 'persist/PURGE', 'persist/REGISTER'],
 			},
 		}),
 	devTools: process.env.NODE_ENV !== 'production',

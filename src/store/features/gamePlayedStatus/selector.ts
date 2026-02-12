@@ -7,8 +7,7 @@ const selectState = (state: RootState) => state.gamePlayedStatus as GamePlayedSt
 export const selectPlayedStatuses = (state: RootState) => selectState(state).playedStatuses
 
 // Selector for active played statuses
-export const selectActivePlayedStatuses = (state: RootState) =>
-	selectState(state).activePlayedStatuses
+export const selectActivePlayedStatuses = (state: RootState) => selectState(state).activePlayedStatuses
 
 // Selector for loading state
 export const selectPlayedLoading = (state: RootState) => selectState(state).loading
@@ -26,5 +25,4 @@ export const selectPlayedFilters = (state: RootState) => selectState(state).filt
 export const selectPlayedState = (state: RootState) => selectState(state)
 
 // Selector for a specific played status by ID
-export const selectPlayedById = (state: RootState, id: number) =>
-	selectState(state).playedStatuses.find((s) => s.id === id) || null
+export const selectPlayedById = (state: RootState, id: number) => selectState(state).playedStatuses.find((s) => s.id === id) || null

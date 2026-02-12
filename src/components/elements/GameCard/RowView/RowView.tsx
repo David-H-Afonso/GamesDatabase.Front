@@ -7,20 +7,12 @@ import { EditableMultiSelect } from '../../EditableMultiSelect/EditableMultiSele
 import { OptimizedImage } from '@/components/elements'
 import { useAppSelector } from '@/store/hooks'
 import PortalDropdown from '../../PortalDropdown'
-import {
-	getCriticScoreUrl,
-	resolveEffectiveProvider,
-	type CriticProvider,
-} from '@/helpers/criticScoreHelper'
+import { getCriticScoreUrl, resolveEffectiveProvider, type CriticProvider } from '@/helpers/criticScoreHelper'
 
 interface RowViewProps {
 	game: Game
 	openDetails: (game: Game) => void
-	onFieldUpdate?: (
-		gameId: number,
-		field: string,
-		value: number | number[] | undefined
-	) => Promise<void>
+	onFieldUpdate?: (gameId: number, field: string, value: number | number[] | undefined) => Promise<void>
 	playWithColors: (string | undefined)[]
 	gameStatusColor: string | undefined
 	platformColor: string | undefined
@@ -31,22 +23,9 @@ interface RowViewProps {
 }
 
 const RowView: FC<RowViewProps> = (props) => {
-	const {
-		game,
-		openDetails,
-		playWithColors,
-		gameStatusColor,
-		platformColor,
-		playedStatusColor,
-		onFieldUpdate,
-		isSelected = false,
-		onSelect,
-		deselectAll,
-	} = props
+	const { game, openDetails, playWithColors, gameStatusColor, platformColor, playedStatusColor, onFieldUpdate, isSelected = false, onSelect, deselectAll } = props
 
-	const [activeSelector, setActiveSelector] = useState<
-		'status' | 'platform' | 'playWith' | 'playStatus' | null
-	>(null)
+	const [activeSelector, setActiveSelector] = useState<'status' | 'platform' | 'playWith' | 'playStatus' | null>(null)
 
 	// opciones de selects
 	const { activeStatuses: statusOptions } = useAppSelector((state) => state.gameStatus)
@@ -56,15 +35,10 @@ const RowView: FC<RowViewProps> = (props) => {
 
 	// Get user preferences
 	const useScoreColors = useAppSelector((state) => state.auth.user?.useScoreColors ?? false)
-	const userScoreProvider = useAppSelector(
-		(state) => state.auth.user?.scoreProvider ?? 'Metacritic'
-	) as CriticProvider
+	const userScoreProvider = useAppSelector((state) => state.auth.user?.scoreProvider ?? 'Metacritic') as CriticProvider
 
 	// Use per-game provider if set, otherwise fall back to user preference
-	const effectiveProvider = resolveEffectiveProvider(
-		game.criticProvider as CriticProvider | undefined,
-		userScoreProvider
-	)
+	const effectiveProvider = resolveEffectiveProvider(game.criticProvider as CriticProvider | undefined, userScoreProvider)
 
 	const handleCriticScoreClick = (e: React.MouseEvent) => {
 		e.preventDefault()
@@ -122,12 +96,9 @@ const RowView: FC<RowViewProps> = (props) => {
 
 	useEffect(() => {
 		if (activeSelector === 'status') setStatusPortalStyle(computePortalStyle(statusBtnRef.current))
-		if (activeSelector === 'platform')
-			setPlatformPortalStyle(computePortalStyle(platformBtnRef.current))
-		if (activeSelector === 'playStatus')
-			setPlayedPortalStyle(computePortalStyle(playedBtnRef.current))
-		if (activeSelector === 'playWith')
-			setPlayWithPortalStyle(computePortalStyle(playWithBtnRef.current))
+		if (activeSelector === 'platform') setPlatformPortalStyle(computePortalStyle(platformBtnRef.current))
+		if (activeSelector === 'playStatus') setPlayedPortalStyle(computePortalStyle(playedBtnRef.current))
+		if (activeSelector === 'playWith') setPlayWithPortalStyle(computePortalStyle(playWithBtnRef.current))
 	}, [activeSelector])
 
 	const closeActionMenu = (cb: () => void) => {
@@ -135,10 +106,7 @@ const RowView: FC<RowViewProps> = (props) => {
 		cb()
 	}
 
-	const handleBadgeClick = (
-		e: React.MouseEvent,
-		type: 'status' | 'platform' | 'playWith' | 'playStatus'
-	) => {
+	const handleBadgeClick = (e: React.MouseEvent, type: 'status' | 'platform' | 'playWith' | 'playStatus') => {
 		e.preventDefault()
 		e.stopPropagation()
 		setActiveSelector((prev) => (prev === type ? null : type))
@@ -164,8 +132,7 @@ const RowView: FC<RowViewProps> = (props) => {
 	const scoreText = game.score ?? dash
 
 	// Get critic score color if enabled
-	const criticScoreColor =
-		useScoreColors && game.critic != null ? getMetacriticColor(game.critic) : '#f9fafb'
+	const criticScoreColor = useScoreColors && game.critic != null ? getMetacriticColor(game.critic) : '#f9fafb'
 	const releasedText = formatToLocaleDate(game.released) || dash
 	const startedText = formatToLocaleDate(game.started) || dash
 	const finishedText = formatToLocaleDate(game.finished) || dash
@@ -181,9 +148,7 @@ const RowView: FC<RowViewProps> = (props) => {
 	return (
 		<div
 			key={game.id}
-			className={`game-row ${activeSelector ? 'game-row--menu-open' : ''} ${
-				isSelected ? 'game-row--selected' : ''
-			}`}
+			className={`game-row ${activeSelector ? 'game-row--menu-open' : ''} ${isSelected ? 'game-row--selected' : ''}`}
 			onClick={() => closeActionMenu(() => openDetails(game))}
 			ref={rowRef}
 			onMouseEnter={(e) => {
@@ -223,10 +188,7 @@ const RowView: FC<RowViewProps> = (props) => {
 					</span>
 
 					{activeSelector === 'status' && (
-						<PortalDropdown
-							style={statusPortalStyle}
-							contentRef={statusRef}
-							onClick={(e) => e.stopPropagation()}>
+						<PortalDropdown style={statusPortalStyle} contentRef={statusRef} onClick={(e) => e.stopPropagation()}>
 							<div className='chip-dropdown'>
 								<EditableSelect
 									value={game.statusId}
@@ -244,15 +206,7 @@ const RowView: FC<RowViewProps> = (props) => {
 
 			{/* Name */}
 			<div className='game-row-name'>
-				{hasLogo && (
-					<OptimizedImage
-						src={game.logo!}
-						alt={`${game.name} logo`}
-						className='game-row-logo'
-						quality='low'
-						loading='lazy'
-					/>
-				)}
+				{hasLogo && <OptimizedImage src={game.logo!} alt={`${game.name} logo`} className='game-row-logo' quality='low' loading='lazy' />}
 				<h3>{game.name}</h3>
 			</div>
 
@@ -265,14 +219,8 @@ const RowView: FC<RowViewProps> = (props) => {
 
 			{/* Critic */}
 			<div className='game-row-critic'>
-				<div
-					aria-label='Critic'
-					title={`Click to search on ${effectiveProvider}`}
-					onClick={handleCriticScoreClick}
-					style={{ cursor: 'pointer' }}>
-					<span style={{ color: criticScoreColor, fontWeight: useScoreColors ? 600 : 'normal' }}>
-						{criticText}
-					</span>
+				<div aria-label='Critic' title={`Click to search on ${effectiveProvider}`} onClick={handleCriticScoreClick} style={{ cursor: 'pointer' }}>
+					<span style={{ color: criticScoreColor, fontWeight: useScoreColors ? 600 : 'normal' }}>{criticText}</span>
 				</div>
 			</div>
 
@@ -282,10 +230,7 @@ const RowView: FC<RowViewProps> = (props) => {
 			</div>
 
 			{/* Completion */}
-			<div
-				className='game-row-completion'
-				aria-label='Completion'
-				title={`Completion: ${completionText}`}>
+			<div className='game-row-completion' aria-label='Completion' title={`Completion: ${completionText}`}>
 				<span>{completionText}</span>
 			</div>
 
@@ -403,9 +348,5 @@ const RowView: FC<RowViewProps> = (props) => {
 
 // Memoize RowView to prevent unnecessary re-renders
 export default memo(RowView, (prevProps, nextProps) => {
-	return (
-		prevProps.game.id === nextProps.game.id &&
-		prevProps.game.updatedAt === nextProps.game.updatedAt &&
-		prevProps.isSelected === nextProps.isSelected
-	)
+	return prevProps.game.id === nextProps.game.id && prevProps.game.updatedAt === nextProps.game.updatedAt && prevProps.isSelected === nextProps.isSelected
 })

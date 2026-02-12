@@ -18,12 +18,7 @@ import {
 	bulkUpdateGames,
 } from '@/store/features/games'
 import { areFiltersEqual } from '@/utils'
-import type {
-	GameCreateDto,
-	GameUpdateDto,
-	GameQueryParameters,
-	BulkUpdateGameDto,
-} from '@/models/api/Game'
+import type { GameCreateDto, GameUpdateDto, GameQueryParameters, BulkUpdateGameDto } from '@/models/api/Game'
 import { dispatchAndUnwrapAsync } from '@/utils'
 
 /**
@@ -55,11 +50,7 @@ export const useGames = () => {
 	)
 
 	// Force a fresh fetch ignoring cache
-	const refreshGames = useCallback(
-		async (params: GameQueryParameters = {}) =>
-			dispatchAndUnwrapAsync(dispatch, fetchGames(params)),
-		[dispatch]
-	)
+	const refreshGames = useCallback(async (params: GameQueryParameters = {}) => dispatchAndUnwrapAsync(dispatch, fetchGames(params)), [dispatch])
 
 	// Fetch details for a single game
 	const fetchGameDetails = useCallback(
@@ -70,16 +61,9 @@ export const useGames = () => {
 	)
 
 	// Create / update / delete operations return the created/updated resource
-	const createNewGame = useCallback(
-		async (gameData: GameCreateDto) => dispatchAndUnwrapAsync(dispatch, createGame(gameData)),
-		[dispatch]
-	)
+	const createNewGame = useCallback(async (gameData: GameCreateDto) => dispatchAndUnwrapAsync(dispatch, createGame(gameData)), [dispatch])
 
-	const updateGameById = useCallback(
-		async (id: number, gameData: GameUpdateDto) =>
-			dispatchAndUnwrapAsync(dispatch, updateGame({ id, gameData })),
-		[dispatch]
-	)
+	const updateGameById = useCallback(async (id: number, gameData: GameUpdateDto) => dispatchAndUnwrapAsync(dispatch, updateGame({ id, gameData })), [dispatch])
 
 	const deleteGameById = useCallback(
 		async (id: number) => {

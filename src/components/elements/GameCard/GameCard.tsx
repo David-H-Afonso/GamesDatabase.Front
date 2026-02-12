@@ -2,13 +2,7 @@ import type { Game } from '@/models/api/Game'
 import { useState, memo, type FC } from 'react'
 import { useAppSelector } from '@/store/hooks'
 import { selectGameById } from '@/store/features/games'
-import {
-	useGamePlatform,
-	useGamePlayedStatus,
-	useGamePlayWith,
-	useGames,
-	useGameStatus,
-} from '@/hooks'
+import { useGamePlatform, useGamePlayedStatus, useGamePlayWith, useGames, useGameStatus } from '@/hooks'
 import { GameDetails } from '@/components/elements'
 import CardView from './CardView/CardView'
 import RowView from './RowView/RowView'
@@ -46,11 +40,7 @@ const GameCardComponent: FC<Props> = (props) => {
 	// Get array of colors for PlayWith options
 	const playWithColors = gamePlayWiths.map((pw) => pw.color)
 
-	const handleFieldUpdate = async (
-		gameId: number,
-		field: string,
-		value: number | number[] | undefined
-	) => {
+	const handleFieldUpdate = async (gameId: number, field: string, value: number | number[] | undefined) => {
 		try {
 			const payload = typeof value === 'undefined' ? null : value
 			await updateGameById(gameId, { [field]: payload } as any)
@@ -67,9 +57,7 @@ const GameCardComponent: FC<Props> = (props) => {
 
 	return (
 		<>
-			{isDetailsOpen && selectedGame && (
-				<GameDetails game={game} closeDetails={() => setIsDetailsOpen(false)} onDelete={onDelete} />
-			)}
+			{isDetailsOpen && selectedGame && <GameDetails game={game} closeDetails={() => setIsDetailsOpen(false)} onDelete={onDelete} />}
 
 			{variant === 'card' && (
 				<div className='game-card' key={isSelected ? 'selected' : 'unselected'}>
@@ -112,9 +100,5 @@ const GameCardComponent: FC<Props> = (props) => {
 // if the game ID, selection state, or variant changed. The component will
 // automatically get updates from Redux when the game data changes.
 export const GameCard = memo(GameCardComponent, (prevProps, nextProps) => {
-	return (
-		prevProps.game.id === nextProps.game.id &&
-		prevProps.isSelected === nextProps.isSelected &&
-		prevProps.variant === nextProps.variant
-	)
+	return prevProps.game.id === nextProps.game.id && prevProps.isSelected === nextProps.isSelected && prevProps.variant === nextProps.variant
 })

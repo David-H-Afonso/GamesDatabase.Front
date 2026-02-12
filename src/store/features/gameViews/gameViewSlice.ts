@@ -2,15 +2,7 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import type { GameViewState } from '@/models/store/GameViewState'
 import type { GameView, GameViewQueryParameters } from '@/models/api/GameView'
 
-import {
-	fetchGameViews,
-	fetchPublicGameViews,
-	fetchGameViewById,
-	createGameViewThunk,
-	updateGameViewThunk,
-	updateGameViewConfiguration,
-	deleteGameViewThunk,
-} from './thunk'
+import { fetchGameViews, fetchPublicGameViews, fetchGameViewById, createGameViewThunk, updateGameViewThunk, updateGameViewConfiguration, deleteGameViewThunk } from './thunk'
 
 const initialState: GameViewState = {
 	gameViews: [],
@@ -208,16 +200,6 @@ const gameViewSlice = createSlice({
 	},
 })
 
-export const {
-	setLoading,
-	setError,
-	setCurrentGameView,
-	addGameView,
-	updateGameView,
-	removeGameView,
-	setFilters,
-	resetFilters,
-	resetState,
-} = gameViewSlice.actions
+export const { setLoading, setError, setCurrentGameView, addGameView, updateGameView, removeGameView, setFilters, resetFilters, resetState } = gameViewSlice.actions
 
 export default gameViewSlice.reducer

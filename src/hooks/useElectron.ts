@@ -27,9 +27,7 @@ export function useAppVersion() {
  * Hook para obtener la URL del API (funciona tanto en web como en Electron)
  */
 export function useApiUrl() {
-	const [apiUrl, setApiUrl] = useState<string>(
-		import.meta.env.VITE_API_URL || 'http://localhost:8080/api'
-	)
+	const [apiUrl, setApiUrl] = useState<string>(import.meta.env.VITE_API_URL || 'http://localhost:8080/api')
 	const isElectron = useIsElectron()
 
 	useEffect(() => {

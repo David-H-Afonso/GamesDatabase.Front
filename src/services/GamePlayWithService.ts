@@ -1,10 +1,6 @@
 import { customFetch } from '@/utils/customFetch'
 import { environment } from '@/environments'
-import type {
-	GamePlayWith,
-	GamePlayWithCreateDto,
-	GamePlayWithUpdateDto,
-} from '@/models/api/GamePlayWith'
+import type { GamePlayWith, GamePlayWithCreateDto, GamePlayWithUpdateDto } from '@/models/api/GamePlayWith'
 import type { QueryParameters, PagedResult } from '@/models/api/Game'
 
 const BASE = environment.apiRoutes.gamePlayWith.base
@@ -12,9 +8,7 @@ const BASE = environment.apiRoutes.gamePlayWith.base
 /**
  * Returns paged game play-with options with optional query parameters.
  */
-export const getGamePlayWithOptions = async (
-	params?: QueryParameters
-): Promise<PagedResult<GamePlayWith>> => {
+export const getGamePlayWithOptions = async (params?: QueryParameters): Promise<PagedResult<GamePlayWith>> => {
 	const endpoint = BASE
 	return await customFetch<PagedResult<GamePlayWith>>(endpoint, {
 		method: 'GET',
@@ -45,9 +39,7 @@ export const getGamePlayWithById = async (id: number): Promise<GamePlayWith> => 
 /**
  * Creates a new play-with option and returns the created resource.
  */
-export const createGamePlayWith = async (
-	gamePlayWith: GamePlayWithCreateDto
-): Promise<GamePlayWith> => {
+export const createGamePlayWith = async (gamePlayWith: GamePlayWithCreateDto): Promise<GamePlayWith> => {
 	const endpoint = environment.apiRoutes.gamePlayWith.create
 	return await customFetch<GamePlayWith>(endpoint, {
 		method: 'POST',
@@ -59,10 +51,7 @@ export const createGamePlayWith = async (
 /**
  * Updates an existing play-with option.
  */
-export const updateGamePlayWith = async (
-	id: number,
-	gamePlayWith: GamePlayWithUpdateDto
-): Promise<void> => {
+export const updateGamePlayWith = async (id: number, gamePlayWith: GamePlayWithUpdateDto): Promise<void> => {
 	const endpoint = environment.apiRoutes.gamePlayWith.update(id)
 	await customFetch<void>(endpoint, {
 		method: 'PUT',

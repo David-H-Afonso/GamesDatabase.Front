@@ -50,9 +50,7 @@ export class ErrorBoundary extends Component<Props, State> {
 					<div className='error-boundary-content'>
 						<div className='error-icon'>⚠</div>
 						<h1>Something went wrong</h1>
-						<p className='error-message'>
-							{this.state.error?.message || 'An unexpected error occurred'}
-						</p>
+						<p className='error-message'>{this.state.error?.message || 'An unexpected error occurred'}</p>
 
 						{process.env.NODE_ENV === 'development' && this.state.errorInfo && (
 							<details className='error-details'>

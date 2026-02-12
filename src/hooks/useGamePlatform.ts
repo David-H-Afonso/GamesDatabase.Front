@@ -9,13 +9,7 @@ import {
 import type { GamePlatformCreateDto, GamePlatformUpdateDto } from '@/models/api/GamePlatform'
 import type { QueryParameters } from '@/models/api/Game'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import {
-	selectPlatforms,
-	selectActivePlatforms,
-	selectPlatformLoading,
-	selectPlatformError,
-	selectPlatformPagination,
-} from '@/store/features/gamePlatform/selector'
+import { selectPlatforms, selectActivePlatforms, selectPlatformLoading, selectPlatformError, selectPlatformPagination } from '@/store/features/gamePlatform/selector'
 import { dispatchAndUnwrapAsync } from '@/utils'
 
 /**
@@ -57,10 +51,7 @@ export const useGamePlatform = () => {
 	// Update platform
 	const updateItem = useCallback(
 		async (id: number, payload: GamePlatformUpdateDto) => {
-			const updated = (await dispatchAndUnwrapAsync(
-				dispatch,
-				updatePlatformThunk({ id, data: payload })
-			)) as any
+			const updated = (await dispatchAndUnwrapAsync(dispatch, updatePlatformThunk({ id, data: payload }))) as any
 			await fetchActiveList()
 			return updated
 		},

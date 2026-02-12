@@ -29,9 +29,7 @@ export const getCriticScoreUrl = (gameName: string, provider: CriticProvider): s
  * @param provider - The critic provider name
  * @returns The numeric ID (1 for Metacritic, 2 for OpenCritic, 3 for SteamDB)
  */
-export const getCriticProviderIdFromName = (
-	provider: string | null | undefined
-): number | undefined => {
+export const getCriticProviderIdFromName = (provider: string | null | undefined): number | undefined => {
 	if (!provider) return undefined
 
 	switch (provider) {
@@ -51,9 +49,7 @@ export const getCriticProviderIdFromName = (
  * @param id - The numeric ID
  * @returns The critic provider name
  */
-export const getCriticProviderNameFromId = (
-	id: number | null | undefined
-): CriticProvider | null => {
+export const getCriticProviderNameFromId = (id: number | null | undefined): CriticProvider | null => {
 	if (id === undefined || id === null || id === 0) return null
 
 	switch (id) {
@@ -74,9 +70,6 @@ export const getCriticProviderNameFromId = (
  * @param userProvider - The user's default provider preference
  * @returns The provider to use (game override takes priority, falls back to user preference, defaults to Metacritic)
  */
-export const resolveEffectiveProvider = (
-	gameProvider: CriticProvider | undefined,
-	userProvider: CriticProvider | undefined
-): CriticProvider => {
+export const resolveEffectiveProvider = (gameProvider: CriticProvider | undefined, userProvider: CriticProvider | undefined): CriticProvider => {
 	return gameProvider ?? userProvider ?? 'Metacritic'
 }

@@ -55,9 +55,7 @@ export const EditableMultiSelect: React.FC<EditableMultiSelectProps> = ({
 	const handleToggle = async (optionId: number) => {
 		if (isSaving) return
 
-		const newValues = values.includes(optionId)
-			? values.filter((id) => id !== optionId)
-			: [...values, optionId]
+		const newValues = values.includes(optionId) ? values.filter((id) => id !== optionId) : [...values, optionId]
 
 		setIsSaving(true)
 		try {
@@ -76,11 +74,7 @@ export const EditableMultiSelect: React.FC<EditableMultiSelectProps> = ({
 	}
 
 	const [hoveredOption, setHoveredOption] = useState<Option | null>(null)
-	const showTitle = hoveredOption
-		? hoveredOption.name
-		: displayValues.length > 0
-		? displayValues.join(', ')
-		: placeholder
+	const showTitle = hoveredOption ? hoveredOption.name : displayValues.length > 0 ? displayValues.join(', ') : placeholder
 
 	return (
 		<div ref={dropdownRef} className={`editable-multi-select ${className}`} title={showTitle}>
@@ -108,19 +102,9 @@ export const EditableMultiSelect: React.FC<EditableMultiSelectProps> = ({
 								className={`editable-multi-select__option ${
 									isSelected ? 'editable-multi-select__option--selected' : ''
 								} ${isSaving ? 'editable-multi-select__option--disabled' : ''}`}
-								style={
-									option.color
-										? ({ ['--option-bg' as any]: option.color } as React.CSSProperties)
-										: undefined
-								}>
+								style={option.color ? ({ ['--option-bg' as any]: option.color } as React.CSSProperties) : undefined}>
 								<label className='editable-multi-select__checkbox'>
-									<input
-										type='checkbox'
-										checked={isSelected}
-										onChange={() => {}}
-										onClick={(e) => e.stopPropagation()}
-										disabled={isSaving}
-									/>
+									<input type='checkbox' checked={isSelected} onChange={() => {}} onClick={(e) => e.stopPropagation()} disabled={isSaving} />
 									<span className='editable-multi-select__checkmark'></span>
 								</label>
 								<span

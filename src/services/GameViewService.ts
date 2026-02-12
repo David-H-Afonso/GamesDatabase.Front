@@ -1,11 +1,6 @@
 import { customFetch } from '@/utils/customFetch'
 import { environment } from '@/environments'
-import type {
-	GameView,
-	GameViewCreateDto,
-	GameViewUpdateDto,
-	GameViewQueryParameters,
-} from '@/models/api/GameView'
+import type { GameView, GameViewCreateDto, GameViewUpdateDto, GameViewQueryParameters } from '@/models/api/GameView'
 
 const BASE = environment.apiRoutes.gameViews.base
 
@@ -82,10 +77,7 @@ export const createGameView = async (gameViewData: GameViewCreateDto): Promise<G
 /**
  * Update an existing GameView
  */
-export const updateGameView = async (
-	id: number,
-	gameViewData: GameViewUpdateDto
-): Promise<void> => {
+export const updateGameView = async (id: number, gameViewData: GameViewUpdateDto): Promise<void> => {
 	const endpoint = environment.apiRoutes.gameViews.update(id)
 
 	// Build payload: prefer new configuration.filterGroups shape. If only legacy filters are present,
@@ -151,10 +143,7 @@ export const getPublicGameViews = async (): Promise<GameView[]> => {
  * Update only the configuration for a GameView.
  * Accepts either a ViewConfiguration object, an array of ViewFilter, or a single ViewFilter
  */
-export const updateGameViewConfiguration = async (
-	id: number,
-	configuration: any
-): Promise<GameView> => {
+export const updateGameViewConfiguration = async (id: number, configuration: any): Promise<GameView> => {
 	const endpoint = `${BASE}/${id}/configuration`
 
 	// The API accepts multiple shapes; send configuration as-is

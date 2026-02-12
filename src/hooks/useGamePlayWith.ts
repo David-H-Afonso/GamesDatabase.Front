@@ -9,12 +9,7 @@ import {
 import type { GamePlayWithCreateDto, GamePlayWithUpdateDto } from '@/models/api/GamePlayWith'
 import type { QueryParameters } from '@/models/api/Game'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import {
-	setLoading,
-	setError,
-	addPlayWith,
-	removePlayWith,
-} from '@/store/features/gamePlayWith/gamePlayWithSlice'
+import { setLoading, setError, addPlayWith, removePlayWith } from '@/store/features/gamePlayWith/gamePlayWithSlice'
 import { dispatchAndUnwrapAsync } from '@/utils'
 
 /**
@@ -65,10 +60,7 @@ export const useGamePlayWith = () => {
 			try {
 				dispatch(setLoading(true))
 				dispatch(setError(null))
-				const created = (await dispatchAndUnwrapAsync(
-					dispatch,
-					createPlayWithThunk(payload)
-				)) as any
+				const created = (await dispatchAndUnwrapAsync(dispatch, createPlayWithThunk(payload))) as any
 				dispatch(addPlayWith(created))
 				if ((created as any).isActive) await fetchActiveOptions()
 				return created
@@ -88,10 +80,7 @@ export const useGamePlayWith = () => {
 			try {
 				dispatch(setLoading(true))
 				dispatch(setError(null))
-				const updated = (await dispatchAndUnwrapAsync(
-					dispatch,
-					updatePlayWithThunk({ id, data: payload })
-				)) as any
+				const updated = (await dispatchAndUnwrapAsync(dispatch, updatePlayWithThunk({ id, data: payload }))) as any
 				await dispatchAndUnwrapAsync(dispatch, fetchPlayWithOptions({}))
 				await fetchActiveOptions()
 				return updated

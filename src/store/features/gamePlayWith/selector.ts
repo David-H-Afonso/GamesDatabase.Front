@@ -5,8 +5,7 @@ import type { GamePlayWith } from '@/models/api/GamePlayWith'
 export const selectPlayWithOptions = (state: RootState) => state.gamePlayWith.playWithOptions
 
 // Selector for active play-with options
-export const selectActivePlayWithOptions = (state: RootState) =>
-	state.gamePlayWith.activePlayWithOptions
+export const selectActivePlayWithOptions = (state: RootState) => state.gamePlayWith.activePlayWithOptions
 
 // Selector for loading state
 export const selectPlayWithLoading = (state: RootState) => state.gamePlayWith.loading

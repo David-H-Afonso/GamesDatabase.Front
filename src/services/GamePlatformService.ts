@@ -1,10 +1,6 @@
 import { customFetch } from '@/utils/customFetch'
 import { environment } from '@/environments'
-import type {
-	GamePlatform,
-	GamePlatformCreateDto,
-	GamePlatformUpdateDto,
-} from '@/models/api/GamePlatform'
+import type { GamePlatform, GamePlatformCreateDto, GamePlatformUpdateDto } from '@/models/api/GamePlatform'
 import type { QueryParameters, PagedResult } from '@/models/api/Game'
 
 const BASE = environment.apiRoutes.gamePlatform.base
@@ -13,9 +9,7 @@ const BASE = environment.apiRoutes.gamePlatform.base
  * Returns a paged list of game platforms.
  * Accepts optional query parameters for pagination, filtering and sorting.
  */
-export const getGamePlatforms = async (
-	params?: QueryParameters
-): Promise<PagedResult<GamePlatform>> => {
+export const getGamePlatforms = async (params?: QueryParameters): Promise<PagedResult<GamePlatform>> => {
 	const endpoint = BASE
 	return await customFetch<PagedResult<GamePlatform>>(endpoint, {
 		method: 'GET',
@@ -46,9 +40,7 @@ export const getGamePlatformById = async (id: number): Promise<GamePlatform> => 
 /**
  * Creates a new game platform and returns the created resource.
  */
-export const createGamePlatform = async (
-	gamePlatform: GamePlatformCreateDto
-): Promise<GamePlatform> => {
+export const createGamePlatform = async (gamePlatform: GamePlatformCreateDto): Promise<GamePlatform> => {
 	const endpoint = environment.apiRoutes.gamePlatform.create
 	return await customFetch<GamePlatform>(endpoint, {
 		method: 'POST',
@@ -60,10 +52,7 @@ export const createGamePlatform = async (
 /**
  * Updates an existing game platform.
  */
-export const updateGamePlatform = async (
-	id: number,
-	gamePlatform: GamePlatformUpdateDto
-): Promise<void> => {
+export const updateGamePlatform = async (id: number, gamePlatform: GamePlatformUpdateDto): Promise<void> => {
 	const endpoint = environment.apiRoutes.gamePlatform.update(id)
 	await customFetch<void>(endpoint, {
 		method: 'PUT',

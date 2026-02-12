@@ -11,12 +11,7 @@ import {
 import type { GameStatusCreateDto, GameStatusUpdateDto } from '@/models/api/GameStatus'
 import type { QueryParameters } from '@/models/api/Game'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import {
-	setLoading,
-	setError,
-	addStatus,
-	removeStatus,
-} from '@/store/features/gameStatus/gameStatusSlice'
+import { setLoading, setError, addStatus, removeStatus } from '@/store/features/gameStatus/gameStatusSlice'
 import { dispatchAndUnwrapAsync } from '@/utils'
 
 /**
@@ -104,10 +99,7 @@ export const useGameStatus = () => {
 			try {
 				dispatch(setLoading(true))
 				dispatch(setError(null))
-				const updated = (await dispatchAndUnwrapAsync(
-					dispatch,
-					updateStatusThunk({ id, statusData: payload })
-				)) as any
+				const updated = (await dispatchAndUnwrapAsync(dispatch, updateStatusThunk({ id, statusData: payload }))) as any
 				// refresh list and active statuses
 				await dispatchAndUnwrapAsync(dispatch, fetchStatuses({}))
 				await fetchActiveStatusList()

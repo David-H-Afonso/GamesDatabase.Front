@@ -14,17 +14,7 @@ interface ModalProps {
 	headerPaddingBottom?: string
 }
 
-export const Modal: FC<ModalProps> = ({
-	isOpen,
-	onClose,
-	title,
-	children,
-	footer,
-	maxWidth = '600px',
-	bodyPadding,
-	hideBorders = false,
-	headerPaddingBottom,
-}) => {
+export const Modal: FC<ModalProps> = ({ isOpen, onClose, title, children, footer, maxWidth = '600px', bodyPadding, hideBorders = false, headerPaddingBottom }) => {
 	// Close modal on escape key
 	useEffect(() => {
 		const handleEscape = (event: KeyboardEvent) => {

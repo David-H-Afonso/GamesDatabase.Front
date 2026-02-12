@@ -65,21 +65,14 @@ const gamePlayWithSlice = createSlice({
 			const index = state.playWithOptions.findIndex((option) => option.id === action.payload.id)
 			if (index !== -1) state.playWithOptions[index] = action.payload
 
-			const activeIndex = state.activePlayWithOptions.findIndex(
-				(option) => option.id === action.payload.id
-			)
-			if (action.payload.isActive && activeIndex === -1)
-				state.activePlayWithOptions.push(action.payload)
-			else if (!action.payload.isActive && activeIndex !== -1)
-				state.activePlayWithOptions.splice(activeIndex, 1)
-			else if (action.payload.isActive && activeIndex !== -1)
-				state.activePlayWithOptions[activeIndex] = action.payload
+			const activeIndex = state.activePlayWithOptions.findIndex((option) => option.id === action.payload.id)
+			if (action.payload.isActive && activeIndex === -1) state.activePlayWithOptions.push(action.payload)
+			else if (!action.payload.isActive && activeIndex !== -1) state.activePlayWithOptions.splice(activeIndex, 1)
+			else if (action.payload.isActive && activeIndex !== -1) state.activePlayWithOptions[activeIndex] = action.payload
 		},
 		removePlayWith: (state, action: PayloadAction<number>) => {
 			state.playWithOptions = state.playWithOptions.filter((option) => option.id !== action.payload)
-			state.activePlayWithOptions = state.activePlayWithOptions.filter(
-				(option) => option.id !== action.payload
-			)
+			state.activePlayWithOptions = state.activePlayWithOptions.filter((option) => option.id !== action.payload)
 		},
 		setFilters: (state, action: PayloadAction<Partial<QueryParameters>>) => {
 			state.filters = action.payload
@@ -150,10 +143,8 @@ const gamePlayWithSlice = createSlice({
 				if (idx !== -1) state.playWithOptions[idx] = updated
 				const activeIdx = state.activePlayWithOptions.findIndex((p) => p.id === updated.id)
 				if (updated.isActive && activeIdx === -1) state.activePlayWithOptions.push(updated)
-				else if (!updated.isActive && activeIdx !== -1)
-					state.activePlayWithOptions.splice(activeIdx, 1)
-				else if (updated.isActive && activeIdx !== -1)
-					state.activePlayWithOptions[activeIdx] = updated
+				else if (!updated.isActive && activeIdx !== -1) state.activePlayWithOptions.splice(activeIdx, 1)
+				else if (updated.isActive && activeIdx !== -1) state.activePlayWithOptions[activeIdx] = updated
 			})
 			.addCase(updatePlayWithThunk.rejected, (state, action) => {
 				state.loading = false

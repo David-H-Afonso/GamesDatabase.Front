@@ -3,13 +3,7 @@ import type { GamePlatformState } from '@/models/store/GamePlatformState'
 import type { QueryParameters, PagedResult } from '@/models/api/Game'
 import { environment } from '@/environments'
 import type { GamePlatform } from '@/models/api/GamePlatform'
-import {
-	fetchPlatforms,
-	fetchActivePlatforms,
-	createPlatform as createPlatformThunk,
-	updatePlatform as updatePlatformThunk,
-	deletePlatform as deletePlatformThunk,
-} from './thunk'
+import { fetchPlatforms, fetchActivePlatforms, createPlatform as createPlatformThunk, updatePlatform as updatePlatformThunk, deletePlatform as deletePlatformThunk } from './thunk'
 
 const initialState: GamePlatformState = {
 	platforms: [],
@@ -67,9 +61,7 @@ const gamePlatformSlice = createSlice({
 				state.platforms[index] = action.payload
 			}
 
-			const activeIndex = state.activePlatforms.findIndex(
-				(platform) => platform.id === action.payload.id
-			)
+			const activeIndex = state.activePlatforms.findIndex((platform) => platform.id === action.payload.id)
 			if (action.payload.isActive && activeIndex === -1) {
 				state.activePlatforms.push(action.payload)
 			} else if (!action.payload.isActive && activeIndex !== -1) {
@@ -80,9 +72,7 @@ const gamePlatformSlice = createSlice({
 		},
 		removePlatform: (state, action: PayloadAction<number>) => {
 			state.platforms = state.platforms.filter((platform) => platform.id !== action.payload)
-			state.activePlatforms = state.activePlatforms.filter(
-				(platform) => platform.id !== action.payload
-			)
+			state.activePlatforms = state.activePlatforms.filter((platform) => platform.id !== action.payload)
 		},
 		setFilters: (state, action: PayloadAction<Partial<QueryParameters>>) => {
 			state.filters = action.payload

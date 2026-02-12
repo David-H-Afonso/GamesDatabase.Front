@@ -72,9 +72,7 @@ const gameStatusSlice = createSlice({
 				state.statuses[index] = action.payload
 			}
 
-			const activeIndex = state.activeStatuses.findIndex(
-				(status) => status.id === action.payload.id
-			)
+			const activeIndex = state.activeStatuses.findIndex((status) => status.id === action.payload.id)
 			if (action.payload.isActive) {
 				if (activeIndex !== -1) {
 					state.activeStatuses[activeIndex] = action.payload
@@ -230,18 +228,7 @@ const gameStatusSlice = createSlice({
 	},
 })
 
-export const {
-	setLoading,
-	setError,
-	setStatuses,
-	setActiveStatuses,
-	setCurrentStatus,
-	addStatus,
-	updateStatus,
-	removeStatus,
-	setFilters,
-	resetFilters,
-	resetState,
-} = gameStatusSlice.actions
+export const { setLoading, setError, setStatuses, setActiveStatuses, setCurrentStatus, addStatus, updateStatus, removeStatus, setFilters, resetFilters, resetState } =
+	gameStatusSlice.actions
 
 export default gameStatusSlice.reducer

@@ -67,9 +67,7 @@ const gamePlayedStatusSlice = createSlice({
 				state.playedStatuses[index] = action.payload
 			}
 
-			const activeIndex = state.activePlayedStatuses.findIndex(
-				(status) => status.id === action.payload.id
-			)
+			const activeIndex = state.activePlayedStatuses.findIndex((status) => status.id === action.payload.id)
 			if (action.payload.isActive && activeIndex === -1) {
 				state.activePlayedStatuses.push(action.payload)
 			} else if (!action.payload.isActive && activeIndex !== -1) {
@@ -80,9 +78,7 @@ const gamePlayedStatusSlice = createSlice({
 		},
 		removePlayedStatus: (state, action: PayloadAction<number>) => {
 			state.playedStatuses = state.playedStatuses.filter((status) => status.id !== action.payload)
-			state.activePlayedStatuses = state.activePlayedStatuses.filter(
-				(status) => status.id !== action.payload
-			)
+			state.activePlayedStatuses = state.activePlayedStatuses.filter((status) => status.id !== action.payload)
 		},
 		setFilters: (state, action: PayloadAction<Partial<QueryParameters>>) => {
 			state.filters = action.payload

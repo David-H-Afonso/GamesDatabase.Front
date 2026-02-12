@@ -28,13 +28,10 @@ export const selectIsDataFresh = (state: RootState) => state.games.isDataFresh
 export const selectGamesState = (state: RootState) => state.games
 
 // Selector for a specific game by ID
-export const selectGameById = (gameId: number) => (state: RootState) =>
-	state.games.games.find((game) => game.id === gameId)
+export const selectGameById = (gameId: number) => (state: RootState) => state.games.games.find((game) => game.id === gameId)
 
 // Selector for games by status
-export const selectGamesByStatus = (statusId: number) => (state: RootState) =>
-	state.games.games.filter((game) => game.statusId === statusId)
+export const selectGamesByStatus = (statusId: number) => (state: RootState) => state.games.games.filter((game) => game.statusId === statusId)
 
 // Selector for games by platform
-export const selectGamesByPlatform = (platformId: number) => (state: RootState) =>
-	state.games.games.filter((game) => game.platformId === platformId)
+export const selectGamesByPlatform = (platformId: number) => (state: RootState) => state.games.games.filter((game) => game.platformId === platformId)

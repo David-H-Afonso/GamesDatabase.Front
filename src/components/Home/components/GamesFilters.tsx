@@ -19,9 +19,7 @@ const GamesFilters: React.FC<Props> = ({ value, onChange, isOpen = true, onClear
 	const [platformOptions, setPlatformOptions] = useState<{ value: number; label: string }[]>([])
 	const [playWithOptions, setPlayWithOptions] = useState<{ value: number; label: string }[]>([])
 	const [statusOptions, setStatusOptions] = useState<{ value: number; label: string }[]>([])
-	const [playedStatusOptions, setPlayedStatusOptions] = useState<
-		{ value: number; label: string }[]
-	>([])
+	const [playedStatusOptions, setPlayedStatusOptions] = useState<{ value: number; label: string }[]>([])
 
 	useEffect(() => {
 		const normalize = (res: any) => {
@@ -35,15 +33,11 @@ const GamesFilters: React.FC<Props> = ({ value, onChange, isOpen = true, onClear
 			try {
 				const plat = await fetchPlatforms()
 				const platList = normalize(plat)
-				setPlatformOptions(
-					platList.map((p: any) => ({ value: p.id as number, label: String(p.name) }))
-				)
+				setPlatformOptions(platList.map((p: any) => ({ value: p.id as number, label: String(p.name) })))
 
 				const pw = await fetchPlayWithList()
 				const pwList = normalize(pw)
-				setPlayWithOptions(
-					pwList.map((p: any) => ({ value: p.id as number, label: String(p.name) }))
-				)
+				setPlayWithOptions(pwList.map((p: any) => ({ value: p.id as number, label: String(p.name) })))
 
 				const st = await fetchActiveStatusList()
 				const stList = normalize(st)
@@ -51,9 +45,7 @@ const GamesFilters: React.FC<Props> = ({ value, onChange, isOpen = true, onClear
 
 				const ps = await fetchPlayedStatusList()
 				const psList = normalize(ps)
-				setPlayedStatusOptions(
-					psList.map((s: any) => ({ value: s.id as number, label: String(s.name) }))
-				)
+				setPlayedStatusOptions(psList.map((s: any) => ({ value: s.id as number, label: String(s.name) })))
 			} catch (err) {
 				console.error('Error loading filter options', err)
 			}
@@ -97,12 +89,7 @@ const GamesFilters: React.FC<Props> = ({ value, onChange, isOpen = true, onClear
 				className='gf-input'
 			/>
 
-			<select
-				value={value.platformId?.toString() ?? ''}
-				onChange={(e) =>
-					update({ platformId: e.target.value ? Number(e.target.value) : undefined })
-				}
-				className='gf-select'>
+			<select value={value.platformId?.toString() ?? ''} onChange={(e) => update({ platformId: e.target.value ? Number(e.target.value) : undefined })} className='gf-select'>
 				<option value=''>All Platforms</option>
 				{platformOptions.map((p) => (
 					<option key={p.value} value={String(p.value)}>
@@ -111,12 +98,7 @@ const GamesFilters: React.FC<Props> = ({ value, onChange, isOpen = true, onClear
 				))}
 			</select>
 
-			<select
-				value={value.playWithId?.toString() ?? ''}
-				onChange={(e) =>
-					update({ playWithId: e.target.value ? Number(e.target.value) : undefined })
-				}
-				className='gf-select'>
+			<select value={value.playWithId?.toString() ?? ''} onChange={(e) => update({ playWithId: e.target.value ? Number(e.target.value) : undefined })} className='gf-select'>
 				<option value=''>All Play With</option>
 				{playWithOptions.map((p) => (
 					<option key={p.value} value={String(p.value)}>
@@ -125,10 +107,7 @@ const GamesFilters: React.FC<Props> = ({ value, onChange, isOpen = true, onClear
 				))}
 			</select>
 
-			<select
-				value={value.statusId?.toString() ?? ''}
-				onChange={(e) => update({ statusId: e.target.value ? Number(e.target.value) : undefined })}
-				className='gf-select'>
+			<select value={value.statusId?.toString() ?? ''} onChange={(e) => update({ statusId: e.target.value ? Number(e.target.value) : undefined })} className='gf-select'>
 				<option value=''>All Status</option>
 				{statusOptions.map((s) => (
 					<option key={s.value} value={String(s.value)}>
@@ -139,9 +118,7 @@ const GamesFilters: React.FC<Props> = ({ value, onChange, isOpen = true, onClear
 
 			<select
 				value={value.playedStatusId?.toString() ?? ''}
-				onChange={(e) =>
-					update({ playedStatusId: e.target.value ? Number(e.target.value) : undefined })
-				}
+				onChange={(e) => update({ playedStatusId: e.target.value ? Number(e.target.value) : undefined })}
 				className='gf-select'>
 				<option value=''>All Played Status</option>
 				{playedStatusOptions.map((s) => (
@@ -155,34 +132,25 @@ const GamesFilters: React.FC<Props> = ({ value, onChange, isOpen = true, onClear
 				type='number'
 				placeholder='Released Year'
 				value={value.releasedYear ?? ''}
-				onChange={(e) =>
-					update({ releasedYear: e.target.value ? Number(e.target.value) : undefined })
-				}
+				onChange={(e) => update({ releasedYear: e.target.value ? Number(e.target.value) : undefined })}
 				className='gf-input'
 			/>
 			<input
 				type='number'
 				placeholder='Started Year'
 				value={value.startedYear ?? ''}
-				onChange={(e) =>
-					update({ startedYear: e.target.value ? Number(e.target.value) : undefined })
-				}
+				onChange={(e) => update({ startedYear: e.target.value ? Number(e.target.value) : undefined })}
 				className='gf-input'
 			/>
 			<input
 				type='number'
 				placeholder='Finished Year'
 				value={value.finishedYear ?? ''}
-				onChange={(e) =>
-					update({ finishedYear: e.target.value ? Number(e.target.value) : undefined })
-				}
+				onChange={(e) => update({ finishedYear: e.target.value ? Number(e.target.value) : undefined })}
 				className='gf-input'
 			/>
 
-			<select
-				value={value.pageSize?.toString() ?? ''}
-				onChange={(e) => update({ pageSize: e.target.value ? Number(e.target.value) : undefined })}
-				className='gf-select'>
+			<select value={value.pageSize?.toString() ?? ''} onChange={(e) => update({ pageSize: e.target.value ? Number(e.target.value) : undefined })} className='gf-select'>
 				<option value=''>Page Size</option>
 				<option value='10'>10</option>
 				<option value='25'>25</option>
@@ -193,22 +161,12 @@ const GamesFilters: React.FC<Props> = ({ value, onChange, isOpen = true, onClear
 
 			{/* Exclude Status IDs filter */}
 			<div className='gf-exclude-status'>
-				<label
-					style={{ marginBottom: '4px', display: 'block', fontSize: '12px', fontWeight: 'bold' }}>
-					Exclude Status:
-				</label>
+				<label style={{ marginBottom: '4px', display: 'block', fontSize: '12px', fontWeight: 'bold' }}>Exclude Status:</label>
 				{statusOptions.map((status) => {
 					const isExcluded = (value.excludeStatusIds || []).includes(status.value)
 					return (
-						<label
-							key={status.value}
-							style={{ display: 'flex', alignItems: 'center', marginBottom: '2px' }}>
-							<input
-								type='checkbox'
-								checked={isExcluded}
-								onChange={(e) => handleExcludeStatusChange(status.value, e.target.checked)}
-								style={{ marginRight: '6px' }}
-							/>
+						<label key={status.value} style={{ display: 'flex', alignItems: 'center', marginBottom: '2px' }}>
+							<input type='checkbox' checked={isExcluded} onChange={(e) => handleExcludeStatusChange(status.value, e.target.checked)} style={{ marginRight: '6px' }} />
 							<span style={{ fontSize: '12px' }}>{status.label}</span>
 						</label>
 					)
@@ -216,9 +174,7 @@ const GamesFilters: React.FC<Props> = ({ value, onChange, isOpen = true, onClear
 			</div>
 
 			<select
-				value={
-					value.isCheaperByKey === true ? 'true' : value.isCheaperByKey === false ? 'false' : ''
-				}
+				value={value.isCheaperByKey === true ? 'true' : value.isCheaperByKey === false ? 'false' : ''}
 				onChange={(e) => {
 					const val = e.target.value
 					update({ isCheaperByKey: val === '' ? undefined : val === 'true' })
@@ -239,9 +195,7 @@ const GamesFilters: React.FC<Props> = ({ value, onChange, isOpen = true, onClear
 					/>
 					<span style={{ fontSize: '13px', fontWeight: 'bold' }}>Show Incomplete Games</span>
 				</label>
-				<div style={{ fontSize: '11px', color: '#888', marginLeft: '24px', marginTop: '2px' }}>
-					(Not Fulfilled, no cover, no logo, or no platform)
-				</div>
+				<div style={{ fontSize: '11px', color: '#888', marginLeft: '24px', marginTop: '2px' }}>(Not Fulfilled, no cover, no logo, or no platform)</div>
 			</div>
 
 			<div className='gf-row gf-row--compact'>

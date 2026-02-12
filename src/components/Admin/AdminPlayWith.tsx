@@ -3,27 +3,14 @@ import { useGamePlayWith } from '@/hooks'
 import { reorderGamePlayWith } from '@/services'
 import { fetchPlayWithOptions } from '@/store/features/gamePlayWith/thunk'
 import { useAppDispatch } from '@/store/hooks'
-import type {
-	GamePlayWith,
-	GamePlayWithCreateDto,
-	GamePlayWithUpdateDto,
-} from '@/models/api/GamePlayWith'
+import type { GamePlayWith, GamePlayWithCreateDto, GamePlayWithUpdateDto } from '@/models/api/GamePlayWith'
 import type { QueryParameters } from '@/models/api/Game'
 import { ReorderButtons } from '@/components/elements/ReorderButtons/ReorderButtons'
 import './AdminPlayWith.scss'
 
 export const AdminPlayWith: React.FC = () => {
 	const dispatch = useAppDispatch()
-	const {
-		playWiths,
-		loading,
-		error,
-		pagination,
-		loadPlayWiths,
-		createPlayWith,
-		updatePlayWith,
-		deletePlayWith,
-	} = useGamePlayWith()
+	const { playWiths, loading, error, pagination, loadPlayWiths, createPlayWith, updatePlayWith, deletePlayWith } = useGamePlayWith()
 
 	const [isModalOpen, setIsModalOpen] = useState(false)
 	const [editingOption, setEditingOption] = useState<GamePlayWith | null>(null)
@@ -164,9 +151,7 @@ export const AdminPlayWith: React.FC = () => {
 			<div className='admin-controls'>
 				<div className='page-size-control'>
 					<label>Elementos por página:</label>
-					<select
-						value={queryParams.pageSize || 10}
-						onChange={(e) => handlePageSizeChange(Number(e.target.value))}>
+					<select value={queryParams.pageSize || 10} onChange={(e) => handlePageSizeChange(Number(e.target.value))}>
 						<option value={5}>5</option>
 						<option value={10}>10</option>
 						<option value={25}>25</option>
@@ -227,20 +212,14 @@ export const AdminPlayWith: React.FC = () => {
 												</div>
 											</td>
 											<td>
-												<span className={`status ${option.isActive ? 'active' : 'inactive'}`}>
-													{option.isActive ? 'Activo' : 'Inactivo'}
-												</span>
+												<span className={`status ${option.isActive ? 'active' : 'inactive'}`}>{option.isActive ? 'Activo' : 'Inactivo'}</span>
 											</td>
 											<td>
 												<div className='actions'>
-													<button
-														className='btn btn-sm btn-secondary'
-														onClick={() => handleOpenModal(option)}>
+													<button className='btn btn-sm btn-secondary' onClick={() => handleOpenModal(option)}>
 														Editar
 													</button>
-													<button
-														className='btn btn-sm btn-danger'
-														onClick={() => handleDelete(option.id)}>
+													<button className='btn btn-sm btn-danger' onClick={() => handleDelete(option.id)}>
 														Eliminar
 													</button>
 												</div>
@@ -252,19 +231,13 @@ export const AdminPlayWith: React.FC = () => {
 					</div>
 
 					<div className='pagination-controls'>
-						<button
-							className='pagination-btn'
-							disabled={pagination.page <= 1}
-							onClick={() => handlePageChange(pagination.page - 1)}>
+						<button className='pagination-btn' disabled={pagination.page <= 1} onClick={() => handlePageChange(pagination.page - 1)}>
 							Anterior
 						</button>
 						<span className='pagination-info'>
 							Página {pagination.page} de {pagination.totalPages}({pagination.totalCount} elementos)
 						</span>
-						<button
-							className='pagination-btn'
-							disabled={pagination.page >= pagination.totalPages}
-							onClick={() => handlePageChange(pagination.page + 1)}>
+						<button className='pagination-btn' disabled={pagination.page >= pagination.totalPages} onClick={() => handlePageChange(pagination.page + 1)}>
 							Siguiente
 						</button>
 					</div>
@@ -283,13 +256,7 @@ export const AdminPlayWith: React.FC = () => {
 						<form onSubmit={handleSubmit} className='modal-body'>
 							<div className='form-group'>
 								<label htmlFor='name'>Nombre</label>
-								<input
-									type='text'
-									id='name'
-									value={formData.name}
-									onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-									required
-								/>
+								<input type='text' id='name' value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
 							</div>
 							<div className='form-group'>
 								<label htmlFor='color'>Color</label>
@@ -314,11 +281,7 @@ export const AdminPlayWith: React.FC = () => {
 							</div>
 							<div className='form-group'>
 								<label className='checkbox-label'>
-									<input
-										type='checkbox'
-										checked={formData.isActive}
-										onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-									/>
+									<input type='checkbox' checked={formData.isActive} onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })} />
 									Activo
 								</label>
 							</div>

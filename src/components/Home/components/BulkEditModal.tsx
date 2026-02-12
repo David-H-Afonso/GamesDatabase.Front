@@ -32,9 +32,7 @@ const BulkEditModal: React.FC<Props> = ({ isOpen, onClose, selectedCount, onSave
 	const [statusOptions, setStatusOptions] = useState<{ value: number; label: string }[]>([])
 	const [platformOptions, setPlatformOptions] = useState<{ value: number; label: string }[]>([])
 	const [playWithOptions, setPlayWithOptions] = useState<{ value: number; label: string }[]>([])
-	const [playedStatusOptions, setPlayedStatusOptions] = useState<
-		{ value: number; label: string }[]
-	>([])
+	const [playedStatusOptions, setPlayedStatusOptions] = useState<{ value: number; label: string }[]>([])
 
 	const [isSaving, setIsSaving] = useState(false)
 
@@ -54,21 +52,15 @@ const BulkEditModal: React.FC<Props> = ({ isOpen, onClose, selectedCount, onSave
 
 				const plat = await fetchPlatforms()
 				const platList = normalize(plat)
-				setPlatformOptions(
-					platList.map((p: any) => ({ value: p.id as number, label: String(p.name) }))
-				)
+				setPlatformOptions(platList.map((p: any) => ({ value: p.id as number, label: String(p.name) })))
 
 				const pw = await fetchPlayWithList()
 				const pwList = normalize(pw)
-				setPlayWithOptions(
-					pwList.map((p: any) => ({ value: p.id as number, label: String(p.name) }))
-				)
+				setPlayWithOptions(pwList.map((p: any) => ({ value: p.id as number, label: String(p.name) })))
 
 				const ps = await fetchPlayedStatusList()
 				const psList = normalize(ps)
-				setPlayedStatusOptions(
-					psList.map((p: any) => ({ value: p.id as number, label: String(p.name) }))
-				)
+				setPlayedStatusOptions(psList.map((p: any) => ({ value: p.id as number, label: String(p.name) })))
 			} catch (err) {
 				console.error('Error loading options', err)
 			}
@@ -132,9 +124,7 @@ const BulkEditModal: React.FC<Props> = ({ isOpen, onClose, selectedCount, onSave
 
 					<div className='bulk-edit-modal__field'>
 						<label>Status</label>
-						<select
-							value={statusId ?? ''}
-							onChange={(e) => setStatusId(e.target.value ? Number(e.target.value) : undefined)}>
+						<select value={statusId ?? ''} onChange={(e) => setStatusId(e.target.value ? Number(e.target.value) : undefined)}>
 							<option value=''>-- No change --</option>
 							{statusOptions.map((s) => (
 								<option key={s.value} value={s.value}>
@@ -146,9 +136,7 @@ const BulkEditModal: React.FC<Props> = ({ isOpen, onClose, selectedCount, onSave
 
 					<div className='bulk-edit-modal__field'>
 						<label>Platform</label>
-						<select
-							value={platformId ?? ''}
-							onChange={(e) => setPlatformId(e.target.value ? Number(e.target.value) : undefined)}>
+						<select value={platformId ?? ''} onChange={(e) => setPlatformId(e.target.value ? Number(e.target.value) : undefined)}>
 							<option value=''>-- No change --</option>
 							{platformOptions.map((p) => (
 								<option key={p.value} value={p.value}>
@@ -160,11 +148,7 @@ const BulkEditModal: React.FC<Props> = ({ isOpen, onClose, selectedCount, onSave
 
 					<div className='bulk-edit-modal__field'>
 						<label>Played Status</label>
-						<select
-							value={playedStatusId ?? ''}
-							onChange={(e) =>
-								setPlayedStatusId(e.target.value ? Number(e.target.value) : undefined)
-							}>
+						<select value={playedStatusId ?? ''} onChange={(e) => setPlayedStatusId(e.target.value ? Number(e.target.value) : undefined)}>
 							<option value=''>-- No change --</option>
 							{playedStatusOptions.map((ps) => (
 								<option key={ps.value} value={ps.value}>
@@ -193,20 +177,13 @@ const BulkEditModal: React.FC<Props> = ({ isOpen, onClose, selectedCount, onSave
 						<div className='bulk-edit-modal__checkboxes'>
 							{playWithOptions.map((pw) => (
 								<label key={pw.value} className='bulk-edit-modal__checkbox'>
-									<input
-										type='checkbox'
-										checked={playWithIds.includes(pw.value)}
-										onChange={() => handlePlayWithToggle(pw.value)}
-									/>
+									<input type='checkbox' checked={playWithIds.includes(pw.value)} onChange={() => handlePlayWithToggle(pw.value)} />
 									<span>{pw.label}</span>
 								</label>
 							))}
 						</div>
 						{playWithIds.length > 0 && (
-							<button
-								type='button'
-								className='bulk-edit-modal__clear-playwith'
-								onClick={() => setPlayWithIds([])}>
+							<button type='button' className='bulk-edit-modal__clear-playwith' onClick={() => setPlayWithIds([])}>
 								Clear selection
 							</button>
 						)}
@@ -214,15 +191,10 @@ const BulkEditModal: React.FC<Props> = ({ isOpen, onClose, selectedCount, onSave
 				</div>
 
 				<div className='bulk-edit-modal__footer'>
-					<button
-						className='bulk-edit-modal__button bulk-edit-modal__button--cancel'
-						onClick={handleClose}>
+					<button className='bulk-edit-modal__button bulk-edit-modal__button--cancel' onClick={handleClose}>
 						Cancel
 					</button>
-					<button
-						className='bulk-edit-modal__button bulk-edit-modal__button--save'
-						onClick={handleSave}
-						disabled={isSaving}>
+					<button className='bulk-edit-modal__button bulk-edit-modal__button--save' onClick={handleSave} disabled={isSaving}>
 						{isSaving ? 'Saving...' : 'Save Changes'}
 					</button>
 				</div>

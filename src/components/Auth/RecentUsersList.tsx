@@ -41,37 +41,17 @@ export const RecentUsersList = ({ onUserSelect }: RecentUsersListProps) => {
 			<h3 className='recent-users__title'>Are you...?</h3>
 			<div className='recent-users__list'>
 				{recentUsers.map((user) => (
-					<div
-						key={user.username}
-						className='recent-user-card'
-						onClick={() => onUserSelect(user.username, user.hasPassword)}>
+					<div key={user.username} className='recent-user-card' onClick={() => onUserSelect(user.username, user.hasPassword)}>
 						<div className='recent-user-card__content'>
-							<div className='recent-user-card__avatar'>
-								{user.username.charAt(0).toUpperCase()}
-							</div>
+							<div className='recent-user-card__avatar'>{user.username.charAt(0).toUpperCase()}</div>
 							<div className='recent-user-card__info'>
 								<span className='recent-user-card__username'>{user.username}</span>
 								<span className='recent-user-card__time'>{formatLastLogin(user.lastLogin)}</span>
 							</div>
 						</div>
-						<button
-							className='recent-user-card__remove'
-							onClick={(e) => handleRemoveUser(user.username, e)}
-							type='button'
-							aria-label={`Remove ${user.username}`}>
-							<svg
-								width='16'
-								height='16'
-								viewBox='0 0 16 16'
-								fill='none'
-								xmlns='http://www.w3.org/2000/svg'>
-								<path
-									d='M12 4L4 12M4 4L12 12'
-									stroke='currentColor'
-									strokeWidth='2'
-									strokeLinecap='round'
-									strokeLinejoin='round'
-								/>
+						<button className='recent-user-card__remove' onClick={(e) => handleRemoveUser(user.username, e)} type='button' aria-label={`Remove ${user.username}`}>
+							<svg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'>
+								<path d='M12 4L4 12M4 4L12 12' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round' />
 							</svg>
 						</button>
 					</div>

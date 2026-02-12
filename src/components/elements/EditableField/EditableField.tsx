@@ -47,11 +47,7 @@ export const EditableField: React.FC<EditableFieldProps> = ({
 	}
 
 	return (
-		<div
-			style={style}
-			className={`editable-field ${className || ''}`}
-			onClick={() => setIsEditing(true)}
-			title={showTitle}>
+		<div style={style} className={`editable-field ${className || ''}`} onClick={() => setIsEditing(true)} title={showTitle}>
 			{isEditing && allowEditing ? (
 				type === 'textarea' ? (
 					<textarea
@@ -86,9 +82,7 @@ export const EditableField: React.FC<EditableFieldProps> = ({
 					/>
 				)
 			) : (
-				<span
-					className={`editable-field__trigger ${!hasValue ? 'editable-field--empty' : ''}`}
-					style={{ whiteSpace: 'pre-wrap' }}>
+				<span className={`editable-field__trigger ${!hasValue ? 'editable-field--empty' : ''}`} style={{ whiteSpace: 'pre-wrap' }}>
 					{formatter ? formatter(value) : hasValue ? String(value) : placeholder}
 				</span>
 			)}

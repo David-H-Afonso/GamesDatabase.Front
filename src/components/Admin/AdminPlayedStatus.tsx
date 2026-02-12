@@ -3,27 +3,14 @@ import { useGamePlayedStatus } from '@/hooks'
 import { reorderGamePlayedStatuses } from '@/services'
 import { fetchPlayedStatuses } from '@/store/features/gamePlayedStatus/thunk'
 import { useAppDispatch } from '@/store/hooks'
-import type {
-	GamePlayedStatus,
-	GamePlayedStatusCreateDto,
-	GamePlayedStatusUpdateDto,
-} from '@/models/api/GamePlayedStatus'
+import type { GamePlayedStatus, GamePlayedStatusCreateDto, GamePlayedStatusUpdateDto } from '@/models/api/GamePlayedStatus'
 import type { QueryParameters } from '@/models/api/Game'
 import { ReorderButtons } from '@/components/elements/ReorderButtons/ReorderButtons'
 import './AdminPlayedStatus.scss'
 
 export const AdminPlayedStatus: React.FC = () => {
 	const dispatch = useAppDispatch()
-	const {
-		playedStatuses,
-		loading,
-		error,
-		pagination,
-		loadPlayedStatuses,
-		createPlayedStatus,
-		updatePlayedStatus,
-		deletePlayedStatus,
-	} = useGamePlayedStatus()
+	const { playedStatuses, loading, error, pagination, loadPlayedStatuses, createPlayedStatus, updatePlayedStatus, deletePlayedStatus } = useGamePlayedStatus()
 
 	const [isModalOpen, setIsModalOpen] = useState(false)
 	const [editingStatus, setEditingStatus] = useState<GamePlayedStatus | null>(null)
@@ -164,9 +151,7 @@ export const AdminPlayedStatus: React.FC = () => {
 			<div className='admin-controls'>
 				<div className='page-size-control'>
 					<label>Elementos por página:</label>
-					<select
-						value={queryParams.pageSize || 10}
-						onChange={(e) => handlePageSizeChange(Number(e.target.value))}>
+					<select value={queryParams.pageSize || 10} onChange={(e) => handlePageSizeChange(Number(e.target.value))}>
 						<option value={5}>5</option>
 						<option value={10}>10</option>
 						<option value={25}>25</option>
@@ -227,20 +212,14 @@ export const AdminPlayedStatus: React.FC = () => {
 												</div>
 											</td>
 											<td>
-												<span className={`status ${status.isActive ? 'active' : 'inactive'}`}>
-													{status.isActive ? 'Activo' : 'Inactivo'}
-												</span>
+												<span className={`status ${status.isActive ? 'active' : 'inactive'}`}>{status.isActive ? 'Activo' : 'Inactivo'}</span>
 											</td>
 											<td>
 												<div className='actions'>
-													<button
-														className='btn btn-sm btn-secondary'
-														onClick={() => handleOpenModal(status)}>
+													<button className='btn btn-sm btn-secondary' onClick={() => handleOpenModal(status)}>
 														Editar
 													</button>
-													<button
-														className='btn btn-sm btn-danger'
-														onClick={() => handleDelete(status.id)}>
+													<button className='btn btn-sm btn-danger' onClick={() => handleDelete(status.id)}>
 														Eliminar
 													</button>
 												</div>
@@ -252,19 +231,13 @@ export const AdminPlayedStatus: React.FC = () => {
 					</div>
 
 					<div className='pagination-controls'>
-						<button
-							className='pagination-btn'
-							disabled={pagination.page <= 1}
-							onClick={() => handlePageChange(pagination.page - 1)}>
+						<button className='pagination-btn' disabled={pagination.page <= 1} onClick={() => handlePageChange(pagination.page - 1)}>
 							Anterior
 						</button>
 						<span className='pagination-info'>
 							Página {pagination.page} de {pagination.totalPages}({pagination.totalCount} elementos)
 						</span>
-						<button
-							className='pagination-btn'
-							disabled={pagination.page >= pagination.totalPages}
-							onClick={() => handlePageChange(pagination.page + 1)}>
+						<button className='pagination-btn' disabled={pagination.page >= pagination.totalPages} onClick={() => handlePageChange(pagination.page + 1)}>
 							Siguiente
 						</button>
 					</div>
@@ -283,13 +256,7 @@ export const AdminPlayedStatus: React.FC = () => {
 						<form onSubmit={handleSubmit} className='modal-body'>
 							<div className='form-group'>
 								<label htmlFor='name'>Nombre</label>
-								<input
-									type='text'
-									id='name'
-									value={formData.name}
-									onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-									required
-								/>
+								<input type='text' id='name' value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
 							</div>
 							<div className='form-group'>
 								<label htmlFor='color'>Color</label>
@@ -314,11 +281,7 @@ export const AdminPlayedStatus: React.FC = () => {
 							</div>
 							<div className='form-group'>
 								<label className='checkbox-label'>
-									<input
-										type='checkbox'
-										checked={formData.isActive}
-										onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-									/>
+									<input type='checkbox' checked={formData.isActive} onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })} />
 									Activo
 								</label>
 							</div>

@@ -13,9 +13,7 @@ type CustomFetchOptions = {
 	baseURL?: string
 }
 
-const buildQueryString = (
-	queryParameters?: Record<string, string | number | boolean | number[]>
-): string => {
+const buildQueryString = (queryParameters?: Record<string, string | number | boolean | number[]>): string => {
 	if (!queryParameters || Object.keys(queryParameters).length === 0) {
 		return ''
 	}
@@ -60,10 +58,7 @@ const parseResponseData = async (httpResponse: Response): Promise<any> => {
 		return await httpResponse.text()
 	}
 
-	if (
-		responseContentType.includes('application/octet-stream') ||
-		responseContentType.includes('image/')
-	) {
+	if (responseContentType.includes('application/octet-stream') || responseContentType.includes('image/')) {
 		return await httpResponse.blob()
 	}
 
@@ -78,10 +73,7 @@ const createTimeoutPromise = (timeoutMs: number): Promise<never> => {
 	})
 }
 
-export const customFetch = async <T = any>(
-	endpoint: string,
-	requestOptions: CustomFetchOptions = {}
-): Promise<T> => {
+export const customFetch = async <T = any>(endpoint: string, requestOptions: CustomFetchOptions = {}): Promise<T> => {
 	const {
 		method = 'GET',
 		headers: customHeaders = {},
@@ -120,9 +112,7 @@ export const customFetch = async <T = any>(
 
 	try {
 		const fetchPromise = fetch(completeUrl, fetchConfiguration)
-		const httpResponse = timeoutMs
-			? await Promise.race([fetchPromise, createTimeoutPromise(timeoutMs)])
-			: await fetchPromise
+		const httpResponse = timeoutMs ? await Promise.race([fetchPromise, createTimeoutPromise(timeoutMs)]) : await fetchPromise
 
 		const responseData = await parseResponseData(httpResponse)
 
@@ -150,8 +140,7 @@ export const customFetch = async <T = any>(
 				throw new Error('Authentication expired. Please login again.')
 			}
 
-			const errorMessage =
-				typeof responseData === 'string' ? responseData : JSON.stringify(responseData)
+			const errorMessage = typeof responseData === 'string' ? responseData : JSON.stringify(responseData)
 
 			throw new Error(`HTTP ${httpResponse.status} ${httpResponse.statusText}: ${errorMessage}`)
 		}

@@ -2,11 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { loginUser, clearError } from '@/store/features/auth/authSlice'
-import {
-	selectIsAuthenticated,
-	selectAuthLoading,
-	selectAuthError,
-} from '@/store/features/auth/selector'
+import { selectIsAuthenticated, selectAuthLoading, selectAuthError } from '@/store/features/auth/selector'
 import { selectRecentUsers } from '@/store/features/recentUsers/selector'
 import { RecentUsersList } from './RecentUsersList'
 import './Login.scss'
@@ -142,10 +138,7 @@ export const Login = () => {
 						<small className='form-hint'>Leave empty if your account has no password</small>
 					</div>
 
-					<button
-						type='submit'
-						className='btn btn-primary btn-block'
-						disabled={loading || !username}>
+					<button type='submit' className='btn btn-primary btn-block' disabled={loading || !username}>
 						{loading ? 'Signing in...' : 'Sign In'}
 					</button>
 				</form>

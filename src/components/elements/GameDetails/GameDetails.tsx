@@ -9,13 +9,7 @@ import { EditableMultiSelect } from '../EditableMultiSelect/EditableMultiSelect'
 import { useGames } from '@/hooks'
 import { useAppSelector } from '@/store/hooks'
 import { useFormik } from 'formik'
-import {
-	getCriticScoreUrl,
-	getCriticProviderIdFromName,
-	getCriticProviderNameFromId,
-	resolveEffectiveProvider,
-	type CriticProvider,
-} from '@/helpers/criticScoreHelper'
+import { getCriticScoreUrl, getCriticProviderIdFromName, getCriticProviderNameFromId, resolveEffectiveProvider, type CriticProvider } from '@/helpers/criticScoreHelper'
 import { store } from '@/store'
 
 interface GameDetailsProps {
@@ -78,8 +72,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 		enableReinitialize: true,
 		validate: (values) => {
 			const errors: Record<string, string> = {}
-			const clampNumber = (v: any) =>
-				v === '' || v === null || typeof v === 'undefined' ? undefined : Number(v)
+			const clampNumber = (v: any) => (v === '' || v === null || typeof v === 'undefined' ? undefined : Number(v))
 			const critic = clampNumber(values.critic)
 			const grade = clampNumber(values.grade)
 			if (typeof critic !== 'undefined' && (isNaN(critic) || critic < 0 || critic > 100)) {
@@ -101,13 +94,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 		let payloadValue: any = value
 
 		// Handle numeric fields (all optional)
-		if (
-			field === 'critic' ||
-			field === 'grade' ||
-			field === 'story' ||
-			field === 'completion' ||
-			field === 'score'
-		) {
+		if (field === 'critic' || field === 'grade' || field === 'story' || field === 'completion' || field === 'score') {
 			if (value === '' || value === null || typeof value === 'undefined') {
 				payloadValue = null
 				formik.setFieldValue(field as any, undefined)
@@ -129,15 +116,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 			}
 		}
 		// Handle optional string fields (can be cleared)
-		else if (
-			field === 'logo' ||
-			field === 'cover' ||
-			field === 'comment' ||
-			field === 'keyStoreUrl' ||
-			field === 'released' ||
-			field === 'started' ||
-			field === 'finished'
-		) {
+		else if (field === 'logo' || field === 'cover' || field === 'comment' || field === 'keyStoreUrl' || field === 'released' || field === 'started' || field === 'finished') {
 			if (value === '' || value === null || typeof value === 'undefined') {
 				payloadValue = null
 				formik.setFieldValue(field as any, '')
@@ -213,29 +192,15 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 						<div
 							onClick={() => {
 								if (!game.name) return
-								const url = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(
-									'"' + game.name + '" logo'
-								)}`
+								const url = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent('"' + game.name + '" logo')}`
 								window.open(url, '_blank', 'noopener')
 							}}
 							style={{ cursor: game.name ? 'pointer' : 'default' }}>
-							<OptimizedImage
-								src={game.logo}
-								alt={`${game.name} logo`}
-								className='game-details__logo'
-								quality='high'
-								loading='eager'
-							/>
+							<OptimizedImage src={game.logo} alt={`${game.name} logo`} className='game-details__logo' quality='high' loading='eager' />
 						</div>
 					) : null}
 					<div>
-						<EditableField
-							value={formik.values.name}
-							type='text'
-							onSave={(value) => saveField('name', value)}
-							placeholder='No name'
-							allowEmpty={false}
-						/>
+						<EditableField value={formik.values.name} type='text' onSave={(value) => saveField('name', value)} placeholder='No name' allowEmpty={false} />
 					</div>
 				</div>
 			</div>
@@ -246,19 +211,11 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 						<div
 							onClick={() => {
 								if (!game.name) return
-								const url = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(
-									'"' + game.name + '" cover'
-								)}`
+								const url = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent('"' + game.name + '" cover')}`
 								window.open(url, '_blank', 'noopener')
 							}}
 							style={{ cursor: game.name ? 'pointer' : 'default' }}>
-							<OptimizedImage
-								src={game.cover}
-								alt={`${game.name} cover`}
-								className='game-details__cover'
-								quality='high'
-								loading='eager'
-							/>
+							<OptimizedImage src={game.cover} alt={`${game.name} cover`} className='game-details__cover' quality='high' loading='eager' />
 						</div>
 					)}
 				</div>
@@ -288,23 +245,14 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 							className='clickable'
 							onClick={() => {
 								if (!game.name) return
-								const userProvider = (store.getState().auth.user?.scoreProvider ??
-									'Metacritic') as CriticProvider
-								const provider = resolveEffectiveProvider(
-									game.criticProvider as CriticProvider | undefined,
-									userProvider
-								)
+								const userProvider = (store.getState().auth.user?.scoreProvider ?? 'Metacritic') as CriticProvider
+								const provider = resolveEffectiveProvider(game.criticProvider as CriticProvider | undefined, userProvider)
 								const url = getCriticScoreUrl(game.name, provider)
 								window.open(url, '_blank', 'noopener')
 							}}>
 							Critic Score
 						</h4>
-						<EditableField
-							value={formik.values.critic}
-							type='number'
-							onSave={(value) => saveField('critic', value)}
-							placeholder='No score'
-						/>
+						<EditableField value={formik.values.critic} type='number' onSave={(value) => saveField('critic', value)} placeholder='No score' />
 					</div>
 					<div className='game-details-content-infoList-item'>
 						<h4>Critic Logo</h4>
@@ -338,13 +286,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 							}}>
 							Story
 						</h4>
-						<EditableField
-							value={formik.values.story}
-							type='number'
-							onSave={(value) => saveField('story', value)}
-							placeholder='0h'
-							formatter={(val) => `${val || 0}h`}
-						/>
+						<EditableField value={formik.values.story} type='number' onSave={(value) => saveField('story', value)} placeholder='0h' formatter={(val) => `${val || 0}h`} />
 					</div>
 					<div className='game-details-content-infoList-item'>
 						<h4
@@ -356,32 +298,15 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 							}}>
 							Completion
 						</h4>
-						<EditableField
-							value={formik.values.completion}
-							type='number'
-							onSave={(value) => saveField('completion', value)}
-							placeholder='0h'
-							formatter={(val) => `${val || 0}h`}
-						/>
+						<EditableField value={formik.values.completion} type='number' onSave={(value) => saveField('completion', value)} placeholder='0h' formatter={(val) => `${val || 0}h`} />
 					</div>
 					<div className='game-details-content-infoList-item'>
 						<h4>Score</h4>
-						<EditableField
-							value={formik.values.score}
-							type='number'
-							onSave={(value) => saveField('score', value)}
-							placeholder='No score'
-							allowEditing={false}
-						/>
+						<EditableField value={formik.values.score} type='number' onSave={(value) => saveField('score', value)} placeholder='No score' allowEditing={false} />
 					</div>
 					<div className='game-details-content-infoList-item'>
 						<h4
-							className={
-								(game.platformName || '').toLowerCase().includes('steam') ||
-								(game.platformName || '').toLowerCase().includes('epic')
-									? 'clickable'
-									: undefined
-							}
+							className={(game.platformName || '').toLowerCase().includes('steam') || (game.platformName || '').toLowerCase().includes('epic') ? 'clickable' : undefined}
 							onClick={() => {
 								if (!game.name) return
 								const platform = (game.platformName || '').toLowerCase()
@@ -392,9 +317,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 									return
 								}
 								if (platform.includes('epic')) {
-									const url = `https://store.epicgames.com/es-ES/browse?q=${encodeURIComponent(
-										game.name
-									)}&sortBy=relevancy&sortDir=DESC&count=40`
+									const url = `https://store.epicgames.com/es-ES/browse?q=${encodeURIComponent(game.name)}&sortBy=relevancy&sortDir=DESC&count=40`
 									window.open(url, '_blank', 'noopener')
 								}
 							}}>
@@ -440,12 +363,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 					</div>
 					<div className='game-details-content-infoList-item'>
 						<h4>Grade</h4>
-						<EditableField
-							value={formik.values.grade}
-							type='number'
-							onSave={(value) => saveField('grade', value)}
-							placeholder='No grade'
-						/>
+						<EditableField value={formik.values.grade} type='number' onSave={(value) => saveField('grade', value)} placeholder='No grade' />
 					</div>
 					<div className='game-details-content-infoList-item'>
 						<h4>Play With</h4>
@@ -462,19 +380,12 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 							className='clickable'
 							onClick={() => {
 								if (!game.name) return
-								const url = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(
-									'"' + game.name + '" logo'
-								)}`
+								const url = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent('"' + game.name + '" logo')}`
 								window.open(url, '_blank', 'noopener')
 							}}>
 							Logo
 						</h4>
-						<EditableField
-							value={formik.values.logo}
-							type='text'
-							onSave={(value) => saveField('logo', value)}
-							placeholder='Enter logo URL (optional)'
-						/>
+						<EditableField value={formik.values.logo} type='text' onSave={(value) => saveField('logo', value)} placeholder='Enter logo URL (optional)' />
 					</div>
 
 					<div className='game-details-content-infoList-item'>
@@ -482,38 +393,19 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 							className='clickable'
 							onClick={() => {
 								if (!game.name) return
-								const url = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(
-									'"' + game.name + '" cover'
-								)}`
+								const url = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent('"' + game.name + '" cover')}`
 								window.open(url, '_blank', 'noopener')
 							}}>
 							Cover
 						</h4>
-						<EditableField
-							value={formik.values.cover}
-							type='text'
-							onSave={(value) => saveField('cover', value)}
-							placeholder='Enter cover URL (optional)'
-						/>
+						<EditableField value={formik.values.cover} type='text' onSave={(value) => saveField('cover', value)} placeholder='Enter cover URL (optional)' />
 					</div>
 
 					<div className='game-details-content-infoList-item'>
 						<h4>Cheaper</h4>
 						<EditableSelect
-							value={
-								formik.values.isCheaperByKey === true
-									? 1
-									: formik.values.isCheaperByKey === false
-									? 2
-									: undefined
-							}
-							displayValue={
-								formik.values.isCheaperByKey === true
-									? 'Key'
-									: formik.values.isCheaperByKey === false
-									? 'Store'
-									: undefined
-							}
+							value={formik.values.isCheaperByKey === true ? 1 : formik.values.isCheaperByKey === false ? 2 : undefined}
+							displayValue={formik.values.isCheaperByKey === true ? 'Key' : formik.values.isCheaperByKey === false ? 'Store' : undefined}
 							options={priceComparisonOptions}
 							onSave={async (value) => {
 								if (value === undefined) {
@@ -533,25 +425,14 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 					{formik.values.isCheaperByKey !== undefined && (
 						<div className='game-details-content-infoList-item'>
 							<h4>Key URL</h4>
-							<EditableField
-								value={formik.values.keyStoreUrl}
-								type='text'
-								onSave={(value) => saveField('keyStoreUrl', value)}
-								placeholder='Enter key store URL (optional)'
-							/>
+							<EditableField value={formik.values.keyStoreUrl} type='text' onSave={(value) => saveField('keyStoreUrl', value)} placeholder='Enter key store URL (optional)' />
 						</div>
 					)}
 				</div>
 
 				<div className='game-details-content-comment'>
 					<h3>Comment</h3>
-					<EditableField
-						value={formik.values.comment}
-						type='textarea'
-						onSave={(value) => saveField('comment', value)}
-						placeholder='Add a comment...'
-						className='comment-field'
-					/>
+					<EditableField value={formik.values.comment} type='textarea' onSave={(value) => saveField('comment', value)} placeholder='Add a comment...' className='comment-field' />
 				</div>
 			</div>
 		</div>

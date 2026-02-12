@@ -45,15 +45,11 @@ export const Header: React.FC = () => {
 						<Link to='/' className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}>
 							Home
 						</Link>
-						<Link
-							to='/admin/platforms'
-							className={`nav-link ${location.pathname.startsWith('/admin') ? 'active' : ''}`}>
+						<Link to='/admin/platforms' className={`nav-link ${location.pathname.startsWith('/admin') ? 'active' : ''}`}>
 							Admin
 						</Link>
 						{isAdmin && (
-							<Link
-								to='/admin/users'
-								className={`nav-link ${location.pathname === '/admin/users' ? 'active' : ''}`}>
+							<Link to='/admin/users' className={`nav-link ${location.pathname === '/admin/users' ? 'active' : ''}`}>
 								Users
 							</Link>
 						)}
@@ -77,10 +73,7 @@ export const Header: React.FC = () => {
 					{/* Mobile Actions */}
 					<div className='app-header-container-mobile-actions'>
 						<CreateGame />
-						<button
-							className='header-burger-btn'
-							onClick={() => setIsMobileMenuOpen(true)}
-							aria-label='Abrir menú'>
+						<button className='header-burger-btn' onClick={() => setIsMobileMenuOpen(true)} aria-label='Abrir menú'>
 							<span></span>
 							<span></span>
 							<span></span>
@@ -90,11 +83,7 @@ export const Header: React.FC = () => {
 			</header>
 
 			{/* Mobile Menu */}
-			<MobileMenu
-				isOpen={isMobileMenuOpen}
-				onClose={() => setIsMobileMenuOpen(false)}
-				onLogout={handleLogout}
-			/>
+			<MobileMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} onLogout={handleLogout} />
 		</>
 	)
 }

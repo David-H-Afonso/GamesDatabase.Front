@@ -1,25 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import {
-	useGameViews,
-	useGameStatus,
-	useGamePlatform,
-	useGamePlayedStatus,
-	useGamePlayWith,
-} from '@/hooks'
-import type {
-	GameView,
-	GameViewCreateDto,
-	ViewFilter,
-	ViewSort,
-	FilterGroup,
-} from '@/models/api/GameView'
-import {
-	FilterField,
-	FilterOperator,
-	SortField,
-	SortDirection,
-	CombineWith,
-} from '@/models/api/GameView'
+import { useGameViews, useGameStatus, useGamePlatform, useGamePlayedStatus, useGamePlayWith } from '@/hooks'
+import type { GameView, GameViewCreateDto, ViewFilter, ViewSort, FilterGroup } from '@/models/api/GameView'
+import { FilterField, FilterOperator, SortField, SortDirection, CombineWith } from '@/models/api/GameView'
 import './GameViewModal.scss'
 
 interface Props {
@@ -32,10 +14,8 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 	const { createGameView, updateGameView } = useGameViews()
 	const { activeStatuses, loadActiveStatuses } = useGameStatus()
 	const { activeItems: activePlatforms, loadActivePlatforms } = useGamePlatform()
-	const { activeItems: activePlayedStatuses, fetchActiveList: loadActivePlayedStatus } =
-		useGamePlayedStatus()
-	const { activeOptions: activePlayWithOptions, fetchActiveOptions: loadActivePlayWith } =
-		useGamePlayWith()
+	const { activeItems: activePlayedStatuses, fetchActiveList: loadActivePlayedStatus } = useGamePlayedStatus()
+	const { activeOptions: activePlayWithOptions, fetchActiveOptions: loadActivePlayWith } = useGamePlayWith()
 
 	const [loading, setLoading] = useState(false)
 	const [formData, setFormData] = useState({
@@ -113,15 +93,15 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 			const parsedSorting: ViewSort[] = Array.isArray(rawSorting)
 				? (rawSorting as ViewSort[])
 				: typeof rawSorting === 'string'
-				? (() => {
-						try {
-							const parsed = JSON.parse(rawSorting)
-							return Array.isArray(parsed) ? (parsed as ViewSort[]) : []
-						} catch {
-							return []
-						}
-				  })()
-				: []
+					? (() => {
+							try {
+								const parsed = JSON.parse(rawSorting)
+								return Array.isArray(parsed) ? (parsed as ViewSort[]) : []
+							} catch {
+								return []
+							}
+						})()
+					: []
 
 			setSorting(parsedSorting)
 		} else {
@@ -180,12 +160,7 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 		})
 	}
 
-	const updateFilter = (
-		groupIndex: number,
-		filterIndex: number,
-		field: keyof ViewFilter,
-		value: any
-	) => {
+	const updateFilter = (groupIndex: number, filterIndex: number, field: keyof ViewFilter, value: any) => {
 		setFilterGroups((prev) => {
 			const updated = [...prev]
 			const filters = [...updated[groupIndex].filters]
@@ -194,9 +169,7 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 			// If changing the field, check if current operator is valid for the new field
 			if (field === 'field') {
 				const validOperators = getOperatorsForField(value)
-				const currentOperatorStillValid = validOperators.some(
-					(op) => op.value === currentFilter.operator
-				)
+				const currentOperatorStillValid = validOperators.some((op) => op.value === currentFilter.operator)
 
 				if (!currentOperatorStillValid) {
 					// Set to first valid operator for the new field
@@ -279,14 +252,7 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 						const out: any = { ...f }
 
 						// Date-like fields (Released, Started, Finished, ReleaseDate) -> YYYY-MM-DD
-						if (
-							[
-								FilterField.Released,
-								FilterField.Started,
-								FilterField.Finished,
-								FilterField.ReleaseDate,
-							].includes(f.field as any)
-						) {
+						if ([FilterField.Released, FilterField.Started, FilterField.Finished, FilterField.ReleaseDate].includes(f.field as any)) {
 							if (f.value === '' || f.value === null || f.value === undefined) {
 								out.value = null
 							} else if (Array.isArray(f.value)) {
@@ -321,14 +287,7 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 							}
 							return out
 						} // Convert selector string values to numbers
-						if (
-							[
-								FilterField.StatusId,
-								FilterField.PlatformId,
-								FilterField.PlayWithId,
-								FilterField.PlayedStatusId,
-							].includes(f.field as any)
-						) {
+						if ([FilterField.StatusId, FilterField.PlatformId, FilterField.PlayWithId, FilterField.PlayedStatusId].includes(f.field as any)) {
 							if (f.operator === FilterOperator.In || f.operator === FilterOperator.NotIn) {
 								// expect comma separated or array - normalize to number[]
 								if (Array.isArray(f.value)) {
@@ -432,27 +391,11 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 	const getOperatorsForField = (field: string) => {
 		const TEXT_FIELDS = [FilterField.Name, FilterField.Comment, FilterField.Description]
 		// Numeric fields (StatusId, PlatformId, etc.) - ONLY Equals/NotEquals supported
-		const NUMERIC_ID_FIELDS = [
-			FilterField.StatusId,
-			FilterField.PlatformId,
-			FilterField.PlayWithId,
-			FilterField.PlayedStatusId,
-		]
+		const NUMERIC_ID_FIELDS = [FilterField.StatusId, FilterField.PlatformId, FilterField.PlayWithId, FilterField.PlayedStatusId]
 		// Numeric score fields - may support more operators
-		const NUMERIC_SCORE_FIELDS = [
-			FilterField.Score,
-			FilterField.Grade,
-			FilterField.Critic,
-			FilterField.Story,
-			FilterField.Completion,
-		]
+		const NUMERIC_SCORE_FIELDS = [FilterField.Score, FilterField.Grade, FilterField.Critic, FilterField.Story, FilterField.Completion]
 		// Date fields - ONLY Equals/GreaterThanOrEqual/LessThanOrEqual supported
-		const DATE_FIELDS = [
-			FilterField.Released,
-			FilterField.Started,
-			FilterField.Finished,
-			FilterField.ReleaseDate,
-		]
+		const DATE_FIELDS = [FilterField.Released, FilterField.Started, FilterField.Finished, FilterField.ReleaseDate]
 		const DATETIME_FIELDS = [FilterField.CreatedAt, FilterField.UpdatedAt]
 
 		// Text field operators
@@ -518,21 +461,11 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 	]
 
 	const isDropdownField = (field: string) => {
-		return [
-			FilterField.StatusId,
-			FilterField.PlatformId,
-			FilterField.PlayWithId,
-			FilterField.PlayedStatusId,
-		].includes(field as any)
+		return [FilterField.StatusId, FilterField.PlatformId, FilterField.PlayWithId, FilterField.PlayedStatusId].includes(field as any)
 	}
 
 	const isDateLikeField = (field: string) => {
-		return [
-			FilterField.Released,
-			FilterField.Started,
-			FilterField.Finished,
-			FilterField.ReleaseDate,
-		].includes(field as any)
+		return [FilterField.Released, FilterField.Started, FilterField.Finished, FilterField.ReleaseDate].includes(field as any)
 	}
 
 	const isDateTimeField = (field: string) => {
@@ -576,9 +509,7 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 
 		if (isDropdownField(filter.field)) {
 			return (
-				<select
-					value={filter.value}
-					onChange={(e) => updateFilter(groupIndex, filterIndex, 'value', e.target.value)}>
+				<select value={filter.value} onChange={(e) => updateFilter(groupIndex, filterIndex, 'value', e.target.value)}>
 					<option value=''>Selecciona una opción</option>
 					{getDropdownOptions(filter.field).map((option) => (
 						<option key={option.value} value={option.value}>
@@ -593,13 +524,7 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 			// date input expects YYYY-MM-DD
 			const value = filter.value ? String(filter.value).split('T')[0] : ''
 
-			return (
-				<input
-					type='date'
-					value={value}
-					onChange={(e) => updateFilter(groupIndex, filterIndex, 'value', e.target.value)}
-				/>
-			)
+			return <input type='date' value={value} onChange={(e) => updateFilter(groupIndex, filterIndex, 'value', e.target.value)} />
 		}
 
 		if (isDateTimeField(filter.field)) {
@@ -617,24 +542,11 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 				}
 			}
 
-			return (
-				<input
-					type='datetime-local'
-					value={value}
-					onChange={(e) => updateFilter(groupIndex, filterIndex, 'value', e.target.value)}
-				/>
-			)
+			return <input type='datetime-local' value={value} onChange={(e) => updateFilter(groupIndex, filterIndex, 'value', e.target.value)} />
 		}
 
 		// Default text input
-		return (
-			<input
-				type='text'
-				value={filter.value}
-				onChange={(e) => updateFilter(groupIndex, filterIndex, 'value', e.target.value)}
-				placeholder='Valor'
-			/>
-		)
+		return <input type='text' value={filter.value} onChange={(e) => updateFilter(groupIndex, filterIndex, 'value', e.target.value)} placeholder='Valor' />
 	}
 
 	return (
@@ -650,12 +562,7 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 				<div className='modal-body'>
 					<div className='form-group'>
 						<label>Nombre *</label>
-						<input
-							type='text'
-							value={formData.name}
-							onChange={(e) => handleInputChange('name', e.target.value)}
-							placeholder='Nombre de la vista'
-						/>
+						<input type='text' value={formData.name} onChange={(e) => handleInputChange('name', e.target.value)} placeholder='Nombre de la vista' />
 					</div>
 
 					<div className='configuration-section'>
@@ -669,9 +576,7 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 						{filterGroups.length > 1 && (
 							<div className='global-combine'>
 								<label>Combinar grupos con:</label>
-								<select
-									value={groupCombineWith}
-									onChange={(e) => setGroupCombineWith(e.target.value as CombineWith)}>
+								<select value={groupCombineWith} onChange={(e) => setGroupCombineWith(e.target.value as CombineWith)}>
 									<option value={CombineWith.And}>Y (AND)</option>
 									<option value={CombineWith.Or}>O (OR)</option>
 								</select>
@@ -688,21 +593,14 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 										{group.filters.length > 1 && (
 											<>
 												<label>Combinar con:</label>
-												<select
-													value={group.combineWith}
-													onChange={(e) =>
-														updateFilterGroup(groupIndex, 'combineWith', e.target.value)
-													}>
+												<select value={group.combineWith} onChange={(e) => updateFilterGroup(groupIndex, 'combineWith', e.target.value)}>
 													<option value={CombineWith.And}>Y (AND)</option>
 													<option value={CombineWith.Or}>O (OR)</option>
 												</select>
 											</>
 										)}
 										{filterGroups.length > 1 && (
-											<button
-												className='remove-group-btn'
-												onClick={() => removeFilterGroup(groupIndex)}
-												title='Eliminar grupo'>
+											<button className='remove-group-btn' onClick={() => removeFilterGroup(groupIndex)} title='Eliminar grupo'>
 												×
 											</button>
 										)}
@@ -712,31 +610,21 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 										{group.filters.length === 0 ? (
 											<div className='no-filters-in-group'>
 												<p>No hay filtros en este grupo</p>
-												<button
-													className='add-first-filter-btn'
-													onClick={() => addFilter(groupIndex)}>
+												<button className='add-first-filter-btn' onClick={() => addFilter(groupIndex)}>
 													Agregar Filtro
 												</button>
 											</div>
 										) : (
 											group.filters.map((filter, filterIndex) => (
 												<div key={filterIndex} className='filter-item'>
-													<select
-														value={filter.field}
-														onChange={(e) =>
-															updateFilter(groupIndex, filterIndex, 'field', e.target.value)
-														}>
+													<select value={filter.field} onChange={(e) => updateFilter(groupIndex, filterIndex, 'field', e.target.value)}>
 														{getFieldOptions().map((option) => (
 															<option key={option.value} value={option.value}>
 																{option.label}
 															</option>
 														))}
 													</select>
-													<select
-														value={filter.operator}
-														onChange={(e) =>
-															updateFilter(groupIndex, filterIndex, 'operator', e.target.value)
-														}>
+													<select value={filter.operator} onChange={(e) => updateFilter(groupIndex, filterIndex, 'operator', e.target.value)}>
 														{getOperatorsForField(filter.field).map((option) => (
 															<option key={option.value} value={option.value}>
 																{option.label}
@@ -744,10 +632,7 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 														))}
 													</select>
 													{renderValueInput(filter, groupIndex, filterIndex)}
-													<button
-														className='remove-btn'
-														onClick={() => removeFilter(groupIndex, filterIndex)}
-														title='Eliminar filtro'>
+													<button className='remove-btn' onClick={() => removeFilter(groupIndex, filterIndex)} title='Eliminar filtro'>
 														×
 													</button>
 												</div>
@@ -777,17 +662,8 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 							sorting.map((sort, index) => (
 								<div key={index} className='sort-item'>
 									<div className='sort-order'>
-										<button
-											className='order-btn'
-											onClick={() => moveSort(index, Math.max(0, index - 1))}
-											disabled={index === 0}
-											title='Mover arriba'>
-											<svg
-												width='12'
-												height='12'
-												viewBox='0 0 12 12'
-												fill='none'
-												xmlns='http://www.w3.org/2000/svg'>
+										<button className='order-btn' onClick={() => moveSort(index, Math.max(0, index - 1))} disabled={index === 0} title='Mover arriba'>
+											<svg width='12' height='12' viewBox='0 0 12 12' fill='none' xmlns='http://www.w3.org/2000/svg'>
 												<path d='M6 3L2 7h8L6 3z' fill='currentColor' />
 											</svg>
 										</button>
@@ -797,28 +673,19 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 											onClick={() => moveSort(index, Math.min(sorting.length - 1, index + 1))}
 											disabled={index === sorting.length - 1}
 											title='Mover abajo'>
-											<svg
-												width='12'
-												height='12'
-												viewBox='0 0 12 12'
-												fill='none'
-												xmlns='http://www.w3.org/2000/svg'>
+											<svg width='12' height='12' viewBox='0 0 12 12' fill='none' xmlns='http://www.w3.org/2000/svg'>
 												<path d='M6 9L2 5h8L6 9z' fill='currentColor' />
 											</svg>
 										</button>
 									</div>
-									<select
-										value={sort.field}
-										onChange={(e) => updateSort(index, 'field', e.target.value)}>
+									<select value={sort.field} onChange={(e) => updateSort(index, 'field', e.target.value)}>
 										{getSortFieldOptions().map((option) => (
 											<option key={option.value} value={option.value}>
 												{option.label}
 											</option>
 										))}
 									</select>
-									<select
-										value={sort.direction}
-										onChange={(e) => updateSort(index, 'direction', e.target.value)}>
+									<select value={sort.direction} onChange={(e) => updateSort(index, 'direction', e.target.value)}>
 										<option value={SortDirection.Ascending}>Ascendente</option>
 										<option value={SortDirection.Descending}>Descendente</option>
 									</select>
@@ -835,10 +702,7 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 					<button className='btn btn-secondary' onClick={onClose}>
 						Cancelar
 					</button>
-					<button
-						className='btn btn-primary'
-						onClick={handleSave}
-						disabled={loading || !formData.name.trim()}>
+					<button className='btn btn-primary' onClick={handleSave} disabled={loading || !formData.name.trim()}>
 						{loading ? 'Guardando...' : 'Guardar'}
 					</button>
 				</div>

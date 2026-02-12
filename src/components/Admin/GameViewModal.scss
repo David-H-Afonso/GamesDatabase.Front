@@ -30,7 +30,9 @@
 		max-height: 90vh;
 		display: flex;
 		flex-direction: column;
-		box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 1px rgba(0, 0, 0, 0.3);
+		box-shadow:
+			0 20px 60px rgba(0, 0, 0, 0.4),
+			0 0 1px rgba(0, 0, 0, 0.3);
 		border: 1px solid var(--border-light, rgba(255, 255, 255, 0.1));
 		animation: slideUp 0.3s ease-out;
 

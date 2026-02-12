@@ -49,10 +49,7 @@ export const AdminUsers = () => {
 		if (!searchTerm.trim()) return users
 
 		const search = searchTerm.toLowerCase()
-		return users.filter(
-			(user) =>
-				user.username.toLowerCase().includes(search) || user.role.toLowerCase().includes(search)
-		)
+		return users.filter((user) => user.username.toLowerCase().includes(search) || user.role.toLowerCase().includes(search))
 	}, [users, searchTerm])
 
 	useEffect(() => {
@@ -183,23 +180,14 @@ export const AdminUsers = () => {
 						{users.length} user{users.length !== 1 ? 's' : ''} total
 					</p>
 				</div>
-				<button
-					className='btn btn-primary'
-					onClick={() => handleOpenModal()}
-					disabled={actionLoading}>
+				<button className='btn btn-primary' onClick={() => handleOpenModal()} disabled={actionLoading}>
 					+ Create New User
 				</button>
 			</div>
 
 			{/* Search Bar */}
 			<div className='search-bar'>
-				<input
-					type='text'
-					placeholder='Search users by username or role...'
-					value={searchTerm}
-					onChange={(e) => setSearchTerm(e.target.value)}
-					className='search-input'
-				/>
+				<input type='text' placeholder='Search users by username or role...' value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className='search-input' />
 				{searchTerm && (
 					<button className='btn-clear-search' onClick={() => setSearchTerm('')}>
 						Clear
@@ -216,11 +204,7 @@ export const AdminUsers = () => {
 				</div>
 			) : filteredUsers.length === 0 ? (
 				<div className='empty-state'>
-					<p>
-						{searchTerm
-							? `No users found matching "${searchTerm}"`
-							: 'No users yet. Create your first user to get started!'}
-					</p>
+					<p>{searchTerm ? `No users found matching "${searchTerm}"` : 'No users yet. Create your first user to get started!'}</p>
 				</div>
 			) : (
 				<div className='users-table'>
@@ -242,30 +226,19 @@ export const AdminUsers = () => {
 										{user.id === currentUser?.id && <span className='badge badge-info'>You</span>}
 									</td>
 									<td>
-										<span className={`badge badge-${user.role === 'Admin' ? 'admin' : 'standard'}`}>
-											{user.role}
-										</span>
+										<span className={`badge badge-${user.role === 'Admin' ? 'admin' : 'standard'}`}>{user.role}</span>
 									</td>
 									<td>{user.isDefault ? 'Yes' : ''}</td>
 									<td>{new Date(user.createdAt).toLocaleDateString()}</td>
 									<td>
 										<div className='actions'>
-											<button
-												className='btn btn-small btn-secondary'
-												onClick={() => handleOpenModal(user)}
-												disabled={actionLoading}>
+											<button className='btn btn-small btn-secondary' onClick={() => handleOpenModal(user)} disabled={actionLoading}>
 												Edit
 											</button>
-											<button
-												className='btn btn-small btn-secondary'
-												onClick={() => handleOpenPasswordModal(user.id)}
-												disabled={actionLoading}>
+											<button className='btn btn-small btn-secondary' onClick={() => handleOpenPasswordModal(user.id)} disabled={actionLoading}>
 												Change Password
 											</button>
-											<button
-												className='btn btn-small btn-danger'
-												onClick={() => handleDeleteClick(user)}
-												disabled={user.isDefault || actionLoading}>
+											<button className='btn btn-small btn-danger' onClick={() => handleDeleteClick(user)} disabled={user.isDefault || actionLoading}>
 												Delete
 											</button>
 										</div>
@@ -291,12 +264,7 @@ export const AdminUsers = () => {
 						<form onSubmit={handleSubmit}>
 							<div className='form-group'>
 								<label>Username</label>
-								<input
-									type='text'
-									value={formData.username}
-									onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-									required
-								/>
+								<input type='text' value={formData.username} onChange={(e) => setFormData({ ...formData, username: e.target.value })} required />
 							</div>
 
 							{!editingUser && (
@@ -313,20 +281,14 @@ export const AdminUsers = () => {
 
 							<div className='form-group'>
 								<label>Role</label>
-								<select
-									value={formData.role}
-									onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}>
+								<select value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}>
 									<option value='Standard'>Standard</option>
 									<option value='Admin'>Admin</option>
 								</select>
 							</div>
 
 							<div className='modal-actions'>
-								<button
-									type='button'
-									className='btn btn-secondary'
-									onClick={handleCloseModal}
-									disabled={actionLoading}>
+								<button type='button' className='btn btn-secondary' onClick={handleCloseModal} disabled={actionLoading}>
 									Cancel
 								</button>
 								<button type='submit' className='btn btn-primary' disabled={actionLoading}>
@@ -359,28 +321,17 @@ export const AdminUsers = () => {
 								</p>
 								<ul>
 									<li>All data associated with this user will be permanently deleted</li>
-									<li>
-										Any games or records created by this user will remain but won't be associated
-										with them
-									</li>
+									<li>Any games or records created by this user will remain but won't be associated with them</li>
 									<li>This user will immediately lose access to the system</li>
 								</ul>
 							</div>
 						</div>
 
 						<div className='modal-actions'>
-							<button
-								type='button'
-								className='btn btn-secondary'
-								onClick={() => setDeleteConfirm(null)}
-								disabled={actionLoading}>
+							<button type='button' className='btn btn-secondary' onClick={() => setDeleteConfirm(null)} disabled={actionLoading}>
 								Cancel
 							</button>
-							<button
-								type='button'
-								className='btn btn-danger'
-								onClick={handleDeleteConfirm}
-								disabled={actionLoading}>
+							<button type='button' className='btn btn-danger' onClick={handleDeleteConfirm} disabled={actionLoading}>
 								{actionLoading ? 'Deleting...' : 'Yes, Delete User'}
 							</button>
 						</div>
@@ -402,21 +353,12 @@ export const AdminUsers = () => {
 						<form onSubmit={handleChangePassword}>
 							<div className='form-group'>
 								<label>New Password</label>
-								<input
-									type='password'
-									value={newPassword}
-									onChange={(e) => setNewPassword(e.target.value)}
-									placeholder='Leave empty to remove password'
-								/>
+								<input type='password' value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder='Leave empty to remove password' />
 								<small>Leave empty to set no password</small>
 							</div>
 
 							<div className='modal-actions'>
-								<button
-									type='button'
-									className='btn btn-secondary'
-									onClick={() => setIsPasswordModalOpen(false)}
-									disabled={actionLoading}>
+								<button type='button' className='btn btn-secondary' onClick={() => setIsPasswordModalOpen(false)} disabled={actionLoading}>
 									Cancel
 								</button>
 								<button type='submit' className='btn btn-primary' disabled={actionLoading}>

@@ -23,5 +23,4 @@ export const selectGameViewsState = (state: RootState) => state.gameViews
 
 // Selector for a specific game view by ID
 export const selectGameViewById = (id: number) => (state: RootState) =>
-	state.gameViews.gameViews.find((view) => view.id === id) ||
-	state.gameViews.publicGameViews.find((view) => view.id === id)
+	state.gameViews.gameViews.find((view) => view.id === id) || state.gameViews.publicGameViews.find((view) => view.id === id)

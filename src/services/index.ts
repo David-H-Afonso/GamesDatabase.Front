@@ -54,16 +54,7 @@ export {
 	updateImageUrls,
 } from './DataExportService'
 
-export {
-	getGameViews,
-	getGameViewById,
-	createGameView,
-	updateGameView,
-	updateGameViewConfiguration,
-	deleteGameView,
-	getPublicGameViews,
-	reorderGameViews,
-} from './GameViewService'
+export { getGameViews, getGameViewById, createGameView, updateGameView, updateGameViewConfiguration, deleteGameView, getPublicGameViews, reorderGameViews } from './GameViewService'
 
 export { GameViewMigrationService } from './GameViewMigrationService'
 
