@@ -14,6 +14,7 @@ export interface User {
 	hasPassword: boolean
 	useScoreColors: boolean
 	scoreProvider: string
+	showPriceComparisonIcon: boolean
 	createdAt: string
 	updatedAt: string
 }
@@ -41,6 +42,7 @@ export interface UserUpdateDto {
 	role?: UserRole
 	useScoreColors?: boolean
 	scoreProvider?: string
+	showPriceComparisonIcon?: boolean
 }
 
 export interface ChangePasswordDto {

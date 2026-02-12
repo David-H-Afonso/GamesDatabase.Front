@@ -10,6 +10,9 @@ export const AdminPreferences = () => {
 	const user = useAppSelector((state) => state.auth.user)
 	const [useScoreColors, setUseScoreColors] = useState(user?.useScoreColors ?? false)
 	const [scoreProvider, setScoreProvider] = useState(user?.scoreProvider ?? 'Metacritic')
+	const [showPriceComparisonIcon, setShowPriceComparisonIcon] = useState(
+		user?.showPriceComparisonIcon ?? false
+	)
 	const [isSaving, setIsSaving] = useState(false)
 	const [saveMessage, setSaveMessage] = useState<string | null>(null)
 
@@ -25,6 +28,7 @@ export const AdminPreferences = () => {
 		if (user) {
 			setUseScoreColors(user.useScoreColors ?? false)
 			setScoreProvider(user.scoreProvider ?? 'Metacritic')
+			setShowPriceComparisonIcon(user.showPriceComparisonIcon ?? false)
 		}
 	}, [user])
 
@@ -62,6 +66,28 @@ export const AdminPreferences = () => {
 		} catch (error) {
 			setSaveMessage('Failed to save score provider preference')
 			setScoreProvider(user.scoreProvider ?? 'Metacritic') // Revert on error
+			setTimeout(() => setSaveMessage(null), 3000)
+		} finally {
+			setIsSaving(false)
+		}
+	}
+
+	const handleTogglePriceComparisonIcon = async (checked: boolean) => {
+		if (!user?.id) return
+
+		setShowPriceComparisonIcon(checked)
+		setIsSaving(true)
+		setSaveMessage(null)
+
+		try {
+			await dispatch(
+				updateUserPreferences({ userId: user.id, showPriceComparisonIcon: checked })
+			).unwrap()
+			setSaveMessage('Price comparison icon preference saved')
+			setTimeout(() => setSaveMessage(null), 3000)
+		} catch (error) {
+			setSaveMessage('Failed to save price comparison icon preference')
+			setShowPriceComparisonIcon(!checked)
 			setTimeout(() => setSaveMessage(null), 3000)
 		} finally {
 			setIsSaving(false)
@@ -134,6 +160,29 @@ export const AdminPreferences = () => {
 								</option>
 							))}
 						</select>
+					</div>
+
+					<div className='admin-preferences__option'>
+						<div className='admin-preferences__option-info'>
+							<label htmlFor='price-comparison-icon' className='admin-preferences__option-label'>
+								Price Comparison Icon
+							</label>
+							<p className='admin-preferences__option-description'>
+								Show a small key or store icon next to the user note when the price comparison field
+								is defined for a game
+							</p>
+						</div>
+						<label className='admin-preferences__toggle'>
+							<input
+								id='price-comparison-icon'
+								type='checkbox'
+								checked={showPriceComparisonIcon}
+								onChange={(e) => handleTogglePriceComparisonIcon(e.target.checked)}
+								disabled={isSaving}
+								className='admin-preferences__toggle-input'
+							/>
+							<span className='admin-preferences__toggle-slider'></span>
+						</label>
 					</div>
 
 					{saveMessage && (

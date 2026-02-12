@@ -30,6 +30,9 @@ export const loginUser = createAsyncThunk(
 				})
 			)
 
+			// Load preferences immediately after login
+			await dispatch(fetchUserPreferences(response.userId))
+
 			return response
 		} catch (error) {
 			if (error instanceof Error) {
@@ -55,7 +58,11 @@ export const fetchUserPreferences = createAsyncThunk(
 	async (userId: number, { rejectWithValue }) => {
 		try {
 			const user = await userService.getUserById(userId)
-			return { useScoreColors: user.useScoreColors, scoreProvider: user.scoreProvider }
+			return {
+				useScoreColors: user.useScoreColors,
+				scoreProvider: user.scoreProvider,
+				showPriceComparisonIcon: user.showPriceComparisonIcon,
+			}
 		} catch (error) {
 			if (error instanceof Error) {
 				return rejectWithValue(error.message)
@@ -75,13 +82,25 @@ export const updateUserPreferences = createAsyncThunk(
 			userId,
 			useScoreColors,
 			scoreProvider,
-		}: { userId: number; useScoreColors?: boolean; scoreProvider?: string },
+			showPriceComparisonIcon,
+		}: {
+			userId: number
+			useScoreColors?: boolean
+			scoreProvider?: string
+			showPriceComparisonIcon?: boolean
+		},
 		{ rejectWithValue, dispatch }
 	) => {
 		try {
-			const updates: { useScoreColors?: boolean; scoreProvider?: string } = {}
+			const updates: {
+				useScoreColors?: boolean
+				scoreProvider?: string
+				showPriceComparisonIcon?: boolean
+			} = {}
 			if (useScoreColors !== undefined) updates.useScoreColors = useScoreColors
 			if (scoreProvider !== undefined) updates.scoreProvider = scoreProvider
+			if (showPriceComparisonIcon !== undefined)
+				updates.showPriceComparisonIcon = showPriceComparisonIcon
 
 			await userService.updateUser(userId, updates)
 
@@ -135,7 +154,11 @@ const authSlice = createSlice({
 		 */
 		setUserPreferences: (
 			state,
-			action: PayloadAction<{ useScoreColors?: boolean; scoreProvider?: string }>
+			action: PayloadAction<{
+				useScoreColors?: boolean
+				scoreProvider?: string
+				showPriceComparisonIcon?: boolean
+			}>
 		) => {
 			if (state.user) {
 				if (action.payload.useScoreColors !== undefined) {
@@ -143,6 +166,9 @@ const authSlice = createSlice({
 				}
 				if (action.payload.scoreProvider !== undefined) {
 					state.user.scoreProvider = action.payload.scoreProvider
+				}
+				if (action.payload.showPriceComparisonIcon !== undefined) {
+					state.user.showPriceComparisonIcon = action.payload.showPriceComparisonIcon
 				}
 			}
 		},
@@ -184,10 +210,18 @@ const authSlice = createSlice({
 		// Fetch user preferences
 		builder.addCase(
 			fetchUserPreferences.fulfilled,
-			(state, action: PayloadAction<{ useScoreColors: boolean; scoreProvider: string }>) => {
+			(
+				state,
+				action: PayloadAction<{
+					useScoreColors: boolean
+					scoreProvider: string
+					showPriceComparisonIcon: boolean
+				}>
+			) => {
 				if (state.user) {
 					state.user.useScoreColors = action.payload.useScoreColors
 					state.user.scoreProvider = action.payload.scoreProvider
+					state.user.showPriceComparisonIcon = action.payload.showPriceComparisonIcon
 				}
 			}
 		)
@@ -195,13 +229,23 @@ const authSlice = createSlice({
 		// Update user preferences
 		builder.addCase(
 			updateUserPreferences.fulfilled,
-			(state, action: PayloadAction<{ useScoreColors?: boolean; scoreProvider?: string }>) => {
+			(
+				state,
+				action: PayloadAction<{
+					useScoreColors?: boolean
+					scoreProvider?: string
+					showPriceComparisonIcon?: boolean
+				}>
+			) => {
 				if (state.user) {
 					if (action.payload.useScoreColors !== undefined) {
 						state.user.useScoreColors = action.payload.useScoreColors
 					}
 					if (action.payload.scoreProvider !== undefined) {
 						state.user.scoreProvider = action.payload.scoreProvider
+					}
+					if (action.payload.showPriceComparisonIcon !== undefined) {
+						state.user.showPriceComparisonIcon = action.payload.showPriceComparisonIcon
 					}
 				}
 			}

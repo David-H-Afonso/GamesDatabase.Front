@@ -54,17 +54,20 @@
 					font-weight: 600;
 					justify-content: center;
 					padding: 0 5px;
+					background-color: var(--surface-light);
+					color: white;
 
-					&:nth-child(1) {
-						background-color: var(--surface-light);
-						color: white;
+					&--price {
+						width: 35px;
+						height: 25px;
+					}
+
+					&--grade {
 						width: 35px;
 						font-family: monospace;
 					}
 
-					&:nth-child(2) {
-						background-color: var(--surface-light);
-						color: white;
+					&--critic {
 						gap: 3px;
 					}
 				}
@@ -141,7 +144,9 @@
 
 							&--clickable {
 								cursor: pointer;
-								transition: transform 0.2s ease, opacity 0.2s ease;
+								transition:
+									transform 0.2s ease,
+									opacity 0.2s ease;
 
 								&:hover {
 									transform: scale(1.05);

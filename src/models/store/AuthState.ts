@@ -9,6 +9,7 @@ export interface AuthState {
 		role: 'Admin' | 'Standard'
 		useScoreColors?: boolean
 		scoreProvider?: string
+		showPriceComparisonIcon?: boolean
 	} | null
 	token: string | null
 	loading: boolean

@@ -11,20 +11,14 @@ import ScoreIcon from '@/assets/svgs/score.svg?react'
 import CriticIcon from '@/assets/svgs/critic.svg?react'
 import OpenCriticIcon from '@/assets/svgs/opencritic.svg?react'
 import SteamDBIcon from '@/assets/svgs/steamdb.svg?react'
-import {
-	getCriticScoreUrl,
-	resolveEffectiveProvider,
-	type CriticProvider,
-} from '@/helpers/criticScoreHelper'
+import KeyIcon from '@/assets/svgs/key.svg?react'
+import StoreIcon from '@/assets/svgs/store.svg?react'
+import { getCriticScoreUrl, resolveEffectiveProvider, type CriticProvider } from '@/helpers/criticScoreHelper'
 
 interface CardViewProps {
 	game: Game
 	openDetails: (game: Game) => void
-	onFieldUpdate?: (
-		gameId: number,
-		field: string,
-		value: number | number[] | undefined
-	) => Promise<void>
+	onFieldUpdate?: (gameId: number, field: string, value: number | number[] | undefined) => Promise<void>
 	playWithColors: (string | undefined)[]
 	gameStatusColor: string | undefined
 	platformColor: string | undefined
@@ -34,20 +28,8 @@ interface CardViewProps {
 }
 
 const CardView: FC<CardViewProps> = (props) => {
-	const {
-		game,
-		openDetails,
-		playWithColors,
-		gameStatusColor,
-		platformColor,
-		onFieldUpdate,
-		isSelected = false,
-		onSelect,
-		deselectAll,
-	} = props
-	const [activeSelector, setActiveSelector] = useState<'status' | 'platform' | 'playWith' | null>(
-		null
-	)
+	const { game, openDetails, playWithColors, gameStatusColor, platformColor, onFieldUpdate, isSelected = false, onSelect, deselectAll } = props
+	const [activeSelector, setActiveSelector] = useState<'status' | 'platform' | 'playWith' | null>(null)
 
 	// Get options for selectable fields
 	const { activeStatuses: statusOptions } = useAppSelector((state) => state.gameStatus)
@@ -56,29 +38,19 @@ const CardView: FC<CardViewProps> = (props) => {
 
 	// Get user preferences
 	const useScoreColors = useAppSelector((state) => state.auth.user?.useScoreColors ?? false)
-	const userScoreProvider = useAppSelector(
-		(state) => state.auth.user?.scoreProvider ?? 'Metacritic'
-	) as CriticProvider
+	const userScoreProvider = useAppSelector((state) => state.auth.user?.scoreProvider ?? 'Metacritic') as CriticProvider
+	const showPriceComparisonIcon = useAppSelector((state) => state.auth.user?.showPriceComparisonIcon ?? false)
 
 	const released = formatToLocaleDate(game.released)
 
 	// Use per-game provider if set, otherwise fall back to user preference
-	const effectiveProvider = resolveEffectiveProvider(
-		game.criticProvider as CriticProvider | undefined,
-		userScoreProvider
-	)
+	const effectiveProvider = resolveEffectiveProvider(game.criticProvider as CriticProvider | undefined, userScoreProvider)
 
 	// Get critic score color if enabled
-	const criticScoreColor =
-		useScoreColors && game.critic != null ? getMetacriticColor(game.critic) : '#f9fafb'
+	const criticScoreColor = useScoreColors && game.critic != null ? getMetacriticColor(game.critic) : '#f9fafb'
 
 	// Select icon based on effective provider
-	const ScoreProviderIcon =
-		effectiveProvider === 'OpenCritic'
-			? OpenCriticIcon
-			: effectiveProvider === 'SteamDB'
-			? SteamDBIcon
-			: CriticIcon
+	const ScoreProviderIcon = effectiveProvider === 'OpenCritic' ? OpenCriticIcon : effectiveProvider === 'SteamDB' ? SteamDBIcon : CriticIcon
 
 	const handleCriticScoreClick = (e: React.MouseEvent) => {
 		e.preventDefault()
@@ -106,10 +78,7 @@ const CardView: FC<CardViewProps> = (props) => {
 		callback()
 	}
 
-	const handleBadgeClick = (
-		e: React.MouseEvent,
-		selectorType: 'status' | 'platform' | 'playWith'
-	) => {
+	const handleBadgeClick = (e: React.MouseEvent, selectorType: 'status' | 'platform' | 'playWith') => {
 		e.preventDefault()
 		e.stopPropagation()
 		setActiveSelector(activeSelector === selectorType ? null : selectorType)
@@ -137,6 +106,9 @@ const CardView: FC<CardViewProps> = (props) => {
 		}
 	}
 
+	const hasPriceComparison = showPriceComparisonIcon && game.isCheaperByKey !== undefined && game.isCheaperByKey !== null
+	const PriceComparisonIcon = game.isCheaperByKey ? KeyIcon : StoreIcon
+
 	return (
 		<div
 			key={game.id}
@@ -144,28 +116,16 @@ const CardView: FC<CardViewProps> = (props) => {
 			onClick={() => closeActionMenu(() => openDetails(game))}
 			ref={menuRef}
 			onMouseEnter={(e) => {
-				const checkbox = e.currentTarget.querySelector(
-					'.game-card-view-container__checkbox'
-				) as HTMLInputElement
+				const checkbox = e.currentTarget.querySelector('.game-card-view-container__checkbox') as HTMLInputElement
 				if (checkbox) checkbox.style.opacity = '1'
 			}}
 			onMouseLeave={(e) => {
-				const checkbox = e.currentTarget.querySelector(
-					'.game-card-view-container__checkbox'
-				) as HTMLInputElement
+				const checkbox = e.currentTarget.querySelector('.game-card-view-container__checkbox') as HTMLInputElement
 				if (checkbox && !isSelected) checkbox.style.opacity = '0'
 			}}>
 			<div className='game-card-view-container-hideOverflow'>
 				<div className='game-card-header'>
-					{game.cover && (
-						<OptimizedImage
-							src={game.cover}
-							alt={`${game.name} cover`}
-							className='game-card-cover'
-							quality='medium'
-							loading='lazy'
-						/>
-					)}
+					{game.cover && <OptimizedImage src={game.cover} alt={`${game.name} cover`} className='game-card-cover' quality='medium' loading='lazy' />}
 					<div className='game-card-header-score'>
 						<input
 							type='checkbox'
@@ -179,10 +139,25 @@ const CardView: FC<CardViewProps> = (props) => {
 							}}
 						/>
 						<div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-							<span className='game-card-score'>{game.grade ?? 'N/A'}</span>
+							{hasPriceComparison && (
+								<span
+									className='game-card-score game-card-score--price'
+									onClick={(e) => {
+										e.preventDefault()
+										e.stopPropagation()
+										if (game.keyStoreUrl) {
+											window.open(game.keyStoreUrl, '_blank', 'noopener,noreferrer')
+										}
+									}}
+									style={{ cursor: game.keyStoreUrl ? 'pointer' : 'default' }}
+									title={game.isCheaperByKey ? 'Cheaper with Key' : 'Cheaper in Store'}>
+									<PriceComparisonIcon width={16} height={16} color='#f9fafb' focusable={false} />
+								</span>
+							)}
+							<span className='game-card-score game-card-score--grade'>{game.grade ?? 'N/A'}</span>
 							{game.critic != null && !isNaN(game.critic) && (
 								<span
-									className='game-card-score'
+									className='game-card-score game-card-score--critic'
 									onClick={handleCriticScoreClick}
 									style={{ cursor: 'pointer' }}
 									title={`Click to search on ${effectiveProvider}`}>
@@ -193,24 +168,14 @@ const CardView: FC<CardViewProps> = (props) => {
 										title={`${effectiveProvider} icon`}
 										focusable={false}
 									/>
-									<span style={{ fontFamily: 'monospace', color: criticScoreColor }}>
-										{game.critic ?? 'N/A'}
-									</span>
+									<span style={{ fontFamily: 'monospace', color: criticScoreColor }}>{game.critic ?? 'N/A'}</span>
 								</span>
 							)}
 						</div>
 					</div>
 					<div className='game-card-header-info'>
 						<div className='game-card-header-info-logo'>
-							{game.logo && (
-								<OptimizedImage
-									src={game.logo}
-									alt={`${game.name} logo`}
-									className='game-card-logo'
-									quality='low'
-									loading='lazy'
-								/>
-							)}
+							{game.logo && <OptimizedImage src={game.logo} alt={`${game.name} logo`} className='game-card-logo' quality='low' loading='lazy' />}
 						</div>
 						<div className='game-card-header-info-tags'>
 							<h3 className='game-card-title'>{game.name}</h3>
@@ -304,38 +269,18 @@ const CardView: FC<CardViewProps> = (props) => {
 						</div>
 						<div className='game-card-duration-item'>
 							<p className='game-card-duration-label'>100%</p>
-							<p className='game-card-duration-value'>
-								{game.completion ? `${game.completion}h` : 'N/A'}
-							</p>
+							<p className='game-card-duration-value'>{game.completion ? `${game.completion}h` : 'N/A'}</p>
 						</div>
 					</div>
 					<div className='game-card-metadata' role='group' aria-label='Game metadata'>
-						<div
-							className='game-card-score'
-							role='group'
-							aria-label={`Score: ${game.score ?? 'N/A'} / 10`}>
-							<ScoreIcon
-								width={20}
-								height={20}
-								color='#9ca3af'
-								title='Score icon'
-								focusable={false}
-							/>
+						<div className='game-card-score' role='group' aria-label={`Score: ${game.score ?? 'N/A'} / 10`}>
+							<ScoreIcon width={20} height={20} color='#9ca3af' title='Score icon' focusable={false} />
 							<div className='game-card-score-value'>
 								<p>{game.score ?? 'N/A'} / 10</p>
 							</div>
 						</div>
-						<div
-							className='game-card-release-date'
-							role='group'
-							aria-label={`Released: ${released}`}>
-							<CalendarIcon
-								width={20}
-								height={20}
-								color='#9ca3af'
-								title='Released icon'
-								focusable={false}
-							/>
+						<div className='game-card-release-date' role='group' aria-label={`Released: ${released}`}>
+							<CalendarIcon width={20} height={20} color='#9ca3af' title='Released icon' focusable={false} />
 							<p>{released}</p>
 						</div>
 					</div>
@@ -347,9 +292,5 @@ const CardView: FC<CardViewProps> = (props) => {
 
 // Memoize CardView to prevent unnecessary re-renders
 export default memo(CardView, (prevProps, nextProps) => {
-	return (
-		prevProps.game.id === nextProps.game.id &&
-		prevProps.game.updatedAt === nextProps.game.updatedAt &&
-		prevProps.isSelected === nextProps.isSelected
-	)
+	return prevProps.game.id === nextProps.game.id && prevProps.game.updatedAt === nextProps.game.updatedAt && prevProps.isSelected === nextProps.isSelected
 })
