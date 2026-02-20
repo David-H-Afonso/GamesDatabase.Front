@@ -40,12 +40,18 @@ RUN echo '#!/bin/sh' > /docker-entrypoint.d/40-update-env.sh && \
     echo '};' >> /docker-entrypoint.d/40-update-env.sh && \
     echo 'EOF' >> /docker-entrypoint.d/40-update-env.sh && \
     echo '' >> /docker-entrypoint.d/40-update-env.sh && \
+    echo '# Update nginx.conf with API images URL' >> /docker-entrypoint.d/40-update-env.sh && \
+    echo 'API_IMAGES_URL="${API_IMAGES_URL:-http://localhost:8082/game-images/}"' >> /docker-entrypoint.d/40-update-env.sh && \
+    echo 'sed -i "s|API_IMAGES_URL_PLACEHOLDER|$API_IMAGES_URL|g" /etc/nginx/conf.d/default.conf' >> /docker-entrypoint.d/40-update-env.sh && \
+    echo '' >> /docker-entrypoint.d/40-update-env.sh && \
     echo 'echo "Environment configuration updated:"' >> /docker-entrypoint.d/40-update-env.sh && \
-    echo 'cat /usr/share/nginx/html/env-config.js' >> /docker-entrypoint.d/40-update-env.sh && \
+    echo 'echo "VITE_API_URL: ${VITE_API_URL}"' >> /docker-entrypoint.d/40-update-env.sh && \
+    echo 'echo "API_IMAGES_URL: ${API_IMAGES_URL}"' >> /docker-entrypoint.d/40-update-env.sh && \
     chmod +x /docker-entrypoint.d/40-update-env.sh
 
-# Environment variable for runtime configuration
+# Environment variables for runtime configuration
 ENV VITE_API_URL=http://localhost:8080/api
+ENV API_IMAGES_URL=http://localhost:8082/game-images/
 
 EXPOSE 80
 
