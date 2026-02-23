@@ -59,7 +59,7 @@ ENV API_IMAGES_URL=http://localhost:8082/game-images/
 EXPOSE 80
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=15s --retries=3 \
-  CMD curl -f http://localhost/health || exit 1
+  CMD curl -f http://127.0.0.1/health || exit 1
 
 # Use nginx default entrypoint
 CMD ["nginx", "-g", "daemon off;"]
