@@ -23,6 +23,9 @@ RUN npm run build
 FROM nginx:alpine AS runtime
 WORKDIR /usr/share/nginx/html
 
+# Install curl for healthcheck (nginx:alpine has none by default)
+RUN apk add --no-cache curl
+
 # Copy built files from build stage
 COPY --from=build /app/dist .
 
@@ -54,6 +57,9 @@ ENV VITE_API_URL=http://localhost:8080/api
 ENV API_IMAGES_URL=http://localhost:8082/game-images/
 
 EXPOSE 80
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=15s --retries=3 \
+  CMD curl -f http://localhost/health || exit 1
 
 # Use nginx default entrypoint
 CMD ["nginx", "-g", "daemon off;"]
