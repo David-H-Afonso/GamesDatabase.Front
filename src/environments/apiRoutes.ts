@@ -68,6 +68,7 @@ export const apiRoutes = {
 		zip: '/Export/zip',
 		syncToNetwork: '/Export/sync-to-network',
 		analyzeFolders: '/DataExport/analyze-folders',
+		analyzeDuplicateGames: '/DataExport/analyze-duplicate-games',
 		updateImageUrls: '/DataExport/update-image-urls',
 	},
 

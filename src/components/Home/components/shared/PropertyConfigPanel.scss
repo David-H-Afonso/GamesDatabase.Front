@@ -16,9 +16,30 @@
 	&__mode-toggle {
 		display: flex;
 		gap: 0.5rem;
+		flex-wrap: wrap;
 
 		input[type='radio'] {
 			display: none;
+		}
+	}
+
+	&__mode-desc {
+		margin: 0;
+		font-size: 0.8rem;
+		color: var(--color-text-muted, #888);
+		line-height: 1.5;
+		padding: 0.4rem 0.6rem;
+		border-left: 2px solid var(--color-accent, #61afef);
+		background: rgba(97, 175, 239, 0.05);
+		border-radius: 0 4px 4px 0;
+
+		strong {
+			color: var(--color-text, #ddd);
+		}
+
+		em {
+			color: var(--color-accent, #61afef);
+			font-style: normal;
 		}
 	}
 

@@ -6,6 +6,7 @@ import {
 	// exportToZip, // Currently not used - ZIP export UI is disabled
 	syncToNetwork,
 	analyzeFolders,
+	analyzeDatabaseDuplicates,
 	updateImageUrls,
 } from '@/services'
 import { useGames } from '@/hooks'
@@ -17,6 +18,7 @@ interface FolderAnalysisResult {
 	difference: number
 	potentialDuplicates: PotentialDuplicate[]
 	orphanFolders: OrphanFolder[]
+	databaseDuplicates?: DatabaseDuplicatesResult
 }
 
 interface PotentialDuplicate {
@@ -30,12 +32,25 @@ interface OrphanFolder {
 	fullPath: string
 }
 
+interface DatabaseDuplicatesResult {
+	totalGamesInDatabase: number
+	duplicateGroups: DatabaseDuplicateGroup[]
+}
+
+interface DatabaseDuplicateGroup {
+	normalizedKey: string
+	games: Array<{ id: number; name: string }>
+	reason: string
+}
+
 export const AdminDataExport: React.FC = () => {
 	const [loading, setLoading] = useState(false)
 	const [message, setMessage] = useState<string | null>(null)
 	const [messageType, setMessageType] = useState<'success' | 'error'>('success')
 	const [analysisResult, setAnalysisResult] = useState<FolderAnalysisResult | null>(null)
 	const [analyzingFolders, setAnalyzingFolders] = useState(false)
+	const [dbDuplicatesResult, setDbDuplicatesResult] = useState<DatabaseDuplicatesResult | null>(null)
+	const [analyzingDbDuplicates, setAnalyzingDbDuplicates] = useState(false)
 
 	// Hook para manejar los juegos
 	const { refreshGames, filters } = useGames()
@@ -182,12 +197,32 @@ Statistics:
 			setAnalyzingFolders(true)
 			const result = await analyzeFolders()
 			setAnalysisResult(result)
-			showMessage('Análisis de carpetas completado', 'success')
+			const dbDups = result.databaseDuplicates?.duplicateGroups.length ?? 0
+			const msg = dbDups > 0 ? `Análisis completado. ${dbDups} grupo(s) de duplicados en la base de datos.` : 'Análisis de carpetas completado'
+			showMessage(msg, 'success')
 		} catch (error) {
 			console.error('Folder analysis error:', error)
 			showMessage(error instanceof Error ? error.message : 'Error analyzing folders', 'error')
 		} finally {
 			setAnalyzingFolders(false)
+		}
+	}
+
+	const handleAnalyzeDatabaseDuplicates = async () => {
+		try {
+			setAnalyzingDbDuplicates(true)
+			const result = await analyzeDatabaseDuplicates()
+			setDbDuplicatesResult(result)
+			if (result.duplicateGroups.length === 0) {
+				showMessage('No se encontraron duplicados en la base de datos.', 'success')
+			} else {
+				showMessage(`Se encontraron ${result.duplicateGroups.length} grupo(s) de duplicados potenciales.`, 'success')
+			}
+		} catch (error) {
+			console.error('DB duplicate analysis error:', error)
+			showMessage(error instanceof Error ? error.message : 'Error analyzing database duplicates', 'error')
+		} finally {
+			setAnalyzingDbDuplicates(false)
 		}
 	}
 
@@ -395,16 +430,99 @@ Actualización de URLs de imágenes completada:
 									</div>
 								)}
 
-								{analysisResult.potentialDuplicates.length === 0 && analysisResult.orphanFolders.length === 0 && analysisResult.difference === 0 && (
-									<div className='analysis-success'>
-										<h3>✅ Todo Correcto</h3>
-										<p>No se encontraron duplicados ni carpetas huérfanas. La base de datos y el sistema de archivos están sincronizados.</p>
+								{(analysisResult.databaseDuplicates?.duplicateGroups.length ?? 0) > 0 && (
+									<div className='duplicates-section'>
+										<h3>🔁 Duplicados en Base de Datos ({analysisResult.databaseDuplicates!.duplicateGroups.length})</h3>
+										{analysisResult.databaseDuplicates!.duplicateGroups.map((group, idx) => (
+											<div key={idx} className='duplicate-item'>
+												<div className='duplicate-header'>
+													<strong>{group.games.map((g) => g.name).join(' / ')}</strong>
+													<span className='duplicate-reason'>{group.reason}</span>
+												</div>
+												<ul className='folder-list'>
+													{group.games.map((g, gIdx) => (
+														<li key={gIdx}>
+															<code>
+																#{g.id} {g.name}
+															</code>
+														</li>
+													))}
+												</ul>
+											</div>
+										))}
 									</div>
 								)}
+
+								{analysisResult.potentialDuplicates.length === 0 &&
+									analysisResult.orphanFolders.length === 0 &&
+									analysisResult.difference === 0 &&
+									(analysisResult.databaseDuplicates?.duplicateGroups.length ?? 0) === 0 && (
+										<div className='analysis-success'>
+											<h3>✅ Todo Correcto</h3>
+											<p>No se encontraron duplicados ni carpetas huérfanas. La base de datos y el sistema de archivos están sincronizados.</p>
+										</div>
+									)}
 							</div>
 						)}
 					</div>
 				)}
+
+				{/* Database Duplicates Section - visible to all authenticated users */}
+				<div className='section folder-analysis-section'>
+					<h2>🔁 Duplicados en Base de Datos</h2>
+					<p className='section-description'>Detecta juegos con nombres idénticos o equivalentes (mismas palabras, distinto formato) directamente en la base de datos.</p>
+
+					<div className='action-group'>
+						<button className='btn btn-primary btn-large' onClick={handleAnalyzeDatabaseDuplicates} disabled={analyzingDbDuplicates}>
+							{analyzingDbDuplicates ? '⏳ Analizando...' : '🔁 Buscar Duplicados'}
+						</button>
+					</div>
+
+					{dbDuplicatesResult && (
+						<div className='analysis-results'>
+							<div className='analysis-summary'>
+								<h3>📊 Resumen</h3>
+								<div className='summary-grid'>
+									<div className='summary-item'>
+										<span className='summary-label'>Juegos en DB:</span>
+										<span className='summary-value'>{dbDuplicatesResult.totalGamesInDatabase}</span>
+									</div>
+									<div className='summary-item'>
+										<span className='summary-label'>Grupos duplicados:</span>
+										<span className={`summary-value ${dbDuplicatesResult.duplicateGroups.length > 0 ? 'warning' : 'success'}`}>{dbDuplicatesResult.duplicateGroups.length}</span>
+									</div>
+								</div>
+							</div>
+
+							{dbDuplicatesResult.duplicateGroups.length > 0 && (
+								<div className='duplicates-section'>
+									<h3>🔍 Duplicados Encontrados ({dbDuplicatesResult.duplicateGroups.length} grupos)</h3>
+									{dbDuplicatesResult.duplicateGroups.map((group, idx) => (
+										<div key={idx} className='duplicate-item'>
+											<div className='duplicate-header'>
+												<span className='duplicate-reason'>{group.reason}</span>
+											</div>
+											<ul className='folder-list'>
+												{group.games.map((game) => (
+													<li key={game.id}>
+														<code>#{game.id}</code> {game.name}
+													</li>
+												))}
+											</ul>
+										</div>
+									))}
+								</div>
+							)}
+
+							{dbDuplicatesResult.duplicateGroups.length === 0 && (
+								<div className='analysis-success'>
+									<h3>✅ Sin Duplicados</h3>
+									<p>No se encontraron juegos duplicados en la base de datos.</p>
+								</div>
+							)}
+						</div>
+					)}
+				</div>
 			</div>
 
 			{/* Instructions Section */}

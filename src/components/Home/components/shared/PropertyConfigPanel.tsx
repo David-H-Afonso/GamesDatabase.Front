@@ -57,9 +57,9 @@ const PropertyConfigPanel: React.FC<PropertyConfigPanelProps> = ({ panelMode, co
 		}
 	}, [config.mode, loadOptions])
 
-	// ── Mode toggle (Simple / Custom) ───────────────────────────────────────────
+	// ── Mode toggle (Simple / Custom Cleared / Custom) ─────────────────────────────────
 
-	const handleModeToggle = (newMode: 'simple' | 'custom') => {
+	const handleModeToggle = (newMode: 'simple' | 'custom' | 'customCleared') => {
 		if (panelMode === 'import') {
 			onChange({ ...config, mode: newMode } as GameImportConfig)
 		} else {
@@ -232,11 +232,31 @@ const PropertyConfigPanel: React.FC<PropertyConfigPanelProps> = ({ panelMode, co
 					<input type='radio' name={`pcp-mode-${headingLabel ?? 'global'}`} checked={config.mode === 'simple'} onChange={() => handleModeToggle('simple')} />
 					{panelMode === 'import' ? 'As Imported (all)' : 'As Stored (all)'}
 				</label>
+				<label className={`pcp__mode-btn ${config.mode === 'customCleared' ? 'is-active' : ''}`}>
+					<input type='radio' name={`pcp-mode-${headingLabel ?? 'global'}`} checked={config.mode === 'customCleared'} onChange={() => handleModeToggle('customCleared')} />
+					Custom Cleared
+				</label>
 				<label className={`pcp__mode-btn ${config.mode === 'custom' ? 'is-active' : ''}`}>
 					<input type='radio' name={`pcp-mode-${headingLabel ?? 'global'}`} checked={config.mode === 'custom'} onChange={() => handleModeToggle('custom')} />
 					Custom (per property)
 				</label>
 			</div>
+
+			{/* Explanation for Custom Cleared */}
+			{config.mode === 'customCleared' && (
+				<p className='pcp__mode-desc'>
+					{panelMode === 'export' ? (
+						<>
+							Clears personal fields (<strong>Started, Finished, Grade, Comment, Status, Play With</strong>) and keeps all other fields as stored. Useful for sharing a clean copy.
+						</>
+					) : (
+						<>
+							Ignores personal fields from the CSV (<strong>Started, Finished, Grade, Comment, Status, Play With</strong>) and keeps all other values as imported. Status falls back
+							to <em>Not Fulfilled</em>.
+						</>
+					)}
+				</p>
+			)}
 
 			{/* Per-property configuration (only shown in custom mode) */}
 			{config.mode === 'custom' && (

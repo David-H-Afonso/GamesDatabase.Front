@@ -51,6 +51,7 @@ export {
 	exportToZip,
 	syncToNetwork,
 	analyzeFolders,
+	analyzeDatabaseDuplicates,
 	updateImageUrls,
 	selectiveExportGames,
 	selectiveImportGames,
