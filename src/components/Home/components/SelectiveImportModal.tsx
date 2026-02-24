@@ -207,8 +207,8 @@ const SelectiveImportModal: React.FC<Props> = ({ isOpen, onClose, onImportComple
 					<section className='sim__section'>
 						<h3 className='sim__section-title'>2. Games Found ({parsedGameNames.length})</h3>
 						<div className='sim__preview-list'>
-							{parsedGameNames.map((name) => (
-								<span key={name} className='sim__preview-chip'>
+							{parsedGameNames.map((name, index) => (
+								<span key={`${name}-${index}`} className='sim__preview-chip'>
 									{name}
 								</span>
 							))}
