@@ -155,8 +155,38 @@ export const analyzeFolders = async (): Promise<{
 		folderName: string
 		fullPath: string
 	}>
+	databaseDuplicates?: {
+		totalGamesInDatabase: number
+		duplicateGroups: Array<{
+			normalizedKey: string
+			games: Array<{ id: number; name: string }>
+			reason: string
+		}>
+	}
 }> => {
 	const endpoint = environment.apiRoutes.dataExport.analyzeFolders
+
+	return await customFetch(endpoint, {
+		method: 'GET',
+		baseURL: environment.baseUrl,
+		timeout: environment.api?.timeout,
+	})
+}
+
+/**
+ * Analyzes the database to find games with duplicate or near-duplicate names.
+ * Accessible to all authenticated users.
+ * @returns Result with groups of duplicate games
+ */
+export const analyzeDatabaseDuplicates = async (): Promise<{
+	totalGamesInDatabase: number
+	duplicateGroups: Array<{
+		normalizedKey: string
+		games: Array<{ id: number; name: string }>
+		reason: string
+	}>
+}> => {
+	const endpoint = environment.apiRoutes.dataExport.analyzeDuplicateGames
 
 	return await customFetch(endpoint, {
 		method: 'GET',

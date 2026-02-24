@@ -49,15 +49,15 @@ export type ExportPropertyConfig = Partial<Record<ConfigurableGameProperty, Expo
 
 /** Config for a single game during import. If mode is 'simple', properties are ignored. */
 export interface GameImportConfig {
-	/** simple = all asImported; custom = use properties */
-	mode: 'simple' | 'custom'
+	/** simple = all asImported; custom = use properties; customCleared = clean personal fields, keep rest asImported */
+	mode: 'simple' | 'custom' | 'customCleared'
 	properties?: ImportPropertyConfig
 }
 
 /** Config for a single game during export. If mode is 'simple', properties are ignored. */
 export interface GameExportConfig {
-	/** simple = all asStored; custom = use properties */
-	mode: 'simple' | 'custom'
+	/** simple = all asStored; custom = use properties; customCleared = clean personal fields, leave rest asStored */
+	mode: 'simple' | 'custom' | 'customCleared'
 	properties?: ExportPropertyConfig
 }
 

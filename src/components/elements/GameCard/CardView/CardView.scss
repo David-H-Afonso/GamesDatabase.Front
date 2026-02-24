@@ -10,7 +10,7 @@
 	position: relative;
 
 	&:hover {
-		transform: translateY(-5px);
+		transform: translateY(-3px) scale(1.01);
 		box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 	}
 
@@ -80,6 +80,7 @@
 				padding-left: 15px;
 				position: absolute;
 				width: 100%;
+				max-width: 100%;
 				z-index: 2;
 
 				&-logo img {
