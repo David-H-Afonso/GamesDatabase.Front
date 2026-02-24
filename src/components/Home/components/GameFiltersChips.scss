@@ -58,6 +58,9 @@
 	}
 
 	&__selection-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
 		padding: 7px 14px;
 		border-radius: 8px;
 		border: 1px solid $color-border-primary;

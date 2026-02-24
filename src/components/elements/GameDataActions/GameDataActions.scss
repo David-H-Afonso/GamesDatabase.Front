@@ -1,0 +1,24 @@
+@use '@/assets/styles' as *;
+
+.game-data-actions {
+	&__btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+		padding: 0.375rem 0.75rem;
+		background: $color-bg-secondary;
+		border: 1px solid $color-border-primary;
+		border-radius: 8px;
+		color: $color-text-primary;
+		cursor: pointer;
+		font-size: 0.8125rem;
+		font-weight: 500;
+		transition: all 0.2s;
+
+		&:hover {
+			background: $color-bg-tertiary;
+			border-color: $color-primary;
+			color: $color-primary;
+		}
+	}
+}

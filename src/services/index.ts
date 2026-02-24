@@ -52,6 +52,9 @@ export {
 	syncToNetwork,
 	analyzeFolders,
 	updateImageUrls,
+	selectiveExportGames,
+	selectiveImportGames,
+	parseCSVGameNames,
 } from './DataExportService'
 
 export { getGameViews, getGameViewById, createGameView, updateGameView, updateGameViewConfiguration, deleteGameView, getPublicGameViews, reorderGameViews } from './GameViewService'

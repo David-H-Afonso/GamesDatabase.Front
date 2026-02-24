@@ -298,7 +298,25 @@ const CreateGame: FC = () => {
 			)}
 
 			<button className='home-component__add-button' onClick={openAddGameModal}>
-				+ Add Game
+				<svg
+					width='14'
+					height='14'
+					viewBox='0 0 24 24'
+					fill='none'
+					stroke='currentColor'
+					strokeWidth='2'
+					strokeLinecap='round'
+					strokeLinejoin='round'
+					aria-hidden='true'
+					style={{ flexShrink: 0 }}>
+					<rect x='1' y='5' width='22' height='14' rx='4' />
+					<path d='M8 9v6M5 12h6' />
+					<circle cx='16' cy='10' r='1.2' fill='currentColor' stroke='none' />
+					<circle cx='19' cy='12' r='1.2' fill='currentColor' stroke='none' />
+					<circle cx='16' cy='14' r='1.2' fill='currentColor' stroke='none' />
+					<circle cx='13' cy='12' r='1.2' fill='currentColor' stroke='none' />
+				</svg>
+				Add Game
 			</button>
 		</>
 	)

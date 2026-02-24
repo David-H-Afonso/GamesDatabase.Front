@@ -179,6 +179,9 @@
 	}
 
 	&__add-button {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
 		background: $color-primary;
 		border: 1px solid $color-primary;
 		border-radius: 8px;
@@ -502,7 +505,7 @@
 
 		&__add-button {
 			width: 100%;
-			text-align: center;
+			justify-content: center;
 		}
 
 		.admin-controls {
