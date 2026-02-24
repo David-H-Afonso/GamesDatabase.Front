@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { ThemeSelector } from './ThemeSelector'
 import { MobileMenu } from './MobileMenu'
 import CreateGame from '@/components/elements/CreateGame/CreateGame'
+import GameDataActions from '@/components/elements/GameDataActions/GameDataActions'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { logoutUser } from '@/store/features/auth/authSlice'
 import { selectCurrentUser, selectIsAdmin } from '@/store/features/auth/selector'
@@ -57,6 +58,7 @@ export const Header: React.FC = () => {
 
 					{/* Desktop Actions */}
 					<div className='app-header-container-quick-actions'>
+						<GameDataActions />
 						<CreateGame />
 						<ThemeSelector />
 						{currentUser && (
@@ -72,6 +74,7 @@ export const Header: React.FC = () => {
 
 					{/* Mobile Actions */}
 					<div className='app-header-container-mobile-actions'>
+						<GameDataActions />
 						<CreateGame />
 						<button className='header-burger-btn' onClick={() => setIsMobileMenuOpen(true)} aria-label='Abrir menú'>
 							<span></span>

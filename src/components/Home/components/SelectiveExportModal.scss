@@ -1,0 +1,175 @@
+.sem {
+	display: flex;
+	flex-direction: column;
+	gap: 1.25rem;
+
+	&__message {
+		padding: 0.6rem 1rem;
+		border-radius: 6px;
+		font-size: 0.84rem;
+		font-weight: 500;
+
+		&--success {
+			background: rgba(152, 195, 121, 0.15);
+			color: #98c379;
+			border: 1px solid rgba(152, 195, 121, 0.3);
+		}
+		&--error {
+			background: rgba(224, 108, 117, 0.15);
+			color: #e06c75;
+			border: 1px solid rgba(224, 108, 117, 0.3);
+		}
+	}
+
+	&__section {
+		display: flex;
+		flex-direction: column;
+		gap: 0.6rem;
+	}
+
+	&__section-title {
+		margin: 0;
+		font-size: 0.95rem;
+		font-weight: 700;
+		color: var(--color-text, #eee);
+		padding-bottom: 0.4rem;
+		border-bottom: 1px solid var(--color-border, #444);
+	}
+
+	&__section-desc {
+		margin: 0;
+		font-size: 0.8rem;
+		color: var(--color-text-muted, #888);
+	}
+
+	// ── Per-game overrides ───────────────────────────────────────────────────
+	&__per-game-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+	}
+
+	&__per-game-item {
+		border: 1px solid var(--color-border, #444);
+		border-radius: 6px;
+		overflow: hidden;
+
+		&--overridden {
+			border-color: var(--color-accent, #61afef);
+		}
+	}
+
+	&__per-game-header {
+		width: 100%;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.5rem 0.75rem;
+		background: var(--color-bg-panel, #1e1e1e);
+		border: none;
+		color: var(--color-text, #eee);
+		cursor: pointer;
+		text-align: left;
+		font-size: 0.85rem;
+		transition: background 0.12s;
+
+		&:hover {
+			background: var(--color-bg-hover, #262626);
+		}
+	}
+
+	&__per-game-arrow {
+		color: var(--color-text-muted, #888);
+		font-size: 0.8rem;
+		flex-shrink: 0;
+	}
+
+	&__per-game-name {
+		flex: 1;
+		font-weight: 500;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	&__per-game-badge {
+		font-size: 0.72rem;
+		padding: 0.15rem 0.5rem;
+		border-radius: 999px;
+		background: var(--color-bg-soft, #333);
+		color: var(--color-text-muted, #888);
+		white-space: nowrap;
+		flex-shrink: 0;
+
+		.sem__per-game-item--overridden & {
+			background: rgba(97, 175, 239, 0.15);
+			color: var(--color-accent, #61afef);
+		}
+	}
+
+	&__per-game-reset {
+		background: transparent;
+		border: 1px solid var(--color-border, #555);
+		border-radius: 4px;
+		color: var(--color-text-muted, #aaa);
+		font-size: 0.72rem;
+		cursor: pointer;
+		padding: 0.1rem 0.4rem;
+		flex-shrink: 0;
+
+		&:hover {
+			color: var(--color-error, #e06c75);
+			border-color: var(--color-error, #e06c75);
+		}
+	}
+
+	&__per-game-body {
+		padding: 0.75rem;
+		background: var(--color-bg-sub, #181818);
+		border-top: 1px solid var(--color-border, #444);
+	}
+
+	// ── Footer ───────────────────────────────────────────────────────────────
+	&__footer {
+		display: flex;
+		justify-content: flex-end;
+		gap: 0.6rem;
+	}
+
+	&__btn {
+		padding: 0.45rem 1.1rem;
+		border-radius: 6px;
+		font-size: 0.85rem;
+		font-weight: 500;
+		cursor: pointer;
+		transition:
+			background 0.15s,
+			border-color 0.15s;
+
+		&:disabled {
+			opacity: 0.5;
+			cursor: not-allowed;
+		}
+
+		&--secondary {
+			background: transparent;
+			border: 1px solid var(--color-border, #555);
+			color: var(--color-text-secondary, #bbb);
+
+			&:hover:not(:disabled) {
+				border-color: var(--color-text, #eee);
+				color: var(--color-text, #eee);
+			}
+		}
+
+		&--primary {
+			background: var(--color-accent, #61afef);
+			border: 1px solid var(--color-accent, #61afef);
+			color: #fff;
+
+			&:hover:not(:disabled) {
+				background: color-mix(in srgb, var(--color-accent, #61afef) 80%, white);
+			}
+		}
+	}
+}

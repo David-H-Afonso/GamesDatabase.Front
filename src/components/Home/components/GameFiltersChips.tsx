@@ -21,6 +21,8 @@ interface Props {
 	onDeselectAll?: () => void
 	onBulkDelete?: () => void
 	onBulkEdit?: () => void
+	/** Open the Export modal for the currently selected games */
+	onBulkExport?: () => void
 }
 
 type PopoverKey = 'platform' | 'playWith' | 'status' | 'playedStatus' | 'grades' | 'years' | 'price' | 'criticProvider' | 'excluded' | 'pageSize'
@@ -40,6 +42,7 @@ const GameFiltersChips: React.FC<Props> = ({
 	onDeselectAll,
 	onBulkDelete,
 	onBulkEdit,
+	onBulkExport,
 }) => {
 	const [openPopover, setOpenPopover] = useState<PopoverKey | null>(null)
 	const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
@@ -288,6 +291,16 @@ const GameFiltersChips: React.FC<Props> = ({
 					{onBulkDelete && (
 						<button type='button' className='game-filters-chips__selection-btn game-filters-chips__selection-btn--danger' onClick={onBulkDelete}>
 							Eliminar
+						</button>
+					)}
+					{onBulkExport && (
+						<button type='button' className='game-filters-chips__selection-btn' onClick={onBulkExport}>
+							<svg width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2.5' strokeLinecap='round' strokeLinejoin='round' aria-hidden='true'>
+								<path d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4' />
+								<polyline points='17 8 12 3 7 8' />
+								<line x1='12' y1='3' x2='12' y2='15' />
+							</svg>
+							Exportar
 						</button>
 					)}
 				</div>

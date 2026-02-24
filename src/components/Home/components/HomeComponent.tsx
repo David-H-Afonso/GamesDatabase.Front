@@ -8,6 +8,7 @@ import { selectGamesFilters } from '@/store/features/games/selector'
 import type { GameQueryParameters } from '@/models/api/Game'
 import GameFiltersChips from './GameFiltersChips'
 import BulkEditModal, { type BulkEditData } from './BulkEditModal'
+import SelectiveExportModal from './SelectiveExportModal'
 import './HomeComponent.scss'
 
 const HomeComponent = () => {
@@ -20,6 +21,16 @@ const HomeComponent = () => {
 	const setFilters = (next: GameQueryParameters) => dispatch(setGamesFilters(next))
 	const [selectedGames, setSelectedGames] = useState<number[]>([])
 	const [bulkEditOpen, setBulkEditOpen] = useState(false)
+	const [exportModalOpen, setExportModalOpen] = useState(false)
+	const [exportPreSelected, setExportPreSelected] = useState<Array<{ id: number; name: string }>>([])
+
+	// Refresh games when the header Import button signals completion
+	useEffect(() => {
+		const handler = () => refreshGames(filters)
+		window.addEventListener('gamesRefreshNeeded', handler)
+		return () => window.removeEventListener('gamesRefreshNeeded', handler)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [filters])
 	const viewMode = useAppSelector((s) => s.theme.viewMode ?? 'default')
 	const [viewError, setViewError] = useState<string | null>(null)
 
@@ -204,6 +215,11 @@ const HomeComponent = () => {
 					onDeselectAll={() => setSelectedGames([])}
 					onBulkDelete={handleBulkDelete}
 					onBulkEdit={() => setBulkEditOpen(true)}
+					onBulkExport={() => {
+						const preSelected = games.filter((g: any) => selectedGames.includes(g.id)).map((g: any) => ({ id: g.id as number, name: g.name as string }))
+						setExportPreSelected(preSelected)
+						setExportModalOpen(true)
+					}}
 				/>
 
 				<div className={`home-component-games-${cardStyle}`}>
@@ -258,6 +274,7 @@ const HomeComponent = () => {
 			</div>
 
 			<BulkEditModal isOpen={bulkEditOpen} onClose={() => setBulkEditOpen(false)} selectedCount={selectedGames.length} onSave={handleBulkEdit} />
+			<SelectiveExportModal isOpen={exportModalOpen} onClose={() => setExportModalOpen(false)} preSelectedGames={exportPreSelected} />
 		</div>
 	)
 }

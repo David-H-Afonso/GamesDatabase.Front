@@ -1,5 +1,6 @@
 import { environment } from '@/environments'
 import { customFetch } from '@/utils/customFetch'
+import type { SelectiveExportRequest, SelectiveImportRequest, SelectiveImportResult } from '@/models/api/ImportExport'
 
 /**
  * Fetches games CSV from the API and returns it as a Blob.
@@ -201,4 +202,97 @@ export const downloadBlob = (blob: Blob, filename: string): void => {
 	a.click()
 	document.body.removeChild(a)
 	window.URL.revokeObjectURL(objectUrl)
+}
+/**
+ * Exports a selective set of games to CSV using per-property cleaning rules.
+ * @param request - IDs of games to export + global/per-game property configs
+ * @returns Blob containing the CSV
+ */
+export const selectiveExportGames = async (request: SelectiveExportRequest): Promise<Blob> => {
+	const endpoint = environment.apiRoutes.dataExport.selectiveExport
+
+	const csvText = await customFetch<string>(endpoint, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json', 'Accept': 'text/csv' },
+		body: request,
+		baseURL: environment.baseUrl,
+		timeout: environment.api?.timeout,
+	})
+
+	return new Blob([csvText], { type: 'text/csv' })
+}
+
+/**
+ * Imports games from a CSV file with per-property transformation rules.
+ * @param source - CSV file or raw CSV text string
+ * @param config - Global and per-game import configuration
+ * @returns Import result statistics
+ */
+export const selectiveImportGames = async (source: File | string, config: SelectiveImportRequest): Promise<SelectiveImportResult> => {
+	const endpoint = environment.apiRoutes.dataExport.selectiveImport
+	const formData = new FormData()
+
+	if (source instanceof File) {
+		formData.append('csvFile', source)
+	} else {
+		formData.append('csvText', source)
+	}
+	formData.append('configJson', JSON.stringify(config))
+
+	return await customFetch<SelectiveImportResult>(endpoint, {
+		method: 'POST',
+		body: formData,
+		baseURL: environment.baseUrl,
+		timeout: environment.api?.timeout,
+	})
+}
+
+/**
+ * Parses a CSV string (or reads a File) and returns all game names found in it.
+ * Only rows with Type === "Game" and a non-empty Name are returned.
+ */
+export const parseCSVGameNames = async (source: File | string): Promise<string[]> => {
+	const text = source instanceof File ? await source.text() : source
+
+	const lines = text.split(/\r?\n/).filter((l) => l.trim() !== '')
+	if (lines.length < 2) return []
+
+	// Parse header to find Type and Name column indices
+	const header = splitCSVLine(lines[0])
+	const typeIdx = header.findIndex((h) => h.trim().toLowerCase() === 'type')
+	const nameIdx = header.findIndex((h) => h.trim().toLowerCase() === 'name')
+
+	if (typeIdx === -1 || nameIdx === -1) return []
+
+	const gameNames: string[] = []
+	for (let i = 1; i < lines.length; i++) {
+		const cols = splitCSVLine(lines[i])
+		if (cols[typeIdx]?.trim() === 'Game' && cols[nameIdx]?.trim()) {
+			gameNames.push(cols[nameIdx].trim())
+		}
+	}
+	return gameNames
+}
+
+/** Minimal CSV line splitter (handles quoted fields). */
+function splitCSVLine(line: string): string[] {
+	const result: string[] = []
+	let current = ''
+	let inQuotes = false
+	for (let i = 0; i < line.length; i++) {
+		const ch = line[i]
+		if (ch === '"') {
+			if (inQuotes && line[i + 1] === '"') {
+				current += '"'
+				i++
+			} else inQuotes = !inQuotes
+		} else if (ch === ',' && !inQuotes) {
+			result.push(current)
+			current = ''
+		} else {
+			current += ch
+		}
+	}
+	result.push(current)
+	return result
 }
