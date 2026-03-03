@@ -22,11 +22,17 @@ const mapCheaperByToBoolean = (cheaperBy: string | undefined): boolean | undefin
 const CreateGame: FC = () => {
 	const [isModalOpen, setIsModalOpen] = useState(false)
 	const [isSubmitting, setIsSubmitting] = useState(false)
-	const { fetchGamesList, createNewGame } = useGames()
+	const { fetchGamesList, createNewGame, deleteGameById } = useGames()
 	const [createdGameId, setCreatedGameId] = useState<number | null>(null)
 	const [createdGameFallback, setCreatedGameFallback] = useState<Game | null>(null)
 	const [isDetailsOpen, setIsDetailsOpen] = useState(false)
 	const storeCreatedGame = useAppSelector((state) => (createdGameId ? selectGameById(createdGameId)(state) : undefined))
+
+	useEffect(() => {
+		if (storeCreatedGame) {
+			setCreatedGameFallback(storeCreatedGame)
+		}
+	}, [storeCreatedGame])
 
 	const openAddGameModal = () => {
 		// initialize fresh row when opening
@@ -300,6 +306,13 @@ const CreateGame: FC = () => {
 						setCreatedGameFallback(null)
 						setCreatedGameId(null)
 						fetchGamesList()
+					}}
+					onDelete={async (game) => {
+						if (!window.confirm('Are you sure you want to delete this game?')) return
+						await deleteGameById(game.id)
+						setIsDetailsOpen(false)
+						setCreatedGameFallback(null)
+						setCreatedGameId(null)
 					}}
 				/>
 			)}
