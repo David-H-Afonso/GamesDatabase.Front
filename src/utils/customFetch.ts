@@ -1,65 +1,61 @@
 import { environment } from '@/environments'
-import { store } from '@/store'
-import { forceLogout } from '@/store/features/auth/authSlice'
-import { persistor } from '@/store'
 import { router } from '@/navigation/router'
+
+type AnyStore = { getState(): any; dispatch(action: any): any }
+type AnyPersistor = { purge(): Promise<any> }
+
+let _store: AnyStore | null = null
+let _persistor: AnyPersistor | null = null
+let _forceLogout: (() => { type: string }) | null = null
+
+export function initCustomFetch(store: AnyStore, persistor: AnyPersistor, forceLogout: () => { type: string }) {
+	_store = store
+	_persistor = persistor
+	_forceLogout = forceLogout
+}
+
+export function purgePersistedState(): void {
+	_persistor?.purge().catch(console.error)
+}
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS'
 
-// Flag to prevent multiple simultaneous logout operations
 let isHandlingUnauthorized = false
-
-// AbortController to cancel all pending requests on logout
 const pendingRequests = new Set<AbortController>()
-
-// Delay before redirect to allow state cleanup to complete
 const REDIRECT_DELAY_MS = 100
 
-/**
- * Handle unauthorized access (401) - clear all state and redirect to login
- */
 const handleUnauthorizedAccess = () => {
-	// Prevent multiple simultaneous logout operations
-	if (isHandlingUnauthorized) {
-		return
-	}
+	if (isHandlingUnauthorized) return
 
 	isHandlingUnauthorized = true
 	const currentPath = window.location.pathname
 
-	// Cancel all pending requests to stop infinite loops
 	pendingRequests.forEach((controller) => {
 		try {
 			controller.abort('Session expired')
-		} catch (error) {
-			// Ignore abort errors
+		} catch {
+			/* ignore */
 		}
 	})
 	pendingRequests.clear()
 
-	// Only redirect if not already on login page
 	if (!currentPath.includes('/login')) {
 		console.warn('Session expired - redirecting to login and clearing all state')
 
-		// 1. Dispatch logout action to Redux
-		store.dispatch(forceLogout())
+		_store!.dispatch(_forceLogout!())
 
-		// 2. Purge redux-persist storage completely
-		persistor.purge().catch((error) => {
+		_persistor!.purge().catch((error) => {
 			console.error('Failed to purge persisted state:', error)
 		})
 
-		// 3. Clear any other storage
 		sessionStorage.clear()
 
-		// 4. Clear any IndexedDB or other storage
 		try {
 			localStorage.clear()
-		} catch (error) {
-			// Ignore errors
+		} catch {
+			/* ignore */
 		}
 
-		// 5. Redirect to login using router navigation
 		setTimeout(() => {
 			isHandlingUnauthorized = false
 			router.navigate('/login')
@@ -151,25 +147,16 @@ export const customFetch = async <T = any>(endpoint: string, requestOptions: Cus
 	} = requestOptions
 
 	const completeUrl = baseUrl + endpoint + buildQueryString(queryParams)
-
-	// Get token from Redux store
-	const token = store.getState().auth.token
-
-	// Always create a controller to track this request in pendingRequests
+	const token = _store?.getState().auth.token
 	const controller = new AbortController()
 	pendingRequests.add(controller)
 
-	// If caller provided their own signal, link it to our controller
 	const signalToUse = controller.signal
 	if (abortSignal) {
-		// If the caller's signal is already aborted, abort our controller too
 		if (abortSignal.aborted) {
 			controller.abort(abortSignal.reason)
 		} else {
-			// Listen for abort on the caller's signal and forward it to our controller
-			abortSignal.addEventListener('abort', () => {
-				controller.abort(abortSignal.reason)
-			})
+			abortSignal.addEventListener('abort', () => controller.abort(abortSignal.reason))
 		}
 	}
 
@@ -185,10 +172,7 @@ export const customFetch = async <T = any>(endpoint: string, requestOptions: Cus
 	if (requestBody !== undefined && method !== 'GET' && method !== 'HEAD') {
 		if (shouldSerializeAsJson(requestBody)) {
 			fetchConfiguration.body = JSON.stringify(requestBody)
-			fetchConfiguration.headers = {
-				...fetchConfiguration.headers,
-				'Content-Type': 'application/json',
-			}
+			fetchConfiguration.headers = { ...fetchConfiguration.headers, 'Content-Type': 'application/json' }
 		} else {
 			fetchConfiguration.body = requestBody
 		}
@@ -197,34 +181,27 @@ export const customFetch = async <T = any>(endpoint: string, requestOptions: Cus
 	try {
 		const fetchPromise = fetch(completeUrl, fetchConfiguration)
 		const httpResponse = timeoutMs ? await Promise.race([fetchPromise, createTimeoutPromise(timeoutMs)]) : await fetchPromise
-
 		const responseData = await parseResponseData(httpResponse)
 
 		if (!httpResponse.ok) {
 			if (httpResponse.status === 401) {
-				// Handle token expiration - redirect to login and clear all state
 				handleUnauthorizedAccess()
 				throw new Error('Session expired. Please login again.')
 			}
-
 			const errorMessage = typeof responseData === 'string' ? responseData : JSON.stringify(responseData)
-
 			throw new Error(`HTTP ${httpResponse.status} ${httpResponse.statusText}: ${errorMessage}`)
 		}
 
 		return responseData as T
 	} catch (fetchError) {
-		// Check if request was aborted due to logout
 		if (fetchError instanceof Error && fetchError.name === 'AbortError') {
 			throw new Error('Request cancelled')
 		}
-
 		if (fetchError instanceof Error) {
 			throw new Error(`Request failed for ${method} ${completeUrl}: ${fetchError.message}`)
 		}
 		throw fetchError
 	} finally {
-		// Clean up: remove controller from pending requests
 		pendingRequests.delete(controller)
 	}
 }

@@ -10,7 +10,6 @@ import { useGames } from '@/hooks'
 import { useAppSelector } from '@/store/hooks'
 import { useFormik } from 'formik'
 import { getCriticScoreUrl, getCriticProviderIdFromName, getCriticProviderNameFromId, resolveEffectiveProvider, type CriticProvider } from '@/helpers/criticScoreHelper'
-import { store } from '@/store'
 
 interface GameDetailsProps {
 	game: Game
@@ -28,6 +27,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 	const { platforms: platformOptions } = useAppSelector((state) => state.gamePlatform)
 	const { playedStatuses: playedStatusOptions } = useAppSelector((state) => state.gamePlayedStatus)
 	const { playWithOptions } = useAppSelector((state) => state.gamePlayWith)
+	const scoreProvider = useAppSelector((state) => state.auth.user?.scoreProvider ?? 'Metacritic') as CriticProvider
 
 	// Options for price comparison (Where's Key)
 	const priceComparisonOptions = [
@@ -248,8 +248,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 							className='clickable'
 							onClick={() => {
 								if (!game.name) return
-								const userProvider = (store.getState().auth.user?.scoreProvider ?? 'Metacritic') as CriticProvider
-								const provider = resolveEffectiveProvider(game.criticProvider as CriticProvider | undefined, userProvider)
+								const provider = resolveEffectiveProvider(game.criticProvider as CriticProvider | undefined, scoreProvider)
 								const url = getCriticScoreUrl(game.name, provider)
 								window.open(url, '_blank', 'noopener')
 							}}>

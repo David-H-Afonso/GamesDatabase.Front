@@ -334,15 +334,6 @@
 			}
 		}
 
-		&.btn-danger {
-			background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-			color: white;
-
-			&:hover:not(:disabled) {
-				box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
-			}
-		}
-
 		&.btn-large {
 			padding: 16px 28px;
 			font-size: 1.1rem;
@@ -536,96 +527,6 @@
 				font-size: 1.05rem;
 				margin: 0;
 			}
-		}
-	}
-
-	// Image Cache Section
-	.image-cache-section {
-		.image-cache-stats {
-			margin-bottom: 20px;
-			padding: 12px 16px;
-			background: var(--bg-secondary);
-			border-radius: 8px;
-			color: var(--text-secondary);
-			font-size: 0.95rem;
-
-			strong {
-				color: var(--text-primary);
-			}
-		}
-
-		.image-cache-actions {
-			// Override two-column grid — cache actions are single-row
-			grid-template-columns: auto auto 1fr;
-			align-items: center;
-			justify-content: start;
-			gap: 12px;
-
-			@media (max-width: 768px) {
-				grid-template-columns: 1fr;
-			}
-		}
-	}
-
-	// Cache progress bar
-	.cache-progress {
-		margin: 20px 0;
-
-		&__bar {
-			width: 100%;
-			height: 14px;
-			background: var(--bg-secondary);
-			border-radius: 7px;
-			overflow: hidden;
-			border: 1px solid var(--border-light);
-		}
-
-		&__fill {
-			height: 100%;
-			background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-			border-radius: 7px;
-			transition: width 0.25s ease;
-		}
-
-		&__info {
-			display: flex;
-			gap: 20px;
-			align-items: center;
-			margin-top: 10px;
-			font-size: 0.9rem;
-			color: var(--text-secondary);
-		}
-
-		&__errors {
-			color: #e74c3c;
-			font-weight: 600;
-		}
-	}
-
-	// Cache status messages
-	.cache-status {
-		margin-top: 16px;
-		padding: 12px 18px;
-		border-radius: 8px;
-		font-size: 0.95rem;
-		font-weight: 500;
-
-		&--done {
-			background: #d4edda;
-			color: #155724;
-			border: 1px solid #c3e6cb;
-		}
-
-		&--cancelled {
-			background: var(--bg-secondary);
-			color: var(--text-secondary);
-			border: 1px solid var(--border-light);
-		}
-
-		&--error {
-			background: #fff3cd;
-			color: #856404;
-			border: 1px solid #ffc107;
 		}
 	}
 }

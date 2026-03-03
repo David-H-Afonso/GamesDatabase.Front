@@ -10,7 +10,6 @@ import {
 	updateImageUrls,
 } from '@/services/DataExportService'
 import { useGames } from '@/hooks/useGames'
-import { useImageCache } from '@/hooks/useImageCache'
 import './AdminDataExport.scss'
 
 interface FolderAnalysisResult {
@@ -55,9 +54,6 @@ export const AdminDataExport: React.FC = () => {
 
 	// Hook para manejar los juegos
 	const { refreshGames, filters } = useGames()
-
-	// Caché de imágenes
-	const imageCache = useImageCache()
 
 	// Detectar si estamos en localhost o IP local específica
 	const isLocalEnvironment = useMemo(() => {
@@ -521,69 +517,6 @@ Actualización de URLs de imágenes completada:
 						</div>
 					)}
 				</div>
-			</div>
-
-			{/* Image Cache Section */}
-			<div className='section image-cache-section'>
-				<h2>🖼️ Caché de Imágenes</h2>
-				<p className='section-description'>
-					Precarga todas las imágenes de la librería como WebP optimizado en el servidor. Cuando un usuario abra un juego por primera vez, el thumbnail ya estará listo y se servirá
-					al instante.
-				</p>
-
-				<div className='image-cache-stats'>
-					<span>
-						<strong>{imageCache.gamesWithImages}</strong> juegos con imágenes locales &mdash;&nbsp;
-						<strong>{imageCache.urlCount}</strong> variantes a procesar
-					</span>
-				</div>
-
-				{imageCache.status !== 'idle' && (
-					<div className='cache-progress'>
-						<div className='cache-progress__bar'>
-							<div className='cache-progress__fill' style={{ width: `${imageCache.percent}%` }} />
-						</div>
-						<div className='cache-progress__info'>
-							<span>
-								{imageCache.completed} / {imageCache.total} imágenes
-							</span>
-							<span>{imageCache.percent}%</span>
-							{imageCache.errors > 0 && <span className='cache-progress__errors'>⚠ {imageCache.errors} errores</span>}
-						</div>
-					</div>
-				)}
-
-				<div className='action-group image-cache-actions'>
-					{imageCache.status !== 'running' && (
-						<button className='btn btn-primary btn-large' onClick={() => void imageCache.start()} disabled={imageCache.urlCount === 0}>
-							{imageCache.status === 'idle' ? '🖼️ Precargar Imágenes' : '🔄 Volver a Precargar'}
-						</button>
-					)}
-					{imageCache.status === 'running' && (
-						<button className='btn btn-danger btn-large' onClick={imageCache.cancel}>
-							⏹ Cancelar
-						</button>
-					)}
-					{(imageCache.status === 'done' || imageCache.status === 'cancelled' || imageCache.status === 'error') && (
-						<button className='btn btn-secondary btn-large' onClick={imageCache.reset}>
-							✕ Reiniciar
-						</button>
-					)}
-				</div>
-
-				{imageCache.status === 'done' && (
-					<p className='cache-status cache-status--done'>✅ Completado. {imageCache.total - imageCache.errors} imágenes precargadas correctamente.</p>
-				)}
-				{imageCache.status === 'cancelled' && (
-					<p className='cache-status cache-status--cancelled'>
-						⏹ Cancelado. {imageCache.completed} / {imageCache.total} procesadas.
-					</p>
-				)}
-				{imageCache.status === 'error' && (
-					<p className='cache-status cache-status--error'>
-						⚠️ Completado con {imageCache.errors} error{imageCache.errors !== 1 ? 'es' : ''}. El resto se procesó correctamente.
-					</p>
-				)}
 			</div>
 
 			{/* Instructions Section */}

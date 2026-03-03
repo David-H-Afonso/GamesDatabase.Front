@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom'
 import { useGameStatus, useGamePlatform, useGamePlayWith, useGamePlayedStatus } from '@/hooks'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { fetchUserPreferences, forceLogout } from '@/store/features/auth/authSlice'
-import { persistor } from '@/store'
+import { purgePersistedState } from '@/utils/customFetch'
 
 /**
  * Component to load all initial data required by the application.
@@ -46,7 +46,7 @@ export const DataLoader = () => {
 		if (!userId) {
 			// Token exists but no user id — corrupt persisted state, clear it
 			dispatch(forceLogout())
-			persistor.purge().catch(console.error)
+			purgePersistedState()
 			return
 		}
 

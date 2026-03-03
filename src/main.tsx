@@ -6,8 +6,11 @@ import { RouterProvider } from 'react-router-dom'
 import { store, persistor } from './store'
 import { router } from '@/navigation/router'
 import { ThemeProvider } from './providers'
-import { restoreAuth } from './store/features/auth/authSlice'
+import { restoreAuth, forceLogout } from './store/features/auth/authSlice'
+import { initCustomFetch } from '@/utils/customFetch'
 import '@/assets/styles/index.scss'
+
+initCustomFetch(store, persistor, forceLogout)
 
 // Remove preload class after styles are loaded to enable transitions
 setTimeout(() => {
