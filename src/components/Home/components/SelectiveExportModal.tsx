@@ -13,6 +13,8 @@ interface Props {
 	preSelectedGames?: Array<{ id: number; name: string }>
 }
 
+const ITEMS_PER_PAGE = 50
+
 const DEFAULT_GLOBAL_CONFIG: GameExportConfig = { mode: 'simple' }
 
 const SelectiveExportModal: React.FC<Props> = ({ isOpen, onClose, preSelectedGames = [] }) => {
@@ -22,12 +24,18 @@ const SelectiveExportModal: React.FC<Props> = ({ isOpen, onClose, preSelectedGam
 	const [expandedGameId, setExpandedGameId] = useState<number | null>(null)
 	const [loading, setLoading] = useState(false)
 	const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null)
+	const [perGamePage, setPerGamePage] = useState(0)
 
 	useEffect(() => {
 		if (isOpen) {
 			setSelectedGames(preSelectedGames)
 		}
 	}, [isOpen])
+
+	// Reset per-game pagination when the selection changes
+	useEffect(() => {
+		setPerGamePage(0)
+	}, [selectedGames])
 
 	const handleClose = () => {
 		setSelectedGames([])
@@ -81,6 +89,9 @@ const SelectiveExportModal: React.FC<Props> = ({ isOpen, onClose, preSelectedGam
 
 	const hasPerGameOverride = (gameId: number) => !!perGameConfig[gameId]
 
+	const pageCount = Math.ceil(selectedGames.length / ITEMS_PER_PAGE)
+	const pagedGames = selectedGames.slice(perGamePage * ITEMS_PER_PAGE, (perGamePage + 1) * ITEMS_PER_PAGE)
+
 	return (
 		<Modal
 			isOpen={isOpen}
@@ -120,7 +131,7 @@ const SelectiveExportModal: React.FC<Props> = ({ isOpen, onClose, preSelectedGam
 						<p className='sem__section-desc'>Expand a game to configure export rules that override the global settings for that game only.</p>
 
 						<div className='sem__per-game-list'>
-							{selectedGames.map((game) => {
+							{pagedGames.map((game) => {
 								const hasOverride = hasPerGameOverride(game.id)
 								const isExpanded = expandedGameId === game.id
 								const gameConfig = perGameConfig[game.id] ?? DEFAULT_GLOBAL_CONFIG
@@ -152,23 +163,32 @@ const SelectiveExportModal: React.FC<Props> = ({ isOpen, onClose, preSelectedGam
 										</button>
 
 										{isExpanded && (
-										<div
-											className='sem__per-game-body'
-											role='region'
-											aria-labelledby={`sem-game-header-${game.id}`}
-											id={`sem-game-body-${game.id}`}>
-											<PropertyConfigPanel
-												panelMode='export'
-												config={gameConfig}
-												onChange={(cfg) => updatePerGameConfig(game.id, cfg as GameExportConfig)}
-												headingLabel={`Override for: ${game.name}`}
-											/>
-										</div>
-									)}
+											<div className='sem__per-game-body' role='region' aria-labelledby={`sem-game-header-${game.id}`} id={`sem-game-body-${game.id}`}>
+												<PropertyConfigPanel
+													panelMode='export'
+													config={gameConfig}
+													onChange={(cfg) => updatePerGameConfig(game.id, cfg as GameExportConfig)}
+													headingLabel={`Override for: ${game.name}`}
+												/>
+											</div>
+										)}
 									</div>
 								)
 							})}
 						</div>
+						{pageCount > 1 && (
+							<div className='sem__pagination'>
+								<button className='sem__pagination-btn' onClick={() => setPerGamePage((p) => p - 1)} disabled={perGamePage === 0}>
+									← Prev
+								</button>
+								<span className='sem__pagination-info'>
+									Page {perGamePage + 1} of {pageCount}
+								</span>
+								<button className='sem__pagination-btn' onClick={() => setPerGamePage((p) => p + 1)} disabled={perGamePage >= pageCount - 1}>
+									Next →
+								</button>
+							</div>
+						)}
 					</section>
 				)}
 			</div>

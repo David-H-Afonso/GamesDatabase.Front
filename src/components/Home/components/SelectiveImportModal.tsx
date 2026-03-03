@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { Modal } from '@/components/elements'
 import { selectiveImportGames, parseCSVGameNames } from '@/services'
 import type { GameImportConfig, SelectiveImportRequest } from '@/models/api/ImportExport'
@@ -11,6 +11,8 @@ interface Props {
 	/** Called after a successful import to allow parent to refresh the game list */
 	onImportComplete?: () => void
 }
+
+const ITEMS_PER_PAGE = 50
 
 const DEFAULT_GLOBAL_CONFIG: GameImportConfig = { mode: 'simple' }
 
@@ -29,6 +31,7 @@ const SelectiveImportModal: React.FC<Props> = ({ isOpen, onClose, onImportComple
 
 	const [loading, setLoading] = useState(false)
 	const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null)
+	const [perGamePage, setPerGamePage] = useState(0)
 
 	// ── Reset / close ──────────────────────────────────────────────────────────
 
@@ -72,24 +75,33 @@ const SelectiveImportModal: React.FC<Props> = ({ isOpen, onClose, onImportComple
 		}
 	}
 
-	const handleTextChange = async (text: string) => {
+	const handleTextChange = (text: string) => {
 		setCsvText(text)
 		setMessage(null)
-		if (!text.trim()) {
-			setParsedGameNames([])
-			return
-		}
-		// Debounce-free: parse on every change (text can be large, but this is lightweight)
-		setParsing(true)
-		try {
-			const names = await parseCSVGameNames(text)
-			setParsedGameNames(names)
-		} catch {
-			setParsedGameNames([])
-		} finally {
-			setParsing(false)
-		}
+		if (!text.trim()) setParsedGameNames([])
 	}
+
+	// Debounce CSV text parsing: waits 400 ms after the last keystroke before parsing
+	useEffect(() => {
+		if (!csvText.trim()) return
+		const timer = setTimeout(async () => {
+			setParsing(true)
+			try {
+				const names = await parseCSVGameNames(csvText)
+				setParsedGameNames(names)
+			} catch {
+				setParsedGameNames([])
+			} finally {
+				setParsing(false)
+			}
+		}, 400)
+		return () => clearTimeout(timer)
+	}, [csvText])
+
+	// Reset per-game pagination when the game list changes
+	useEffect(() => {
+		setPerGamePage(0)
+	}, [parsedGameNames])
 
 	// ── Per-game overrides ─────────────────────────────────────────────────────
 
@@ -146,6 +158,8 @@ const SelectiveImportModal: React.FC<Props> = ({ isOpen, onClose, onImportComple
 
 	// ── Render ─────────────────────────────────────────────────────────────────
 
+	const pageCount = Math.ceil(parsedGameNames.length / ITEMS_PER_PAGE)
+	const pagedGameNames = parsedGameNames.slice(perGamePage * ITEMS_PER_PAGE, (perGamePage + 1) * ITEMS_PER_PAGE)
 	const canImport = parsedGameNames.length > 0 && !loading
 
 	return (
@@ -236,7 +250,7 @@ const SelectiveImportModal: React.FC<Props> = ({ isOpen, onClose, onImportComple
 						<p className='sim__section-desc'>Expand a game to set rules that override the global import options for that game only.</p>
 
 						<div className='sim__per-game-list'>
-							{parsedGameNames.map((name) => {
+							{pagedGameNames.map((name) => {
 								const hasOverride = !!perGameConfig[name]
 								const isExpanded = expandedGameName === name
 								const gameCfg = perGameConfig[name] ?? DEFAULT_GLOBAL_CONFIG
@@ -275,6 +289,19 @@ const SelectiveImportModal: React.FC<Props> = ({ isOpen, onClose, onImportComple
 								)
 							})}
 						</div>
+						{pageCount > 1 && (
+							<div className='sim__pagination'>
+								<button className='sim__pagination-btn' onClick={() => setPerGamePage((p) => p - 1)} disabled={perGamePage === 0}>
+									← Prev
+								</button>
+								<span className='sim__pagination-info'>
+									Page {perGamePage + 1} of {pageCount}
+								</span>
+								<button className='sim__pagination-btn' onClick={() => setPerGamePage((p) => p + 1)} disabled={perGamePage >= pageCount - 1}>
+									Next →
+								</button>
+							</div>
+						)}
 					</section>
 				)}
 			</div>
