@@ -6,9 +6,11 @@ import type { RootState } from '@/store'
 export const selectAuth = (state: RootState) => state.auth
 
 /**
- * Select if user is authenticated
+ * Select if user is authenticated.
+ * Requires all three: the flag, a populated user with username, and a token.
+ * Guards against corrupt/partial redux-persist rehydration.
  */
-export const selectIsAuthenticated = (state: RootState) => state.auth.isAuthenticated
+export const selectIsAuthenticated = (state: RootState) => state.auth.isAuthenticated && state.auth.user !== null && !!state.auth.user?.username && state.auth.token !== null
 
 /**
  * Select current user

@@ -1,6 +1,9 @@
 import { useEffect, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useGameStatus, useGamePlatform, useGamePlayWith, useGamePlayedStatus } from '@/hooks'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { fetchUserPreferences, forceLogout } from '@/store/features/auth/authSlice'
+import { persistor } from '@/store'
 
 /**
  * Component to load all initial data required by the application.
@@ -13,6 +16,10 @@ import { useGameStatus, useGamePlatform, useGamePlayWith, useGamePlayedStatus } 
 export const DataLoader = () => {
 	const location = useLocation()
 	const previousPath = useRef<string>('')
+	const dispatch = useAppDispatch()
+	const userId = useAppSelector((state) => state.auth.user?.id)
+	const token = useAppSelector((state) => state.auth.token)
+	const hasVerified = useRef(false)
 
 	const { fetchActiveStatusList } = useGameStatus()
 	const { fetchActiveList: fetchActivePlatforms } = useGamePlatform()
@@ -26,6 +33,25 @@ export const DataLoader = () => {
 			console.error('❌ Error loading catalog data:', error)
 		}
 	}
+
+	// On startup: verify the persisted session is still valid by fetching user data.
+	// If the token is expired/invalid, customFetch will get a 401 and forceLogout automatically.
+	// If user data is missing despite isAuthenticated=true, force logout defensively.
+	useEffect(() => {
+		if (hasVerified.current) return
+		hasVerified.current = true
+
+		if (!token) return
+
+		if (!userId) {
+			// Token exists but no user id — corrupt persisted state, clear it
+			dispatch(forceLogout())
+			persistor.purge().catch(console.error)
+			return
+		}
+
+		void dispatch(fetchUserPreferences(userId))
+	}, [])
 
 	// Load all active entities on app startup
 	useEffect(() => {

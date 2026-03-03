@@ -101,6 +101,10 @@ export interface PropertyFieldMeta {
 	canCustomOnImport: boolean
 	/** Whether this property can be 'clean' during export */
 	canCleanOnExport: boolean
+	/** Inclusive minimum value for number inputs (undefined = no constraint) */
+	numberMin?: number
+	/** Inclusive maximum value for number inputs (undefined = no constraint) */
+	numberMax?: number
 }
 
 export const GAME_PROPERTY_FIELDS: PropertyFieldMeta[] = [
@@ -108,8 +112,8 @@ export const GAME_PROPERTY_FIELDS: PropertyFieldMeta[] = [
 	{ key: 'platform', label: 'Platform', inputType: 'platform', canCleanOnImport: true, canCustomOnImport: true, canCleanOnExport: true },
 	{ key: 'playWith', label: 'Play With', inputType: 'playWith', canCleanOnImport: true, canCustomOnImport: true, canCleanOnExport: true },
 	{ key: 'playedStatus', label: 'Played Status', inputType: 'playedStatus', canCleanOnImport: true, canCustomOnImport: true, canCleanOnExport: true },
-	{ key: 'grade', label: 'Grade (0–100)', inputType: 'number', canCleanOnImport: true, canCustomOnImport: true, canCleanOnExport: true },
-	{ key: 'critic', label: 'Critic Score (0–100)', inputType: 'number', canCleanOnImport: true, canCustomOnImport: true, canCleanOnExport: true },
+	{ key: 'grade', label: 'Grade (0–100)', inputType: 'number', canCleanOnImport: true, canCustomOnImport: true, canCleanOnExport: true, numberMin: 0, numberMax: 100 },
+	{ key: 'critic', label: 'Critic Score (0–100)', inputType: 'number', canCleanOnImport: true, canCustomOnImport: true, canCleanOnExport: true, numberMin: 0, numberMax: 100 },
 	{ key: 'criticProvider', label: 'Critic Provider', inputType: 'criticProvider', canCleanOnImport: true, canCustomOnImport: true, canCleanOnExport: true },
 	{ key: 'story', label: 'Story Duration (h)', inputType: 'number', canCleanOnImport: true, canCustomOnImport: true, canCleanOnExport: true },
 	{ key: 'completion', label: 'Completion Duration (h)', inputType: 'number', canCleanOnImport: true, canCustomOnImport: true, canCleanOnExport: true },
