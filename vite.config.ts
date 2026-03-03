@@ -72,30 +72,6 @@ export default defineConfig({
 		outDir: 'dist',
 		assetsDir: 'assets',
 		sourcemap: false,
-		rollupOptions: {
-			output: {
-				manualChunks: (id) => {
-					// React runtime + router in one chunk: react-dom registers
-					// React.Activity during init; react-router-dom reads it
-					// immediately, so they must live in the same scope.
-					if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/') || id.includes('node_modules/react-router') || id.includes('node_modules/@remix-run')) {
-						return 'react-vendor'
-					}
-					// Redux / state management
-					if (id.includes('node_modules/@reduxjs') || id.includes('node_modules/react-redux') || id.includes('node_modules/redux')) {
-						return 'redux-vendor'
-					}
-					// Form library
-					if (id.includes('node_modules/formik') || id.includes('node_modules/yup')) {
-						return 'forms-vendor'
-					}
-					// All remaining node_modules go to a shared vendor chunk
-					if (id.includes('node_modules')) {
-						return 'vendor'
-					}
-				},
-			},
-		},
 	},
 	server: {
 		port: 5173,
