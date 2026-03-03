@@ -59,6 +59,14 @@ export default defineConfig({
 			'@/store': '/src/store',
 			'@/utils': '/src/utils',
 		},
+		// Ensure a single copy of React is used across all chunks (prevents
+		// the "Cannot set properties of undefined (setting 'Activity')" crash
+		// that occurs in React 19+ when react-dom and react-router initialise
+		// in different chunk scopes)
+		dedupe: ['react', 'react-dom', 'react-router-dom'],
+	},
+	optimizeDeps: {
+		include: ['react', 'react-dom'],
 	},
 	build: {
 		outDir: 'dist',
@@ -67,13 +75,11 @@ export default defineConfig({
 		rollupOptions: {
 			output: {
 				manualChunks: (id) => {
-					// Core React runtime → tiny, always cached
-					if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
+					// React runtime + router in one chunk: react-dom registers
+					// React.Activity during init; react-router-dom reads it
+					// immediately, so they must live in the same scope.
+					if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/') || id.includes('node_modules/react-router') || id.includes('node_modules/@remix-run')) {
 						return 'react-vendor'
-					}
-					// Router
-					if (id.includes('node_modules/react-router') || id.includes('node_modules/@remix-run')) {
-						return 'router-vendor'
 					}
 					// Redux / state management
 					if (id.includes('node_modules/@reduxjs') || id.includes('node_modules/react-redux') || id.includes('node_modules/redux')) {
