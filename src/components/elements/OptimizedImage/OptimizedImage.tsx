@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, memo } from 'react'
+import { useState, useEffect, memo } from 'react'
 import './OptimizedImage.scss'
 
 interface OptimizedImageProps {
@@ -20,7 +20,6 @@ interface OptimizedImageProps {
 const OptimizedImage: React.FC<OptimizedImageProps> = ({ src, alt, className = '', width, height, quality = 'medium', loading = 'lazy', onLoad, onError }) => {
 	const [isLoaded, setIsLoaded] = useState(false)
 	const [hasError, setHasError] = useState(false)
-	const imgRef = useRef<HTMLImageElement>(null)
 
 	// Optimize image URL based on quality setting
 	const getOptimizedSrc = (originalSrc: string): string => {
@@ -98,35 +97,6 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({ src, alt, className = '
 		onError?.()
 	}
 
-	// Intersection Observer for better lazy loading control
-	useEffect(() => {
-		if (loading === 'eager' || !imgRef.current) return
-
-		const observer = new IntersectionObserver(
-			(entries) => {
-				entries.forEach((entry) => {
-					if (entry.isIntersecting) {
-						const img = entry.target as HTMLImageElement
-						if (img.dataset.src && !img.src) {
-							img.src = img.dataset.src
-						}
-					}
-				})
-			},
-			{ rootMargin: '50px' } // Start loading 50px before image enters viewport
-		)
-
-		if (imgRef.current) {
-			observer.observe(imgRef.current)
-		}
-
-		return () => {
-			if (imgRef.current) {
-				observer.unobserve(imgRef.current)
-			}
-		}
-	}, [loading])
-
 	if (hasError) {
 		return (
 			<div className={`optimized-image-error ${className}`}>
@@ -143,9 +113,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({ src, alt, className = '
 				</div>
 			)}
 			<img
-				ref={imgRef}
-				src={loading === 'eager' ? optimizedSrc : undefined}
-				data-src={loading === 'lazy' ? optimizedSrc : undefined}
+				src={optimizedSrc}
 				alt={alt}
 				className={`optimized-image ${isLoaded ? 'loaded' : ''}`}
 				width={width}

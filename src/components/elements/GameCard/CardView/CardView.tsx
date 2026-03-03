@@ -125,7 +125,7 @@ const CardView: FC<CardViewProps> = (props) => {
 			}}>
 			<div className='game-card-view-container-hideOverflow'>
 				<div className='game-card-header'>
-					{game.cover && <OptimizedImage src={game.cover} alt={`${game.name} cover`} className='game-card-cover' quality='medium' loading='lazy' />}
+					{game.cover && <OptimizedImage src={game.cover} alt={`${game.name} cover`} className='game-card-cover' quality='medium' loading='lazy' width={350} height={200} />}
 					<div className='game-card-header-score'>
 						<input
 							type='checkbox'
@@ -175,7 +175,7 @@ const CardView: FC<CardViewProps> = (props) => {
 					</div>
 					<div className='game-card-header-info'>
 						<div className='game-card-header-info-logo'>
-							{game.logo && <OptimizedImage src={game.logo} alt={`${game.name} logo`} className='game-card-logo' quality='low' loading='lazy' />}
+							{game.logo && <OptimizedImage src={game.logo} alt={`${game.name} logo`} className='game-card-logo' quality='low' loading='lazy' width={50} height={50} />}
 						</div>
 						<div className='game-card-header-info-tags'>
 							<h3 className='game-card-title'>{game.name}</h3>

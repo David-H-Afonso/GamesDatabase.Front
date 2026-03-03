@@ -1,4 +1,4 @@
-@use '@/assets/styles' as *;
+﻿@use '@/assets/styles' as *;
 
 .game-filters-chips {
 	background: $color-bg-primary;
@@ -452,7 +452,7 @@
 		z-index: 20;
 		animation: popoverFadeIn 0.15s ease;
 
-		h4 {
+		.game-filters-chips__popover-title {
 			margin: 0 0 10px;
 			font-size: 11px;
 			text-transform: uppercase;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+﻿import React, { useState, useEffect, useRef } from 'react'
 import type { GameQueryParameters } from '@/models/api/Game'
 import { useGamePlatform, useGamePlayedStatus, useGamePlayWith, useGameStatus } from '@/hooks'
 import { DEFAULT_PAGE_SIZE } from '@/utils'
@@ -320,7 +320,7 @@ const GameFiltersChips: React.FC<Props> = ({
 						<label className='game-filters-chips__input-label' htmlFor='sort-select'>
 							Ordenar por
 						</label>
-						<select className='game-filters-chips__select-pill' value={filters.sortBy || 'name'} onChange={(e) => onSortChange(e.target.value, filters.sortDescending || false)}>
+						<select id='sort-select' className='game-filters-chips__select-pill' value={filters.sortBy || 'name'} onChange={(e) => onSortChange(e.target.value, filters.sortDescending || false)}>
 							<option value='name'>Nombre</option>
 							<option value='grade'>Calificación</option>
 							<option value='critic'>Puntuación Crítica</option>
@@ -352,8 +352,8 @@ const GameFiltersChips: React.FC<Props> = ({
 				<div className='game-filters-chips__top-right'>
 					{onViewChange && (
 						<div className='game-filters-chips__field game-filters-chips__field--inline game-filters-chips__field--view'>
-							<label>Vista</label>
-							<select className='game-filters-chips__select-view' value={currentView} onChange={(e) => onViewChange(e.target.value)}>
+						<label htmlFor='view-select'>Vista</label>
+						<select id='view-select' className='game-filters-chips__select-view' value={currentView} onChange={(e) => onViewChange(e.target.value)}>
 								<option value='default'>Predeterminada</option>
 								{publicGameViews.map((view) => (
 									<option key={view.id} value={view.name}>
@@ -410,7 +410,7 @@ const GameFiltersChips: React.FC<Props> = ({
 						{onViewChange && (
 							<div className='game-filters-chips__moved-controls-view game-filters-chips__field game-filters-chips__field--inline'>
 								<label>Vista</label>
-								<select className='game-filters-chips__select-view' value={currentView} onChange={(e) => onViewChange(e.target.value)}>
+							<select aria-label='Vista' className='game-filters-chips__select-view' value={currentView} onChange={(e) => onViewChange(e.target.value)}>
 									<option value='default'>Predeterminada</option>
 									{publicGameViews.map((view) => (
 										<option key={view.id} value={view.name}>
@@ -423,7 +423,7 @@ const GameFiltersChips: React.FC<Props> = ({
 
 						<div className='game-filters-chips__moved-controls-sort game-filters-chips__field game-filters-chips__field--inline'>
 							<label>Ordenar por</label>
-							<select className='game-filters-chips__select-pill' value={filters.sortBy || 'name'} onChange={(e) => onSortChange(e.target.value, filters.sortDescending || false)}>
+						<select aria-label='Ordenar por' className='game-filters-chips__select-pill' value={filters.sortBy || 'name'} onChange={(e) => onSortChange(e.target.value, filters.sortDescending || false)}>
 								<option value='name'>Nombre</option>
 								<option value='grade'>Calificación</option>
 								<option value='critic'>Puntuación Crítica</option>
@@ -494,7 +494,7 @@ const GameFiltersChips: React.FC<Props> = ({
 						<div className='game-filters-chips__popover' ref={popoverRef}>
 							{openPopover === 'platform' && (
 								<>
-									<h4>Plataforma</h4>
+									<strong className='game-filters-chips__popover-title'>Plataforma</strong>
 									<div className='game-filters-chips__popover-options'>
 										<button
 											type='button'
@@ -517,7 +517,7 @@ const GameFiltersChips: React.FC<Props> = ({
 
 							{openPopover === 'playWith' && (
 								<>
-									<h4>Jugar con</h4>
+									<strong className='game-filters-chips__popover-title'>Jugar con</strong>
 									<div className='game-filters-chips__popover-options'>
 										<button
 											type='button'
@@ -540,7 +540,7 @@ const GameFiltersChips: React.FC<Props> = ({
 
 							{openPopover === 'status' && (
 								<>
-									<h4>Status</h4>
+									<strong className='game-filters-chips__popover-title'>Status</strong>
 									<div className='game-filters-chips__popover-options'>
 										<button type='button' className={'game-filters-chips__option' + (!filters.statusId ? ' is-active' : '')} onClick={() => setFilters({ statusId: undefined })}>
 											Todos
@@ -560,7 +560,7 @@ const GameFiltersChips: React.FC<Props> = ({
 
 							{openPopover === 'playedStatus' && (
 								<>
-									<h4>Estado Jugado</h4>
+									<strong className='game-filters-chips__popover-title'>Estado Jugado</strong>
 									<div className='game-filters-chips__popover-options'>
 										<button
 											type='button'
@@ -583,7 +583,7 @@ const GameFiltersChips: React.FC<Props> = ({
 
 							{openPopover === 'grades' && (
 								<>
-									<h4>Nota</h4>
+									<strong className='game-filters-chips__popover-title'>Nota</strong>
 									<div className='game-filters-chips__popover-grid'>
 										<div className='game-filters-chips__field'>
 											<label>Mínimo</label>
@@ -624,7 +624,7 @@ const GameFiltersChips: React.FC<Props> = ({
 
 							{openPopover === 'years' && (
 								<>
-									<h4>Años</h4>
+									<strong className='game-filters-chips__popover-title'>Años</strong>
 									<div className='game-filters-chips__popover-grid'>
 										<div className='game-filters-chips__field'>
 											<label>Lanzamiento</label>
@@ -689,7 +689,7 @@ const GameFiltersChips: React.FC<Props> = ({
 
 							{openPopover === 'price' && (
 								<>
-									<h4>Precio</h4>
+									<strong className='game-filters-chips__popover-title'>Precio</strong>
 									<div className='game-filters-chips__popover-options'>
 										<button
 											type='button'
@@ -715,7 +715,7 @@ const GameFiltersChips: React.FC<Props> = ({
 
 							{openPopover === 'criticProvider' && (
 								<>
-									<h4>Proveedor de Crítica</h4>
+									<strong className='game-filters-chips__popover-title'>Proveedor de Crítica</strong>
 									<div className='game-filters-chips__popover-options'>
 										<button
 											type='button'
@@ -753,7 +753,7 @@ const GameFiltersChips: React.FC<Props> = ({
 
 							{openPopover === 'excluded' && (
 								<>
-									<h4>Excluir Status</h4>
+									<strong className='game-filters-chips__popover-title'>Excluir Status</strong>
 									<div className='game-filters-chips__popover-checkboxes'>
 										{statusOptions.map((status) => {
 											const isExcluded = (filters.excludeStatusIds || []).includes(status.value)
@@ -773,7 +773,7 @@ const GameFiltersChips: React.FC<Props> = ({
 
 							{openPopover === 'pageSize' && (
 								<>
-									<h4>Tamaño de página</h4>
+									<strong className='game-filters-chips__popover-title'>Tamaño de página</strong>
 									<div className='game-filters-chips__popover-options'>
 										<button
 											type='button'

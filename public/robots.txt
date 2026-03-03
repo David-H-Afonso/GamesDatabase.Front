@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /api/
+Disallow: /game-images/
+Disallow: /assets/
+Allow: /
+

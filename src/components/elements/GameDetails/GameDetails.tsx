@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+﻿import React, { useState } from 'react'
 import type { Game } from '@/models/api/Game'
 import './GameDetails.scss'
 import { formatToLocaleDate, useClickOutside } from '@/utils'
@@ -180,6 +180,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 
 	return (
 		<div ref={panelRef} className={`game-details ${isClosing ? 'closing' : ''}`}>
+			<h2 className='sr-only'>Game details: {game.name}</h2>
 			<div className='game-details-header'>
 				<div className='game-details-header-actions'>
 					<button className='game-details-header-actions-delete' onClick={() => onDelete?.(game)}>
@@ -196,7 +197,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 								window.open(url, '_blank', 'noopener')
 							}}
 							style={{ cursor: game.name ? 'pointer' : 'default' }}>
-							<OptimizedImage src={game.logo} alt={`${game.name} logo`} className='game-details__logo' quality='high' loading='eager' />
+							<OptimizedImage src={game.logo} alt={`${game.name} logo`} className='game-details__logo' quality='high' loading='eager' width={80} height={80} />
 						</div>
 					) : null}
 					<div>
@@ -215,13 +216,13 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 								window.open(url, '_blank', 'noopener')
 							}}
 							style={{ cursor: game.name ? 'pointer' : 'default' }}>
-							<OptimizedImage src={game.cover} alt={`${game.name} cover`} className='game-details__cover' quality='high' loading='eager' />
+							<OptimizedImage src={game.cover} alt={`${game.name} cover`} className='game-details__cover' quality='high' loading='eager' width={600} height={350} />
 						</div>
 					)}
 				</div>
 				<div className='game-details-content-infoList'>
 					<div className='game-details-content-infoList-item'>
-						<h4>Status</h4>
+						<h3>Status</h3>
 						<EditableSelect
 							value={formik.values.statusId}
 							displayValue={game.statusName}
@@ -231,7 +232,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 						/>
 					</div>
 					<div className='game-details-content-infoList-item'>
-						<h4>Released</h4>
+						<h3>Released</h3>
 						<EditableField
 							value={formik.values.released}
 							type='date'
@@ -241,7 +242,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 						/>
 					</div>
 					<div className='game-details-content-infoList-item'>
-						<h4
+						<h3
 							className='clickable'
 							onClick={() => {
 								if (!game.name) return
@@ -251,11 +252,11 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 								window.open(url, '_blank', 'noopener')
 							}}>
 							Critic Score
-						</h4>
+						</h3>
 						<EditableField value={formik.values.critic} type='number' onSave={(value) => saveField('critic', value)} placeholder='No score' />
 					</div>
 					<div className='game-details-content-infoList-item'>
-						<h4>Critic Logo</h4>
+						<h3>Critic Logo</h3>
 						<EditableSelect
 							value={getCriticProviderIdFromName(formik.values.criticProvider)}
 							displayValue={formik.values.criticProvider ?? 'Default'}
@@ -277,7 +278,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 						/>
 					</div>
 					<div className='game-details-content-infoList-item'>
-						<h4
+						<h3
 							className='clickable'
 							onClick={() => {
 								if (!game.name) return
@@ -285,11 +286,11 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 								window.open(url, '_blank', 'noopener')
 							}}>
 							Story
-						</h4>
+						</h3>
 						<EditableField value={formik.values.story} type='number' onSave={(value) => saveField('story', value)} placeholder='0h' formatter={(val) => `${val || 0}h`} />
 					</div>
 					<div className='game-details-content-infoList-item'>
-						<h4
+						<h3
 							className='clickable'
 							onClick={() => {
 								if (!game.name) return
@@ -297,15 +298,15 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 								window.open(url, '_blank', 'noopener')
 							}}>
 							Completion
-						</h4>
+						</h3>
 						<EditableField value={formik.values.completion} type='number' onSave={(value) => saveField('completion', value)} placeholder='0h' formatter={(val) => `${val || 0}h`} />
 					</div>
 					<div className='game-details-content-infoList-item'>
-						<h4>Score</h4>
+						<h3>Score</h3>
 						<EditableField value={formik.values.score} type='number' onSave={(value) => saveField('score', value)} placeholder='No score' allowEditing={false} />
 					</div>
 					<div className='game-details-content-infoList-item'>
-						<h4
+						<h3
 							className={(game.platformName || '').toLowerCase().includes('steam') || (game.platformName || '').toLowerCase().includes('epic') ? 'clickable' : undefined}
 							onClick={() => {
 								if (!game.name) return
@@ -322,7 +323,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 								}
 							}}>
 							Platform
-						</h4>
+						</h3>
 						<EditableSelect
 							value={formik.values.platformId}
 							displayValue={game.platformName}
@@ -332,7 +333,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 						/>
 					</div>
 					<div className='game-details-content-infoList-item'>
-						<h4>Played</h4>
+						<h3>Played</h3>
 						<EditableSelect
 							value={formik.values.playedStatusId}
 							displayValue={game.playedStatusName}
@@ -342,7 +343,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 						/>
 					</div>
 					<div className='game-details-content-infoList-item'>
-						<h4>Started</h4>
+						<h3>Started</h3>
 						<EditableField
 							value={formik.values.started}
 							type='date'
@@ -352,7 +353,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 						/>
 					</div>
 					<div className='game-details-content-infoList-item'>
-						<h4>Finished</h4>
+						<h3>Finished</h3>
 						<EditableField
 							value={formik.values.finished}
 							type='date'
@@ -362,11 +363,11 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 						/>
 					</div>
 					<div className='game-details-content-infoList-item'>
-						<h4>Grade</h4>
+						<h3>Grade</h3>
 						<EditableField value={formik.values.grade} type='number' onSave={(value) => saveField('grade', value)} placeholder='No grade' />
 					</div>
 					<div className='game-details-content-infoList-item'>
-						<h4>Play With</h4>
+						<h3>Play With</h3>
 						<EditableMultiSelect
 							values={formik.values.playWithIds}
 							displayValues={game.playWithNames || []}
@@ -376,7 +377,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 						/>
 					</div>
 					<div className='game-details-content-infoList-item'>
-						<h4
+						<h3
 							className='clickable'
 							onClick={() => {
 								if (!game.name) return
@@ -384,12 +385,12 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 								window.open(url, '_blank', 'noopener')
 							}}>
 							Logo
-						</h4>
+						</h3>
 						<EditableField value={formik.values.logo} type='text' onSave={(value) => saveField('logo', value)} placeholder='Enter logo URL (optional)' />
 					</div>
 
 					<div className='game-details-content-infoList-item'>
-						<h4
+						<h3
 							className='clickable'
 							onClick={() => {
 								if (!game.name) return
@@ -397,12 +398,12 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 								window.open(url, '_blank', 'noopener')
 							}}>
 							Cover
-						</h4>
+						</h3>
 						<EditableField value={formik.values.cover} type='text' onSave={(value) => saveField('cover', value)} placeholder='Enter cover URL (optional)' />
 					</div>
 
 					<div className='game-details-content-infoList-item'>
-						<h4>Cheaper</h4>
+						<h3>Cheaper</h3>
 						<EditableSelect
 							value={formik.values.isCheaperByKey === true ? 1 : formik.values.isCheaperByKey === false ? 2 : undefined}
 							displayValue={formik.values.isCheaperByKey === true ? 'Key' : formik.values.isCheaperByKey === false ? 'Store' : undefined}
@@ -424,7 +425,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 
 					{formik.values.isCheaperByKey !== undefined && (
 						<div className='game-details-content-infoList-item'>
-							<h4>Key URL</h4>
+							<h3>Key URL</h3>
 							<EditableField value={formik.values.keyStoreUrl} type='text' onSave={(value) => saveField('keyStoreUrl', value)} placeholder='Enter key store URL (optional)' />
 						</div>
 					)}

@@ -27,6 +27,9 @@ export const ThemeSelector: React.FC = () => {
 
 	return (
 		<div className='theme-selector'>
+			<label htmlFor='theme-select' className='sr-only'>
+				Tema
+			</label>
 			<select id='theme-select' value={currentTheme} onChange={handleThemeChange} className='theme-selector__select'>
 				{availableThemes.map((themeKey) => (
 					<option key={themeKey} value={themeKey}>

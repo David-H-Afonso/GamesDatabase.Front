@@ -50,7 +50,28 @@ export default defineConfig({
 		sourcemap: false,
 		rollupOptions: {
 			output: {
-				manualChunks: undefined,
+				manualChunks: (id) => {
+					// Core React runtime → tiny, always cached
+					if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
+						return 'react-vendor'
+					}
+					// Router
+					if (id.includes('node_modules/react-router') || id.includes('node_modules/@remix-run')) {
+						return 'router-vendor'
+					}
+					// Redux / state management
+					if (id.includes('node_modules/@reduxjs') || id.includes('node_modules/react-redux') || id.includes('node_modules/redux')) {
+						return 'redux-vendor'
+					}
+					// Form library
+					if (id.includes('node_modules/formik') || id.includes('node_modules/yup')) {
+						return 'forms-vendor'
+					}
+					// All remaining node_modules go to a shared vendor chunk
+					if (id.includes('node_modules')) {
+						return 'vendor'
+					}
+				},
 			},
 		},
 	},

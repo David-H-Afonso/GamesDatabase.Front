@@ -123,8 +123,8 @@ const BulkEditModal: React.FC<Props> = ({ isOpen, onClose, selectedCount, onSave
 					</p>
 
 					<div className='bulk-edit-modal__field'>
-						<label>Status</label>
-						<select value={statusId ?? ''} onChange={(e) => setStatusId(e.target.value ? Number(e.target.value) : undefined)}>
+						<label htmlFor='bulk-status'>Status</label>
+						<select id='bulk-status' value={statusId ?? ''} onChange={(e) => setStatusId(e.target.value ? Number(e.target.value) : undefined)}>
 							<option value=''>-- No change --</option>
 							{statusOptions.map((s) => (
 								<option key={s.value} value={s.value}>
@@ -135,8 +135,8 @@ const BulkEditModal: React.FC<Props> = ({ isOpen, onClose, selectedCount, onSave
 					</div>
 
 					<div className='bulk-edit-modal__field'>
-						<label>Platform</label>
-						<select value={platformId ?? ''} onChange={(e) => setPlatformId(e.target.value ? Number(e.target.value) : undefined)}>
+						<label htmlFor='bulk-platform'>Platform</label>
+						<select id='bulk-platform' value={platformId ?? ''} onChange={(e) => setPlatformId(e.target.value ? Number(e.target.value) : undefined)}>
 							<option value=''>-- No change --</option>
 							{platformOptions.map((p) => (
 								<option key={p.value} value={p.value}>
@@ -147,8 +147,8 @@ const BulkEditModal: React.FC<Props> = ({ isOpen, onClose, selectedCount, onSave
 					</div>
 
 					<div className='bulk-edit-modal__field'>
-						<label>Played Status</label>
-						<select value={playedStatusId ?? ''} onChange={(e) => setPlayedStatusId(e.target.value ? Number(e.target.value) : undefined)}>
+						<label htmlFor='bulk-played-status'>Played Status</label>
+						<select id='bulk-played-status' value={playedStatusId ?? ''} onChange={(e) => setPlayedStatusId(e.target.value ? Number(e.target.value) : undefined)}>
 							<option value=''>-- No change --</option>
 							{playedStatusOptions.map((ps) => (
 								<option key={ps.value} value={ps.value}>
@@ -159,8 +159,9 @@ const BulkEditModal: React.FC<Props> = ({ isOpen, onClose, selectedCount, onSave
 					</div>
 
 					<div className='bulk-edit-modal__field'>
-						<label>Cheaper By</label>
+						<label htmlFor='bulk-cheaper-by'>Cheaper By</label>
 						<select
+							id='bulk-cheaper-by'
 							value={isCheaperByKey === undefined ? '' : isCheaperByKey ? 'key' : 'store'}
 							onChange={(e) => {
 								const val = e.target.value

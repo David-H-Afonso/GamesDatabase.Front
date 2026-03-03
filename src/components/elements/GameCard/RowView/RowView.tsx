@@ -206,7 +206,7 @@ const RowView: FC<RowViewProps> = (props) => {
 
 			{/* Name */}
 			<div className='game-row-name'>
-				{hasLogo && <OptimizedImage src={game.logo!} alt={`${game.name} logo`} className='game-row-logo' quality='low' loading='lazy' />}
+				{hasLogo && <OptimizedImage src={game.logo!} alt={`${game.name} logo`} className='game-row-logo' quality='low' loading='lazy' width={32} height={32} />}
 				<h3>{game.name}</h3>
 			</div>
 
