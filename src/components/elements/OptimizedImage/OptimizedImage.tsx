@@ -46,6 +46,20 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({ src, alt, className = '
 				return originalSrc.slice(0, lastSlash + 1) + sizeParam + '/' + originalSrc.slice(lastSlash + 1)
 			}
 
+			// ── Our own game-image server ──────────────────────────────────────────
+			// The backend ImageProxyController serves /game-images/ requests,
+			// resizing to the requested ?w=N dimensions and re-encoding as WebP.
+			// We keep the same URL scheme the rest of the app already uses and
+			// simply append a ?w= query param so the proxy knows the target size.
+			// Request 2× the HTML-attribute size for crisp HiDPI / Retina screens.
+			if (originalSrc.includes('/game-images/')) {
+				const params = new URLSearchParams(url.search)
+				if (width) params.set('w', String(width * 2))
+				else if (height) params.set('h', String(height * 2))
+				url.search = params.toString()
+				return url.toString()
+			}
+
 			// For other URLs, attempt to add query parameters for quality control
 			// (works with some CDNs like Cloudinary, Imgix, etc.)
 
