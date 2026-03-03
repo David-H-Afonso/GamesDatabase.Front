@@ -3,8 +3,8 @@ import { Button, GameCard } from '@/components/elements'
 import { useGames, useGameViews } from '@/hooks'
 import { useAppSelector, useAppDispatch } from '@/store/hooks'
 import { setCardStyle, setViewMode } from '@/store/features/theme/themeSlice'
-import { setFilters as setGamesFilters } from '@/store/features/games/gamesSlice'
-import { selectGamesFilters } from '@/store/features/games/selector'
+import { setFilters as setGamesFilters, clearGamesRefresh } from '@/store/features/games/gamesSlice'
+import { selectGamesFilters, selectNeedsRefresh } from '@/store/features/games/selector'
 import type { GameQueryParameters } from '@/models/api/Game'
 import GameFiltersChips from './GameFiltersChips'
 import BulkEditModal, { type BulkEditData } from './BulkEditModal'
@@ -18,18 +18,23 @@ const HomeComponent = () => {
 	const dispatch = useAppDispatch()
 	const cardStyle = useAppSelector((s) => s.theme.cardStyle ?? 'row')
 	const filters = useAppSelector(selectGamesFilters)
+	const needsRefresh = useAppSelector(selectNeedsRefresh)
 	const setFilters = (next: GameQueryParameters) => dispatch(setGamesFilters(next))
 	const [selectedGames, setSelectedGames] = useState<number[]>([])
 	const [bulkEditOpen, setBulkEditOpen] = useState(false)
 	const [exportModalOpen, setExportModalOpen] = useState(false)
 	const [exportPreSelected, setExportPreSelected] = useState<Array<{ id: number; name: string }>>([])
-
-	// Refresh games when the header Import button signals completion
+	const filtersRef = useRef(filters)
 	useEffect(() => {
-		const handler = () => refreshGames(filters)
-		window.addEventListener('gamesRefreshNeeded', handler)
-		return () => window.removeEventListener('gamesRefreshNeeded', handler)
+		filtersRef.current = filters
 	}, [filters])
+
+	// Refresh games when the header Import button signals completion via Redux
+	useEffect(() => {
+		if (!needsRefresh) return
+		dispatch(clearGamesRefresh())
+		void refreshGames(filtersRef.current)
+	}, [needsRefresh, dispatch, refreshGames])
 	const viewMode = useAppSelector((s) => s.theme.viewMode ?? 'default')
 	const [viewError, setViewError] = useState<string | null>(null)
 

@@ -24,6 +24,9 @@ export const selectLastAppliedFilters = (state: RootState) => state.games.lastAp
 // Selector for data freshness
 export const selectIsDataFresh = (state: RootState) => state.games.isDataFresh
 
+// Selector for post-import refresh signal
+export const selectNeedsRefresh = (state: RootState) => state.games.needsRefresh
+
 // Selector for complete games state
 export const selectGamesState = (state: RootState) => state.games
 
