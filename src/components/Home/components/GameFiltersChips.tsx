@@ -313,7 +313,13 @@ const GameFiltersChips: React.FC<Props> = ({
 						<label className='game-filters-chips__input-label' htmlFor='search-input'>
 							Buscar
 						</label>
-						<input className='game-filters-chips__input-search' placeholder='Buscar juegos…' value={filters.search || ''} onChange={(e) => onSearchChange(e.target.value)} />
+						<input
+							id='search-input'
+							className='game-filters-chips__input-search'
+							placeholder='Buscar juegos…'
+							value={filters.search || ''}
+							onChange={(e) => onSearchChange(e.target.value)}
+						/>
 					</div>
 
 					<div className='game-filters-chips__field game-filters-chips__field--inline game-filters-chips__field--sort'>
@@ -594,8 +600,9 @@ const GameFiltersChips: React.FC<Props> = ({
 									<strong className='game-filters-chips__popover-title'>Nota</strong>
 									<div className='game-filters-chips__popover-grid'>
 										<div className='game-filters-chips__field'>
-											<label>Mínimo</label>
+											<label htmlFor='filter-min-grade'>Mínimo</label>
 											<input
+												id='filter-min-grade'
 												type='number'
 												min='0'
 												max='100'
@@ -609,8 +616,9 @@ const GameFiltersChips: React.FC<Props> = ({
 											/>
 										</div>
 										<div className='game-filters-chips__field'>
-											<label>Máximo</label>
+											<label htmlFor='filter-max-grade'>Máximo</label>
 											<input
+												id='filter-max-grade'
 												type='number'
 												min='0'
 												max='100'
@@ -635,8 +643,9 @@ const GameFiltersChips: React.FC<Props> = ({
 									<strong className='game-filters-chips__popover-title'>Años</strong>
 									<div className='game-filters-chips__popover-grid'>
 										<div className='game-filters-chips__field'>
-											<label>Lanzamiento</label>
+											<label htmlFor='filter-released-year'>Lanzamiento</label>
 											<input
+												id='filter-released-year'
 												type='number'
 												min='1970'
 												max='2100'
@@ -650,8 +659,9 @@ const GameFiltersChips: React.FC<Props> = ({
 											/>
 										</div>
 										<div className='game-filters-chips__field'>
-											<label>Inicio</label>
+											<label htmlFor='filter-started-year'>Inicio</label>
 											<input
+												id='filter-started-year'
 												type='number'
 												min='1970'
 												max='2100'
@@ -665,8 +675,9 @@ const GameFiltersChips: React.FC<Props> = ({
 											/>
 										</div>
 										<div className='game-filters-chips__field'>
-											<label>Finalización</label>
+											<label htmlFor='filter-finished-year'>Finalización</label>
 											<input
+												id='filter-finished-year'
 												type='number'
 												min='1970'
 												max='2100'

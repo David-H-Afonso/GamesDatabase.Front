@@ -183,10 +183,12 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 			<h2 className='sr-only'>Game details: {game.name}</h2>
 			<div className='game-details-header'>
 				<div className='game-details-header-actions'>
-					<button className='game-details-header-actions-delete' onClick={() => onDelete?.(game)}>
+					<button className='game-details-header-actions-delete' onClick={() => onDelete?.(game)} aria-label='Delete game'>
 						<DeleteIcon width={20} height={20} color='#ef4444' />
 					</button>
-					<button onClick={handleClose}>✕</button>
+					<button onClick={handleClose} aria-label='Close details'>
+						✕
+					</button>
 				</div>
 				<div className='game-details-header-title'>
 					{game.logo ? (

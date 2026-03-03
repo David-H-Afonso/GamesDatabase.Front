@@ -72,6 +72,9 @@ export default defineConfig({
 		outDir: 'dist',
 		assetsDir: 'assets',
 		sourcemap: false,
+		target: 'es2020',
+		minify: 'esbuild',
+		cssMinify: true,
 	},
 	server: {
 		port: 5173,

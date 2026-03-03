@@ -133,6 +133,7 @@ const CardView: FC<CardViewProps> = (props) => {
 							onClick={(e) => e.stopPropagation()}
 							onChange={(e) => handleCheckboxChange(e)}
 							className='game-card-view-container__checkbox'
+							aria-label={`Select ${game.name}`}
 							style={{
 								opacity: isSelected ? 1 : 0,
 								transition: 'opacity 0.2s ease-in-out',
