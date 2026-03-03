@@ -23,6 +23,11 @@
 	}
 }
 
+.editable-field__trigger {
+	outline: none;
+	width: 100%;
+}
+
 .editable-field-input {
 	align-items: center;
 	background: var(--bg-primary);

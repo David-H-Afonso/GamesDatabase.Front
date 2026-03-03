@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef } from 'react'
 import './EditableSelect.scss'
 
 interface Option {
@@ -22,21 +22,14 @@ export const EditableSelect: React.FC<EditableSelectProps> = ({ value, displayVa
 	const [isSaving, setIsSaving] = useState(false)
 	const dropdownRef = useRef<HTMLDivElement>(null)
 
-	useEffect(() => {
-		const handleClickOutside = (event: MouseEvent) => {
-			if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+	const handleBlur = () => {
+		if (dropdownOnly) return
+		setTimeout(() => {
+			if (dropdownRef.current && !dropdownRef.current.contains(document.activeElement)) {
 				setIsOpen(false)
 			}
-		}
-
-		if (isOpen && !dropdownOnly) {
-			document.addEventListener('mousedown', handleClickOutside)
-		}
-
-		return () => {
-			document.removeEventListener('mousedown', handleClickOutside)
-		}
-	}, [isOpen, dropdownOnly])
+		}, 0)
+	}
 
 	const handleClick = () => {
 		if (!isSaving && !dropdownOnly) {
@@ -65,10 +58,11 @@ export const EditableSelect: React.FC<EditableSelectProps> = ({ value, displayVa
 	const showTitle = hoveredOption ? hoveredOption.name : selectedOption ? selectedOption.name : placeholder
 
 	return (
-		<div ref={dropdownRef} className={`editable-select ${className}`} title={showTitle}>
+		<div ref={dropdownRef} className={`editable-select ${className}`} title={showTitle} onBlur={handleBlur}>
 			{!dropdownOnly && (
 				<span
 					onClick={handleClick}
+					tabIndex={0}
 					className={`editable-select__trigger ${isOpen ? 'editable-select__trigger--open' : ''} ${!displayValue ? 'editable-select__trigger--empty' : ''}`}>
 					<span className='editable-select__trigger-text'>{displayValue || placeholder}</span>
 					<span className='editable-select__arrow'>▼</span>
@@ -82,6 +76,7 @@ export const EditableSelect: React.FC<EditableSelectProps> = ({ value, displayVa
 							key={option.id}
 							onMouseEnter={() => setHoveredOption(option)}
 							onMouseLeave={() => setHoveredOption(null)}
+							onMouseDown={(e) => e.preventDefault()}
 							onClick={() => handleSelect(option.id)}
 							className={`editable-select__option ${option.id === value ? 'editable-select__option--selected' : ''}`}
 							style={option.color ? ({ ['--option-bg' as any]: option.color } as React.CSSProperties) : undefined}>
