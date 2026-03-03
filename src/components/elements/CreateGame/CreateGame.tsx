@@ -207,8 +207,15 @@ const CreateGame: FC = () => {
 							className='add-game-row__name-input'
 							placeholder='Título del juego'
 							value={row.name}
+							autoFocus={id === 0}
 							onChange={(e) => updateRow(id, { name: e.target.value })}
 							onBlur={() => formik.setFieldTouched(`games.${id}.name`, true)}
+							onKeyDown={(e) => {
+								if (e.key === 'Enter') {
+									e.preventDefault()
+									void handleBatchSubmit()
+								}
+							}}
 						/>
 
 						<select
