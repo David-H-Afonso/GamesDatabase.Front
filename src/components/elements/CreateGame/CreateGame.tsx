@@ -22,10 +22,11 @@ const mapCheaperByToBoolean = (cheaperBy: string | undefined): boolean | undefin
 const CreateGame: FC = () => {
 	const [isModalOpen, setIsModalOpen] = useState(false)
 	const [isSubmitting, setIsSubmitting] = useState(false)
-	const { fetchGamesList, createNewGame, deleteGameById } = useGames()
+	const { createNewGame, deleteGameById } = useGames()
 	const [createdGameId, setCreatedGameId] = useState<number | null>(null)
 	const [createdGameFallback, setCreatedGameFallback] = useState<Game | null>(null)
 	const [isDetailsOpen, setIsDetailsOpen] = useState(false)
+	const [lastAddedRowIndex, setLastAddedRowIndex] = useState(0)
 	const storeCreatedGame = useAppSelector((state) => (createdGameId ? selectGameById(createdGameId)(state) : undefined))
 
 	useEffect(() => {
@@ -37,6 +38,7 @@ const CreateGame: FC = () => {
 	const openAddGameModal = () => {
 		// initialize fresh row when opening
 		formik.setFieldValue('games', [{ name: '', statusId: defaultStatusId ?? '', showExtraFields: false }])
+		setLastAddedRowIndex(0)
 		setIsModalOpen(true)
 	}
 
@@ -114,7 +116,11 @@ const CreateGame: FC = () => {
 		void getStatusOptions()
 	}, [])
 
-	const addRow = () => formik.setFieldValue('games', [...formik.values.games, { name: '', statusId: defaultStatusId ?? '', showExtraFields: false }])
+	const addRow = () => {
+		const nextIndex = formik.values.games.length
+		formik.setFieldValue('games', [...formik.values.games, { name: '', statusId: defaultStatusId ?? '', showExtraFields: false }])
+		setLastAddedRowIndex(nextIndex)
+	}
 	const removeRow = (index: number) => {
 		if (formik.values.games.length <= 1) return // do not remove last row
 		const newGames = formik.values.games.filter((_: any, i: number) => i !== index)
@@ -183,7 +189,6 @@ const CreateGame: FC = () => {
 				formik.setValues({
 					games: [{ name: '', statusId: defaultStatusId ?? '', showExtraFields: false }],
 				})
-				fetchGamesList()
 			}
 		} catch (err) {
 			console.error('Error creating games batch:', err)
@@ -213,7 +218,7 @@ const CreateGame: FC = () => {
 							className='add-game-row__name-input'
 							placeholder='Título del juego'
 							value={row.name}
-							autoFocus={id === 0}
+							autoFocus={id === lastAddedRowIndex}
 							onChange={(e) => updateRow(id, { name: e.target.value })}
 							onBlur={() => formik.setFieldTouched(`games.${id}.name`, true)}
 							onKeyDown={(e) => {
@@ -305,7 +310,6 @@ const CreateGame: FC = () => {
 						setIsDetailsOpen(false)
 						setCreatedGameFallback(null)
 						setCreatedGameId(null)
-						fetchGamesList()
 					}}
 					onDelete={async (game) => {
 						if (!window.confirm('Are you sure you want to delete this game?')) return

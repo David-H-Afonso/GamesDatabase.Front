@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Modal } from '@/components/elements'
 import { selectiveExportGames, downloadBlob } from '@/services'
 import type { GameExportConfig, SelectiveExportRequest } from '@/models/api/ImportExport'
@@ -16,15 +16,21 @@ interface Props {
 const DEFAULT_GLOBAL_CONFIG: GameExportConfig = { mode: 'simple' }
 
 const SelectiveExportModal: React.FC<Props> = ({ isOpen, onClose, preSelectedGames = [] }) => {
-	const [selectedGames, setSelectedGames] = useState<Array<{ id: number; name: string }>>(preSelectedGames)
+	const [selectedGames, setSelectedGames] = useState<Array<{ id: number; name: string }>>([])
 	const [globalConfig, setGlobalConfig] = useState<GameExportConfig>(DEFAULT_GLOBAL_CONFIG)
 	const [perGameConfig, setPerGameConfig] = useState<Record<number, GameExportConfig>>({})
 	const [expandedGameId, setExpandedGameId] = useState<number | null>(null)
 	const [loading, setLoading] = useState(false)
 	const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null)
 
+	useEffect(() => {
+		if (isOpen) {
+			setSelectedGames(preSelectedGames)
+		}
+	}, [isOpen])
+
 	const handleClose = () => {
-		setSelectedGames(preSelectedGames)
+		setSelectedGames([])
 		setGlobalConfig(DEFAULT_GLOBAL_CONFIG)
 		setPerGameConfig({})
 		setExpandedGameId(null)
