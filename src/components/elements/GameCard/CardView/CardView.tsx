@@ -178,7 +178,9 @@ const CardView: FC<CardViewProps> = (props) => {
 							{game.logo && <OptimizedImage src={game.logo} alt={`${game.name} logo`} className='game-card-logo' quality='low' loading='lazy' width={50} height={50} />}
 						</div>
 						<div className='game-card-header-info-tags'>
-							<h3 className='game-card-title'>{game.name}</h3>
+							<h3 className='game-card-title' title={game.name}>
+								{game.name}
+							</h3>
 							<div className='game-card-tags' ref={statusRef} onClick={(e) => e.stopPropagation()}>
 								<div className='game-card-tag-container'>
 									<span
