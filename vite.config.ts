@@ -1,6 +1,17 @@
 import { defineConfig } from 'vite'
 import svgr from 'vite-plugin-svgr'
 import react from '@vitejs/plugin-react'
+import { execSync } from 'child_process'
+import pkg from './package.json'
+
+const commitHash = (() => {
+	try {
+		return execSync('git rev-parse --short HEAD').toString().trim()
+	} catch {
+		return 'unknown'
+	}
+})()
+const buildDate = new Date().toISOString().split('T')[0]
 
 export default defineConfig({
 	plugins: [
@@ -26,6 +37,11 @@ export default defineConfig({
 			},
 		},
 	],
+	define: {
+		__APP_VERSION__: JSON.stringify(pkg.version),
+		__COMMIT_HASH__: JSON.stringify(commitHash),
+		__BUILD_DATE__: JSON.stringify(buildDate),
+	},
 	// Usar rutas relativas para Electron, absolutas para web
 	base: process.env.ELECTRON === 'true' ? './' : '/',
 	resolve: {

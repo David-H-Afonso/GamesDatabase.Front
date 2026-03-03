@@ -41,6 +41,12 @@ export const AdminLayout = () => {
 							Preferencias
 						</NavLink>
 					</nav>
+					<div className='admin-build-info'>
+						<span>
+							v{__APP_VERSION__} · {__COMMIT_HASH__}
+						</span>
+						<span>{__BUILD_DATE__}</span>
+					</div>
 				</div>
 				<div className='admin-content'>
 					<Outlet />

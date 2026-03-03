@@ -41,6 +41,8 @@
 	background-color: var(--bg-secondary);
 	border-right: 1px solid var(--border);
 	padding: 24px;
+	display: flex;
+	flex-direction: column;
 
 	h2 {
 		color: var(--primary);
@@ -74,6 +76,20 @@
 			color: #ffffff;
 		}
 	}
+}
+
+.admin-build-info {
+	margin-top: auto;
+	padding-top: 12px;
+	border-top: 1px solid var(--border);
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	font-size: 11px;
+	font-family: monospace;
+	color: var(--text-secondary);
+	opacity: 0.5;
+	user-select: none;
 }
 
 .admin-content {
