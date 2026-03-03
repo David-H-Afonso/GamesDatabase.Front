@@ -195,9 +195,9 @@ const PropertyConfigPanel: React.FC<PropertyConfigPanelProps> = ({ panelMode, co
 					<input
 						type='number'
 						className='pcp__custom-input'
-						min={0}
-						max={100}
-						placeholder='0-100'
+						min={field.numberMin}
+						max={field.numberMax}
+						placeholder={field.numberMin !== undefined && field.numberMax !== undefined ? `${field.numberMin}–${field.numberMax}` : 'Enter number…'}
 						value={currentValue}
 						onChange={(e) => handleCustomValueChange(propKey, e.target.value || null)}
 					/>
