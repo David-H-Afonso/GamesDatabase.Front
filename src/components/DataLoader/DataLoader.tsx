@@ -22,7 +22,6 @@ export const DataLoader = () => {
 	const loadCatalogData = async () => {
 		try {
 			await Promise.all([fetchActiveStatusList(), fetchActivePlatforms(), fetchActiveOptions(), fetchActivePlayedStatuses()])
-			console.log('✅ Catalog data loaded successfully')
 		} catch (error) {
 			console.error('❌ Error loading catalog data:', error)
 		}
@@ -40,7 +39,6 @@ export const DataLoader = () => {
 		const isNowHome = currentPath === '/' || currentPath === '/home'
 
 		if (wasInAdmin && isNowHome) {
-			console.log('🔄 Reloading catalog data after leaving admin...')
 			void loadCatalogData()
 		}
 

@@ -98,12 +98,8 @@ export class GameViewMigrationService {
 
 				if (!exists) {
 					await createGameView(view)
-					console.log(`Created default GameView: ${view.name}`)
-				} else {
-					console.log(`GameView already exists: ${view.name}`)
 				}
 			}
-			console.log('Default GameViews migration completed')
 		} catch (error) {
 			console.error('Error creating default GameViews:', error)
 			throw error
@@ -122,10 +118,8 @@ export class GameViewMigrationService {
 			for (const view of existingViews) {
 				if (defaultViewNames.includes(view.name)) {
 					await deleteGameView(view.id)
-					console.log(`Removed default GameView: ${view.name}`)
 				}
 			}
-			console.log('Default GameViews cleanup completed')
 		} catch (error) {
 			console.error('Error removing default GameViews:', error)
 			throw error

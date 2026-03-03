@@ -139,8 +139,6 @@ export const AdminGameViews: React.FC = () => {
 		return parts.length > 0 ? parts.join(', ') : 'Sin configuración'
 	}
 
-	console.log('GameViews:', gameViews)
-
 	return (
 		<div className='admin-game-views'>
 			<div className='admin-header'>

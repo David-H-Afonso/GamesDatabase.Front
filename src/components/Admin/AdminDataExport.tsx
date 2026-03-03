@@ -73,9 +73,7 @@ export const AdminDataExport: React.FC = () => {
 	const handleExportFullDatabase = async () => {
 		try {
 			setLoading(true)
-			console.log('Starting full database export...')
 			const blob = await exportFullDatabase()
-			console.log('Full export blob received:', blob)
 			const filename = `database_full_export_${new Date().toISOString().split('T')[0]}.csv`
 			downloadBlob(blob, filename)
 			showMessage('Database exported successfully!', 'success')
@@ -131,9 +129,7 @@ export const AdminDataExport: React.FC = () => {
 	const handleExportToZip = async (fullExport: boolean) => {
 		try {
 			setLoading(true)
-			console.log(`Starting ZIP export (${fullExport ? 'full' : 'partial'})...`)
 			const blob = await exportToZip(fullExport)
-			console.log('ZIP blob received:', blob)
 			const mode = fullExport ? 'full' : 'partial'
 			const filename = `database_${mode}_export_${new Date().toISOString().split('T')[0]}.zip`
 			downloadBlob(blob, filename)
@@ -150,9 +146,7 @@ export const AdminDataExport: React.FC = () => {
 	const handleSyncToNetwork = async (fullExport: boolean) => {
 		try {
 			setLoading(true)
-			console.log(`Starting network sync (${fullExport ? 'full' : 'partial'})...`)
 			const result = await syncToNetwork(fullExport)
-			console.log('Network sync result:', result)
 
 			let detailedMessage = result.message
 
