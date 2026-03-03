@@ -127,7 +127,13 @@ const SelectiveExportModal: React.FC<Props> = ({ isOpen, onClose, preSelectedGam
 
 								return (
 									<div key={game.id} className={`sem__per-game-item ${hasOverride ? 'sem__per-game-item--overridden' : ''}`}>
-										<button type='button' className='sem__per-game-header' onClick={() => togglePerGameExpand(game.id)}>
+										<button
+											type='button'
+											id={`sem-game-header-${game.id}`}
+											className='sem__per-game-header'
+											aria-expanded={isExpanded}
+											aria-controls={`sem-game-body-${game.id}`}
+											onClick={() => togglePerGameExpand(game.id)}>
 											<span className='sem__per-game-arrow'>{isExpanded ? '▾' : '▸'}</span>
 											<span className='sem__per-game-name'>{game.name}</span>
 											<span className='sem__per-game-badge'>{hasOverride ? 'Override active' : 'Using global'}</span>
@@ -146,15 +152,19 @@ const SelectiveExportModal: React.FC<Props> = ({ isOpen, onClose, preSelectedGam
 										</button>
 
 										{isExpanded && (
-											<div className='sem__per-game-body'>
-												<PropertyConfigPanel
-													panelMode='export'
-													config={gameConfig}
-													onChange={(cfg) => updatePerGameConfig(game.id, cfg as GameExportConfig)}
-													headingLabel={`Override for: ${game.name}`}
-												/>
-											</div>
-										)}
+										<div
+											className='sem__per-game-body'
+											role='region'
+											aria-labelledby={`sem-game-header-${game.id}`}
+											id={`sem-game-body-${game.id}`}>
+											<PropertyConfigPanel
+												panelMode='export'
+												config={gameConfig}
+												onChange={(cfg) => updatePerGameConfig(game.id, cfg as GameExportConfig)}
+												headingLabel={`Override for: ${game.name}`}
+											/>
+										</div>
+									)}
 									</div>
 								)
 							})}
