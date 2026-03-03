@@ -34,13 +34,12 @@ const GameDataActions: React.FC = () => {
 		<>
 			<button className='game-data-actions__btn' onClick={() => setExportOpen(true)} title='Export games to CSV'>
 				<ExportIcon />
-				Export
+				<span className='game-data-actions__btn-text'>Export</span>
 			</button>
 			<button className='game-data-actions__btn' onClick={() => setImportOpen(true)} title='Import games from CSV'>
 				<ImportIcon />
-				Import
+				<span className='game-data-actions__btn-text'>Import</span>
 			</button>
-
 			<SelectiveExportModal isOpen={exportOpen} onClose={() => setExportOpen(false)} />
 
 			<SelectiveImportModal isOpen={importOpen} onClose={() => setImportOpen(false)} onImportComplete={handleImportComplete} />

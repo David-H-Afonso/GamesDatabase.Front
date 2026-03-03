@@ -3,7 +3,14 @@
 .home-component {
 	min-height: 92vh;
 	background: var(--bg-primary);
+	background-attachment: fixed;
 	font-family: $font-family;
+
+	[data-theme='dark'] & {
+		background:
+			radial-gradient(70vw 60vh at 15% 5%, rgba(50, 120, 255, 0.28), transparent 60%), radial-gradient(60vw 55vh at 85% 0%, rgba(30, 210, 160, 0.2), transparent 55%), #0b0d11;
+		background-attachment: fixed;
+	}
 	max-width: 100%;
 	overflow-x: hidden;
 
@@ -162,6 +169,11 @@
 		border-radius: $border-radius-md;
 		padding: $space-sm;
 
+		[data-theme='dark'] & {
+			background: rgba(0, 0, 0, 0.22);
+			border: 1px solid rgba(255, 255, 255, 0.12);
+		}
+
 		input {
 			border: none;
 			background: transparent;
@@ -230,6 +242,11 @@
 		flex-wrap: wrap;
 		gap: 12px;
 
+		[data-theme='dark'] & {
+			background: rgba(255, 255, 255, 0.04);
+			border: 1px solid rgba(255, 255, 255, 0.12);
+		}
+
 		.search-controls {
 			display: flex;
 			align-items: center;
@@ -258,6 +275,11 @@
 				background-color: var(--input-bg);
 				color: var(--text-primary);
 				min-width: 120px;
+
+				[data-theme='dark'] & {
+					background: rgba(0, 0, 0, 0.22);
+					border: 1px solid rgba(255, 255, 255, 0.12);
+				}
 			}
 
 			.sort-direction-btn {

@@ -11,6 +11,12 @@
 	flex-direction: column;
 	gap: 14px;
 
+	[data-theme='dark'] & {
+		background: rgba(255, 255, 255, 0.04);
+		border: 1px solid rgba(255, 255, 255, 0.12);
+		box-shadow: 0 20px 45px rgba(0, 0, 0, 0.5);
+	}
+
 	&__selection {
 		display: flex;
 		align-items: center;
@@ -20,6 +26,11 @@
 		border: 1px solid $color-border-primary;
 		border-radius: 10px;
 		flex-wrap: wrap;
+
+		[data-theme='dark'] & {
+			background: rgba(255, 255, 255, 0.05);
+			border: 1px solid rgba(255, 255, 255, 0.12);
+		}
 
 		@media (max-width: 768px) {
 			gap: 8px;
@@ -44,6 +55,11 @@
 		border: 1px solid $color-border-primary;
 		background: $color-bg-secondary;
 		color: $color-text-secondary;
+
+		[data-theme='dark'] & {
+			background: rgba(255, 255, 255, 0.05);
+			border: 1px solid rgba(255, 255, 255, 0.12);
+		}
 		font-size: 12px;
 		font-weight: 600;
 		cursor: pointer;
@@ -66,6 +82,11 @@
 		border: 1px solid $color-border-primary;
 		background: $color-bg-secondary;
 		color: $color-text-secondary;
+
+		[data-theme='dark'] & {
+			background: rgba(255, 255, 255, 0.05);
+			border: 1px solid rgba(255, 255, 255, 0.12);
+		}
 		font-size: 12px;
 		font-weight: 500;
 		cursor: pointer;
@@ -130,6 +151,11 @@
 			min-width: 120px;
 			transition: all 0.15s ease;
 
+			[data-theme='dark'] & {
+				background: rgba(0, 0, 0, 0.22);
+				border: 1px solid rgba(255, 255, 255, 0.12);
+			}
+
 			&::placeholder {
 				color: $color-text-disabled;
 			}
@@ -171,6 +197,11 @@
 		min-width: 200px;
 		transition: all 0.15s ease;
 
+		[data-theme='dark'] & {
+			background: rgba(0, 0, 0, 0.22);
+			border: 1px solid rgba(255, 255, 255, 0.12);
+		}
+
 		&::placeholder {
 			color: $color-text-disabled;
 		}
@@ -195,6 +226,11 @@
 		overflow: hidden;
 		text-overflow: ellipsis;
 
+		[data-theme='dark'] & {
+			background: rgba(0, 0, 0, 0.22);
+			border: 1px solid rgba(255, 255, 255, 0.12);
+		}
+
 		&:focus {
 			outline: none;
 			border-color: $color-primary;
@@ -212,6 +248,11 @@
 		min-width: 160px;
 		transition: all 0.15s ease;
 
+		[data-theme='dark'] & {
+			background: rgba(0, 0, 0, 0.22);
+			border: 1px solid rgba(255, 255, 255, 0.12);
+		}
+
 		&:focus {
 			outline: none;
 			border-color: $color-primary;
@@ -224,6 +265,11 @@
 		border: 1px solid $color-border-primary;
 		background: $color-bg-secondary;
 		color: $color-text-muted;
+
+		[data-theme='dark'] & {
+			background: rgba(0, 0, 0, 0.22);
+			border: 1px solid rgba(255, 255, 255, 0.12);
+		}
 		font-size: 16px;
 		padding: 8px 12px;
 		cursor: pointer;
@@ -252,6 +298,11 @@
 		padding: 3px;
 		border: 1px solid $color-border-primary;
 		gap: 2px;
+
+		[data-theme='dark'] & {
+			background: rgba(255, 255, 255, 0.05);
+			border: 1px solid rgba(255, 255, 255, 0.12);
+		}
 	}
 
 	&__view-btn {
@@ -282,6 +333,11 @@
 		border: 1px solid $color-border-secondary;
 		background: $color-bg-quaternary;
 		color: $color-text-muted;
+
+		[data-theme='dark'] & {
+			background: rgba(255, 255, 255, 0.05);
+			border: 1px solid rgba(255, 255, 255, 0.12);
+		}
 		font-size: 12px;
 		font-weight: 500;
 		padding: 8px 14px;
@@ -414,6 +470,11 @@
 		transition: all 0.15s ease;
 		font-weight: 400;
 
+		[data-theme='dark'] & {
+			background: rgba(255, 255, 255, 0.05);
+			border: 1px solid rgba(255, 255, 255, 0.12);
+		}
+
 		span {
 			font-weight: 600;
 			color: $color-text-primary;
@@ -451,6 +512,13 @@
 		max-width: 420px;
 		z-index: 20;
 		animation: popoverFadeIn 0.15s ease;
+
+		[data-theme='dark'] & {
+			background: rgba(255, 255, 255, 0.05);
+			border: 1px solid rgba(255, 255, 255, 0.12);
+			box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6);
+			backdrop-filter: blur(10px);
+		}
 
 		.game-filters-chips__popover-title {
 			margin: 0 0 10px;

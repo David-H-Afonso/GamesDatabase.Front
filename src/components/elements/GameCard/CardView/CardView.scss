@@ -1,9 +1,15 @@
 .game-card-view-container {
 	background: var(--surface);
-	border-radius: 20px;
+	border-radius: 18px;
 	border: 1px solid rgba(0, 0, 0, 0.1);
 	box-shadow: var(--box-shadow);
 	cursor: pointer;
+
+	[data-theme='dark'] & {
+		background: rgba(255, 255, 255, 0.05);
+		border-radius: 18px;
+		box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+	}
 	height: 300px;
 	transition: transform 0.2s;
 	width: 350px;
