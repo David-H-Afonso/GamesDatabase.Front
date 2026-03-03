@@ -82,7 +82,19 @@ export const EditableField: React.FC<EditableFieldProps> = ({
 					/>
 				)
 			) : (
-				<span className={`editable-field__trigger ${!hasValue ? 'editable-field--empty' : ''}`} style={{ whiteSpace: 'pre-wrap' }}>
+				<span
+					className={`editable-field__trigger ${!hasValue ? 'editable-field--empty' : ''}`}
+					style={{ whiteSpace: 'pre-wrap' }}
+					tabIndex={allowEditing ? 0 : undefined}
+					onFocus={() => {
+						if (allowEditing) setIsEditing(true)
+					}}
+					onKeyDown={(e) => {
+						if (allowEditing && (e.key === 'Enter' || e.key === ' ')) {
+							e.preventDefault()
+							setIsEditing(true)
+						}
+					}}>
 					{formatter ? formatter(value) : hasValue ? String(value) : placeholder}
 				</span>
 			)}
