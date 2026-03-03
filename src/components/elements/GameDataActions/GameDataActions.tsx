@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import SelectiveExportModal from '@/components/Home/components/SelectiveExportModal'
 import SelectiveImportModal from '@/components/Home/components/SelectiveImportModal'
+import { useAppDispatch } from '@/store/hooks'
+import { triggerGamesRefresh } from '@/store/features/games/gamesSlice'
 import './GameDataActions.scss'
 
 const ExportIcon = () => (
@@ -20,11 +22,12 @@ const ImportIcon = () => (
 )
 
 const GameDataActions: React.FC = () => {
+	const dispatch = useAppDispatch()
 	const [exportOpen, setExportOpen] = useState(false)
 	const [importOpen, setImportOpen] = useState(false)
 
 	const handleImportComplete = () => {
-		window.dispatchEvent(new CustomEvent('gamesRefreshNeeded'))
+		dispatch(triggerGamesRefresh())
 	}
 
 	return (

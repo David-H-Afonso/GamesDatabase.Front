@@ -16,4 +16,5 @@ export interface GamesState {
 	filters: GameQueryParameters
 	lastAppliedFilters: GameQueryParameters | null // Para caché de filtros
 	isDataFresh: boolean // Indica si los datos actuales corresponden a los filtros
+	needsRefresh: boolean // Señal para que HomeComponent recargue la lista
 }

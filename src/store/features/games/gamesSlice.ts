@@ -23,6 +23,7 @@ const initialState: GamesState = {
 	},
 	lastAppliedFilters: null,
 	isDataFresh: false,
+	needsRefresh: false,
 }
 
 const gamesSlice = createSlice({
@@ -86,6 +87,13 @@ const gamesSlice = createSlice({
 		// Nuevo reducer para verificar si necesitamos hacer fetch
 		invalidateCache: (state) => {
 			state.isDataFresh = false
+		},
+		// Señal para que HomeComponent recargue la lista tras un import
+		triggerGamesRefresh: (state) => {
+			state.needsRefresh = true
+		},
+		clearGamesRefresh: (state) => {
+			state.needsRefresh = false
 		},
 		resetState: () => initialState,
 	},
@@ -207,6 +215,8 @@ export const {
 	resetFilters,
 	markDataAsFresh,
 	invalidateCache,
+	triggerGamesRefresh,
+	clearGamesRefresh,
 	resetState,
 } = gamesSlice.actions
 
