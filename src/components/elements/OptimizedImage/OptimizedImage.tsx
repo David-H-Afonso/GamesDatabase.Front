@@ -9,6 +9,7 @@ interface OptimizedImageProps {
 	height?: number
 	quality?: 'low' | 'medium' | 'high'
 	loading?: 'lazy' | 'eager'
+	fetchPriority?: 'high' | 'low' | 'auto'
 	onLoad?: () => void
 	onError?: () => void
 }
@@ -17,7 +18,7 @@ interface OptimizedImageProps {
  * OptimizedImage component with lazy loading, quality control, and error handling
  * Reduces image quality for URLs when possible to improve performance
  */
-const OptimizedImage: React.FC<OptimizedImageProps> = ({ src, alt, className = '', width, height, quality = 'medium', loading = 'lazy', onLoad, onError }) => {
+const OptimizedImage: React.FC<OptimizedImageProps> = ({ src, alt, className = '', width, height, quality = 'medium', loading = 'lazy', fetchPriority, onLoad, onError }) => {
 	const [isLoaded, setIsLoaded] = useState(false)
 	const [hasError, setHasError] = useState(false)
 
@@ -133,6 +134,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({ src, alt, className = '
 				width={width}
 				height={height}
 				loading={loading}
+				fetchPriority={fetchPriority}
 				onLoad={handleLoad}
 				onError={handleError}
 				decoding='async'

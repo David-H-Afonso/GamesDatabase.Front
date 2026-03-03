@@ -14,6 +14,7 @@ interface Props {
 	isSelected?: boolean
 	onSelect?: (gameId: number, isSelected: boolean) => void
 	deselectAll?: () => void
+	index?: number
 }
 
 const GameCardComponent: FC<Props> = (props) => {
@@ -71,6 +72,7 @@ const GameCardComponent: FC<Props> = (props) => {
 						onSelect={onSelect}
 						isSelected={isSelected}
 						deselectAll={props.deselectAll}
+						index={props.index}
 					/>
 				</div>
 			)}
@@ -88,6 +90,7 @@ const GameCardComponent: FC<Props> = (props) => {
 						onSelect={onSelect}
 						isSelected={isSelected}
 						deselectAll={props.deselectAll}
+						index={props.index}
 					/>
 				</div>
 			)}

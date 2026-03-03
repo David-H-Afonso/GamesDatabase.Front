@@ -25,9 +25,11 @@ interface CardViewProps {
 	isSelected?: boolean
 	onSelect?: (gameId: number, isSelected: boolean) => void
 	deselectAll?: () => void
+	index?: number
 }
 
 const CardView: FC<CardViewProps> = (props) => {
+	const isPriority = props.index !== undefined && props.index < 4
 	const { game, openDetails, playWithColors, gameStatusColor, platformColor, onFieldUpdate, isSelected = false, onSelect, deselectAll } = props
 	const [activeSelector, setActiveSelector] = useState<'status' | 'platform' | 'playWith' | null>(null)
 
@@ -125,7 +127,18 @@ const CardView: FC<CardViewProps> = (props) => {
 			}}>
 			<div className='game-card-view-container-hideOverflow'>
 				<div className='game-card-header'>
-					{game.cover && <OptimizedImage src={game.cover} alt={`${game.name} cover`} className='game-card-cover' quality='medium' loading='lazy' width={350} height={200} />}
+					{game.cover && (
+						<OptimizedImage
+							src={game.cover}
+							alt={`${game.name} cover`}
+							className='game-card-cover'
+							quality='medium'
+							loading={isPriority ? 'eager' : 'lazy'}
+							fetchPriority={isPriority ? 'high' : undefined}
+							width={350}
+							height={200}
+						/>
+					)}
 					<div className='game-card-header-score'>
 						<input
 							type='checkbox'

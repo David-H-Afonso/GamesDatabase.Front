@@ -256,7 +256,7 @@ const HomeComponent = () => {
 					{(() => {
 						const list = games
 						if (!list || list.length === 0) return <p className='home-component__no-games'>No games found.</p>
-						return list.map((game: any) => (
+						return list.map((game: any, index: number) => (
 							<GameCard
 								key={game.id}
 								game={game}
@@ -265,6 +265,7 @@ const HomeComponent = () => {
 								onDelete={() => handleDeleteGame(game.id)}
 								deselectAll={() => setSelectedGames([])}
 								variant={cardStyle}
+								index={index}
 							/>
 						))
 					})()}

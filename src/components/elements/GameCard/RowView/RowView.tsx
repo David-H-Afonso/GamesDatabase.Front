@@ -20,9 +20,11 @@ interface RowViewProps {
 	isSelected?: boolean
 	onSelect?: (gameId: number, isSelected: boolean) => void
 	deselectAll?: () => void
+	index?: number
 }
 
 const RowView: FC<RowViewProps> = (props) => {
+	const isPriority = props.index !== undefined && props.index < 4
 	const { game, openDetails, playWithColors, gameStatusColor, platformColor, playedStatusColor, onFieldUpdate, isSelected = false, onSelect, deselectAll } = props
 
 	const [activeSelector, setActiveSelector] = useState<'status' | 'platform' | 'playWith' | 'playStatus' | null>(null)
@@ -206,7 +208,18 @@ const RowView: FC<RowViewProps> = (props) => {
 
 			{/* Name */}
 			<div className='game-row-name'>
-				{hasLogo && <OptimizedImage src={game.logo!} alt={`${game.name} logo`} className='game-row-logo' quality='low' loading='lazy' width={32} height={32} />}
+				{hasLogo && (
+					<OptimizedImage
+						src={game.logo!}
+						alt={`${game.name} logo`}
+						className='game-row-logo'
+						quality='low'
+						loading={isPriority ? 'eager' : 'lazy'}
+						fetchPriority={isPriority ? 'high' : undefined}
+						width={32}
+						height={32}
+					/>
+				)}
 				<h3 title={game.name}>{game.name}</h3>
 			</div>
 
