@@ -29,10 +29,11 @@ const HomeComponent = () => {
 		const handler = () => refreshGames(filters)
 		window.addEventListener('gamesRefreshNeeded', handler)
 		return () => window.removeEventListener('gamesRefreshNeeded', handler)
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [filters])
 	const viewMode = useAppSelector((s) => s.theme.viewMode ?? 'default')
 	const [viewError, setViewError] = useState<string | null>(null)
+
+	const prevViewModeRef = useRef<string>(viewMode)
 
 	// Prevent infinite retry loops when view fails
 	const retryCountRef = useRef<Map<string, number>>(new Map())
@@ -64,9 +65,13 @@ const HomeComponent = () => {
 					return
 				}
 
-				if (((filters as any)?.page ?? 1) !== 1) {
-					dispatch(setGamesFilters({ ...filters, page: 1 }))
-					return
+				// Only reset to page 1 when the view actually changes, not on every filter/page update
+				if (prevViewModeRef.current !== viewMode) {
+					prevViewModeRef.current = viewMode
+					if (((filters as any)?.page ?? 1) !== 1) {
+						dispatch(setGamesFilters({ ...filters, page: 1 }))
+						return
+					}
 				}
 
 				// Check retry count for this view

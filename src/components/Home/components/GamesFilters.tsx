@@ -89,7 +89,11 @@ const GamesFilters: React.FC<Props> = ({ value, onChange, isOpen = true, onClear
 				className='gf-input'
 			/>
 
-			<select aria-label='Platform filter' value={value.platformId?.toString() ?? ''} onChange={(e) => update({ platformId: e.target.value ? Number(e.target.value) : undefined })} className='gf-select'>
+			<select
+				aria-label='Platform filter'
+				value={value.platformId?.toString() ?? ''}
+				onChange={(e) => update({ platformId: e.target.value ? Number(e.target.value) : undefined })}
+				className='gf-select'>
 				<option value=''>All Platforms</option>
 				{platformOptions.map((p) => (
 					<option key={p.value} value={String(p.value)}>
@@ -98,7 +102,11 @@ const GamesFilters: React.FC<Props> = ({ value, onChange, isOpen = true, onClear
 				))}
 			</select>
 
-			<select aria-label='Play with filter' value={value.playWithId?.toString() ?? ''} onChange={(e) => update({ playWithId: e.target.value ? Number(e.target.value) : undefined })} className='gf-select'>
+			<select
+				aria-label='Play with filter'
+				value={value.playWithId?.toString() ?? ''}
+				onChange={(e) => update({ playWithId: e.target.value ? Number(e.target.value) : undefined })}
+				className='gf-select'>
 				<option value=''>All Play With</option>
 				{playWithOptions.map((p) => (
 					<option key={p.value} value={String(p.value)}>
@@ -107,7 +115,11 @@ const GamesFilters: React.FC<Props> = ({ value, onChange, isOpen = true, onClear
 				))}
 			</select>
 
-			<select aria-label='Status filter' value={value.statusId?.toString() ?? ''} onChange={(e) => update({ statusId: e.target.value ? Number(e.target.value) : undefined })} className='gf-select'>
+			<select
+				aria-label='Status filter'
+				value={value.statusId?.toString() ?? ''}
+				onChange={(e) => update({ statusId: e.target.value ? Number(e.target.value) : undefined })}
+				className='gf-select'>
 				<option value=''>All Status</option>
 				{statusOptions.map((s) => (
 					<option key={s.value} value={String(s.value)}>
@@ -151,7 +163,11 @@ const GamesFilters: React.FC<Props> = ({ value, onChange, isOpen = true, onClear
 				className='gf-input'
 			/>
 
-			<select aria-label='Page size' value={value.pageSize?.toString() ?? ''} onChange={(e) => update({ pageSize: e.target.value ? Number(e.target.value) : undefined })} className='gf-select'>
+			<select
+				aria-label='Page size'
+				value={value.pageSize?.toString() ?? ''}
+				onChange={(e) => update({ pageSize: e.target.value ? Number(e.target.value) : undefined })}
+				className='gf-select'>
 				<option value=''>Page Size</option>
 				<option value='10'>10</option>
 				<option value='25'>25</option>

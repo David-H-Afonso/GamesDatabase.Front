@@ -320,7 +320,11 @@ const GameFiltersChips: React.FC<Props> = ({
 						<label className='game-filters-chips__input-label' htmlFor='sort-select'>
 							Ordenar por
 						</label>
-						<select id='sort-select' className='game-filters-chips__select-pill' value={filters.sortBy || 'name'} onChange={(e) => onSortChange(e.target.value, filters.sortDescending || false)}>
+						<select
+							id='sort-select'
+							className='game-filters-chips__select-pill'
+							value={filters.sortBy || 'name'}
+							onChange={(e) => onSortChange(e.target.value, filters.sortDescending || false)}>
 							<option value='name'>Nombre</option>
 							<option value='grade'>Calificación</option>
 							<option value='critic'>Puntuación Crítica</option>
@@ -352,8 +356,8 @@ const GameFiltersChips: React.FC<Props> = ({
 				<div className='game-filters-chips__top-right'>
 					{onViewChange && (
 						<div className='game-filters-chips__field game-filters-chips__field--inline game-filters-chips__field--view'>
-						<label htmlFor='view-select'>Vista</label>
-						<select id='view-select' className='game-filters-chips__select-view' value={currentView} onChange={(e) => onViewChange(e.target.value)}>
+							<label htmlFor='view-select'>Vista</label>
+							<select id='view-select' className='game-filters-chips__select-view' value={currentView} onChange={(e) => onViewChange(e.target.value)}>
 								<option value='default'>Predeterminada</option>
 								{publicGameViews.map((view) => (
 									<option key={view.id} value={view.name}>
@@ -410,7 +414,7 @@ const GameFiltersChips: React.FC<Props> = ({
 						{onViewChange && (
 							<div className='game-filters-chips__moved-controls-view game-filters-chips__field game-filters-chips__field--inline'>
 								<label>Vista</label>
-							<select aria-label='Vista' className='game-filters-chips__select-view' value={currentView} onChange={(e) => onViewChange(e.target.value)}>
+								<select aria-label='Vista' className='game-filters-chips__select-view' value={currentView} onChange={(e) => onViewChange(e.target.value)}>
 									<option value='default'>Predeterminada</option>
 									{publicGameViews.map((view) => (
 										<option key={view.id} value={view.name}>
@@ -423,7 +427,11 @@ const GameFiltersChips: React.FC<Props> = ({
 
 						<div className='game-filters-chips__moved-controls-sort game-filters-chips__field game-filters-chips__field--inline'>
 							<label>Ordenar por</label>
-						<select aria-label='Ordenar por' className='game-filters-chips__select-pill' value={filters.sortBy || 'name'} onChange={(e) => onSortChange(e.target.value, filters.sortDescending || false)}>
+							<select
+								aria-label='Ordenar por'
+								className='game-filters-chips__select-pill'
+								value={filters.sortBy || 'name'}
+								onChange={(e) => onSortChange(e.target.value, filters.sortDescending || false)}>
 								<option value='name'>Nombre</option>
 								<option value='grade'>Calificación</option>
 								<option value='critic'>Puntuación Crítica</option>

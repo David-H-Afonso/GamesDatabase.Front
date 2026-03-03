@@ -133,7 +133,11 @@ const PropertyConfigPanel: React.FC<PropertyConfigPanelProps> = ({ panelMode, co
 		const currentValue = getCustomValue(propKey)
 
 		const selectEditor = (options: Option[]) => (
-			<select aria-label={`${field.label} custom value`} className='pcp__custom-select' value={currentValue} onChange={(e) => handleCustomValueChange(propKey, e.target.value || null)}>
+			<select
+				aria-label={`${field.label} custom value`}
+				className='pcp__custom-select'
+				value={currentValue}
+				onChange={(e) => handleCustomValueChange(propKey, e.target.value || null)}>
 				<option value=''>— select —</option>
 				{options.map((o) => (
 					<option key={o.value} value={o.value}>
@@ -285,7 +289,11 @@ const PropertyConfigPanel: React.FC<PropertyConfigPanelProps> = ({ panelMode, co
 								<tr key={field.key} className={`pcp__row ${propMode !== 'asImported' && propMode !== 'asStored' ? 'pcp__row--modified' : ''}`}>
 									<td className='pcp__label'>{field.label}</td>
 									<td className='pcp__mode-cell'>
-										<select aria-label={`${field.label} import/export mode`} className='pcp__mode-select' value={propMode} onChange={(e) => handlePropertyModeChange(field.key, e.target.value)}>
+										<select
+											aria-label={`${field.label} import/export mode`}
+											className='pcp__mode-select'
+											value={propMode}
+											onChange={(e) => handlePropertyModeChange(field.key, e.target.value)}>
 											{modeOptions.map((o) => (
 												<option key={o.value} value={o.value}>
 													{o.label}
