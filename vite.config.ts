@@ -22,12 +22,10 @@ export default defineConfig({
 			},
 			include: '**/*.svg?react',
 		}),
-		// Plugin para eliminar env-config.js cuando se compila para Electron
 		{
 			name: 'remove-env-config-for-electron',
 			transformIndexHtml(html) {
 				if (process.env.ELECTRON === 'true') {
-					// Eliminar la línea que carga env-config.js
 					return html.replace(
 						/<!-- Load runtime environment configuration \(for Docker\) -->\s*<script src="[^"]*env-config\.js"><\/script>\s*/,
 						'<!-- env-config.js not needed in Electron -->\n\t\t'
@@ -42,7 +40,6 @@ export default defineConfig({
 		__COMMIT_HASH__: JSON.stringify(commitHash),
 		__BUILD_DATE__: JSON.stringify(buildDate),
 	},
-	// Usar rutas relativas para Electron, absolutas para web
 	base: process.env.ELECTRON === 'true' ? './' : '/',
 	resolve: {
 		alias: {
@@ -59,14 +56,17 @@ export default defineConfig({
 			'@/store': '/src/store',
 			'@/utils': '/src/utils',
 		},
-		// Ensure a single copy of React is used across all chunks (prevents
-		// the "Cannot set properties of undefined (setting 'Activity')" crash
-		// that occurs in React 19+ when react-dom and react-router initialise
-		// in different chunk scopes)
 		dedupe: ['react', 'react-dom', 'react-router-dom'],
 	},
 	optimizeDeps: {
 		include: ['react', 'react-dom'],
+	},
+	css: {
+		preprocessorOptions: {
+			scss: {
+				silenceDeprecations: ['import'],
+			},
+		},
 	},
 	build: {
 		outDir: 'dist',
@@ -75,6 +75,18 @@ export default defineConfig({
 		target: 'es2020',
 		minify: 'esbuild',
 		cssMinify: true,
+		rollupOptions: {
+			output: {
+				manualChunks(id) {
+					if (!id.includes('node_modules')) return undefined
+					if (id.includes('react-dom') || (id.includes('/react/') && !id.includes('react-router'))) return 'vendor-react'
+					if (id.includes('react-router')) return 'vendor-router'
+					if (id.includes('@reduxjs') || id.includes('react-redux') || id.includes('redux-persist')) return 'vendor-redux'
+					if (id.includes('formik')) return 'vendor-formik'
+					return undefined
+				},
+			},
+		},
 	},
 	server: {
 		port: 5173,

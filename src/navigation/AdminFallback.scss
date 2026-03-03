@@ -1,0 +1,75 @@
+.admin-fallback {
+	display: flex;
+	flex-direction: column;
+	min-height: 100vh;
+	background-color: var(--bg-primary);
+
+	&__header {
+		height: 60px;
+		background-color: var(--bg-secondary);
+		border-bottom: 1px solid var(--border);
+		flex-shrink: 0;
+	}
+
+	&__body {
+		display: flex;
+		flex: 1;
+	}
+
+	&__sidebar {
+		width: 250px;
+		background-color: var(--bg-secondary);
+		border-right: 1px solid var(--border);
+		padding: 24px;
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+		flex-shrink: 0;
+	}
+
+	&__content {
+		flex: 1;
+		padding: 32px;
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+	}
+}
+
+.admin-fallback-bone {
+	background-color: var(--border);
+	border-radius: 6px;
+	opacity: 0.7;
+	animation: admin-fallback-pulse 1.5s ease-in-out infinite;
+
+	&--title {
+		height: 28px;
+		width: 200px;
+	}
+
+	&--toolbar {
+		height: 48px;
+		border-radius: 8px;
+	}
+
+	&--row {
+		height: 52px;
+		border-radius: 8px;
+	}
+
+	@for $i from 1 through 11 {
+		&:nth-child(#{$i}) {
+			animation-delay: #{($i - 1) * 0.08}s;
+		}
+	}
+}
+
+@keyframes admin-fallback-pulse {
+	0%,
+	100% {
+		opacity: 0.7;
+	}
+	50% {
+		opacity: 0.25;
+	}
+}

@@ -1,9 +1,12 @@
+import { lazy, Suspense } from 'react'
 import { createHashRouter } from 'react-router-dom'
 import { AppLayout, EmptyLayout } from '@/layouts'
 import Home from '@/components/Home/containers/Home'
 import { Login, ProtectedRoute, PublicRoute } from '@/components/Auth'
-import { AdminLayout, AdminPlatforms, AdminStatus, AdminPlayWith, AdminPlayedStatus, AdminDataExport, AdminGameViews, AdminUsers, AdminPreferences } from '@/components/Admin'
 import { RouteError, NotFound } from '@/components/errors'
+import AdminFallback from './AdminFallback'
+
+const Admin = lazy(() => import('@/components/Admin/containers/Admin'))
 
 export const router = createHashRouter([
 	{
@@ -37,55 +40,15 @@ export const router = createHashRouter([
 		),
 	},
 	{
-		path: '/admin',
+		path: '/admin/*',
 		element: (
 			<ProtectedRoute>
-				<AdminLayout />
+				<Suspense fallback={<AdminFallback />}>
+					<Admin />
+				</Suspense>
 			</ProtectedRoute>
 		),
 		errorElement: <RouteError />,
-		children: [
-			{
-				path: 'platforms',
-				element: <AdminPlatforms />,
-			},
-			{
-				path: 'status',
-				element: <AdminStatus />,
-			},
-			{
-				path: 'play-with',
-				element: <AdminPlayWith />,
-			},
-			{
-				path: 'played-status',
-				element: <AdminPlayedStatus />,
-			},
-			{
-				path: 'data-export',
-				element: <AdminDataExport />,
-			},
-			{
-				path: 'game-views',
-				element: <AdminGameViews />,
-			},
-			{
-				path: 'users',
-				element: (
-					<ProtectedRoute adminOnly={true}>
-						<AdminUsers />
-					</ProtectedRoute>
-				),
-			},
-			{
-				path: 'preferences',
-				element: (
-					<ProtectedRoute>
-						<AdminPreferences />
-					</ProtectedRoute>
-				),
-			},
-		],
 	},
 	{
 		path: '*',

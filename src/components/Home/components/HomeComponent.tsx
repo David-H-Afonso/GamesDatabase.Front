@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, lazy, Suspense } from 'react'
 import { Button, GameCard } from '@/components/elements'
 import { useGames, useGameViews } from '@/hooks'
 import { useAppSelector, useAppDispatch } from '@/store/hooks'
@@ -6,10 +6,12 @@ import { setCardStyle, setViewMode } from '@/store/features/theme/themeSlice'
 import { setFilters as setGamesFilters, clearGamesRefresh } from '@/store/features/games/gamesSlice'
 import { selectGamesFilters, selectNeedsRefresh } from '@/store/features/games/selector'
 import type { GameQueryParameters } from '@/models/api/Game'
+import type { BulkEditData } from './BulkEditModal'
 import GameFiltersChips from './GameFiltersChips'
-import BulkEditModal, { type BulkEditData } from './BulkEditModal'
 import SelectiveExportModal from './SelectiveExportModal'
 import './HomeComponent.scss'
+
+const BulkEditModal = lazy(() => import('./BulkEditModal'))
 
 const HomeComponent = () => {
 	const { games, error, pagination, fetchGamesList, refreshGames, deleteGameById, bulkUpdateGamesById } = useGames()
@@ -284,7 +286,9 @@ const HomeComponent = () => {
 				</div>
 			</div>
 
-			<BulkEditModal isOpen={bulkEditOpen} onClose={() => setBulkEditOpen(false)} selectedCount={selectedGames.length} onSave={handleBulkEdit} />
+			<Suspense fallback={null}>
+				<BulkEditModal isOpen={bulkEditOpen} onClose={() => setBulkEditOpen(false)} selectedCount={selectedGames.length} onSave={handleBulkEdit} />
+			</Suspense>
 			<SelectiveExportModal isOpen={exportModalOpen} onClose={() => setExportModalOpen(false)} preSelectedGames={exportPreSelected} />
 		</div>
 	)

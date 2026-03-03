@@ -7,7 +7,9 @@
 		<title>Games Database</title>
 		<meta name="description" content="Games Database – track, manage, and explore your personal game collection with statuses, ratings, platforms, and more." />
 		<!-- Load runtime environment configuration (for Docker) -->
-		<script src="/env-config.js"></script>
+		<!-- defer keeps it out of the critical render path; type="module" (main.tsx) is
+		     also deferred so document order is preserved and ENV is always set first -->
+		<script defer src="/env-config.js"></script>
 		<!-- Apply theme IMMEDIATELY before any rendering to prevent FOUC -->
 		<script>
 			;(function () {
@@ -17,8 +19,9 @@
 				document.documentElement.classList.add('preload')
 			})()
 		</script>
-		<!-- Load fonts asynchronously to not block rendering -->
-		<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+		<!-- fonts.googleapis.com serves a stylesheet (no CORS needed, no crossorigin).
+		     fonts.gstatic.com serves the actual font files (cross-origin fetch, needs crossorigin). -->
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link
 			rel="preload"

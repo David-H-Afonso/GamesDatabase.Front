@@ -1,5 +1,4 @@
-// Importar estilos de AdminPlatforms ya que son muy similares
-@use './AdminPlatforms.scss';
+@import './AdminPlatforms.scss';
 
 .admin-status {
 	@extend .admin-platforms;

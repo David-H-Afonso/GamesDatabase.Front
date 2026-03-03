@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react'
-import { userService } from '@/services'
+import { userService } from '@/services/UserService'
 import { useAppSelector } from '@/store/hooks'
 import { selectCurrentUser } from '@/store/features/auth/selector'
 import type { User, UserCreateDto, UserRole } from '@/models/api/User'

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { useGamePlayWith } from '@/hooks'
-import { reorderGamePlayWith } from '@/services'
+import { useGamePlayWith } from '@/hooks/useGamePlayWith'
+import { reorderGamePlayWith } from '@/services/GamePlayWithService'
 import { fetchPlayWithOptions } from '@/store/features/gamePlayWith/thunk'
 import { useAppDispatch } from '@/store/hooks'
 import type { GamePlayWith, GamePlayWithCreateDto, GamePlayWithUpdateDto } from '@/models/api/GamePlayWith'

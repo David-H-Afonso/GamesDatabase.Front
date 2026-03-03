@@ -8,8 +8,8 @@ import {
 	analyzeFolders,
 	analyzeDatabaseDuplicates,
 	updateImageUrls,
-} from '@/services'
-import { useGames } from '@/hooks'
+} from '@/services/DataExportService'
+import { useGames } from '@/hooks/useGames'
 import './AdminDataExport.scss'
 
 interface FolderAnalysisResult {

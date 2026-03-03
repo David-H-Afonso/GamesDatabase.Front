@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { useGamePlayedStatus } from '@/hooks'
-import { reorderGamePlayedStatuses } from '@/services'
+import { useGamePlayedStatus } from '@/hooks/useGamePlayedStatus'
+import { reorderGamePlayedStatuses } from '@/services/GamePlayedStatusService'
 import { fetchPlayedStatuses } from '@/store/features/gamePlayedStatus/thunk'
 import { useAppDispatch } from '@/store/hooks'
 import type { GamePlayedStatus, GamePlayedStatusCreateDto, GamePlayedStatusUpdateDto } from '@/models/api/GamePlayedStatus'

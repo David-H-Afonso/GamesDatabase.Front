@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { useGamePlatform } from '@/hooks'
-import { reorderGamePlatforms } from '@/services'
+import { useGamePlatform } from '@/hooks/useGamePlatform'
+import { reorderGamePlatforms } from '@/services/GamePlatformService'
 import { fetchPlatforms } from '@/store/features/gamePlatform/thunk'
 import { useAppDispatch } from '@/store/hooks'
 import type { GamePlatform, GamePlatformCreateDto, GamePlatformUpdateDto } from '@/models/api/GamePlatform'

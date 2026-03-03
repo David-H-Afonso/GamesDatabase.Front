@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { useGameViews } from '@/hooks'
-import { reorderGameViews } from '@/services'
+import { useGameViews } from '@/hooks/useGameViews'
+import { reorderGameViews } from '@/services/GameViewService'
 import type { GameView, GameViewQueryParameters } from '@/models/api/GameView'
 import GameViewModal from './GameViewModal'
 import { ReorderButtons } from '@/components/elements/ReorderButtons/ReorderButtons'

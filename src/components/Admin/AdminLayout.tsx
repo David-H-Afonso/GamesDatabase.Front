@@ -2,7 +2,7 @@ import { Outlet, NavLink } from 'react-router-dom'
 import { useAppSelector } from '@/store/hooks'
 import { selectIsAdmin } from '@/store/features/auth/selector'
 import './AdminLayout.scss'
-import { Header } from '@/layouts/elements'
+import { Header } from '@/layouts/elements/Header'
 
 export const AdminLayout = () => {
 	const isAdmin = useAppSelector(selectIsAdmin)

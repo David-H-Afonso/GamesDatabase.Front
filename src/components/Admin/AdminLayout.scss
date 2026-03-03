@@ -5,32 +5,6 @@
 	background-color: var(--bg-primary);
 }
 
-.admin-header {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	padding: 16px 24px;
-	background-color: var(--primary);
-	color: #ffffff;
-	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-
-	h1 {
-		margin: 0;
-		font-size: 24px;
-		font-weight: 600;
-	}
-
-	.admin-user-info {
-		display: flex;
-		align-items: center;
-		gap: 12px;
-
-		span {
-			font-weight: 500;
-		}
-	}
-}
-
 .admin-body {
 	display: flex;
 	flex: 1;
