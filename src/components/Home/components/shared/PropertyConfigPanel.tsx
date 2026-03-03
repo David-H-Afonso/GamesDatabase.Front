@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useId } from 'react'
 import { useGameStatus, useGamePlatform, useGamePlayWith, useGamePlayedStatus } from '@/hooks'
 import { GAME_PROPERTY_FIELDS } from '@/models/api/ImportExport'
 import type { ConfigurableGameProperty, GameImportConfig, GameExportConfig, ImportPropertyOverride, ExportPropertyOverride } from '@/models/api/ImportExport'
@@ -21,6 +21,7 @@ interface PropertyConfigPanelProps {
 }
 
 const PropertyConfigPanel: React.FC<PropertyConfigPanelProps> = ({ panelMode, config, onChange, headingLabel }) => {
+	const radioGroupId = useId()
 	const { fetchActiveStatusList } = useGameStatus()
 	const { fetchList: fetchPlatforms } = useGamePlatform()
 	const { fetchOptions: fetchPlayWithList } = useGamePlayWith()
@@ -233,15 +234,15 @@ const PropertyConfigPanel: React.FC<PropertyConfigPanelProps> = ({ panelMode, co
 			{/* Mode toggle */}
 			<div className='pcp__mode-toggle'>
 				<label className={`pcp__mode-btn ${config.mode === 'simple' ? 'is-active' : ''}`}>
-					<input type='radio' name={`pcp-mode-${headingLabel ?? 'global'}`} checked={config.mode === 'simple'} onChange={() => handleModeToggle('simple')} />
+					<input type='radio' name={radioGroupId} checked={config.mode === 'simple'} onChange={() => handleModeToggle('simple')} />
 					{panelMode === 'import' ? 'As Imported (all)' : 'As Stored (all)'}
 				</label>
 				<label className={`pcp__mode-btn ${config.mode === 'customCleared' ? 'is-active' : ''}`}>
-					<input type='radio' name={`pcp-mode-${headingLabel ?? 'global'}`} checked={config.mode === 'customCleared'} onChange={() => handleModeToggle('customCleared')} />
+					<input type='radio' name={radioGroupId} checked={config.mode === 'customCleared'} onChange={() => handleModeToggle('customCleared')} />
 					Custom Cleared
 				</label>
 				<label className={`pcp__mode-btn ${config.mode === 'custom' ? 'is-active' : ''}`}>
-					<input type='radio' name={`pcp-mode-${headingLabel ?? 'global'}`} checked={config.mode === 'custom'} onChange={() => handleModeToggle('custom')} />
+					<input type='radio' name={radioGroupId} checked={config.mode === 'custom'} onChange={() => handleModeToggle('custom')} />
 					Custom (per property)
 				</label>
 			</div>
