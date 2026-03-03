@@ -32,15 +32,20 @@
 
 	&-name {
 		display: flex;
-		display: flex;
 		font-size: 1rem;
 		width: 500px;
+		min-width: 0;
+		overflow: hidden;
 		align-items: center;
 		padding: 5px;
 
 		h3 {
 			margin: 0;
 			font-size: 1.2rem;
+			min-width: 0;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
 		}
 	}
 
