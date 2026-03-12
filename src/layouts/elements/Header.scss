@@ -5,6 +5,11 @@
 	border-bottom: 1px solid $color-border-primary;
 	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 
+	[data-theme='dark'] & {
+		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+		box-shadow: 0 2px 16px rgba(0, 0, 0, 0.6);
+	}
+
 	&-container {
 		align-items: center;
 		display: flex;
@@ -107,6 +112,10 @@
 				padding-left: 0.75rem;
 				border-left: 1px solid $color-border-primary;
 
+				[data-theme='dark'] & {
+					border-left-color: rgba(255, 255, 255, 0.1);
+				}
+
 				.header-user-icon {
 					color: $color-text-muted;
 					flex-shrink: 0;
@@ -128,6 +137,11 @@
 					font-size: 0.875rem;
 					font-weight: 500;
 					transition: all 0.2s;
+
+					[data-theme='dark'] & {
+						background: rgba(255, 255, 255, 0.05);
+						border-color: rgba(255, 255, 255, 0.12);
+					}
 
 					&:hover {
 						background: $color-bg-tertiary;

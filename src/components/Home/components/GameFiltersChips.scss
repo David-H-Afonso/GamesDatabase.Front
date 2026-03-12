@@ -152,8 +152,9 @@
 			transition: all 0.15s ease;
 
 			[data-theme='dark'] & {
-				background: rgba(0, 0, 0, 0.22);
+				background: $color-bg-quaternary;
 				border: 1px solid rgba(255, 255, 255, 0.12);
+				color-scheme: dark;
 			}
 
 			&::placeholder {
@@ -165,6 +166,11 @@
 				border-color: $color-primary;
 				box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 			}
+		}
+
+		[data-theme='dark'] & select option {
+			background: $color-bg-quaternary;
+			color: $color-text-primary;
 		}
 
 		&--inline {
@@ -198,7 +204,7 @@
 		transition: all 0.15s ease;
 
 		[data-theme='dark'] & {
-			background: rgba(0, 0, 0, 0.22);
+			background: $color-bg-quaternary;
 			border: 1px solid rgba(255, 255, 255, 0.12);
 		}
 
@@ -227,8 +233,14 @@
 		text-overflow: ellipsis;
 
 		[data-theme='dark'] & {
-			background: rgba(0, 0, 0, 0.22);
+			background: $color-bg-quaternary;
 			border: 1px solid rgba(255, 255, 255, 0.12);
+			color-scheme: dark;
+		}
+
+		[data-theme='dark'] & option {
+			background: $color-bg-quaternary;
+			color: $color-text-primary;
 		}
 
 		&:focus {
@@ -249,8 +261,14 @@
 		transition: all 0.15s ease;
 
 		[data-theme='dark'] & {
-			background: rgba(0, 0, 0, 0.22);
+			background: $color-bg-quaternary;
 			border: 1px solid rgba(255, 255, 255, 0.12);
+			color-scheme: dark;
+		}
+
+		[data-theme='dark'] & option {
+			background: $color-bg-quaternary;
+			color: $color-text-primary;
 		}
 
 		&:focus {
@@ -383,19 +401,26 @@
 
 	&__action-btn {
 		border-radius: 8px;
-		border: 1px solid $color-border-secondary;
-		background: $color-bg-quaternary;
-		color: $color-text-secondary;
-		font-size: 12px;
+		border: 1px solid $color-border-primary;
+		background: $color-bg-secondary;
+		color: $color-text-primary;
+		font-size: 13px;
 		font-weight: 500;
 		padding: 8px 14px;
 		cursor: pointer;
 		transition: all 0.15s ease;
 		white-space: nowrap;
 
+		[data-theme='dark'] & {
+			background: $color-bg-quaternary;
+			border: 1px solid rgba(255, 255, 255, 0.12);
+			color: $color-text-primary;
+		}
+
 		&:hover {
 			border-color: $color-border-hover;
-			background: $color-border-tertiary;
+			background: $color-bg-tertiary;
+			color: $color-text-primary;
 		}
 	}
 
