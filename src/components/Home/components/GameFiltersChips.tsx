@@ -641,7 +641,7 @@ const GameFiltersChips: React.FC<Props> = ({
 							{openPopover === 'years' && (
 								<>
 									<strong className='game-filters-chips__popover-title'>Años</strong>
-									<div className='game-filters-chips__popover-grid'>
+									<div className='game-filters-chips__popover-grid game-filters-chips__popover-grid--years'>
 										<div className='game-filters-chips__field'>
 											<label htmlFor='filter-released-year'>Lanzamiento</label>
 											<input
@@ -658,37 +658,39 @@ const GameFiltersChips: React.FC<Props> = ({
 												}
 											/>
 										</div>
-										<div className='game-filters-chips__field'>
-											<label htmlFor='filter-started-year'>Inicio</label>
-											<input
-												id='filter-started-year'
-												type='number'
-												min='1970'
-												max='2100'
-												placeholder='Año'
-												value={filters.startedYear ?? ''}
-												onChange={(e) =>
-													setFilters({
-														startedYear: e.target.value ? Number(e.target.value) : undefined,
-													})
-												}
-											/>
-										</div>
-										<div className='game-filters-chips__field'>
-											<label htmlFor='filter-finished-year'>Finalización</label>
-											<input
-												id='filter-finished-year'
-												type='number'
-												min='1970'
-												max='2100'
-												placeholder='Año'
-												value={filters.finishedYear ?? ''}
-												onChange={(e) =>
-													setFilters({
-														finishedYear: e.target.value ? Number(e.target.value) : undefined,
-													})
-												}
-											/>
+										<div className='played-date'>
+											<div className='game-filters-chips__field'>
+												<label htmlFor='filter-started-year'>Inicio</label>
+												<input
+													id='filter-started-year'
+													type='number'
+													min='1970'
+													max='2100'
+													placeholder='Año'
+													value={filters.startedYear ?? ''}
+													onChange={(e) =>
+														setFilters({
+															startedYear: e.target.value ? Number(e.target.value) : undefined,
+														})
+													}
+												/>
+											</div>
+											<div className='game-filters-chips__field'>
+												<label htmlFor='filter-finished-year'>Finalización</label>
+												<input
+													id='filter-finished-year'
+													type='number'
+													min='1970'
+													max='2100'
+													placeholder='Año'
+													value={filters.finishedYear ?? ''}
+													onChange={(e) =>
+														setFilters({
+															finishedYear: e.target.value ? Number(e.target.value) : undefined,
+														})
+													}
+												/>
+											</div>
 										</div>
 									</div>
 									<button

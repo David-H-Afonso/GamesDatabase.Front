@@ -566,6 +566,16 @@
 		grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
 		gap: 10px;
 		margin-bottom: 10px;
+
+		&--years {
+			display: flex;
+			flex-direction: column;
+
+			.played-date {
+				display: flex;
+				gap: 5px;
+			}
+		}
 	}
 
 	&__popover-checkboxes {
