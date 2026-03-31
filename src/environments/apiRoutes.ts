@@ -70,6 +70,7 @@ export const apiRoutes = {
 		analyzeFolders: '/DataExport/analyze-folders',
 		analyzeDuplicateGames: '/DataExport/analyze-duplicate-games',
 		updateImageUrls: '/DataExport/update-image-urls',
+		clearImageCache: '/DataExport/clear-image-cache',
 	},
 
 	/** Game Views endpoints */

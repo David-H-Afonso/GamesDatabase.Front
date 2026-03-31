@@ -8,6 +8,7 @@ import {
 	analyzeFolders,
 	analyzeDatabaseDuplicates,
 	updateImageUrls,
+	clearImageCache,
 } from '@/services/DataExportService'
 import { useGames } from '@/hooks/useGames'
 import './AdminDataExport.scss'
@@ -51,6 +52,7 @@ export const AdminDataExport: React.FC = () => {
 	const [analyzingFolders, setAnalyzingFolders] = useState(false)
 	const [dbDuplicatesResult, setDbDuplicatesResult] = useState<DatabaseDuplicatesResult | null>(null)
 	const [analyzingDbDuplicates, setAnalyzingDbDuplicates] = useState(false)
+	const [clearingCache, setClearingCache] = useState(false)
 
 	// Hook para manejar los juegos
 	const { refreshGames, filters } = useGames()
@@ -220,6 +222,19 @@ Statistics:
 		}
 	}
 
+	const handleClearImageCache = async () => {
+		try {
+			setClearingCache(true)
+			const result = await clearImageCache()
+			showMessage(result.message, 'success')
+		} catch (error) {
+			console.error('Clear image cache error:', error)
+			showMessage(error instanceof Error ? error.message : 'Error al limpiar el caché', 'error')
+		} finally {
+			setClearingCache(false)
+		}
+	}
+
 	const handleUpdateImageUrls = async () => {
 		try {
 			setLoading(true)
@@ -364,7 +379,9 @@ Actualización de URLs de imágenes completada:
 							<button className='btn btn-warning btn-large' onClick={handleUpdateImageUrls} disabled={loading}>
 								{loading ? '⏳ Actualizando...' : '🔄 Actualizar URLs de Imágenes'}
 							</button>
-						</div>
+						<button className='btn btn-danger btn-large' onClick={handleClearImageCache} disabled={clearingCache}>
+							{clearingCache ? '⏳ Limpiando...' : '🗑️ Limpiar Caché de Imágenes'}
+						</button>						</div>
 
 						{analysisResult && (
 							<div className='analysis-results'>

@@ -216,6 +216,20 @@ export const updateImageUrls = async (): Promise<{
 }
 
 /**
+ * Clears the image proxy cache (_proxy_cache directory) on the server.
+ * @returns Result with count of deleted files
+ */
+export const clearImageCache = async (): Promise<{ deletedFiles: number; message: string }> => {
+	const endpoint = environment.apiRoutes.dataExport.clearImageCache
+
+	return await customFetch(endpoint, {
+		method: 'POST',
+		baseURL: environment.baseUrl,
+		timeout: environment.api?.timeout,
+	})
+}
+
+/**
  * Triggers a download of a Blob using an anchor element. Throws if the Blob is empty.
  * @param blob - The Blob to download
  * @param filename - The desired filename for the downloaded file
