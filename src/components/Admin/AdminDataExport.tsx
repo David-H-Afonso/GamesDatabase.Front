@@ -375,13 +375,13 @@ Actualización de URLs de imágenes completada:
 							<button className='btn btn-primary btn-large' onClick={handleAnalyzeFolders} disabled={analyzingFolders}>
 								{analyzingFolders ? '⏳ Analizando...' : '🔍 Analizar Carpetas'}
 							</button>
-
 							<button className='btn btn-warning btn-large' onClick={handleUpdateImageUrls} disabled={loading}>
 								{loading ? '⏳ Actualizando...' : '🔄 Actualizar URLs de Imágenes'}
 							</button>
-						<button className='btn btn-danger btn-large' onClick={handleClearImageCache} disabled={clearingCache}>
-							{clearingCache ? '⏳ Limpiando...' : '🗑️ Limpiar Caché de Imágenes'}
-						</button>						</div>
+							<button className='btn btn-danger btn-large' onClick={handleClearImageCache} disabled={clearingCache}>
+								{clearingCache ? '⏳ Limpiando...' : '🗑️ Limpiar Caché de Imágenes'}
+							</button>{' '}
+						</div>
 
 						{analysisResult && (
 							<div className='analysis-results'>
