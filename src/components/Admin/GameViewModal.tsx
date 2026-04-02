@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { useGameViews, useGameStatus, useGamePlatform, useGamePlayedStatus, useGamePlayWith } from '@/hooks'
 import type { GameView, GameViewCreateDto, ViewFilter, ViewSort, FilterGroup } from '@/models/api/GameView'
 import { FilterField, FilterOperator, SortField, SortDirection, CombineWith } from '@/models/api/GameView'
+import { getActiveGameReplayTypes } from '@/services/GameReplayTypeService'
+import type { GameReplayType } from '@/models/api/GameReplayType'
 import './GameViewModal.scss'
 
 interface Props {
@@ -16,6 +18,7 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 	const { activeItems: activePlatforms, loadActivePlatforms } = useGamePlatform()
 	const { activeItems: activePlayedStatuses, fetchActiveList: loadActivePlayedStatus } = useGamePlayedStatus()
 	const { activeOptions: activePlayWithOptions, fetchActiveOptions: loadActivePlayWith } = useGamePlayWith()
+	const [replayTypes, setReplayTypes] = useState<GameReplayType[]>([])
 
 	const [loading, setLoading] = useState(false)
 	const [formData, setFormData] = useState({
@@ -33,6 +36,9 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 		loadActivePlatforms()
 		loadActivePlayedStatus()
 		loadActivePlayWith()
+		getActiveGameReplayTypes()
+			.then(setReplayTypes)
+			.catch(() => {})
 	}, [loadActiveStatuses, loadActivePlatforms, loadActivePlayedStatus, loadActivePlayWith])
 
 	// Load gameView data when editing
@@ -258,10 +264,12 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 							} else if (Array.isArray(f.value)) {
 								out.value = f.value.map((v: any) => String(v))
 							} else {
-								// Expect YYYY-MM-DD from date input; normalize to that
 								const s = String(f.value)
-								// If includes T, split
 								out.value = s.split('T')[0]
+							}
+							// Normalize secondValue for Between operator
+							if (f.operator === FilterOperator.Between && f.secondValue) {
+								out.secondValue = String(f.secondValue).split('T')[0]
 							}
 							return out
 						}
@@ -363,6 +371,7 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 		{ value: FilterField.Critic, label: 'Crítica' },
 		{ value: FilterField.Description, label: 'Descripción' },
 		{ value: FilterField.Comment, label: 'Comentario' },
+		{ value: 'ReplayGroup', label: 'Rejugada' },
 	]
 
 	const getOperatorOptions = () => [
@@ -391,11 +400,11 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 	const getOperatorsForField = (field: string) => {
 		const TEXT_FIELDS = [FilterField.Name, FilterField.Comment, FilterField.Description]
 		// Numeric fields (StatusId, PlatformId, etc.) - ONLY Equals/NotEquals supported
-		const NUMERIC_ID_FIELDS = [FilterField.StatusId, FilterField.PlatformId, FilterField.PlayWithId, FilterField.PlayedStatusId]
+		const NUMERIC_ID_FIELDS = [FilterField.StatusId, FilterField.PlatformId, FilterField.PlayWithId, FilterField.PlayedStatusId, FilterField.ReplayTypeId]
 		// Numeric score fields - may support more operators
-		const NUMERIC_SCORE_FIELDS = [FilterField.Score, FilterField.Grade, FilterField.Critic, FilterField.Story, FilterField.Completion]
+		const NUMERIC_SCORE_FIELDS = [FilterField.Score, FilterField.Grade, FilterField.Critic, FilterField.Story, FilterField.Completion, FilterField.ReplayGrade]
 		// Date fields - ONLY Equals/GreaterThanOrEqual/LessThanOrEqual supported
-		const DATE_FIELDS = [FilterField.Released, FilterField.Started, FilterField.Finished, FilterField.ReleaseDate]
+		const DATE_FIELDS = [FilterField.Released, FilterField.Started, FilterField.Finished, FilterField.ReleaseDate, FilterField.ReplayStarted, FilterField.ReplayFinished]
 		const DATETIME_FIELDS = [FilterField.CreatedAt, FilterField.UpdatedAt]
 
 		// Text field operators
@@ -429,15 +438,17 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 				{ value: FilterOperator.GreaterThanOrEqual, label: 'Mayor o igual' },
 				{ value: FilterOperator.LessThan, label: 'Menor que' },
 				{ value: FilterOperator.LessThanOrEqual, label: 'Menor o igual' },
+				{ value: FilterOperator.Between, label: 'Entre valores' },
 			]
 		}
 
-		// Date field operators - Equals/GreaterThanOrEqual/LessThanOrEqual/IsNull/IsNotNull
+		// Date field operators - Equals/GreaterThanOrEqual/LessThanOrEqual/Between/IsNull/IsNotNull
 		if (DATE_FIELDS.includes(field as any) || DATETIME_FIELDS.includes(field as any)) {
 			return [
 				{ value: FilterOperator.Equals, label: 'Fecha exacta' },
 				{ value: FilterOperator.GreaterThanOrEqual, label: 'En la fecha o después' },
 				{ value: FilterOperator.LessThanOrEqual, label: 'En la fecha o antes' },
+				{ value: FilterOperator.Between, label: 'Entre fechas' },
 				{ value: FilterOperator.IsNull, label: 'No tiene fecha' },
 				{ value: FilterOperator.IsNotNull, label: 'Tiene fecha' },
 			]
@@ -460,12 +471,22 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 		{ value: SortField.UpdatedAt, label: 'Última modificación' },
 	]
 
+	const REPLAY_FIELDS = [FilterField.ReplayStarted, FilterField.ReplayFinished, FilterField.ReplayGrade, FilterField.ReplayTypeId]
+	const isReplayField = (field: string) => REPLAY_FIELDS.includes(field as any)
+
+	const getReplaySubOptions = () => [
+		{ value: FilterField.ReplayStarted, label: 'Inicio' },
+		{ value: FilterField.ReplayFinished, label: 'Fin' },
+		{ value: FilterField.ReplayGrade, label: 'Nota' },
+		{ value: FilterField.ReplayTypeId, label: 'Tipo' },
+	]
+
 	const isDropdownField = (field: string) => {
-		return [FilterField.StatusId, FilterField.PlatformId, FilterField.PlayWithId, FilterField.PlayedStatusId].includes(field as any)
+		return [FilterField.StatusId, FilterField.PlatformId, FilterField.PlayWithId, FilterField.PlayedStatusId, FilterField.ReplayTypeId].includes(field as any)
 	}
 
 	const isDateLikeField = (field: string) => {
-		return [FilterField.Released, FilterField.Started, FilterField.Finished, FilterField.ReleaseDate].includes(field as any)
+		return [FilterField.Released, FilterField.Started, FilterField.Finished, FilterField.ReleaseDate, FilterField.ReplayStarted, FilterField.ReplayFinished].includes(field as any)
 	}
 
 	const isDateTimeField = (field: string) => {
@@ -491,6 +512,8 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 					value: status.id.toString(),
 					label: status.name,
 				}))
+			case FilterField.ReplayTypeId:
+				return replayTypes.map((rt) => ({ value: rt.id.toString(), label: rt.name }))
 			default:
 				return []
 		}
@@ -523,6 +546,17 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 		if (isDateLikeField(filter.field)) {
 			// date input expects YYYY-MM-DD
 			const value = filter.value ? String(filter.value).split('T')[0] : ''
+
+			if (filter.operator === FilterOperator.Between) {
+				const secondValue = filter.secondValue ? String(filter.secondValue).split('T')[0] : ''
+				return (
+					<>
+						<input type='date' value={value} onChange={(e) => updateFilter(groupIndex, filterIndex, 'value', e.target.value)} title='Desde' />
+						<span style={{ margin: '0 4px' }}>—</span>
+						<input type='date' value={secondValue} onChange={(e) => updateFilter(groupIndex, filterIndex, 'secondValue', e.target.value)} title='Hasta' />
+					</>
+				)
+			}
 
 			return <input type='date' value={value} onChange={(e) => updateFilter(groupIndex, filterIndex, 'value', e.target.value)} />
 		}
@@ -617,13 +651,27 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 										) : (
 											group.filters.map((filter, filterIndex) => (
 												<div key={filterIndex} className='filter-item'>
-													<select value={filter.field} onChange={(e) => updateFilter(groupIndex, filterIndex, 'field', e.target.value)}>
+													<select
+														value={isReplayField(filter.field) ? 'ReplayGroup' : filter.field}
+														onChange={(e) => {
+															const val = e.target.value
+															updateFilter(groupIndex, filterIndex, 'field', val === 'ReplayGroup' ? FilterField.ReplayStarted : val)
+														}}>
 														{getFieldOptions().map((option) => (
 															<option key={option.value} value={option.value}>
 																{option.label}
 															</option>
 														))}
 													</select>
+													{isReplayField(filter.field) && (
+														<select value={filter.field} onChange={(e) => updateFilter(groupIndex, filterIndex, 'field', e.target.value)}>
+															{getReplaySubOptions().map((opt) => (
+																<option key={opt.value} value={opt.value}>
+																	{opt.label}
+																</option>
+															))}
+														</select>
+													)}
 													<select value={filter.operator} onChange={(e) => updateFilter(groupIndex, filterIndex, 'operator', e.target.value)}>
 														{getOperatorsForField(filter.field).map((option) => (
 															<option key={option.value} value={option.value}>

@@ -277,3 +277,41 @@
 		width: 100%;
 	}
 }
+
+.game-details-tabs {
+	border-top: 1px solid var(--border-color-light);
+
+	&-nav {
+		display: flex;
+		border-bottom: 1px solid var(--border-color-light);
+
+		button {
+			flex: 1;
+			background: none;
+			border: none;
+			border-bottom: 2px solid transparent;
+			padding: 10px;
+			cursor: pointer;
+			color: var(--text-secondary);
+			font-size: 0.85rem;
+			text-transform: uppercase;
+			font-weight: 500;
+			transition:
+				color 0.15s,
+				border-color 0.15s;
+
+			&.active {
+				color: var(--text-primary);
+				border-bottom-color: var(--primary);
+			}
+
+			&:hover:not(.active) {
+				color: var(--text-primary);
+			}
+		}
+	}
+
+	&-panel {
+		padding: 0;
+	}
+}

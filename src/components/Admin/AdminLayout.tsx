@@ -31,11 +31,17 @@ export const AdminLayout = () => {
 						<NavLink to='/admin/played-status' className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
 							Played Status
 						</NavLink>
+						<NavLink to='/admin/replay-types' className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
+							Tipos de Rejugada
+						</NavLink>
 						<NavLink to='/admin/data-export' className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
 							Importar/Exportar
 						</NavLink>
 						<NavLink to='/admin/game-views' className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
 							Vistas de Juego
+						</NavLink>
+						<NavLink to='/admin/audit-log' className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
+							Auditoría
 						</NavLink>
 						<NavLink to='/admin/preferences' className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
 							Preferencias

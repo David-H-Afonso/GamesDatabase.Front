@@ -1,0 +1,257 @@
+.game-replays-tab {
+	padding: 0 20px 20px;
+}
+
+.grt-loading {
+	padding: 24px;
+	text-align: center;
+	color: var(--text-secondary);
+}
+
+.grt-empty {
+	color: var(--text-secondary);
+	font-size: 0.9rem;
+	padding: 16px 0;
+}
+
+.grt-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 12px 0;
+	border-bottom: 1px solid var(--border);
+	margin-bottom: 12px;
+}
+
+.grt-count {
+	font-size: 0.85rem;
+	color: var(--text-secondary);
+}
+
+.grt-add-btn {
+	font-size: 0.85rem;
+	padding: 6px 12px;
+	background-color: var(--primary);
+	color: #fff;
+	border: none;
+	border-radius: 6px;
+	cursor: pointer;
+	transition: background 0.15s;
+
+	&:hover {
+		background-color: var(--primary-hover);
+	}
+}
+
+.grt-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.grt-item {
+	padding: 12px;
+	background: var(--bg-secondary);
+	border-radius: 8px;
+	border: 1px solid var(--border);
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.grt-item-header {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.grt-type-badge {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 4px;
+	font-size: 0.75rem;
+	font-weight: 600;
+}
+
+.grt-grade {
+	font-size: 0.85rem;
+	font-weight: 600;
+	color: var(--text-primary);
+}
+
+.grt-dates {
+	font-size: 0.82rem;
+	color: var(--text-secondary);
+}
+
+.grt-notes {
+	margin: 0;
+	font-size: 0.85rem;
+	color: var(--text-primary);
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.grt-actions {
+	display: flex;
+	gap: 8px;
+	margin-top: 4px;
+}
+
+.grt-edit-btn {
+	font-size: 0.8rem;
+	padding: 4px 10px;
+	background: none;
+	border: 1px solid var(--border);
+	border-radius: 5px;
+	cursor: pointer;
+	color: var(--text-primary);
+	transition: border-color 0.15s;
+
+	&:hover {
+		border-color: var(--primary);
+		color: var(--primary);
+	}
+}
+
+.grt-delete-btn {
+	font-size: 0.8rem;
+	padding: 4px 10px;
+	background: none;
+	border: 1px solid var(--error);
+	border-radius: 5px;
+	cursor: pointer;
+	color: var(--error);
+	transition: background 0.15s;
+
+	&:hover {
+		background: var(--error-light, rgba(239, 68, 68, 0.08));
+	}
+}
+
+.grt-form {
+	margin-top: 16px;
+	padding: 16px;
+	background: var(--bg-secondary);
+	border: 1px solid var(--border);
+	border-radius: 10px;
+}
+
+.grt-form-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 14px;
+
+	h3 {
+		margin: 0;
+		font-size: 0.95rem;
+		font-weight: 600;
+	}
+}
+
+.grt-form-close {
+	background: none;
+	border: none;
+	font-size: 1.2rem;
+	cursor: pointer;
+	color: var(--text-secondary);
+	padding: 2px 6px;
+	border-radius: 4px;
+	line-height: 1;
+
+	&:hover {
+		color: var(--text-primary);
+		background: var(--bg-hover, rgba(255, 255, 255, 0.06));
+	}
+}
+
+.grt-form-row {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 10px;
+}
+
+.grt-form-field {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+	margin-bottom: 12px;
+
+	label {
+		font-size: 0.78rem;
+		font-weight: 500;
+		color: var(--text-secondary);
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+	}
+
+	input,
+	select,
+	textarea {
+		background: var(--bg-primary);
+		border: 1px solid var(--border);
+		border-radius: 6px;
+		padding: 7px 10px;
+		color: var(--text-primary);
+		font-size: 0.85rem;
+		width: 100%;
+		box-sizing: border-box;
+		font-family: inherit;
+
+		&:focus {
+			outline: none;
+			border-color: var(--primary);
+		}
+	}
+
+	textarea {
+		resize: vertical;
+		min-height: 64px;
+	}
+}
+
+.grt-form-actions {
+	display: flex;
+	gap: 8px;
+	justify-content: flex-end;
+	margin-top: 4px;
+}
+
+.grt-cancel-btn {
+	padding: 7px 16px;
+	background: none;
+	border: 1px solid var(--border);
+	border-radius: 6px;
+	cursor: pointer;
+	color: var(--text-primary);
+	font-size: 0.85rem;
+	transition: border-color 0.15s;
+
+	&:hover {
+		border-color: var(--text-primary);
+	}
+}
+
+.grt-submit-btn {
+	padding: 7px 16px;
+	background: var(--primary);
+	border: none;
+	border-radius: 6px;
+	cursor: pointer;
+	color: #fff;
+	font-size: 0.85rem;
+	transition: background 0.15s;
+
+	&:hover:not(:disabled) {
+		background: var(--primary-hover, #2563eb);
+	}
+
+	&:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+	}
+}

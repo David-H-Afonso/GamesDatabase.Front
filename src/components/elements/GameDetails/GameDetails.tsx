@@ -10,6 +10,10 @@ import { useGames } from '@/hooks'
 import { useAppSelector } from '@/store/hooks'
 import { useFormik } from 'formik'
 import { getCriticScoreUrl, getCriticProviderIdFromName, getCriticProviderNameFromId, resolveEffectiveProvider, type CriticProvider } from '@/helpers/criticScoreHelper'
+import { GameReplaysTab } from './GameReplaysTab'
+import { GameHistoryTab } from './GameHistoryTab'
+
+type DetailTab = 'info' | 'replays' | 'history'
 
 interface GameDetailsProps {
 	game: Game
@@ -20,6 +24,7 @@ interface GameDetailsProps {
 export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 	const { game, closeDetails, onDelete } = props
 	const [isClosing, setIsClosing] = useState(false)
+	const [activeTab, setActiveTab] = useState<DetailTab>('info')
 	const { updateGameById } = useGames()
 
 	// Get options for selectable fields
@@ -222,219 +227,254 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 						</div>
 					)}
 				</div>
-				<div className='game-details-content-infoList'>
-					<div className='game-details-content-infoList-item'>
-						<h3>Status</h3>
-						<EditableSelect
-							value={formik.values.statusId}
-							displayValue={game.statusName}
-							options={statusOptions}
-							onSave={(value) => saveField('statusId', value)}
-							placeholder='Select status'
-						/>
-					</div>
-					<div className='game-details-content-infoList-item'>
-						<h3>Released</h3>
-						<EditableField
-							value={formik.values.released}
-							type='date'
-							onSave={(value) => saveField('released', value)}
-							placeholder='No release date'
-							formatter={(val) => formatToLocaleDate(val as string)}
-						/>
-					</div>
-					<div className='game-details-content-infoList-item'>
-						<h3
-							className='clickable'
-							onClick={() => {
-								if (!game.name) return
-								const provider = resolveEffectiveProvider(game.criticProvider as CriticProvider | undefined, scoreProvider)
-								const url = getCriticScoreUrl(game.name, provider)
-								window.open(url, '_blank', 'noopener')
-							}}>
-							Critic Score
-						</h3>
-						<EditableField value={formik.values.critic} type='number' onSave={(value) => saveField('critic', value)} placeholder='No score' />
-					</div>
-					<div className='game-details-content-infoList-item'>
-						<h3>Critic Logo</h3>
-						<EditableSelect
-							value={getCriticProviderIdFromName(formik.values.criticProvider)}
-							displayValue={formik.values.criticProvider ?? 'Default'}
-							options={[
-								{ id: 0, name: 'Default', color: undefined },
-								{ id: 1, name: 'Metacritic', color: undefined },
-								{ id: 2, name: 'OpenCritic', color: undefined },
-								{ id: 3, name: 'SteamDB', color: undefined },
-							]}
-							onSave={async (value) => {
-								if (value === 0 || value === undefined) {
-									await saveField('criticProvider', null)
-								} else {
-									const provider = getCriticProviderNameFromId(value)
-									await saveField('criticProvider', provider)
-								}
-							}}
-							placeholder='Use default'
-						/>
-					</div>
-					<div className='game-details-content-infoList-item'>
-						<h3
-							className='clickable'
-							onClick={() => {
-								if (!game.name) return
-								const url = `https://howlongtobeat.com/?q=${encodeURIComponent(game.name)}`
-								window.open(url, '_blank', 'noopener')
-							}}>
-							Story
-						</h3>
-						<EditableField value={formik.values.story} type='number' onSave={(value) => saveField('story', value)} placeholder='0h' formatter={(val) => `${val || 0}h`} />
-					</div>
-					<div className='game-details-content-infoList-item'>
-						<h3
-							className='clickable'
-							onClick={() => {
-								if (!game.name) return
-								const url = `https://howlongtobeat.com/?q=${encodeURIComponent(game.name)}`
-								window.open(url, '_blank', 'noopener')
-							}}>
-							Completion
-						</h3>
-						<EditableField value={formik.values.completion} type='number' onSave={(value) => saveField('completion', value)} placeholder='0h' formatter={(val) => `${val || 0}h`} />
-					</div>
-					<div className='game-details-content-infoList-item'>
-						<h3>Score</h3>
-						<EditableField value={formik.values.score} type='number' onSave={(value) => saveField('score', value)} placeholder='No score' allowEditing={false} />
-					</div>
-					<div className='game-details-content-infoList-item'>
-						<h3
-							className={(game.platformName || '').toLowerCase().includes('steam') || (game.platformName || '').toLowerCase().includes('epic') ? 'clickable' : undefined}
-							onClick={() => {
-								if (!game.name) return
-								const platform = (game.platformName || '').toLowerCase()
-								if (platform.includes('steam')) {
-									const q = encodeURIComponent(game.name).replace(/%20/g, '+')
-									const url = `https://store.steampowered.com/search/?term=${q}`
-									window.open(url, '_blank', 'noopener')
-									return
-								}
-								if (platform.includes('epic')) {
-									const url = `https://store.epicgames.com/es-ES/browse?q=${encodeURIComponent(game.name)}&sortBy=relevancy&sortDir=DESC&count=40`
-									window.open(url, '_blank', 'noopener')
-								}
-							}}>
-							Platform
-						</h3>
-						<EditableSelect
-							value={formik.values.platformId}
-							displayValue={game.platformName}
-							options={platformOptions}
-							onSave={(value) => saveField('platformId', value)}
-							placeholder='Select platform'
-						/>
-					</div>
-					<div className='game-details-content-infoList-item'>
-						<h3>Played</h3>
-						<EditableSelect
-							value={formik.values.playedStatusId}
-							displayValue={game.playedStatusName}
-							options={playedStatusOptions}
-							onSave={(value) => saveField('playedStatusId', value)}
-							placeholder='Select status'
-						/>
-					</div>
-					<div className='game-details-content-infoList-item'>
-						<h3>Started</h3>
-						<EditableField
-							value={formik.values.started}
-							type='date'
-							onSave={(value) => saveField('started', value)}
-							placeholder='Not started'
-							formatter={(val) => formatToLocaleDate(val as string)}
-						/>
-					</div>
-					<div className='game-details-content-infoList-item'>
-						<h3>Finished</h3>
-						<EditableField
-							value={formik.values.finished}
-							type='date'
-							onSave={(value) => saveField('finished', value)}
-							placeholder='Not finished'
-							formatter={(val) => formatToLocaleDate(val as string)}
-						/>
-					</div>
-					<div className='game-details-content-infoList-item'>
-						<h3>Grade</h3>
-						<EditableField value={formik.values.grade} type='number' onSave={(value) => saveField('grade', value)} placeholder='No grade' />
-					</div>
-					<div className='game-details-content-infoList-item'>
-						<h3>Play With</h3>
-						<EditableMultiSelect
-							values={formik.values.playWithIds}
-							displayValues={game.playWithNames || []}
-							options={playWithOptions}
-							onSave={(values) => saveField('playWithIds', values)}
-							placeholder='Select options'
-						/>
-					</div>
-					<div className='game-details-content-infoList-item'>
-						<h3
-							className='clickable'
-							onClick={() => {
-								if (!game.name) return
-								const url = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent('"' + game.name + '" logo')}`
-								window.open(url, '_blank', 'noopener')
-							}}>
-							Logo
-						</h3>
-						<EditableField value={formik.values.logo} type='text' onSave={(value) => saveField('logo', value)} placeholder='Enter logo URL (optional)' />
-					</div>
+			</div>
 
-					<div className='game-details-content-infoList-item'>
-						<h3
-							className='clickable'
-							onClick={() => {
-								if (!game.name) return
-								const url = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent('"' + game.name + '" cover')}`
-								window.open(url, '_blank', 'noopener')
-							}}>
-							Cover
-						</h3>
-						<EditableField value={formik.values.cover} type='text' onSave={(value) => saveField('cover', value)} placeholder='Enter cover URL (optional)' />
-					</div>
+			<div className='game-details-tabs'>
+				<nav className='game-details-tabs-nav'>
+					<button className={activeTab === 'info' ? 'active' : ''} onClick={() => setActiveTab('info')}>
+						Info
+					</button>
+					<button className={activeTab === 'replays' ? 'active' : ''} onClick={() => setActiveTab('replays')}>
+						Rejugadas
+					</button>
+					<button className={activeTab === 'history' ? 'active' : ''} onClick={() => setActiveTab('history')}>
+						Historial
+					</button>
+				</nav>
 
-					<div className='game-details-content-infoList-item'>
-						<h3>Cheaper</h3>
-						<EditableSelect
-							value={formik.values.isCheaperByKey === true ? 1 : formik.values.isCheaperByKey === false ? 2 : undefined}
-							displayValue={formik.values.isCheaperByKey === true ? 'Key' : formik.values.isCheaperByKey === false ? 'Store' : undefined}
-							options={priceComparisonOptions}
-							onSave={async (value) => {
-								if (value === undefined) {
-									await saveField('isCheaperByKey', undefined)
-									// Clear key store URL if setting to undefined
-									if (formik.values.keyStoreUrl) {
-										await saveField('keyStoreUrl', '')
-									}
-								} else {
-									await saveField('isCheaperByKey', value === 1)
-								}
-							}}
-							placeholder='Not set'
-						/>
-					</div>
+				<div className='game-details-tabs-panel'>
+					{activeTab === 'info' && (
+						<>
+							<div className='game-details-content-infoList'>
+								<div className='game-details-content-infoList-item'>
+									<h3>Status</h3>
+									<EditableSelect
+										value={formik.values.statusId}
+										displayValue={game.statusName}
+										options={statusOptions}
+										onSave={(value) => saveField('statusId', value)}
+										placeholder='Select status'
+									/>
+								</div>
+								<div className='game-details-content-infoList-item'>
+									<h3>Released</h3>
+									<EditableField
+										value={formik.values.released}
+										type='date'
+										onSave={(value) => saveField('released', value)}
+										placeholder='No release date'
+										formatter={(val) => formatToLocaleDate(val as string)}
+									/>
+								</div>
+								<div className='game-details-content-infoList-item'>
+									<h3
+										className='clickable'
+										onClick={() => {
+											if (!game.name) return
+											const provider = resolveEffectiveProvider(game.criticProvider as CriticProvider | undefined, scoreProvider)
+											const url = getCriticScoreUrl(game.name, provider)
+											window.open(url, '_blank', 'noopener')
+										}}>
+										Critic Score
+									</h3>
+									<EditableField value={formik.values.critic} type='number' onSave={(value) => saveField('critic', value)} placeholder='No score' />
+								</div>
+								<div className='game-details-content-infoList-item'>
+									<h3>Critic Logo</h3>
+									<EditableSelect
+										value={getCriticProviderIdFromName(formik.values.criticProvider)}
+										displayValue={formik.values.criticProvider ?? 'Default'}
+										options={[
+											{ id: 0, name: 'Default', color: undefined },
+											{ id: 1, name: 'Metacritic', color: undefined },
+											{ id: 2, name: 'OpenCritic', color: undefined },
+											{ id: 3, name: 'SteamDB', color: undefined },
+										]}
+										onSave={async (value) => {
+											if (value === 0 || value === undefined) {
+												await saveField('criticProvider', null)
+											} else {
+												const provider = getCriticProviderNameFromId(value)
+												await saveField('criticProvider', provider)
+											}
+										}}
+										placeholder='Use default'
+									/>
+								</div>
+								<div className='game-details-content-infoList-item'>
+									<h3
+										className='clickable'
+										onClick={() => {
+											if (!game.name) return
+											const url = `https://howlongtobeat.com/?q=${encodeURIComponent(game.name)}`
+											window.open(url, '_blank', 'noopener')
+										}}>
+										Story
+									</h3>
+									<EditableField value={formik.values.story} type='number' onSave={(value) => saveField('story', value)} placeholder='0h' formatter={(val) => `${val || 0}h`} />
+								</div>
+								<div className='game-details-content-infoList-item'>
+									<h3
+										className='clickable'
+										onClick={() => {
+											if (!game.name) return
+											const url = `https://howlongtobeat.com/?q=${encodeURIComponent(game.name)}`
+											window.open(url, '_blank', 'noopener')
+										}}>
+										Completion
+									</h3>
+									<EditableField
+										value={formik.values.completion}
+										type='number'
+										onSave={(value) => saveField('completion', value)}
+										placeholder='0h'
+										formatter={(val) => `${val || 0}h`}
+									/>
+								</div>
+								<div className='game-details-content-infoList-item'>
+									<h3>Score</h3>
+									<EditableField value={formik.values.score} type='number' onSave={(value) => saveField('score', value)} placeholder='No score' allowEditing={false} />
+								</div>
+								<div className='game-details-content-infoList-item'>
+									<h3
+										className={(game.platformName || '').toLowerCase().includes('steam') || (game.platformName || '').toLowerCase().includes('epic') ? 'clickable' : undefined}
+										onClick={() => {
+											if (!game.name) return
+											const platform = (game.platformName || '').toLowerCase()
+											if (platform.includes('steam')) {
+												const q = encodeURIComponent(game.name).replace(/%20/g, '+')
+												const url = `https://store.steampowered.com/search/?term=${q}`
+												window.open(url, '_blank', 'noopener')
+												return
+											}
+											if (platform.includes('epic')) {
+												const url = `https://store.epicgames.com/es-ES/browse?q=${encodeURIComponent(game.name)}&sortBy=relevancy&sortDir=DESC&count=40`
+												window.open(url, '_blank', 'noopener')
+											}
+										}}>
+										Platform
+									</h3>
+									<EditableSelect
+										value={formik.values.platformId}
+										displayValue={game.platformName}
+										options={platformOptions}
+										onSave={(value) => saveField('platformId', value)}
+										placeholder='Select platform'
+									/>
+								</div>
+								<div className='game-details-content-infoList-item'>
+									<h3>Played</h3>
+									<EditableSelect
+										value={formik.values.playedStatusId}
+										displayValue={game.playedStatusName}
+										options={playedStatusOptions}
+										onSave={(value) => saveField('playedStatusId', value)}
+										placeholder='Select status'
+									/>
+								</div>
+								<div className='game-details-content-infoList-item'>
+									<h3>Started</h3>
+									<EditableField
+										value={formik.values.started}
+										type='date'
+										onSave={(value) => saveField('started', value)}
+										placeholder='Not started'
+										formatter={(val) => formatToLocaleDate(val as string)}
+									/>
+								</div>
+								<div className='game-details-content-infoList-item'>
+									<h3>Finished</h3>
+									<EditableField
+										value={formik.values.finished}
+										type='date'
+										onSave={(value) => saveField('finished', value)}
+										placeholder='Not finished'
+										formatter={(val) => formatToLocaleDate(val as string)}
+									/>
+								</div>
+								<div className='game-details-content-infoList-item'>
+									<h3>Grade</h3>
+									<EditableField value={formik.values.grade} type='number' onSave={(value) => saveField('grade', value)} placeholder='No grade' />
+								</div>
+								<div className='game-details-content-infoList-item'>
+									<h3>Play With</h3>
+									<EditableMultiSelect
+										values={formik.values.playWithIds}
+										displayValues={game.playWithNames || []}
+										options={playWithOptions}
+										onSave={(values) => saveField('playWithIds', values)}
+										placeholder='Select options'
+									/>
+								</div>
+								<div className='game-details-content-infoList-item'>
+									<h3
+										className='clickable'
+										onClick={() => {
+											if (!game.name) return
+											const url = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent('"' + game.name + '" logo')}`
+											window.open(url, '_blank', 'noopener')
+										}}>
+										Logo
+									</h3>
+									<EditableField value={formik.values.logo} type='text' onSave={(value) => saveField('logo', value)} placeholder='Enter logo URL (optional)' />
+								</div>
 
-					{formik.values.isCheaperByKey !== undefined && (
-						<div className='game-details-content-infoList-item'>
-							<h3>Key URL</h3>
-							<EditableField value={formik.values.keyStoreUrl} type='text' onSave={(value) => saveField('keyStoreUrl', value)} placeholder='Enter key store URL (optional)' />
-						</div>
+								<div className='game-details-content-infoList-item'>
+									<h3
+										className='clickable'
+										onClick={() => {
+											if (!game.name) return
+											const url = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent('"' + game.name + '" cover')}`
+											window.open(url, '_blank', 'noopener')
+										}}>
+										Cover
+									</h3>
+									<EditableField value={formik.values.cover} type='text' onSave={(value) => saveField('cover', value)} placeholder='Enter cover URL (optional)' />
+								</div>
+
+								<div className='game-details-content-infoList-item'>
+									<h3>Cheaper</h3>
+									<EditableSelect
+										value={formik.values.isCheaperByKey === true ? 1 : formik.values.isCheaperByKey === false ? 2 : undefined}
+										displayValue={formik.values.isCheaperByKey === true ? 'Key' : formik.values.isCheaperByKey === false ? 'Store' : undefined}
+										options={priceComparisonOptions}
+										onSave={async (value) => {
+											if (value === undefined) {
+												await saveField('isCheaperByKey', undefined)
+												// Clear key store URL if setting to undefined
+												if (formik.values.keyStoreUrl) {
+													await saveField('keyStoreUrl', '')
+												}
+											} else {
+												await saveField('isCheaperByKey', value === 1)
+											}
+										}}
+										placeholder='Not set'
+									/>
+								</div>
+
+								{formik.values.isCheaperByKey !== undefined && (
+									<div className='game-details-content-infoList-item'>
+										<h3>Key URL</h3>
+										<EditableField value={formik.values.keyStoreUrl} type='text' onSave={(value) => saveField('keyStoreUrl', value)} placeholder='Enter key store URL (optional)' />
+									</div>
+								)}
+							</div>
+
+							<div className='game-details-content-comment'>
+								<h3>Comment</h3>
+								<EditableField
+									value={formik.values.comment}
+									type='textarea'
+									onSave={(value) => saveField('comment', value)}
+									placeholder='Add a comment...'
+									className='comment-field'
+								/>
+							</div>
+						</>
 					)}
-				</div>
-
-				<div className='game-details-content-comment'>
-					<h3>Comment</h3>
-					<EditableField value={formik.values.comment} type='textarea' onSave={(value) => saveField('comment', value)} placeholder='Add a comment...' className='comment-field' />
+					{activeTab === 'replays' && <GameReplaysTab gameId={game.id} />}
+					{activeTab === 'history' && <GameHistoryTab gameId={game.id} />}
 				</div>
 			</div>
 		</div>

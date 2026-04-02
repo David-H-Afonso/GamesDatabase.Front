@@ -1,0 +1,111 @@
+.admin-audit-log {
+	.aal-count {
+		font-size: 0.9rem;
+		color: var(--text-secondary);
+	}
+
+	.aal-filters {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 10px;
+		margin-bottom: 16px;
+
+		select,
+		input {
+			padding: 6px 10px;
+			border: 1px solid var(--border-color-light);
+			border-radius: 6px;
+			background: var(--bg-secondary);
+			color: var(--text-primary);
+			font-size: 0.9rem;
+		}
+	}
+
+	.aal-table-wrapper {
+		overflow-x: auto;
+	}
+
+	.aal-table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: 0.875rem;
+
+		th,
+		td {
+			padding: 8px 10px;
+			text-align: left;
+			border-bottom: 1px solid var(--border-color-light);
+		}
+
+		th {
+			color: var(--text-secondary);
+			font-weight: 500;
+			text-transform: uppercase;
+			font-size: 0.8rem;
+		}
+
+		.aal-empty {
+			text-align: center;
+			color: var(--text-secondary);
+			padding: 24px;
+		}
+	}
+
+	.aal-date {
+		white-space: nowrap;
+		color: var(--text-secondary);
+		font-size: 0.8rem;
+	}
+
+	.aal-game {
+		font-weight: 500;
+		max-width: 160px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.aal-badge {
+		display: inline-block;
+		padding: 2px 8px;
+		border-radius: 4px;
+		font-size: 0.75rem;
+		font-weight: 600;
+
+		&.action-created {
+			background: color-mix(in srgb, var(--success) 20%, transparent);
+			color: var(--success);
+		}
+
+		&.action-updated {
+			background: color-mix(in srgb, var(--primary) 20%, transparent);
+			color: var(--primary);
+		}
+
+		&.action-deleted {
+			background: color-mix(in srgb, var(--error) 20%, transparent);
+			color: var(--error);
+		}
+	}
+
+	.aal-field {
+		color: var(--text-secondary);
+		font-size: 0.8rem;
+	}
+
+	.aal-value {
+		max-width: 140px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		font-size: 0.85rem;
+	}
+
+	.aal-old {
+		color: var(--error);
+	}
+
+	.aal-new {
+		color: var(--success);
+	}
+}

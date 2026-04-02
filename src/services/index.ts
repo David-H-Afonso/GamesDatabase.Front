@@ -64,3 +64,18 @@ export { GameViewMigrationService } from './GameViewMigrationService'
 
 export { authService } from './AuthService'
 export { userService } from './UserService'
+
+export {
+	getGameReplayTypes,
+	getActiveGameReplayTypes,
+	getSpecialGameReplayType,
+	getGameReplayTypeById,
+	createGameReplayType,
+	updateGameReplayType,
+	deleteGameReplayType,
+	reorderGameReplayTypes,
+} from './GameReplayTypeService'
+
+export { getReplaysByGameId, createGameReplay, updateGameReplay, deleteGameReplay } from './GameReplayService'
+
+export { getHistoryByGameId, deleteHistoryEntry, clearGameHistory, getGlobalHistory, getAdminHistory } from './GameHistoryService'

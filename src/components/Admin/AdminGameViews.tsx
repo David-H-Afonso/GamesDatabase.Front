@@ -1,22 +1,32 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { useGameViews } from '@/hooks/useGameViews'
 import { reorderGameViews } from '@/services/GameViewService'
-import type { GameView, GameViewQueryParameters } from '@/models/api/GameView'
+import type { GameView, GameViewCreateDto, GameViewQueryParameters } from '@/models/api/GameView'
 import GameViewModal from './GameViewModal'
+import ViewTemplateSelector from './ViewTemplates'
 import { ReorderButtons } from '@/components/elements/ReorderButtons/ReorderButtons'
 import './AdminGameViews.scss'
 
 export const AdminGameViews: React.FC = () => {
-	const { gameViews, loading, error, loadGameViews, loadGameViewById, deleteGameView } = useGameViews()
+	const { gameViews, loading, error, loadGameViews, loadGameViewById, deleteGameView, createGameView } = useGameViews()
 
 	const [isModalOpen, setIsModalOpen] = useState(false)
 	const [editingGameView, setEditingGameView] = useState<GameView | null>(null)
 	const [isReordering, setIsReordering] = useState(false)
+	const [exportingId, setExportingId] = useState<number | null>(null)
+	const [copiedId, setCopiedId] = useState<number | null>(null)
+	const [importPanelOpen, setImportPanelOpen] = useState(false)
+	const [importText, setImportText] = useState('')
+	const [importError, setImportError] = useState<string | null>(null)
+	const [importing, setImporting] = useState(false)
+	const [templatePanelOpen, setTemplatePanelOpen] = useState(false)
+	const importTextareaRef = useRef<HTMLTextAreaElement>(null)
 
 	// Pagination and sorting state
 	const [queryParams, setQueryParams] = useState<GameViewQueryParameters>({
 		page: 1,
 		pageSize: 50,
+		includePrivate: true,
 	})
 
 	useEffect(() => {
@@ -81,7 +91,63 @@ export const AdminGameViews: React.FC = () => {
 
 	const handleSaveComplete = async () => {
 		handleCloseModal()
-		await loadGameViews(queryParams) // Reload data after save
+		await loadGameViews(queryParams)
+	}
+
+	const handleExportView = async (gameView: GameView) => {
+		setExportingId(gameView.id)
+		try {
+			const full = await loadGameViewById(gameView.id)
+			const view = (full as GameView) || gameView
+			const exportData = {
+				name: view.name,
+				description: view.description ?? '',
+				configuration: (view as any).configuration ?? {},
+			}
+			const json = JSON.stringify(exportData, null, 2)
+			await navigator.clipboard.writeText(json)
+			setCopiedId(gameView.id)
+			setTimeout(() => setCopiedId(null), 2000)
+		} catch {
+			// fallback: open textarea with json
+		} finally {
+			setExportingId(null)
+		}
+	}
+
+	const handleImportView = async () => {
+		setImportError(null)
+		if (!importText.trim()) {
+			setImportError('Pega el JSON de la vista')
+			return
+		}
+		let parsed: any
+		try {
+			parsed = JSON.parse(importText.trim())
+		} catch {
+			setImportError('JSON inválido. Comprueba el formato.')
+			return
+		}
+		if (!parsed.name || !parsed.configuration) {
+			setImportError('El JSON debe tener "name" y "configuration"')
+			return
+		}
+		setImporting(true)
+		try {
+			await createGameView({
+				name: parsed.name,
+				description: parsed.description ?? '',
+				configuration: parsed.configuration,
+				isPublic: true,
+			})
+			setImportPanelOpen(false)
+			setImportText('')
+			await loadGameViews(queryParams)
+		} catch (err: any) {
+			setImportError(err?.message ?? 'Error al importar la vista')
+		} finally {
+			setImporting(false)
+		}
 	}
 
 	const handleDelete = async (id: number, name: string) => {
@@ -93,6 +159,12 @@ export const AdminGameViews: React.FC = () => {
 				console.error('Error deleting game view:', error)
 			}
 		}
+	}
+
+	const handleCreateFromTemplate = async (dto: GameViewCreateDto) => {
+		await createGameView(dto)
+		setTemplatePanelOpen(false)
+		await loadGameViews(queryParams)
 	}
 
 	const formatFiltersPreview = (gameView: GameView): string => {
@@ -143,10 +215,61 @@ export const AdminGameViews: React.FC = () => {
 		<div className='admin-game-views'>
 			<div className='admin-header'>
 				<h1>Gestión de Vistas de Juegos</h1>
-				<button className='btn btn-primary' onClick={() => handleOpenModal()}>
-					Nueva Vista
-				</button>
+				<div className='header-actions'>
+					<button
+						className='btn btn-secondary'
+						onClick={() => {
+							setTemplatePanelOpen((v) => !v)
+							setImportPanelOpen(false)
+						}}>
+						{templatePanelOpen ? 'Cancelar' : '⚡ Plantillas'}
+					</button>
+					<button
+						className='btn btn-secondary'
+						onClick={() => {
+							setImportPanelOpen((v) => !v)
+							setImportError(null)
+							setTemplatePanelOpen(false)
+						}}>
+						{importPanelOpen ? 'Cancelar' : '📥 Importar Vista'}
+					</button>
+					<button className='btn btn-primary' onClick={() => handleOpenModal()}>
+						Nueva Vista
+					</button>
+				</div>
 			</div>
+
+			{templatePanelOpen && <ViewTemplateSelector onCreateFromTemplate={handleCreateFromTemplate} onClose={() => setTemplatePanelOpen(false)} />}
+
+			{importPanelOpen && (
+				<div className='import-panel'>
+					<p className='import-panel__hint'>Pega aquí el JSON de la vista que quieres importar:</p>
+					<textarea
+						ref={importTextareaRef}
+						className='import-panel__textarea'
+						value={importText}
+						onChange={(e) => setImportText(e.target.value)}
+						placeholder='{"name": "Mi Vista", "configuration": {...}}'
+						rows={6}
+						spellCheck={false}
+					/>
+					{importError && <p className='import-panel__error'>{importError}</p>}
+					<div className='import-panel__actions'>
+						<button className='btn btn-primary' onClick={handleImportView} disabled={importing}>
+							{importing ? 'Importando...' : 'Importar'}
+						</button>
+						<button
+							className='btn btn-secondary'
+							onClick={() => {
+								setImportPanelOpen(false)
+								setImportText('')
+								setImportError(null)
+							}}>
+							Cancelar
+						</button>
+					</div>
+				</div>
+			)}
 
 			{error && (
 				<div
@@ -198,6 +321,13 @@ export const AdminGameViews: React.FC = () => {
 										</td>
 										<td>{new Date(gameView.createdAt).toLocaleDateString()}</td>
 										<td className='actions'>
+											<button
+												className={`action-btn export${copiedId === gameView.id ? ' copied' : ''}`}
+												onClick={() => handleExportView(gameView)}
+												disabled={exportingId === gameView.id}
+												title='Exportar como JSON (copia al portapapeles)'>
+												{exportingId === gameView.id ? '...' : copiedId === gameView.id ? '✓ Copiado' : 'Exportar'}
+											</button>
 											<button className='action-btn edit' onClick={() => handleOpenModal(gameView)}>
 												Editar
 											</button>
