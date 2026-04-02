@@ -34,3 +34,9 @@ ELECTRON_*.md
 # Environment variables
 .env.local
 .env.production
+
+# Testing
+coverage/
+cypress/screenshots/
+cypress/videos/
+cypress/downloads/
