@@ -18,15 +18,7 @@ interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
  *
  * Returns everything from RTL's render plus the store instance.
  */
-export function renderWithProviders(
-	ui: ReactElement,
-	{
-		preloadedState,
-		store = createTestStore(preloadedState),
-		route = '/',
-		...renderOptions
-	}: ExtendedRenderOptions = {}
-) {
+export function renderWithProviders(ui: ReactElement, { preloadedState, store = createTestStore(preloadedState), route = '/', ...renderOptions }: ExtendedRenderOptions = {}) {
 	function Wrapper({ children }: PropsWithChildren) {
 		return (
 			<Provider store={store}>
