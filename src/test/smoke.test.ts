@@ -13,6 +13,6 @@ describe('Test infrastructure', () => {
 		expect(div).toBeInTheDocument()
 		expect(div).toHaveTextContent('hello')
 
-		document.body.removeChild(div)
+		div.remove()
 	})
 })

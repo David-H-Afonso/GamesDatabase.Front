@@ -1,4 +1,4 @@
-import React, { type PropsWithChildren, type ReactElement } from 'react'
+import { type ReactElement, type ReactNode } from 'react'
 import { render, type RenderOptions } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router-dom'
@@ -19,7 +19,7 @@ interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
  * Returns everything from RTL's render plus the store instance.
  */
 export function renderWithProviders(ui: ReactElement, { preloadedState, store = createTestStore(preloadedState), route = '/', ...renderOptions }: ExtendedRenderOptions = {}) {
-	function Wrapper({ children }: PropsWithChildren) {
+	function Wrapper({ children }: { readonly children?: ReactNode }) {
 		return (
 			<Provider store={store}>
 				<MemoryRouter initialEntries={[route]}>{children}</MemoryRouter>
