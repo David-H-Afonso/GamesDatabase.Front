@@ -29,7 +29,7 @@ const rootReducer = combineReducers({
  * @param preloadedState - Partial state to seed the store with
  */
 export function createTestStore(preloadedState?: Partial<RootState>) {
-	return configureStore({
+	const store = configureStore({
 		reducer: rootReducer,
 		preloadedState: preloadedState as any,
 		middleware: (getDefaultMiddleware) =>
@@ -37,6 +37,8 @@ export function createTestStore(preloadedState?: Partial<RootState>) {
 				serializableCheck: false,
 			}),
 	})
+	// Cast getState() to RootState so selectors typed against the persisted store compile without _persist errors
+	return store as unknown as Omit<typeof store, 'getState'> & { getState: () => RootState }
 }
 
 export type TestStore = ReturnType<typeof createTestStore>
