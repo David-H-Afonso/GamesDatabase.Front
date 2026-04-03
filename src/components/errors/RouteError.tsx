@@ -24,7 +24,7 @@ export const RouteError = () => {
 				<h1>Oops! Something went wrong</h1>
 				<p className='error-message'>{errorMessage}</p>
 
-				{process.env.NODE_ENV === 'development' && error instanceof Error && error.stack && (
+				{import.meta.env.DEV && error instanceof Error && error.stack && (
 					<details className='error-details'>
 						<summary>Error details (Development only)</summary>
 						<pre>{error.stack}</pre>

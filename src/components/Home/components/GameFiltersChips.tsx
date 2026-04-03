@@ -201,35 +201,27 @@ const GameFiltersChips: React.FC<Props> = ({
 		return `${filters.pageSize} juegos`
 	}
 
-	const replayLabel = () => {
-		const { replayTypeId, replayStartedFrom, replayFinishedFrom, replayGradeMin, replayGradeMax } = filters
-		const parts: string[] = []
-		if (replayTypeId) {
-			const type = replayTypeOptions.find((t) => t.value === replayTypeId)
-			if (type) parts.push(type.label)
-		}
-		if (replayStartedFrom) parts.push(`ini ${replayStartedFrom.substring(0, 4)}`)
-		if (replayFinishedFrom) parts.push(`fin ${replayFinishedFrom.substring(0, 4)}`)
-		if (replayGradeMin !== undefined || replayGradeMax !== undefined) parts.push('nota')
-		return parts.length > 0 ? parts.join(', ') : 'Sin filtro'
-	}
-
-	const replayStartedYear = filters.replayStartedFrom ? Number(filters.replayStartedFrom.substring(0, 4)) : undefined
-	const replayFinishedYear = filters.replayFinishedFrom ? Number(filters.replayFinishedFrom.substring(0, 4)) : undefined
-
-	const setReplayStartedYear = (year: number | undefined) => {
-		setFilters({
-			replayStartedFrom: year ? `${year}-01-01` : undefined,
-			replayStartedTo: year ? `${year}-12-31` : undefined,
-		})
-	}
-
-	const setReplayFinishedYear = (year: number | undefined) => {
-		setFilters({
-			replayFinishedFrom: year ? `${year}-01-01` : undefined,
-			replayFinishedTo: year ? `${year}-12-31` : undefined,
-		})
-	}
+	// TODO: replay filter chip helpers (not yet wired up to JSX)
+	// const replayLabel = () => {
+	// 	const { replayTypeId, replayStartedFrom, replayFinishedFrom, replayGradeMin, replayGradeMax } = filters
+	// 	const parts: string[] = []
+	// 	if (replayTypeId) {
+	// 		const type = replayTypeOptions.find((t) => t.value === replayTypeId)
+	// 		if (type) parts.push(type.label)
+	// 	}
+	// 	if (replayStartedFrom) parts.push(`ini ${replayStartedFrom.substring(0, 4)}`)
+	// 	if (replayFinishedFrom) parts.push(`fin ${replayFinishedFrom.substring(0, 4)}`)
+	// 	if (replayGradeMin !== undefined || replayGradeMax !== undefined) parts.push('nota')
+	// 	return parts.length > 0 ? parts.join(', ') : 'Sin filtro'
+	// }
+	// const replayStartedYear = filters.replayStartedFrom ? Number(filters.replayStartedFrom.substring(0, 4)) : undefined
+	// const replayFinishedYear = filters.replayFinishedFrom ? Number(filters.replayFinishedFrom.substring(0, 4)) : undefined
+	// const setReplayStartedYear = (year: number | undefined) => {
+	// 	setFilters({ replayStartedFrom: year ? `${year}-01-01` : undefined, replayStartedTo: year ? `${year}-12-31` : undefined })
+	// }
+	// const setReplayFinishedYear = (year: number | undefined) => {
+	// 	setFilters({ replayFinishedFrom: year ? `${year}-01-01` : undefined, replayFinishedTo: year ? `${year}-12-31` : undefined })
+	// }
 
 	const resetAllFilters = () => {
 		onFiltersChange({
@@ -911,27 +903,25 @@ const GameFiltersChips: React.FC<Props> = ({
 								</>
 							)}
 
-							{false && (
-								<>
-									<button
-										type='button'
-										className='game-filters-chips__clear-btn'
-										onClick={() =>
-											setFilters({
-												replayTypeId: undefined,
-												replayStartedFrom: undefined,
-												replayStartedTo: undefined,
-												replayFinishedFrom: undefined,
-												replayFinishedTo: undefined,
-												replayGradeMin: undefined,
-												replayGradeMax: undefined,
-												replayMatchMode: undefined,
-											})
-										}>
-										Limpiar
-									</button>
-								</>
-							)}
+							{/* TODO: wire up replay clear button
+							<button
+								type='button'
+								className='game-filters-chips__clear-btn'
+								onClick={() =>
+									setFilters({
+										replayTypeId: undefined,
+										replayStartedFrom: undefined,
+										replayStartedTo: undefined,
+										replayFinishedFrom: undefined,
+										replayFinishedTo: undefined,
+										replayGradeMin: undefined,
+										replayGradeMax: undefined,
+										replayMatchMode: undefined,
+									})
+								}>
+								Limpiar
+							</button>
+							*/}
 						</div>
 					)}
 

@@ -60,7 +60,7 @@ describe('recentUsersSlice — removeRecentUser', () => {
 	})
 
 	it('does nothing when username does not exist', () => {
-		let state = recentUsersReducer(initialState, addRecentUser({ username: 'alice', hasPassword: true }))
+		const state = recentUsersReducer(initialState, addRecentUser({ username: 'alice', hasPassword: true }))
 		const next = recentUsersReducer(state, removeRecentUser('nobody'))
 		expect(next.users).toHaveLength(1)
 	})

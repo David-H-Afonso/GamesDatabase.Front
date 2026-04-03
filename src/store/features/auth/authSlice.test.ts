@@ -1,15 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import authReducer, { clearError, forceLogout, setUserPreferences, loginUser, logoutUser, fetchUserPreferences } from './authSlice'
 import type { AuthState } from '@/models/store/AuthState'
-import {
-	selectAuth,
-	selectIsAuthenticated,
-	selectCurrentUser,
-	selectIsAdmin,
-	selectAuthLoading,
-	selectAuthError,
-	selectAuthToken,
-} from './selector'
+import { selectAuth, selectIsAuthenticated, selectCurrentUser, selectIsAdmin, selectAuthLoading, selectAuthError, selectAuthToken } from './selector'
 import { createTestStore } from '@/test/utils/createTestStore'
 
 // ─── Helpers ─────────────────────────────────────────────────

@@ -110,9 +110,7 @@ describe('games thunks — fetchGames', () => {
 
 	it('dispatches fulfilled with paged result on success', async () => {
 		const games = createGameList(3)
-		server.use(
-			http.get(`${BASE}/games`, () => HttpResponse.json(makePagedResult(games)))
-		)
+		server.use(http.get(`${BASE}/games`, () => HttpResponse.json(makePagedResult(games))))
 
 		const result = await store.dispatch(fetchGames({}))
 
@@ -122,9 +120,7 @@ describe('games thunks — fetchGames', () => {
 
 	it('updates store state after fulfilled — games populated', async () => {
 		const games = createGameList(2)
-		server.use(
-			http.get(`${BASE}/games`, () => HttpResponse.json(makePagedResult(games)))
-		)
+		server.use(http.get(`${BASE}/games`, () => HttpResponse.json(makePagedResult(games))))
 
 		await store.dispatch(fetchGames({}))
 
@@ -134,9 +130,7 @@ describe('games thunks — fetchGames', () => {
 	})
 
 	it('dispatches rejected on API error', async () => {
-		server.use(
-			http.get(`${BASE}/games`, () => HttpResponse.json({ message: 'Server error' }, { status: 500 }))
-		)
+		server.use(http.get(`${BASE}/games`, () => HttpResponse.json({ message: 'Server error' }, { status: 500 })))
 
 		const result = await store.dispatch(fetchGames({}))
 
@@ -175,9 +169,7 @@ describe('games thunks — fetchGameById', () => {
 
 	it('dispatches fulfilled and sets currentGame', async () => {
 		const game = makeGame({ id: 5 })
-		server.use(
-			http.get(`${BASE}/games/5`, () => HttpResponse.json(game))
-		)
+		server.use(http.get(`${BASE}/games/5`, () => HttpResponse.json(game)))
 
 		await store.dispatch(fetchGameById(5))
 
@@ -185,9 +177,7 @@ describe('games thunks — fetchGameById', () => {
 	})
 
 	it('dispatches rejected when game not found', async () => {
-		server.use(
-			http.get(`${BASE}/games/999`, () => HttpResponse.json({ message: 'Not found' }, { status: 404 }))
-		)
+		server.use(http.get(`${BASE}/games/999`, () => HttpResponse.json({ message: 'Not found' }, { status: 404 })))
 
 		const result = await store.dispatch(fetchGameById(999))
 
@@ -206,9 +196,7 @@ describe('games thunks — createGame', () => {
 
 	it('dispatches fulfilled and prepends game to store', async () => {
 		const created = makeGame({ id: 1, name: 'New Game' })
-		server.use(
-			http.post(`${BASE}/games`, () => HttpResponse.json(created, { status: 201 }))
-		)
+		server.use(http.post(`${BASE}/games`, () => HttpResponse.json(created, { status: 201 })))
 
 		await store.dispatch(createGame({ name: 'New Game', statusId: 1, playWithIds: [] }))
 

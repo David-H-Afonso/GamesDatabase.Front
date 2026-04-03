@@ -84,7 +84,7 @@ describe('gamePlatformSlice — extraReducers', () => {
 
 	it('updatePlatform.fulfilled updates platform in list', () => {
 		const original = createGamePlatform({ id: 1, name: 'Old' })
-		let state = gamePlatformReducer(initialState, fetchPlatforms.fulfilled(makePagedResult([original]), '', {}))
+		const state = gamePlatformReducer(initialState, fetchPlatforms.fulfilled(makePagedResult([original]), '', {}))
 		const updated = createGamePlatform({ id: 1, name: 'New' })
 		const action = updatePlatform.fulfilled(updated, '', { id: 1, data: { id: 1, name: 'New', isActive: true } })
 		const next = gamePlatformReducer(state, action)
@@ -93,7 +93,7 @@ describe('gamePlatformSlice — extraReducers', () => {
 
 	it('deletePlatform.fulfilled removes platform', () => {
 		const p = createGamePlatform({ id: 7 })
-		let state = gamePlatformReducer(initialState, fetchPlatforms.fulfilled(makePagedResult([p]), '', {}))
+		const state = gamePlatformReducer(initialState, fetchPlatforms.fulfilled(makePagedResult([p]), '', {}))
 		const action = deletePlatform.fulfilled(7, '', 7)
 		const next = gamePlatformReducer(state, action)
 		expect(next.platforms.find((x) => x.id === 7)).toBeUndefined()

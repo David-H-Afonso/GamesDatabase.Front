@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import type { GameViewCreateDto, ViewConfiguration } from '@/models/api/GameView'
+import type { GameViewCreateDto } from '@/models/api/GameView'
 import { FilterField, FilterOperator, SortField, SortDirection, CombineWith } from '@/models/api/GameView'
 
 // ─── Template definitions ─────────────────────────────────────────────────────

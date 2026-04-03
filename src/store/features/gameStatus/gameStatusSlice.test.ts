@@ -1,14 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import gameStatusReducer from './gameStatusSlice'
-import type { GameStatusState } from '@/models/store/GameStatusState'
 import { fetchStatuses, fetchActiveStatuses, createStatus, updateStatus, deleteStatus } from './thunk'
-import {
-	selectStatuses,
-	selectActiveStatuses,
-	selectStatusLoading,
-	selectStatusError,
-	selectStatusById,
-} from './selector'
+import { selectStatuses, selectActiveStatuses, selectStatusLoading, selectStatusError, selectStatusById } from './selector'
 import { createGameStatus, resetIdCounter } from '@/test/factories'
 import { createTestStore } from '@/test/utils/createTestStore'
 
@@ -24,7 +17,7 @@ function makePagedResult(items = [createGameStatus()]) {
 	}
 }
 
-const initialState = gameStatusReducer(undefined, { type: '@@INIT' }) as GameStatusState
+const initialState = gameStatusReducer(undefined, { type: '@@INIT' })
 
 describe('gameStatusSlice — initial state', () => {
 	it('starts with empty lists and no loading', () => {

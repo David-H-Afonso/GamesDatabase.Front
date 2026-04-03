@@ -1,4 +1,4 @@
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { vi, describe, it, expect, beforeEach, afterEach, type Mock } from 'vitest'
 import { http, HttpResponse } from 'msw'
 import { server } from '@/test/mocks/server'
 
@@ -33,13 +33,13 @@ const pagedEmpty = { data: [], page: 1, pageSize: 50, totalCount: 0, totalPages:
 
 let store: ReturnType<typeof makeStore>
 let persistor: ReturnType<typeof makePersistor>
-let forceLogout: ReturnType<typeof vi.fn>
+let forceLogout: Mock<() => { type: string }>
 
 beforeEach(() => {
 	vi.clearAllMocks()
 	store = makeStore(null)
 	persistor = makePersistor()
-	forceLogout = vi.fn().mockReturnValue({ type: 'auth/forceLogout' })
+	forceLogout = vi.fn<() => { type: string }>().mockReturnValue({ type: 'auth/forceLogout' })
 	initCustomFetch(store, persistor, forceLogout)
 })
 
@@ -125,18 +125,18 @@ describe('Authorization header', () => {
 
 // ── 4. Query string building ──────────────────────────────────────────────────
 
-describe('query string building', () => {
-	function captureUrl(endpoint = '/games') {
-		let url = ''
-		server.use(
-			http.get(`${BASE}${endpoint}`, ({ request }) => {
-				url = request.url
-				return HttpResponse.json(pagedEmpty)
-			})
-		)
-		return { get: () => url }
-	}
+function captureUrl(endpoint = '/games') {
+	let url = ''
+	server.use(
+		http.get(`${BASE}${endpoint}`, ({ request }) => {
+			url = request.url
+			return HttpResponse.json(pagedEmpty)
+		})
+	)
+	return { get: () => url }
+}
 
+describe('query string building', () => {
 	it('sends no query string when params is omitted', async () => {
 		const cap = captureUrl()
 		await customFetch('/games')
@@ -602,22 +602,22 @@ describe('401 unauthorized handling', () => {
 	})
 
 	it('does NOT call forceLogout when already on the /login page', async () => {
-		window.history.pushState({}, '', '/login')
+		globalThis.history.pushState({}, '', '/login')
 		server.use(http.get(`${BASE}/protected`, () => new HttpResponse(null, { status: 401 })))
 		initCustomFetch(makeStore('tok'), persistor, forceLogout)
 		await expect(customFetch('/protected')).rejects.toThrow()
 		expect(forceLogout).not.toHaveBeenCalled()
-		window.history.pushState({}, '', '/')
+		globalThis.history.pushState({}, '', '/')
 	})
 
 	it('does NOT navigate when already on the /login page', async () => {
-		window.history.pushState({}, '', '/login')
+		globalThis.history.pushState({}, '', '/login')
 		server.use(http.get(`${BASE}/protected`, () => new HttpResponse(null, { status: 401 })))
 		initCustomFetch(makeStore('tok'), persistor, forceLogout)
 		await expect(customFetch('/protected')).rejects.toThrow()
 		vi.runAllTimers()
 		expect(vi.mocked(router.navigate)).not.toHaveBeenCalled()
-		window.history.pushState({}, '', '/')
+		globalThis.history.pushState({}, '', '/')
 	})
 
 	it('concurrent 401 responses are idempotent — forceLogout called only once', async () => {

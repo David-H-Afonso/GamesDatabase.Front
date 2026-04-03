@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import gamePlayedStatusReducer from './gamePlayedStatusSlice'
-import type { GamePlayedStatusState } from '@/models/store/GamePlayedStatusState'
 import { fetchPlayedStatuses, fetchActivePlayedStatuses, createPlayedStatus, updatePlayedStatus, deletePlayedStatus } from './thunk'
 import { selectPlayedStatuses, selectActivePlayedStatuses, selectPlayedLoading, selectPlayedError, selectPlayedById } from './selector'
 import { createGamePlayedStatus, resetIdCounter } from '@/test/factories'
@@ -10,7 +9,7 @@ function makePagedResult(items = [createGamePlayedStatus()]) {
 	return { data: items, page: 1, pageSize: 50, totalCount: items.length, totalPages: 1, hasNextPage: false, hasPreviousPage: false }
 }
 
-const initialState = gamePlayedStatusReducer(undefined, { type: '@@INIT' }) as GamePlayedStatusState
+const initialState = gamePlayedStatusReducer(undefined, { type: '@@INIT' })
 
 describe('gamePlayedStatusSlice — initial state', () => {
 	it('starts with empty lists', () => {

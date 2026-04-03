@@ -79,7 +79,7 @@ describe('gamePlayWithSlice — extraReducers', () => {
 
 	it('updatePlayWith.fulfilled updates option in list', () => {
 		const original = createGamePlayWith({ id: 1, name: 'Old' })
-		let state = gamePlayWithReducer(initialState, fetchPlayWithOptions.fulfilled(makePagedResult([original]), '', {}))
+		const state = gamePlayWithReducer(initialState, fetchPlayWithOptions.fulfilled(makePagedResult([original]), '', {}))
 		const updated = createGamePlayWith({ id: 1, name: 'New' })
 		const next = gamePlayWithReducer(state, updatePlayWith.fulfilled(updated, '', { id: 1, data: { id: 1, name: 'New', isActive: true } }))
 		expect(next.playWithOptions[0].name).toBe('New')
@@ -87,7 +87,7 @@ describe('gamePlayWithSlice — extraReducers', () => {
 
 	it('deletePlayWith.fulfilled removes option', () => {
 		const p = createGamePlayWith({ id: 7 })
-		let state = gamePlayWithReducer(initialState, fetchPlayWithOptions.fulfilled(makePagedResult([p]), '', {}))
+		const state = gamePlayWithReducer(initialState, fetchPlayWithOptions.fulfilled(makePagedResult([p]), '', {}))
 		const next = gamePlayWithReducer(state, deletePlayWith.fulfilled(7, '', 7))
 		expect(next.playWithOptions.find((x) => x.id === 7)).toBeUndefined()
 	})

@@ -16,7 +16,6 @@
 		"jsx": "react-jsx",
 
 		/* Path mapping */
-		"baseUrl": ".",
 		"paths": {
 			"@/*": ["./src/*"],
 			"@/assets/*": ["./src/assets/*"],
@@ -41,7 +40,10 @@
 		"noUncheckedSideEffectImports": true,
 
 		/* Testing types */
-		"types": ["vitest/globals"]
+		"types": ["vitest/globals"],
+
+		/* Silence TS7 preview warnings */
+		"ignoreDeprecations": "5.0"
 	},
 	"include": ["src"]
 }
