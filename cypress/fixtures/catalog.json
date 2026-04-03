@@ -1,0 +1,13 @@
+{
+	"statuses": [
+		{ "id": 1, "name": "Completado", "color": "#22c55e", "isActive": true, "statusType": null, "sortOrder": 1 },
+		{ "id": 2, "name": "Pendiente", "color": "#f59e0b", "isActive": true, "statusType": null, "sortOrder": 2 },
+		{ "id": 3, "name": "En Progreso", "color": "#3b82f6", "isActive": true, "statusType": null, "sortOrder": 3 },
+		{ "id": 4, "name": "No interesa", "color": "#6b7280", "isActive": true, "statusType": "NotFulfilled", "sortOrder": 4 }
+	],
+	"specialStatuses": [{ "id": 4, "name": "No interesa", "color": "#6b7280", "isActive": true, "statusType": "NotFulfilled", "sortOrder": 4 }],
+	"platforms": [
+		{ "id": 1, "name": "PC", "color": "#60a5fa", "isActive": true, "sortOrder": 1 },
+		{ "id": 2, "name": "PlayStation", "color": "#003791", "isActive": true, "sortOrder": 2 }
+	]
+}
