@@ -230,4 +230,21 @@ describe('Filter & Search Flow — Integration', () => {
 			expect(store.getState().games.filters.page).toBe(2)
 		})
 	})
+
+	// ── 5.3.5b Sort order toggle ─────────────────────────────────────────────
+
+	it('clicking the sort direction button toggles sortDescending in the Redux store', async () => {
+		renderWithProviders(<HomeComponent />, { store })
+		await screen.findByText('No games found.')
+
+		// Initially ascending
+		expect(store.getState().games.filters.sortDescending).toBe(false)
+
+		const dirBtn = screen.getByTitle('Ascendente')
+		await userEvent.click(dirBtn)
+
+		await waitFor(() => {
+			expect(store.getState().games.filters.sortDescending).toBe(true)
+		})
+	})
 })

@@ -233,4 +233,54 @@ describe('useGamePlatform', () => {
 
 		expect(typeof result.current.createPlatform).toBe('function')
 	})
+
+	// ── Error handling for each function ───────────────────────────────────────
+
+	it('fetchActiveList rejects on failure', async () => {
+		server.use(http.get(`${BASE}/gameplatforms/active`, () => HttpResponse.json({ message: 'fail' }, { status: 500 })))
+
+		const { result } = renderHook(() => useGamePlatform(), { wrapper: createWrapperWithStore(store) })
+
+		await act(async () => {
+			await expect(result.current.fetchActiveList()).rejects.toBeDefined()
+		})
+
+		expect(result.current.loading).toBe(false)
+	})
+
+	it('createItem rejects on failure', async () => {
+		server.use(http.post(`${BASE}/gameplatforms`, () => HttpResponse.json({ message: 'fail' }, { status: 500 })))
+
+		const { result } = renderHook(() => useGamePlatform(), { wrapper: createWrapperWithStore(store) })
+
+		await act(async () => {
+			await expect(result.current.createItem({ name: 'Fail', isActive: true, color: '#f00' })).rejects.toBeDefined()
+		})
+
+		expect(result.current.loading).toBe(false)
+	})
+
+	it('updateItem rejects on failure', async () => {
+		server.use(http.put(`${BASE}/gameplatforms/5`, () => HttpResponse.json({ message: 'fail' }, { status: 500 })))
+
+		const { result } = renderHook(() => useGamePlatform(), { wrapper: createWrapperWithStore(store) })
+
+		await act(async () => {
+			await expect(result.current.updateItem(5, { id: 5, name: 'Fail', isActive: true })).rejects.toBeDefined()
+		})
+
+		expect(result.current.loading).toBe(false)
+	})
+
+	it('deleteItem rejects on failure', async () => {
+		server.use(http.delete(`${BASE}/gameplatforms/99`, () => HttpResponse.json({ message: 'fail' }, { status: 500 })))
+
+		const { result } = renderHook(() => useGamePlatform(), { wrapper: createWrapperWithStore(store) })
+
+		await act(async () => {
+			await expect(result.current.deleteItem(99)).rejects.toBeDefined()
+		})
+
+		expect(result.current.loading).toBe(false)
+	})
 })

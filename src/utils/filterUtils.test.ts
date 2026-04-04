@@ -98,4 +98,14 @@ describe('cloneFilters', () => {
 		const clone = cloneFilters(original)
 		expect(clone.excludeStatusIds).toBeUndefined()
 	})
+
+	it('clones Date values as new Date instances', () => {
+		const date = new Date('2025-01-01')
+		const original: GameQueryParameters = { released: date as any, started: date as any, finished: date as any }
+		const clone = cloneFilters(original)
+		expect(clone.released).not.toBe(date)
+		expect(new Date(clone.released as any).getTime()).toBe(date.getTime())
+		expect(clone.started).not.toBe(date)
+		expect(clone.finished).not.toBe(date)
+	})
 })

@@ -16,7 +16,7 @@ import gamesReducer, {
 	resetState,
 } from './gamesSlice'
 import type { GamesState } from '@/models/store/GamesState'
-import { fetchGames, createGame, updateGame as updateGameThunk, deleteGame } from './thunk'
+import { fetchGames, fetchGameById, createGame, updateGame as updateGameThunk, deleteGame } from './thunk'
 import {
 	selectGames,
 	selectCurrentGame,
@@ -277,6 +277,78 @@ describe('gamesSlice — extraReducers', () => {
 		expect(next.games.find((g) => g.id === 5)).toBeUndefined()
 		expect(next.isDataFresh).toBe(false)
 	})
+
+	it('updateGameThunk.fulfilled updates game and currentGame when matching', () => {
+		const game = makeGame({ id: 5, name: 'Old' })
+		let s = gamesReducer(state, setGames(makePagedResult([game])))
+		s = gamesReducer(s, setCurrentGame(game))
+		const updated = makeGame({ id: 5, name: 'New' })
+		const action = updateGameThunk.fulfilled(updated, '', { id: 5, gameData: { id: 5, name: 'New', statusId: 1 } })
+		const next = gamesReducer(s, action)
+		expect(next.games[0].name).toBe('New')
+		expect(next.currentGame?.name).toBe('New')
+		expect(next.isDataFresh).toBe(false)
+	})
+
+	it('deleteGame.fulfilled clears currentGame when matching', () => {
+		const game = makeGame({ id: 5 })
+		let s = gamesReducer(state, setGames(makePagedResult([game])))
+		s = gamesReducer(s, setCurrentGame(game))
+		const action = deleteGame.fulfilled(5, '', 5)
+		const next = gamesReducer(s, action)
+		expect(next.games.find((g) => g.id === 5)).toBeUndefined()
+		expect(next.currentGame).toBeNull()
+	})
+
+	// --- Missing pending/rejected + fetchGameById + bulkUpdateGames coverage ---
+
+	it('fetchGameById.pending sets loading=true', () => {
+		const next = gamesReducer(state, fetchGameById.pending('', 1))
+		expect(next.loading).toBe(true)
+	})
+
+	it('fetchGameById.fulfilled sets currentGame', () => {
+		const game = makeGame({ id: 10 })
+		const next = gamesReducer(state, fetchGameById.fulfilled(game, '', 10))
+		expect(next.currentGame?.id).toBe(10)
+		expect(next.loading).toBe(false)
+	})
+
+	it('fetchGameById.rejected sets error', () => {
+		const next = gamesReducer(state, fetchGameById.rejected(null, '', 1, 'not found'))
+		expect(next.error).toBe('not found')
+		expect(next.loading).toBe(false)
+	})
+
+	it('createGame.pending sets loading=true', () => {
+		const next = gamesReducer(state, createGame.pending('', {} as any))
+		expect(next.loading).toBe(true)
+	})
+
+	it('createGame.rejected sets error', () => {
+		const next = gamesReducer(state, createGame.rejected(null, '', {} as any, 'create err'))
+		expect(next.error).toBe('create err')
+	})
+
+	it('updateGameThunk.pending sets loading=true', () => {
+		const next = gamesReducer(state, updateGameThunk.pending('', { id: 1, gameData: {} as any }))
+		expect(next.loading).toBe(true)
+	})
+
+	it('updateGameThunk.rejected sets error', () => {
+		const next = gamesReducer(state, updateGameThunk.rejected(null, '', { id: 1, gameData: {} as any }, 'update err'))
+		expect(next.error).toBe('update err')
+	})
+
+	it('deleteGame.pending sets loading=true', () => {
+		const next = gamesReducer(state, deleteGame.pending('', 1))
+		expect(next.loading).toBe(true)
+	})
+
+	it('deleteGame.rejected sets error', () => {
+		const next = gamesReducer(state, deleteGame.rejected(null, '', 1, 'delete err'))
+		expect(next.error).toBe('delete err')
+	})
 })
 
 // ─── Selectors ───────────────────────────────────────────────
@@ -332,5 +404,130 @@ describe('gamesSlice — selectors', () => {
 		})
 		const result = selectGamesByStatus(10)(store.getState())
 		expect(result).toHaveLength(2)
+	})
+})
+
+// ─── Extra branch coverage ────────────────────────────────────
+
+describe('gamesSlice — uncovered branches', () => {
+	it('fetchGames.rejected with null payload uses fallback message', () => {
+		const action = fetchGames.rejected(null, '', undefined as any)
+		const next = gamesReducer(undefined, action)
+		expect(next.error).toBe('Failed to fetch games')
+	})
+
+	it('fetchGameById.rejected with null payload uses fallback message', () => {
+		const action = fetchGameById.rejected(null, '', 1)
+		const next = gamesReducer(undefined, action)
+		expect(next.error).toBe('Failed to fetch game')
+	})
+
+	it('createGame.rejected with null payload uses fallback message', () => {
+		const action = createGame.rejected(null, '', {} as any)
+		const next = gamesReducer(undefined, action)
+		expect(next.error).toBe('Failed to create game')
+	})
+
+	it('updateGame.rejected with null payload uses fallback message', () => {
+		const action = updateGameThunk.rejected(null, '', {} as any)
+		const next = gamesReducer(undefined, action)
+		expect(next.error).toBe('Failed to update game')
+	})
+
+	it('deleteGame.rejected with null payload uses fallback message', () => {
+		const action = deleteGame.rejected(null, '', 1)
+		const next = gamesReducer(undefined, action)
+		expect(next.error).toBe('Failed to delete game')
+	})
+
+	it('fetchGames.fulfilled with undefined arg falls back to empty lastAppliedFilters', () => {
+		const paged = makePagedResult()
+		const action = fetchGames.fulfilled(paged, '', undefined as any)
+		const next = gamesReducer(undefined, action)
+		expect(next.lastAppliedFilters).toEqual({})
+	})
+
+	it('updateGame.fulfilled with non-existent game ID keeps list unchanged', () => {
+		const games = [makeGame({ id: 1 }), makeGame({ id: 2 })]
+		const state: GamesState = { ...gamesReducer(undefined, { type: '@@INIT' }), games }
+		const updatedGame = makeGame({ id: 999, name: 'Unknown' })
+		const action = updateGameThunk.fulfilled(updatedGame, '', {} as any)
+		const next = gamesReducer(state, action)
+		expect(next.games).toHaveLength(2)
+		expect(next.games.find((g) => g.id === 999)).toBeUndefined()
+	})
+
+	it('updateGame.fulfilled with non-matching currentGame does not change currentGame', () => {
+		const games = [makeGame({ id: 1 }), makeGame({ id: 2 })]
+		const currentGame = makeGame({ id: 5, name: 'Other' })
+		const state: GamesState = { ...gamesReducer(undefined, { type: '@@INIT' }), games, currentGame }
+		const updatedGame = makeGame({ id: 1, name: 'Updated' })
+		const action = updateGameThunk.fulfilled(updatedGame, '', {} as any)
+		const next = gamesReducer(state, action)
+		expect(next.currentGame?.id).toBe(5)
+		expect(next.currentGame?.name).toBe('Other')
+	})
+
+	it('updateGame.fulfilled with null currentGame does not error', () => {
+		const games = [makeGame({ id: 1 })]
+		const state: GamesState = { ...gamesReducer(undefined, { type: '@@INIT' }), games, currentGame: null }
+		const updatedGame = makeGame({ id: 1, name: 'Updated' })
+		const action = updateGameThunk.fulfilled(updatedGame, '', {} as any)
+		const next = gamesReducer(state, action)
+		expect(next.currentGame).toBeNull()
+		expect(next.games[0].name).toBe('Updated')
+	})
+
+	it('deleteGame.fulfilled with non-matching currentGame does not clear currentGame', () => {
+		const games = [makeGame({ id: 1 }), makeGame({ id: 2 })]
+		const currentGame = makeGame({ id: 5 })
+		const state: GamesState = { ...gamesReducer(undefined, { type: '@@INIT' }), games, currentGame }
+		const action = deleteGame.fulfilled(1, '', 1)
+		const next = gamesReducer(state, action)
+		expect(next.currentGame?.id).toBe(5)
+		expect(next.games).toHaveLength(1)
+	})
+
+	it('deleteGame.fulfilled with null currentGame does not error', () => {
+		const games = [makeGame({ id: 1 }), makeGame({ id: 2 })]
+		const state: GamesState = { ...gamesReducer(undefined, { type: '@@INIT' }), games, currentGame: null }
+		const action = deleteGame.fulfilled(1, '', 1)
+		const next = gamesReducer(state, action)
+		expect(next.currentGame).toBeNull()
+		expect(next.games).toHaveLength(1)
+	})
+
+	it('updateGame sync reducer does not update when id not in list', () => {
+		const games = [makeGame({ id: 1 })]
+		const state: GamesState = { ...gamesReducer(undefined, { type: '@@INIT' }), games }
+		const updated = makeGame({ id: 999, name: 'Ghost' })
+		const next = gamesReducer(state, updateGameAction(updated))
+		expect(next.games).toHaveLength(1)
+		expect(next.games[0].id).toBe(1)
+	})
+
+	it('updateGame sync reducer with non-matching currentGame', () => {
+		const games = [makeGame({ id: 1 })]
+		const currentGame = makeGame({ id: 5 })
+		const state: GamesState = { ...gamesReducer(undefined, { type: '@@INIT' }), games, currentGame }
+		const updated = makeGame({ id: 1, name: 'Updated' })
+		const next = gamesReducer(state, updateGameAction(updated))
+		expect(next.currentGame?.id).toBe(5)
+	})
+
+	it('removeGame sync reducer with null currentGame', () => {
+		const games = [makeGame({ id: 1 }), makeGame({ id: 2 })]
+		const state: GamesState = { ...gamesReducer(undefined, { type: '@@INIT' }), games, currentGame: null }
+		const next = gamesReducer(state, removeGame(1))
+		expect(next.games).toHaveLength(1)
+		expect(next.currentGame).toBeNull()
+	})
+
+	it('removeGame sync reducer with non-matching currentGame', () => {
+		const games = [makeGame({ id: 1 }), makeGame({ id: 2 })]
+		const currentGame = makeGame({ id: 5 })
+		const state: GamesState = { ...gamesReducer(undefined, { type: '@@INIT' }), games, currentGame }
+		const next = gamesReducer(state, removeGame(1))
+		expect(next.currentGame?.id).toBe(5)
 	})
 })

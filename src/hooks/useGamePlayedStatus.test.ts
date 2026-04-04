@@ -228,4 +228,54 @@ describe('useGamePlayedStatus', () => {
 		expect(typeof result.current.updatePlayedStatus).toBe('function')
 		expect(typeof result.current.deletePlayedStatus).toBe('function')
 	})
+
+	// ── Error handling for each function ───────────────────────────────────────
+
+	it('fetchActiveList rejects on failure', async () => {
+		server.use(http.get(`${BASE}/gameplayedstatus/active`, () => HttpResponse.json({ message: 'fail' }, { status: 500 })))
+
+		const { result } = renderHook(() => useGamePlayedStatus(), { wrapper: createWrapperWithStore(store) })
+
+		await act(async () => {
+			await expect(result.current.fetchActiveList()).rejects.toBeDefined()
+		})
+
+		expect(result.current.loading).toBe(false)
+	})
+
+	it('createItem rejects on failure', async () => {
+		server.use(http.post(`${BASE}/gameplayedstatus`, () => HttpResponse.json({ message: 'fail' }, { status: 500 })))
+
+		const { result } = renderHook(() => useGamePlayedStatus(), { wrapper: createWrapperWithStore(store) })
+
+		await act(async () => {
+			await expect(result.current.createItem({ name: 'Fail', isActive: true, color: '#f00' })).rejects.toBeDefined()
+		})
+
+		expect(result.current.loading).toBe(false)
+	})
+
+	it('updateItem sets error and throws on failure', async () => {
+		server.use(http.put(`${BASE}/gameplayedstatus/5`, () => HttpResponse.json({ message: 'fail' }, { status: 500 })))
+
+		const { result } = renderHook(() => useGamePlayedStatus(), { wrapper: createWrapperWithStore(store) })
+
+		await act(async () => {
+			await expect(result.current.updateItem(5, { id: 5, name: 'Fail', isActive: true })).rejects.toBeDefined()
+		})
+
+		expect(result.current.loading).toBe(false)
+	})
+
+	it('deleteItem sets error and throws on failure', async () => {
+		server.use(http.delete(`${BASE}/gameplayedstatus/99`, () => HttpResponse.json({ message: 'fail' }, { status: 500 })))
+
+		const { result } = renderHook(() => useGamePlayedStatus(), { wrapper: createWrapperWithStore(store) })
+
+		await act(async () => {
+			await expect(result.current.deleteItem(99)).rejects.toBeDefined()
+		})
+
+		expect(result.current.loading).toBe(false)
+	})
 })

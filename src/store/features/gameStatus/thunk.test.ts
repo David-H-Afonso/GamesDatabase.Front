@@ -78,9 +78,10 @@ vi.mock('@/environments', () => ({
 }))
 
 import { initCustomFetch } from '@/utils/customFetch'
-import { fetchStatuses, fetchActiveStatuses, createStatus, updateStatus, deleteStatus } from './thunk'
+import { fetchStatuses, fetchActiveStatuses, createStatus, updateStatus, deleteStatus, fetchSpecialStatuses, reassignSpecialStatuses } from './thunk'
 import { createTestStore } from '@/test/utils/createTestStore'
 import { createGameStatus, resetIdCounter } from '@/test/factories'
+import * as services from '@/services'
 
 const BASE = 'https://localhost:7245/api'
 
@@ -205,5 +206,110 @@ describe('gameStatus thunks — deleteStatus', () => {
 		await store.dispatch(deleteStatus(7))
 
 		expect(store.getState().gameStatus.statuses.find((x) => x.id === 7)).toBeUndefined()
+	})
+
+	it('dispatches rejected on error', async () => {
+		server.use(http.delete(`${BASE}/gamestatus/99`, () => HttpResponse.json({}, { status: 500 })))
+		const result = await store.dispatch(deleteStatus(99))
+		expect(result.type).toBe('gameStatus/deleteStatus/rejected')
+	})
+})
+
+describe('gameStatus thunks — fetchSpecialStatuses', () => {
+	let store: ReturnType<typeof createTestStore>
+
+	beforeEach(() => {
+		resetIdCounter()
+		store = createTestStore()
+		initCustomFetch(store, mockPersistor, mockForceLogout)
+	})
+
+	it('dispatches fulfilled and populates specialStatuses', async () => {
+		const items = [createGameStatus({ id: 1, isSpecialStatus: true })]
+		server.use(http.get(`${BASE}/gamestatus/special`, () => HttpResponse.json(items)))
+		await store.dispatch(fetchSpecialStatuses())
+		expect(store.getState().gameStatus.specialStatuses).toHaveLength(1)
+	})
+
+	it('dispatches rejected on error', async () => {
+		server.use(http.get(`${BASE}/gamestatus/special`, () => HttpResponse.json({}, { status: 500 })))
+		const result = await store.dispatch(fetchSpecialStatuses())
+		expect(result.type).toBe('gameStatus/fetchSpecialStatuses/rejected')
+	})
+})
+
+describe('gameStatus thunks — reassignSpecialStatuses', () => {
+	let store: ReturnType<typeof createTestStore>
+
+	beforeEach(() => {
+		resetIdCounter()
+		store = createTestStore()
+		initCustomFetch(store, mockPersistor, mockForceLogout)
+	})
+
+	it('dispatches fulfilled on success', async () => {
+		server.use(http.post(`${BASE}/gamestatus/reassign-special`, () => new HttpResponse(null, { status: 204 })))
+		const result = await store.dispatch(reassignSpecialStatuses({ newDefaultStatusId: 2, statusType: 'default' }))
+		expect(result.type).toBe('gameStatus/reassignSpecialStatuses/fulfilled')
+	})
+
+	it('dispatches rejected on error', async () => {
+		server.use(http.post(`${BASE}/gamestatus/reassign-special`, () => HttpResponse.json({}, { status: 500 })))
+		const result = await store.dispatch(reassignSpecialStatuses({ newDefaultStatusId: 2, statusType: 'default' }))
+		expect(result.type).toBe('gameStatus/reassignSpecialStatuses/rejected')
+	})
+})
+
+describe('gameStatus thunks — error fallback messages', () => {
+	let store: ReturnType<typeof createTestStore>
+
+	beforeEach(() => {
+		store = createTestStore()
+	})
+
+	afterEach(() => {
+		vi.restoreAllMocks()
+	})
+
+	it('fetchStatuses uses fallback when error has no message', async () => {
+		vi.spyOn(services, 'getGameStatuses').mockRejectedValueOnce({})
+		const result = await store.dispatch(fetchStatuses({}))
+		expect(result.payload).toBe('Failed to fetch statuses')
+	})
+
+	it('fetchActiveStatuses uses fallback when error has no message', async () => {
+		vi.spyOn(services, 'getActiveGameStatuses').mockRejectedValueOnce({})
+		const result = await store.dispatch(fetchActiveStatuses())
+		expect(result.payload).toBe('Failed to fetch active statuses')
+	})
+
+	it('fetchSpecialStatuses uses fallback when error has no message', async () => {
+		vi.spyOn(services, 'getSpecialGameStatuses').mockRejectedValueOnce({})
+		const result = await store.dispatch(fetchSpecialStatuses())
+		expect(result.payload).toBe('Failed to fetch special statuses')
+	})
+
+	it('createStatus uses fallback when error has no message', async () => {
+		vi.spyOn(services, 'createGameStatus').mockRejectedValueOnce({})
+		const result = await store.dispatch(createStatus({ name: 'X', isActive: true, color: '#FFF', sortOrder: 1 }))
+		expect(result.payload).toBe('Failed to create status')
+	})
+
+	it('updateStatus uses fallback when error has no message', async () => {
+		vi.spyOn(services, 'updateGameStatus').mockRejectedValueOnce({})
+		const result = await store.dispatch(updateStatus({ id: 1, statusData: { id: 1, name: 'X', isActive: true } }))
+		expect(result.payload).toBe('Failed to update status')
+	})
+
+	it('deleteStatus uses fallback when error has no message', async () => {
+		vi.spyOn(services, 'deleteGameStatus').mockRejectedValueOnce({})
+		const result = await store.dispatch(deleteStatus(1))
+		expect(result.payload).toBe('Failed to delete status')
+	})
+
+	it('reassignSpecialStatuses uses fallback when error has no message', async () => {
+		vi.spyOn(services, 'reassignSpecialStatuses').mockRejectedValueOnce({})
+		const result = await store.dispatch(reassignSpecialStatuses({ newDefaultStatusId: 2, statusType: 'default' }))
+		expect(result.payload).toBe('Failed to reassign special statuses')
 	})
 })

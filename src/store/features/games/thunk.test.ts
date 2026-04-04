@@ -78,9 +78,10 @@ vi.mock('@/environments', () => ({
 }))
 
 import { initCustomFetch } from '@/utils/customFetch'
-import { fetchGames, fetchGameById, createGame, deleteGame } from './thunk'
+import { fetchGames, fetchGameById, createGame, updateGame, deleteGame, bulkUpdateGames } from './thunk'
 import { createTestStore } from '@/test/utils/createTestStore'
 import { createGame as makeGame, createGameList, resetIdCounter } from '@/test/factories'
+import * as GamesService from '@/services/GamesService'
 
 const BASE = 'https://localhost:7245/api'
 
@@ -236,5 +237,111 @@ describe('games thunks — deleteGame', () => {
 
 		await store.dispatch(deleteGame(10))
 		expect(store.getState().games.games.find((g) => g.id === 10)).toBeUndefined()
+	})
+
+	it('dispatches rejected on error', async () => {
+		server.use(http.delete(`${BASE}/games/99`, () => HttpResponse.json({}, { status: 500 })))
+		const result = await store.dispatch(deleteGame(99))
+		expect(result.type).toBe('games/deleteGame/rejected')
+	})
+})
+
+describe('games thunks — updateGame', () => {
+	let store: ReturnType<typeof createTestStore>
+
+	beforeEach(() => {
+		resetIdCounter()
+		store = createTestStore()
+		initCustomFetch(store, mockPersistor, mockForceLogout)
+	})
+
+	it('dispatches fulfilled and updates game in store', async () => {
+		const original = makeGame({ id: 5, name: 'Old Name' })
+		server.use(http.get(`${BASE}/games`, () => HttpResponse.json(makePagedResult([original]))))
+		await store.dispatch(fetchGames({}))
+
+		const updated = makeGame({ id: 5, name: 'Updated Name' })
+		server.use(
+			http.put(`${BASE}/games/5`, () => new HttpResponse(null, { status: 204 })),
+			http.get(`${BASE}/games/5`, () => HttpResponse.json(updated))
+		)
+		await store.dispatch(updateGame({ id: 5, gameData: { id: 5, name: 'Updated Name', statusId: 1, playWithIds: [] } }))
+		expect(store.getState().games.games.find((g) => g.id === 5)?.name).toBe('Updated Name')
+	})
+
+	it('dispatches rejected on error', async () => {
+		server.use(http.put(`${BASE}/games/5`, () => HttpResponse.json({}, { status: 500 })))
+		const result = await store.dispatch(updateGame({ id: 5, gameData: { id: 5, name: 'Fail', statusId: 1, playWithIds: [] } }))
+		expect(result.type).toBe('games/updateGame/rejected')
+	})
+})
+
+describe('games thunks — bulkUpdateGames', () => {
+	let store: ReturnType<typeof createTestStore>
+
+	beforeEach(() => {
+		resetIdCounter()
+		store = createTestStore()
+		initCustomFetch(store, mockPersistor, mockForceLogout)
+	})
+
+	it('dispatches fulfilled on success', async () => {
+		server.use(http.patch(`${BASE}/games/bulk`, () => HttpResponse.json({ updated: 3 })))
+		const result = await store.dispatch(bulkUpdateGames({ gameIds: [1, 2, 3], statusId: 2 }))
+		expect(result.type).toBe('games/bulkUpdateGames/fulfilled')
+	})
+
+	it('dispatches rejected on error', async () => {
+		server.use(http.patch(`${BASE}/games/bulk`, () => HttpResponse.json({}, { status: 500 })))
+		const result = await store.dispatch(bulkUpdateGames({ gameIds: [1], statusId: 2 }))
+		expect(result.type).toBe('games/bulkUpdateGames/rejected')
+	})
+})
+
+describe('games thunks — error fallback messages', () => {
+	let store: ReturnType<typeof createTestStore>
+
+	beforeEach(() => {
+		store = createTestStore()
+	})
+
+	afterEach(() => {
+		vi.restoreAllMocks()
+	})
+
+	it('fetchGames uses fallback when error has no message', async () => {
+		vi.spyOn(GamesService, 'getGames').mockRejectedValueOnce({})
+		const result = await store.dispatch(fetchGames({}))
+		expect(result.payload).toBe('Failed to fetch games')
+	})
+
+	it('fetchGameById uses fallback when error has no message', async () => {
+		vi.spyOn(GamesService, 'getGameById').mockRejectedValueOnce({})
+		const result = await store.dispatch(fetchGameById(1))
+		expect(result.payload).toBe('Failed to fetch game')
+	})
+
+	it('createGame uses fallback when error has no message', async () => {
+		vi.spyOn(GamesService, 'createGame').mockRejectedValueOnce({})
+		const result = await store.dispatch(createGame({ name: 'X', statusId: 1 }))
+		expect(result.payload).toBe('Failed to create game')
+	})
+
+	it('updateGame uses fallback when error has no message', async () => {
+		vi.spyOn(GamesService, 'updateGame').mockRejectedValueOnce({})
+		const result = await store.dispatch(updateGame({ id: 1, gameData: { id: 1, name: 'X', statusId: 1 } }))
+		expect(result.payload).toBe('Failed to update game')
+	})
+
+	it('deleteGame uses fallback when error has no message', async () => {
+		vi.spyOn(GamesService, 'deleteGame').mockRejectedValueOnce({})
+		const result = await store.dispatch(deleteGame(1))
+		expect(result.payload).toBe('Failed to delete game')
+	})
+
+	it('bulkUpdateGames uses fallback when error has no message', async () => {
+		vi.spyOn(GamesService, 'bulkUpdateGames').mockRejectedValueOnce({})
+		const result = await store.dispatch(bulkUpdateGames({ gameIds: [1], statusId: 2 }))
+		expect(result.payload).toBe('Failed to bulk update games')
 	})
 })

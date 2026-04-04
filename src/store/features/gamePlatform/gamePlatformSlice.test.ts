@@ -98,6 +98,153 @@ describe('gamePlatformSlice — extraReducers', () => {
 		const next = gamePlatformReducer(state, action)
 		expect(next.platforms.find((x) => x.id === 7)).toBeUndefined()
 	})
+
+	it('fetchActivePlatforms.pending sets loading=true', () => {
+		const action = fetchActivePlatforms.pending('', undefined)
+		const next = gamePlatformReducer(initialState, action)
+		expect(next.loading).toBe(true)
+		expect(next.error).toBeNull()
+	})
+
+	it('fetchActivePlatforms.rejected sets error', () => {
+		const action = fetchActivePlatforms.rejected(null, '', undefined, 'active error')
+		const next = gamePlatformReducer(initialState, action)
+		expect(next.error).toBe('active error')
+		expect(next.loading).toBe(false)
+	})
+
+	it('createPlatform.pending sets loading=true', () => {
+		const action = createPlatform.pending('', { name: 'X', isActive: true, color: '#FFF' })
+		expect(gamePlatformReducer(initialState, action).loading).toBe(true)
+	})
+
+	it('createPlatform.rejected sets error', () => {
+		const action = createPlatform.rejected(null, '', { name: 'X', isActive: true, color: '#FFF' }, 'create error')
+		const next = gamePlatformReducer(initialState, action)
+		expect(next.error).toBe('create error')
+		expect(next.loading).toBe(false)
+	})
+
+	it('createPlatform.fulfilled adds active platform to both lists', () => {
+		const p = createGamePlatform({ id: 10, isActive: true })
+		const action = createPlatform.fulfilled(p, '', { name: p.name, isActive: true, color: p.color })
+		const next = gamePlatformReducer(initialState, action)
+		expect(next.platforms).toHaveLength(1)
+		expect(next.activePlatforms).toHaveLength(1)
+	})
+
+	it('updatePlatform.pending sets loading=true', () => {
+		const action = updatePlatform.pending('', { id: 1, data: { id: 1, name: 'X', isActive: true } })
+		expect(gamePlatformReducer(initialState, action).loading).toBe(true)
+	})
+
+	it('updatePlatform.rejected sets error', () => {
+		const action = updatePlatform.rejected(null, '', { id: 1, data: { id: 1, name: 'X', isActive: true } }, 'update error')
+		const next = gamePlatformReducer(initialState, action)
+		expect(next.error).toBe('update error')
+	})
+
+	it('updatePlatform.fulfilled moves platform to active list', () => {
+		const p = createGamePlatform({ id: 1, isActive: false })
+		let state = gamePlatformReducer(initialState, fetchPlatforms.fulfilled(makePagedResult([p]), '', {}))
+		const updated = createGamePlatform({ id: 1, isActive: true })
+		state = gamePlatformReducer(state, updatePlatform.fulfilled(updated, '', { id: 1, data: { id: 1, name: 'X', isActive: true } }))
+		expect(state.activePlatforms).toHaveLength(1)
+	})
+
+	it('updatePlatform.fulfilled removes platform from active list when deactivated', () => {
+		const p = createGamePlatform({ id: 1, isActive: true })
+		let state = gamePlatformReducer(initialState, fetchPlatforms.fulfilled(makePagedResult([p]), '', {}))
+		state = gamePlatformReducer(state, fetchActivePlatforms.fulfilled([p], '', undefined))
+		const updated = createGamePlatform({ id: 1, isActive: false })
+		state = gamePlatformReducer(state, updatePlatform.fulfilled(updated, '', { id: 1, data: { id: 1, name: 'X', isActive: false } }))
+		expect(state.activePlatforms).toHaveLength(0)
+	})
+
+	it('deletePlatform.pending sets loading=true', () => {
+		const action = deletePlatform.pending('', 1)
+		expect(gamePlatformReducer(initialState, action).loading).toBe(true)
+	})
+
+	it('deletePlatform.rejected sets error', () => {
+		const action = deletePlatform.rejected(null, '', 1, 'delete error')
+		const next = gamePlatformReducer(initialState, action)
+		expect(next.error).toBe('delete error')
+	})
+})
+
+describe('gamePlatformSlice — sync reducers (extended)', () => {
+	beforeEach(() => resetIdCounter())
+
+	it('setCurrentPlatform sets and clears', () => {
+		const p = createGamePlatform({ id: 1 })
+		let state = gamePlatformReducer(initialState, { type: 'gamePlatform/setCurrentPlatform', payload: p })
+		expect(state.currentPlatform).toEqual(p)
+		state = gamePlatformReducer(state, { type: 'gamePlatform/setCurrentPlatform', payload: null })
+		expect(state.currentPlatform).toBeNull()
+	})
+
+	it('updatePlatform reducer — updates existing active in place', () => {
+		const p = createGamePlatform({ id: 1, name: 'Old', isActive: true })
+		let state = gamePlatformReducer(initialState, { type: 'gamePlatform/addPlatform', payload: p })
+		const updated = { ...p, name: 'New', isActive: true }
+		state = gamePlatformReducer(state, { type: 'gamePlatform/updatePlatform', payload: updated })
+		expect(state.activePlatforms[0].name).toBe('New')
+	})
+
+	it('updatePlatform reducer — adds to active when newly activated', () => {
+		const p = createGamePlatform({ id: 1, isActive: false })
+		let state = gamePlatformReducer(initialState, { type: 'gamePlatform/addPlatform', payload: p })
+		const updated = { ...p, isActive: true }
+		state = gamePlatformReducer(state, { type: 'gamePlatform/updatePlatform', payload: updated })
+		expect(state.activePlatforms).toHaveLength(1)
+	})
+
+	it('updatePlatform reducer — removes from active when deactivated', () => {
+		const p = createGamePlatform({ id: 1, isActive: true })
+		let state = gamePlatformReducer(initialState, { type: 'gamePlatform/addPlatform', payload: p })
+		const updated = { ...p, isActive: false }
+		state = gamePlatformReducer(state, { type: 'gamePlatform/updatePlatform', payload: updated })
+		expect(state.activePlatforms).toHaveLength(0)
+	})
+
+	it('setFilters sets filters', () => {
+		const next = gamePlatformReducer(initialState, { type: 'gamePlatform/setFilters', payload: { search: 'PC' } })
+		expect(next.filters).toEqual({ search: 'PC' })
+	})
+
+	it('clearFilters clears filters', () => {
+		let state = gamePlatformReducer(initialState, { type: 'gamePlatform/setFilters', payload: { search: 'x' } })
+		state = gamePlatformReducer(state, { type: 'gamePlatform/clearFilters' })
+		expect(state.filters).toEqual({})
+	})
+
+	it('setPagination merges pagination', () => {
+		const next = gamePlatformReducer(initialState, { type: 'gamePlatform/setPagination', payload: { page: 2 } })
+		expect(next.pagination.page).toBe(2)
+		expect(next.pagination.pageSize).toBe(initialState.pagination.pageSize)
+	})
+
+	it('reset returns to initial state', () => {
+		const p = createGamePlatform({ id: 1 })
+		let state = gamePlatformReducer(initialState, { type: 'gamePlatform/addPlatform', payload: p })
+		state = gamePlatformReducer(state, { type: 'gamePlatform/reset' })
+		expect(state).toEqual(initialState)
+	})
+})
+
+describe('gamePlatformSlice — updatePlatformThunk.fulfilled branches', () => {
+	beforeEach(() => resetIdCounter())
+
+	it('updates existing active item in place', () => {
+		const original = createGamePlatform({ id: 1, name: 'Old', isActive: true })
+		let state = gamePlatformReducer(initialState, fetchPlatforms.fulfilled(makePagedResult([original]), '', {}))
+		state = gamePlatformReducer(state, fetchActivePlatforms.fulfilled([original], '', undefined))
+		const updated = { ...original, name: 'New', isActive: true }
+		state = gamePlatformReducer(state, updatePlatform.fulfilled(updated, '', { id: 1, data: { id: 1, name: 'New', isActive: true } }))
+		expect(state.activePlatforms).toHaveLength(1)
+		expect(state.activePlatforms[0].name).toBe('New')
+	})
 })
 
 describe('gamePlatformSlice — selectors', () => {

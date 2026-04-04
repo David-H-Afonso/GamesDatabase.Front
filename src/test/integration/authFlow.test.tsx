@@ -261,4 +261,57 @@ describe('Auth Flow — Integration', () => {
 		expect(store.getState().auth.token).toBeNull()
 		expect(store.getState().auth.user).toBeNull()
 	})
+
+	// ── 5.2.6 Recent user login ───────────────────────────────────────────────
+
+	it('clicking a recent user pre-fills username and logs in after entering password', async () => {
+		store = createTestStore({
+			recentUsers: {
+				users: [{ username: 'alice', hasPassword: true }],
+			},
+		} as any)
+		initCustomFetch(store, mockPersistor, mockForceLogout)
+
+		server.use(
+			http.post(`${BASE}/users/login`, () => HttpResponse.json({ userId: 2, username: 'alice', role: 'User', token: 'alice-token' })),
+			http.get(`${BASE}/users/:id`, () =>
+				HttpResponse.json({
+					id: 2,
+					username: 'alice',
+					role: 'User',
+					isDefault: false,
+					hasPassword: true,
+					useScoreColors: false,
+					scoreProvider: 'Metacritic',
+					showPriceComparisonIcon: false,
+					createdAt: '2024-01-01',
+					updatedAt: '2024-01-01',
+				})
+			)
+		)
+
+		renderWithProviders(
+			<Routes>
+				<Route path='/login' element={<Login />} />
+				<Route path='/' element={<div>Home Page</div>} />
+			</Routes>,
+			{ store, route: '/login' }
+		)
+
+		// Click on the recent user card
+		const userCard = screen.getByText('alice')
+		await userEvent.click(userCard)
+
+		// Username should be pre-filled
+		expect(screen.getByPlaceholderText(/username/i)).toHaveValue('alice')
+
+		// Enter password and submit
+		await userEvent.type(screen.getByPlaceholderText(/password/i), 'alice-pass')
+		await userEvent.click(screen.getByRole('button', { name: /sign in/i }))
+
+		await waitFor(() => {
+			expect(store.getState().auth.isAuthenticated).toBe(true)
+		})
+		expect(screen.getByText('Home Page')).toBeInTheDocument()
+	})
 })

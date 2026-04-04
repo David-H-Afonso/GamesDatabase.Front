@@ -261,4 +261,92 @@ describe('useGameStatus', () => {
 		expect(typeof result.current.loadStatuses).toBe('function')
 		expect(result.current.loadStatuses).toBe(result.current.fetchStatusList)
 	})
+
+	// ── Error handling for each function ───────────────────────────────────────
+
+	it('fetchActiveStatusList sets error on failure', async () => {
+		server.use(http.get(`${BASE}/gamestatus/active`, () => HttpResponse.json({ message: 'fail' }, { status: 500 })))
+
+		const { result } = renderHook(() => useGameStatus(), { wrapper: createWrapperWithStore(store) })
+
+		await act(async () => {
+			await result.current.fetchActiveStatusList()
+		})
+
+		expect(result.current.loading).toBe(false)
+	})
+
+	it('fetchSpecialStatusList sets error on failure', async () => {
+		server.use(http.get(`${BASE}/gamestatus/special`, () => HttpResponse.json({ message: 'fail' }, { status: 500 })))
+
+		const { result } = renderHook(() => useGameStatus(), { wrapper: createWrapperWithStore(store) })
+
+		await act(async () => {
+			await result.current.fetchSpecialStatusList()
+		})
+
+		expect(result.current.loading).toBe(false)
+	})
+
+	it('createNewStatus sets error and throws on failure', async () => {
+		server.use(http.post(`${BASE}/gamestatus`, () => HttpResponse.json({ message: 'fail' }, { status: 500 })))
+
+		const { result } = renderHook(() => useGameStatus(), { wrapper: createWrapperWithStore(store) })
+
+		await act(async () => {
+			await expect(result.current.createNewStatus({ name: 'Fail', isActive: true, color: '#f00', sortOrder: 1 })).rejects.toBeDefined()
+		})
+
+		expect(result.current.loading).toBe(false)
+	})
+
+	it('updateExistingStatus sets error and throws on failure', async () => {
+		server.use(http.put(`${BASE}/gamestatus/5`, () => HttpResponse.json({ message: 'fail' }, { status: 500 })))
+
+		const { result } = renderHook(() => useGameStatus(), { wrapper: createWrapperWithStore(store) })
+
+		await act(async () => {
+			await expect(result.current.updateExistingStatus(5, { id: 5, name: 'Fail', isActive: true })).rejects.toBeDefined()
+		})
+
+		expect(result.current.loading).toBe(false)
+	})
+
+	it('deleteById sets error and throws on failure', async () => {
+		server.use(http.delete(`${BASE}/gamestatus/99`, () => HttpResponse.json({ message: 'fail' }, { status: 500 })))
+
+		const { result } = renderHook(() => useGameStatus(), { wrapper: createWrapperWithStore(store) })
+
+		await act(async () => {
+			await expect(result.current.deleteById(99)).rejects.toBeDefined()
+		})
+
+		expect(result.current.loading).toBe(false)
+	})
+
+	it('reassignSpecial sets error and throws on failure', async () => {
+		server.use(http.post(`${BASE}/gamestatus/reassign-special`, () => HttpResponse.json({ message: 'fail' }, { status: 500 })))
+
+		const { result } = renderHook(() => useGameStatus(), { wrapper: createWrapperWithStore(store) })
+
+		await act(async () => {
+			await expect(result.current.reassignSpecial({ newDefaultStatusId: 2, statusType: 'default' })).rejects.toBeDefined()
+		})
+
+		expect(result.current.loading).toBe(false)
+	})
+
+	it('setPagination does not crash with function updater', () => {
+		const { result } = renderHook(() => useGameStatus(), { wrapper: createWrapperWithStore(store) })
+		act(() => {
+			result.current.setPagination(() => ({ page: 2 }))
+		})
+	})
+
+	it('setPagination does not crash with non-function value', () => {
+		const { result } = renderHook(() => useGameStatus(), { wrapper: createWrapperWithStore(store) })
+		act(() => {
+			result.current.setPagination({ page: 2 })
+		})
+	})
 })

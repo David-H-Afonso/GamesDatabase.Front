@@ -105,6 +105,37 @@ describe('themeSlice — initializeTheme', () => {
 		// Either dark (fallback) or whatever the logic picks - just verify it's in availableThemes
 		expect(['light', 'dark']).toContain(next.currentTheme)
 	})
+
+	it('uses system dark preference when no saved theme', () => {
+		vi.spyOn(globalThis, 'matchMedia').mockReturnValueOnce({
+			matches: true,
+			media: '(prefers-color-scheme: dark)',
+			onchange: null,
+			addListener: vi.fn(),
+			removeListener: vi.fn(),
+			addEventListener: vi.fn(),
+			removeEventListener: vi.fn(),
+			dispatchEvent: vi.fn(),
+		})
+		const next = themeReducer({ ...initialState, availableThemes: ['light', 'dark'] }, initializeTheme())
+		expect(next.currentTheme).toBe('dark')
+	})
+
+	it('ignores invalid saved theme and falls back to system preference', () => {
+		localStorage.setItem('theme', 'nonexistent-theme')
+		vi.spyOn(globalThis, 'matchMedia').mockReturnValueOnce({
+			matches: true,
+			media: '(prefers-color-scheme: dark)',
+			onchange: null,
+			addListener: vi.fn(),
+			removeListener: vi.fn(),
+			addEventListener: vi.fn(),
+			removeEventListener: vi.fn(),
+			dispatchEvent: vi.fn(),
+		})
+		const next = themeReducer({ ...initialState, availableThemes: ['light', 'dark'] }, initializeTheme())
+		expect(next.currentTheme).toBe('dark')
+	})
 })
 
 describe('themeSlice — setCardStyle / setViewMode / reset', () => {

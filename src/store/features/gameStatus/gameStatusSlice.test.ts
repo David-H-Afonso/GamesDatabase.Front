@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import gameStatusReducer from './gameStatusSlice'
-import { fetchStatuses, fetchActiveStatuses, createStatus, updateStatus, deleteStatus } from './thunk'
+import { fetchStatuses, fetchActiveStatuses, fetchSpecialStatuses, createStatus, updateStatus, deleteStatus, reassignSpecialStatuses } from './thunk'
 import { selectStatuses, selectActiveStatuses, selectStatusLoading, selectStatusError, selectStatusById } from './selector'
 import { createGameStatus, resetIdCounter } from '@/test/factories'
 import { createTestStore } from '@/test/utils/createTestStore'
@@ -111,6 +111,172 @@ describe('gameStatusSlice — extraReducers', () => {
 		expect(next.statuses.find((x) => x.id === 7)).toBeUndefined()
 		expect(next.activeStatuses.find((x) => x.id === 7)).toBeUndefined()
 	})
+
+	it('fetchActiveStatuses.pending sets loading=true', () => {
+		const next = gameStatusReducer(initialState, fetchActiveStatuses.pending('', undefined))
+		expect(next.loading).toBe(true)
+	})
+
+	it('fetchActiveStatuses.rejected sets error', () => {
+		const next = gameStatusReducer(initialState, fetchActiveStatuses.rejected(null, '', undefined, 'active error'))
+		expect(next.error).toBe('active error')
+		expect(next.loading).toBe(false)
+	})
+
+	it('createStatus.pending sets loading=true', () => {
+		const next = gameStatusReducer(initialState, createStatus.pending('', { name: 'X', isActive: true, color: '#FFF', sortOrder: 1 }))
+		expect(next.loading).toBe(true)
+	})
+
+	it('createStatus.rejected sets error', () => {
+		const next = gameStatusReducer(initialState, createStatus.rejected(null, '', { name: 'X', isActive: true, color: '#FFF', sortOrder: 1 }, 'create error'))
+		expect(next.error).toBe('create error')
+	})
+
+	it('updateStatus.pending sets loading=true', () => {
+		const next = gameStatusReducer(initialState, updateStatus.pending('', { id: 1, statusData: { id: 1, name: 'X', isActive: true } }))
+		expect(next.loading).toBe(true)
+	})
+
+	it('updateStatus.rejected sets error', () => {
+		const next = gameStatusReducer(initialState, updateStatus.rejected(null, '', { id: 1, statusData: { id: 1, name: 'X', isActive: true } }, 'update error'))
+		expect(next.error).toBe('update error')
+	})
+
+	it('deleteStatus.pending sets loading=true', () => {
+		const next = gameStatusReducer(initialState, deleteStatus.pending('', 1))
+		expect(next.loading).toBe(true)
+	})
+
+	it('deleteStatus.rejected sets error', () => {
+		const next = gameStatusReducer(initialState, deleteStatus.rejected(null, '', 1, 'delete error'))
+		expect(next.error).toBe('delete error')
+	})
+
+	it('createStatus.fulfilled adds active status to both lists', () => {
+		const s = createGameStatus({ id: 10, isActive: true })
+		const next = gameStatusReducer(initialState, createStatus.fulfilled(s, '', { name: s.name, isActive: true, color: s.color, sortOrder: 1 }))
+		expect(next.statuses).toHaveLength(1)
+		expect(next.activeStatuses).toHaveLength(1)
+	})
+})
+
+describe('gameStatusSlice — sync reducers (extended)', () => {
+	beforeEach(() => resetIdCounter())
+
+	it('setCurrentStatus sets currentStatus', () => {
+		const s = createGameStatus({ id: 1 })
+		const next = gameStatusReducer(initialState, { type: 'gameStatus/setCurrentStatus', payload: s })
+		expect(next.currentStatus).toEqual(s)
+	})
+
+	it('setCurrentStatus clears with null', () => {
+		const s = createGameStatus({ id: 1 })
+		let state = gameStatusReducer(initialState, { type: 'gameStatus/setCurrentStatus', payload: s })
+		state = gameStatusReducer(state, { type: 'gameStatus/setCurrentStatus', payload: null })
+		expect(state.currentStatus).toBeNull()
+	})
+
+	it('updateStatus — updates existing active item in place', () => {
+		const s = createGameStatus({ id: 1, name: 'Old', isActive: true })
+		let state = gameStatusReducer(initialState, { type: 'gameStatus/addStatus', payload: s })
+		const updated = { ...s, name: 'New', isActive: true }
+		state = gameStatusReducer(state, { type: 'gameStatus/updateStatus', payload: updated })
+		expect(state.statuses[0].name).toBe('New')
+		expect(state.activeStatuses.find((x) => x.id === 1)?.name).toBe('New')
+	})
+
+	it('updateStatus — adds to active list when newly activated', () => {
+		const s = createGameStatus({ id: 1, isActive: false })
+		let state = gameStatusReducer(initialState, { type: 'gameStatus/addStatus', payload: s })
+		expect(state.activeStatuses).toHaveLength(0)
+		const updated = { ...s, isActive: true }
+		state = gameStatusReducer(state, { type: 'gameStatus/updateStatus', payload: updated })
+		expect(state.activeStatuses).toHaveLength(1)
+	})
+
+	it('updateStatus — removes from active list when deactivated', () => {
+		const s = createGameStatus({ id: 1, isActive: true })
+		let state = gameStatusReducer(initialState, { type: 'gameStatus/addStatus', payload: s })
+		expect(state.activeStatuses).toHaveLength(1)
+		const updated = { ...s, isActive: false }
+		state = gameStatusReducer(state, { type: 'gameStatus/updateStatus', payload: updated })
+		expect(state.activeStatuses).toHaveLength(0)
+	})
+
+	it('updateStatus — updates currentStatus when matching', () => {
+		const s = createGameStatus({ id: 1, name: 'Old' })
+		let state = gameStatusReducer(initialState, { type: 'gameStatus/addStatus', payload: s })
+		state = gameStatusReducer(state, { type: 'gameStatus/setCurrentStatus', payload: s })
+		const updated = { ...s, name: 'New' }
+		state = gameStatusReducer(state, { type: 'gameStatus/updateStatus', payload: updated })
+		expect(state.currentStatus?.name).toBe('New')
+	})
+
+	it('setFilters sets filters', () => {
+		const next = gameStatusReducer(initialState, { type: 'gameStatus/setFilters', payload: { search: 'test' } })
+		expect(next.filters).toEqual({ search: 'test' })
+	})
+
+	it('resetFilters clears filters', () => {
+		let state = gameStatusReducer(initialState, { type: 'gameStatus/setFilters', payload: { search: 'test' } })
+		state = gameStatusReducer(state, { type: 'gameStatus/resetFilters' })
+		expect(state.filters).toEqual({})
+	})
+
+	it('resetState returns to initial state', () => {
+		const s = createGameStatus({ id: 1 })
+		let state = gameStatusReducer(initialState, { type: 'gameStatus/addStatus', payload: s })
+		state = gameStatusReducer(state, { type: 'gameStatus/resetState' })
+		expect(state).toEqual(initialState)
+	})
+
+	it('removeStatus clears currentStatus when matching', () => {
+		const s = createGameStatus({ id: 5 })
+		let state = gameStatusReducer(initialState, { type: 'gameStatus/addStatus', payload: s })
+		state = gameStatusReducer(state, { type: 'gameStatus/setCurrentStatus', payload: s })
+		state = gameStatusReducer(state, { type: 'gameStatus/removeStatus', payload: 5 })
+		expect(state.currentStatus).toBeNull()
+	})
+})
+
+describe('gameStatusSlice — updateStatusThunk.fulfilled branches', () => {
+	beforeEach(() => resetIdCounter())
+
+	it('adds to active list when item becomes active', () => {
+		const original = createGameStatus({ id: 1, isActive: false })
+		let state = gameStatusReducer(initialState, fetchStatuses.fulfilled(makePagedResult([original]), '', {}))
+		const updated = { ...original, isActive: true }
+		state = gameStatusReducer(state, updateStatus.fulfilled(updated, '', { id: 1, statusData: { id: 1, name: original.name, isActive: true } }))
+		expect(state.activeStatuses).toHaveLength(1)
+	})
+
+	it('updates existing active item in place', () => {
+		const original = createGameStatus({ id: 1, name: 'Old', isActive: true })
+		let state = gameStatusReducer(initialState, fetchStatuses.fulfilled(makePagedResult([original]), '', {}))
+		state = gameStatusReducer(state, fetchActiveStatuses.fulfilled([original], '', undefined))
+		const updated = { ...original, name: 'New', isActive: true }
+		state = gameStatusReducer(state, updateStatus.fulfilled(updated, '', { id: 1, statusData: { id: 1, name: 'New', isActive: true } }))
+		expect(state.activeStatuses).toHaveLength(1)
+		expect(state.activeStatuses[0].name).toBe('New')
+	})
+
+	it('removes from active list when deactivated', () => {
+		const original = createGameStatus({ id: 1, isActive: true })
+		let state = gameStatusReducer(initialState, fetchStatuses.fulfilled(makePagedResult([original]), '', {}))
+		state = gameStatusReducer(state, fetchActiveStatuses.fulfilled([original], '', undefined))
+		const updated = { ...original, isActive: false }
+		state = gameStatusReducer(state, updateStatus.fulfilled(updated, '', { id: 1, statusData: { id: 1, name: original.name, isActive: false } }))
+		expect(state.activeStatuses).toHaveLength(0)
+	})
+
+	it('updates currentStatus when matching', () => {
+		const original = createGameStatus({ id: 1, name: 'Old' })
+		let state = gameStatusReducer({ ...initialState, currentStatus: original, statuses: [original] }, { type: '@@NOOP' })
+		const updated = { ...original, name: 'New' }
+		state = gameStatusReducer(state, updateStatus.fulfilled(updated, '', { id: 1, statusData: { id: 1, name: 'New', isActive: true } }))
+		expect(state.currentStatus?.name).toBe('New')
+	})
 })
 
 describe('gameStatusSlice — selectors', () => {
@@ -132,5 +298,49 @@ describe('gameStatusSlice — selectors', () => {
 		expect(selectStatusError(s)).toBe('err')
 		expect(selectStatusById(2)(s)?.id).toBe(2)
 		expect(selectStatusById(99)(s)).toBeUndefined()
+	})
+})
+
+// --- Missing thunk coverage: fetchSpecialStatuses, reassignSpecialStatuses ---
+
+describe('gameStatusSlice — special thunks', () => {
+	const initialState = gameStatusReducer(undefined, { type: '@@INIT' }) as any
+
+	it('fetchSpecialStatuses.pending sets loading=true', () => {
+		const next = gameStatusReducer(initialState, fetchSpecialStatuses.pending('', undefined))
+		expect(next.loading).toBe(true)
+		expect(next.error).toBeNull()
+	})
+
+	it('fetchSpecialStatuses.fulfilled sets specialStatuses', () => {
+		const specials = [createGameStatus({ id: 99, name: 'Special' })]
+		const next = gameStatusReducer(initialState, fetchSpecialStatuses.fulfilled(specials, '', undefined))
+		expect(next.loading).toBe(false)
+		expect(next.specialStatuses).toHaveLength(1)
+		expect(next.specialStatuses[0].name).toBe('Special')
+	})
+
+	it('fetchSpecialStatuses.rejected sets error', () => {
+		const next = gameStatusReducer(initialState, fetchSpecialStatuses.rejected(null, '', undefined, 'special err'))
+		expect(next.loading).toBe(false)
+		expect(next.error).toBe('special err')
+	})
+
+	it('reassignSpecialStatuses.pending sets loading=true', () => {
+		const next = gameStatusReducer(initialState, reassignSpecialStatuses.pending('', { newDefaultStatusId: 1, statusType: 'Default' }))
+		expect(next.loading).toBe(true)
+		expect(next.error).toBeNull()
+	})
+
+	it('reassignSpecialStatuses.fulfilled sets loading=false', () => {
+		const loadingState = { ...initialState, loading: true }
+		const next = gameStatusReducer(loadingState, reassignSpecialStatuses.fulfilled(undefined as any, '', { newDefaultStatusId: 1, statusType: 'Default' }))
+		expect(next.loading).toBe(false)
+	})
+
+	it('reassignSpecialStatuses.rejected sets error', () => {
+		const next = gameStatusReducer(initialState, reassignSpecialStatuses.rejected(null, '', { newDefaultStatusId: 1, statusType: 'Default' }, 'reassign err'))
+		expect(next.loading).toBe(false)
+		expect(next.error).toBe('reassign err')
 	})
 })

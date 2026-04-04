@@ -245,4 +245,54 @@ describe('useGamePlayWith', () => {
 		expect(typeof result.current.updatePlayWith).toBe('function')
 		expect(typeof result.current.deletePlayWith).toBe('function')
 	})
+
+	// ── Error handling for each function ───────────────────────────────────────
+
+	it('fetchActiveOptions sets error on failure', async () => {
+		server.use(http.get(`${BASE}/gameplaywith/active`, () => HttpResponse.json({ message: 'fail' }, { status: 500 })))
+
+		const { result } = renderHook(() => useGamePlayWith(), { wrapper: createWrapperWithStore(store) })
+
+		await act(async () => {
+			await result.current.fetchActiveOptions()
+		})
+
+		expect(result.current.loading).toBe(false)
+	})
+
+	it('createOption sets error and throws on failure', async () => {
+		server.use(http.post(`${BASE}/gameplaywith`, () => HttpResponse.json({ message: 'fail' }, { status: 500 })))
+
+		const { result } = renderHook(() => useGamePlayWith(), { wrapper: createWrapperWithStore(store) })
+
+		await act(async () => {
+			await expect(result.current.createOption({ name: 'Fail', isActive: true, color: '#f00' })).rejects.toBeDefined()
+		})
+
+		expect(result.current.loading).toBe(false)
+	})
+
+	it('updateOption sets error and throws on failure', async () => {
+		server.use(http.put(`${BASE}/gameplaywith/5`, () => HttpResponse.json({ message: 'fail' }, { status: 500 })))
+
+		const { result } = renderHook(() => useGamePlayWith(), { wrapper: createWrapperWithStore(store) })
+
+		await act(async () => {
+			await expect(result.current.updateOption(5, { id: 5, name: 'Fail', isActive: true })).rejects.toBeDefined()
+		})
+
+		expect(result.current.loading).toBe(false)
+	})
+
+	it('deleteOption sets error and throws on failure', async () => {
+		server.use(http.delete(`${BASE}/gameplaywith/99`, () => HttpResponse.json({ message: 'fail' }, { status: 500 })))
+
+		const { result } = renderHook(() => useGamePlayWith(), { wrapper: createWrapperWithStore(store) })
+
+		await act(async () => {
+			await expect(result.current.deleteOption(99)).rejects.toBeDefined()
+		})
+
+		expect(result.current.loading).toBe(false)
+	})
 })

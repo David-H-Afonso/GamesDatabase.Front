@@ -91,6 +91,145 @@ describe('gamePlayWithSlice — extraReducers', () => {
 		const next = gamePlayWithReducer(state, deletePlayWith.fulfilled(7, '', 7))
 		expect(next.playWithOptions.find((x) => x.id === 7)).toBeUndefined()
 	})
+
+	it('fetchActivePlayWithOptions.pending sets loading=true', () => {
+		const next = gamePlayWithReducer(initialState, fetchActivePlayWithOptions.pending('', undefined))
+		expect(next.loading).toBe(true)
+	})
+
+	it('fetchActivePlayWithOptions.rejected sets error', () => {
+		const next = gamePlayWithReducer(initialState, fetchActivePlayWithOptions.rejected(null, '', undefined, 'active error'))
+		expect(next.error).toBe('active error')
+		expect(next.loading).toBe(false)
+	})
+
+	it('createPlayWith.pending sets loading=true', () => {
+		const next = gamePlayWithReducer(initialState, createPlayWith.pending('', { name: 'X', isActive: true, color: '#FFF' }))
+		expect(next.loading).toBe(true)
+	})
+
+	it('createPlayWith.rejected sets error', () => {
+		const next = gamePlayWithReducer(initialState, createPlayWith.rejected(null, '', { name: 'X', isActive: true, color: '#FFF' }, 'create error'))
+		expect(next.error).toBe('create error')
+	})
+
+	it('createPlayWith.fulfilled adds active option to both lists', () => {
+		const p = createGamePlayWith({ id: 10, isActive: true })
+		const next = gamePlayWithReducer(initialState, createPlayWith.fulfilled(p, '', { name: p.name, isActive: true, color: p.color }))
+		expect(next.playWithOptions).toHaveLength(1)
+		expect(next.activePlayWithOptions).toHaveLength(1)
+	})
+
+	it('updatePlayWith.pending sets loading=true', () => {
+		const next = gamePlayWithReducer(initialState, updatePlayWith.pending('', { id: 1, data: { id: 1, name: 'X', isActive: true } }))
+		expect(next.loading).toBe(true)
+	})
+
+	it('updatePlayWith.rejected sets error', () => {
+		const next = gamePlayWithReducer(initialState, updatePlayWith.rejected(null, '', { id: 1, data: { id: 1, name: 'X', isActive: true } }, 'update error'))
+		expect(next.error).toBe('update error')
+	})
+
+	it('deletePla yWith.pending sets loading=true', () => {
+		const next = gamePlayWithReducer(initialState, deletePlayWith.pending('', 1))
+		expect(next.loading).toBe(true)
+	})
+
+	it('deletePlayWith.rejected sets error', () => {
+		const next = gamePlayWithReducer(initialState, deletePlayWith.rejected(null, '', 1, 'delete error'))
+		expect(next.error).toBe('delete error')
+	})
+})
+
+describe('gamePlayWithSlice — sync reducers (extended)', () => {
+	beforeEach(() => resetIdCounter())
+
+	it('setCurrentPlayWith sets and clears', () => {
+		const p = createGamePlayWith({ id: 1 })
+		let state = gamePlayWithReducer(initialState, { type: 'gamePlayWith/setCurrentPlayWith', payload: p })
+		expect(state.currentPlayWith).toEqual(p)
+		state = gamePlayWithReducer(state, { type: 'gamePlayWith/setCurrentPlayWith', payload: null })
+		expect(state.currentPlayWith).toBeNull()
+	})
+
+	it('updatePlayWith reducer — adds to active when newly activated', () => {
+		const p = createGamePlayWith({ id: 1, isActive: false })
+		let state = gamePlayWithReducer(initialState, { type: 'gamePlayWith/addPlayWith', payload: p })
+		const updated = { ...p, isActive: true }
+		state = gamePlayWithReducer(state, { type: 'gamePlayWith/updatePlayWith', payload: updated })
+		expect(state.activePlayWithOptions).toHaveLength(1)
+	})
+
+	it('updatePlayWith reducer — removes from active when deactivated', () => {
+		const p = createGamePlayWith({ id: 1, isActive: true })
+		let state = gamePlayWithReducer(initialState, { type: 'gamePlayWith/addPlayWith', payload: p })
+		const updated = { ...p, isActive: false }
+		state = gamePlayWithReducer(state, { type: 'gamePlayWith/updatePlayWith', payload: updated })
+		expect(state.activePlayWithOptions).toHaveLength(0)
+	})
+
+	it('updatePlayWith reducer — updates existing active in place', () => {
+		const p = createGamePlayWith({ id: 1, name: 'Old', isActive: true })
+		let state = gamePlayWithReducer(initialState, { type: 'gamePlayWith/addPlayWith', payload: p })
+		const updated = { ...p, name: 'New', isActive: true }
+		state = gamePlayWithReducer(state, { type: 'gamePlayWith/updatePlayWith', payload: updated })
+		expect(state.activePlayWithOptions[0].name).toBe('New')
+	})
+
+	it('setFilters sets filters', () => {
+		const next = gamePlayWithReducer(initialState, { type: 'gamePlayWith/setFilters', payload: { search: 'coop' } })
+		expect(next.filters).toEqual({ search: 'coop' })
+	})
+
+	it('clearFilters clears filters', () => {
+		let state = gamePlayWithReducer(initialState, { type: 'gamePlayWith/setFilters', payload: { search: 'x' } })
+		state = gamePlayWithReducer(state, { type: 'gamePlayWith/clearFilters' })
+		expect(state.filters).toEqual({})
+	})
+
+	it('setPagination merges pagination', () => {
+		const next = gamePlayWithReducer(initialState, { type: 'gamePlayWith/setPagination', payload: { page: 3 } })
+		expect(next.pagination.page).toBe(3)
+		expect(next.pagination.pageSize).toBe(initialState.pagination.pageSize)
+	})
+
+	it('reset returns to initial state', () => {
+		const p = createGamePlayWith({ id: 1 })
+		let state = gamePlayWithReducer(initialState, { type: 'gamePlayWith/addPlayWith', payload: p })
+		state = gamePlayWithReducer(state, { type: 'gamePlayWith/reset' })
+		expect(state).toEqual(initialState)
+	})
+})
+
+describe('gamePlayWithSlice — updatePlayWithThunk.fulfilled branches', () => {
+	beforeEach(() => resetIdCounter())
+
+	it('adds to active list when item becomes active', () => {
+		const original = createGamePlayWith({ id: 1, isActive: false })
+		let state = gamePlayWithReducer(initialState, fetchPlayWithOptions.fulfilled(makePagedResult([original]), '', {}))
+		const updated = { ...original, isActive: true }
+		state = gamePlayWithReducer(state, updatePlayWith.fulfilled(updated, '', { id: 1, data: { id: 1, name: original.name, isActive: true } }))
+		expect(state.activePlayWithOptions).toHaveLength(1)
+	})
+
+	it('removes from active list when deactivated', () => {
+		const original = createGamePlayWith({ id: 1, isActive: true })
+		let state = gamePlayWithReducer(initialState, fetchPlayWithOptions.fulfilled(makePagedResult([original]), '', {}))
+		state = gamePlayWithReducer(state, fetchActivePlayWithOptions.fulfilled([original], '', undefined))
+		const updated = { ...original, isActive: false }
+		state = gamePlayWithReducer(state, updatePlayWith.fulfilled(updated, '', { id: 1, data: { id: 1, name: original.name, isActive: false } }))
+		expect(state.activePlayWithOptions).toHaveLength(0)
+	})
+
+	it('updates existing active item in place', () => {
+		const original = createGamePlayWith({ id: 1, name: 'Old', isActive: true })
+		let state = gamePlayWithReducer(initialState, fetchPlayWithOptions.fulfilled(makePagedResult([original]), '', {}))
+		state = gamePlayWithReducer(state, fetchActivePlayWithOptions.fulfilled([original], '', undefined))
+		const updated = { ...original, name: 'New', isActive: true }
+		state = gamePlayWithReducer(state, updatePlayWith.fulfilled(updated, '', { id: 1, data: { id: 1, name: 'New', isActive: true } }))
+		expect(state.activePlayWithOptions).toHaveLength(1)
+		expect(state.activePlayWithOptions[0].name).toBe('New')
+	})
 })
 
 describe('gamePlayWithSlice — selectors', () => {
