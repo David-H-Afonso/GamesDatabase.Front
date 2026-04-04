@@ -19,6 +19,7 @@ const HomeComponent = () => {
 
 	const dispatch = useAppDispatch()
 	const cardStyle = useAppSelector((s) => s.theme.cardStyle ?? 'row')
+	const token = useAppSelector((s) => s.auth.token)
 	const filters = useAppSelector(selectGamesFilters)
 	const needsRefresh = useAppSelector(selectNeedsRefresh)
 	const setFilters = (next: GameQueryParameters) => dispatch(setGamesFilters(next))
@@ -50,14 +51,17 @@ const HomeComponent = () => {
 
 	// Load public GameViews on mount
 	useEffect(() => {
+		if (!token) return
 		loadPublicGameViews()
-	}, [loadPublicGameViews])
+	}, [loadPublicGameViews, token])
 
 	// Force reload on component mount to handle page refresh (F5)
 	const hasMountedRef = useRef(false)
 
 	// Load current view data with error protection
 	useEffect(() => {
+		if (!token) return
+
 		const load = async () => {
 			const isFirstMount = !hasMountedRef.current
 			// Mark as mounted after first check
@@ -128,7 +132,7 @@ const HomeComponent = () => {
 			}
 		}
 		void load()
-	}, [viewMode, filters, refreshGames, fetchGamesList, dispatch])
+	}, [viewMode, filters, refreshGames, fetchGamesList, dispatch, token])
 
 	// Auto-dismiss error after 5 seconds
 	useEffect(() => {

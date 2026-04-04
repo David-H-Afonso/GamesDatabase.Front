@@ -68,7 +68,7 @@ describe('DataLoader', () => {
 		expect(store.getState().auth.isAuthenticated).toBe(false)
 	})
 
-	it('does not fetch preferences when no token exists', () => {
+	it('does not fetch catalog data when no token exists', () => {
 		const noTokenState: Partial<RootState> = {
 			auth: {
 				isAuthenticated: false,
@@ -79,8 +79,7 @@ describe('DataLoader', () => {
 			},
 		}
 		renderWithProviders(<DataLoader />, { preloadedState: noTokenState })
-		// No crash, no forceLogout — just catalog data loaded
-		expect(mockFetchActiveStatusList).toHaveBeenCalled()
+		expect(mockFetchActiveStatusList).not.toHaveBeenCalled()
 	})
 
 	it('handles loadCatalogData error gracefully', () => {

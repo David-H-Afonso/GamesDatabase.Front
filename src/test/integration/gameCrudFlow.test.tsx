@@ -144,11 +144,21 @@ const GAMES_RESPONSE = {
 	hasPreviousPage: false,
 }
 
+const authenticatedState = {
+	auth: {
+		isAuthenticated: true,
+		user: { id: 1, username: 'TestUser', role: 'Admin' as const },
+		token: 'test-token',
+		loading: false,
+		error: null,
+	},
+}
+
 describe('Game CRUD Flow — Integration', () => {
 	let store: ReturnType<typeof createTestStore>
 
 	beforeEach(() => {
-		store = createTestStore()
+		store = createTestStore(authenticatedState)
 		initCustomFetch(store, mockPersistor, mockForceLogout)
 		// getPublicGameViews expects GameView[] directly (not paged result)
 		server.use(

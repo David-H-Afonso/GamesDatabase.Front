@@ -4,65 +4,72 @@ import { router } from '@/navigation/router'
 type AnyStore = { getState(): any; dispatch(action: any): any }
 type AnyPersistor = { purge(): Promise<any> }
 
-let _store: AnyStore | null = null
-let _persistor: AnyPersistor | null = null
-let _forceLogout: (() => { type: string }) | null = null
+type FetchRefs = {
+	store: AnyStore | null
+	persistor: AnyPersistor | null
+	forceLogout: (() => { type: string }) | null
+	handlingUnauthorized: boolean
+	pending: Set<AbortController>
+}
+
+const refs: FetchRefs = ((globalThis as any).__customFetchRefs ??= {
+	store: null,
+	persistor: null,
+	forceLogout: null,
+	handlingUnauthorized: false,
+	pending: new Set<AbortController>(),
+})
 
 export function initCustomFetch(store: AnyStore, persistor: AnyPersistor, forceLogout: () => { type: string }) {
-	_store = store
-	_persistor = persistor
-	_forceLogout = forceLogout
+	refs.store = store
+	refs.persistor = persistor
+	refs.forceLogout = forceLogout
+	refs.handlingUnauthorized = false
 }
 
 export function purgePersistedState(): void {
-	_persistor?.purge().catch(console.error)
+	refs.persistor?.purge().catch(console.error)
 }
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS'
 
-let isHandlingUnauthorized = false
-const pendingRequests = new Set<AbortController>()
-const REDIRECT_DELAY_MS = 100
-
 const handleUnauthorizedAccess = () => {
-	if (isHandlingUnauthorized) return
+	if (refs.handlingUnauthorized) return
+	refs.handlingUnauthorized = true
 
-	isHandlingUnauthorized = true
-	const currentPath = window.location.pathname
-
-	pendingRequests.forEach((controller) => {
+	for (const controller of refs.pending) {
 		try {
 			controller.abort('Session expired')
 		} catch {
-			/* ignore */
+			/* already aborted */
 		}
-	})
-	pendingRequests.clear()
-
-	if (!currentPath.includes('/login')) {
-		console.warn('Session expired - redirecting to login and clearing all state')
-
-		_store!.dispatch(_forceLogout!())
-
-		_persistor!.purge().catch((error) => {
-			console.error('Failed to purge persisted state:', error)
-		})
-
-		sessionStorage.clear()
-
-		try {
-			localStorage.clear()
-		} catch {
-			/* ignore */
-		}
-
-		setTimeout(() => {
-			isHandlingUnauthorized = false
-			router.navigate('/login')
-		}, REDIRECT_DELAY_MS)
-	} else {
-		isHandlingUnauthorized = false
 	}
+	refs.pending.clear()
+
+	const onLoginPage = (globalThis.location?.pathname ?? '').includes('/login')
+	if (onLoginPage) {
+		refs.handlingUnauthorized = false
+		return
+	}
+
+	console.warn('Session expired - redirecting to login')
+
+	if (refs.store && refs.forceLogout) {
+		refs.store.dispatch(refs.forceLogout())
+	}
+
+	refs.persistor?.purge().catch(console.error)
+	sessionStorage.clear()
+	try {
+		localStorage.clear()
+	} catch {
+		/* ignore */
+	}
+
+	setTimeout(() => {
+		refs.handlingUnauthorized = false
+		router.navigate('/login')
+	}, 100)
 }
 
 type CustomFetchOptions = {
@@ -136,6 +143,10 @@ const createTimeoutPromise = (timeoutMs: number): Promise<never> => {
 }
 
 export const customFetch = async <T = any>(endpoint: string, requestOptions: CustomFetchOptions = {}): Promise<T> => {
+	if (refs.handlingUnauthorized) {
+		throw new Error('Request cancelled')
+	}
+
 	const {
 		method = 'GET',
 		headers: customHeaders = {},
@@ -147,9 +158,10 @@ export const customFetch = async <T = any>(endpoint: string, requestOptions: Cus
 	} = requestOptions
 
 	const completeUrl = baseUrl + endpoint + buildQueryString(queryParams)
-	const token = _store?.getState().auth.token
+	const token = refs.store?.getState().auth.token
+
 	const controller = new AbortController()
-	pendingRequests.add(controller)
+	refs.pending.add(controller)
 
 	const signalToUse = controller.signal
 	if (abortSignal) {
@@ -202,6 +214,6 @@ export const customFetch = async <T = any>(endpoint: string, requestOptions: Cus
 		}
 		throw fetchError
 	} finally {
-		pendingRequests.delete(controller)
+		refs.pending.delete(controller)
 	}
 }

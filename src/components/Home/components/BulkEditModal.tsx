@@ -37,6 +37,8 @@ const BulkEditModal: React.FC<Props> = ({ isOpen, onClose, selectedCount, onSave
 	const [isSaving, setIsSaving] = useState(false)
 
 	useEffect(() => {
+		if (!isOpen) return
+
 		const normalize = (res: any) => {
 			if (!res) return []
 			if (Array.isArray(res)) return res
@@ -65,7 +67,7 @@ const BulkEditModal: React.FC<Props> = ({ isOpen, onClose, selectedCount, onSave
 				console.error('Error loading options', err)
 			}
 		})()
-	}, [fetchActiveStatusList, fetchPlatforms, fetchPlayWithList, fetchPlayedStatusList])
+	}, [isOpen, fetchActiveStatusList, fetchPlatforms, fetchPlayWithList, fetchPlayedStatusList])
 
 	const handleSave = async () => {
 		const updates: BulkEditData = {}

@@ -52,6 +52,7 @@ const GameFiltersChips: React.FC<Props> = ({
 
 	const dispatch = useAppDispatch()
 	const currentUser = useAppSelector((state) => state.auth.user)
+	const token = useAppSelector((state) => state.auth.token)
 	const { fetchList: fetchPlatforms } = useGamePlatform()
 	const { fetchOptions: fetchPlayWithList } = useGamePlayWith()
 	const { fetchActiveStatusList } = useGameStatus()
@@ -73,6 +74,8 @@ const GameFiltersChips: React.FC<Props> = ({
 		}
 
 		void (async () => {
+			if (!token) return
+
 			try {
 				// Load user preferences
 				if (currentUser?.id) {
@@ -102,7 +105,7 @@ const GameFiltersChips: React.FC<Props> = ({
 				console.error('Error loading filter options', err)
 			}
 		})()
-	}, [fetchPlatforms, fetchPlayWithList, fetchActiveStatusList, fetchPlayedStatusList, currentUser?.id, dispatch])
+	}, [token, fetchPlatforms, fetchPlayWithList, fetchActiveStatusList, fetchPlayedStatusList, currentUser?.id, dispatch])
 
 	// Close popover when clicking outside
 	useEffect(() => {

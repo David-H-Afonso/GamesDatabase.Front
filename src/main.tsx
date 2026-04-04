@@ -12,6 +12,10 @@ import '@/assets/styles/index.scss'
 
 initCustomFetch(store, persistor, forceLogout)
 
+if (import.meta.hot) {
+	import.meta.hot.accept('@/utils/customFetch', () => initCustomFetch(store, persistor, forceLogout))
+}
+
 // Remove preload class after styles are loaded to enable transitions
 setTimeout(() => {
 	document.documentElement.classList.remove('preload')

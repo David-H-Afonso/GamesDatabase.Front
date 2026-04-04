@@ -1,8 +1,10 @@
-import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit'
+import { createSlice, createAsyncThunk, createAction, type PayloadAction } from '@reduxjs/toolkit'
 import { authService, userService } from '@/services'
 import type { LoginRequest } from '@/models/api/User'
 import type { AuthState } from '@/models/store/AuthState'
 import { addRecentUser } from '../recentUsers/recentUsersSlice'
+
+const setLoginToken = createAction<string>('auth/setLoginToken')
 
 // Initial state - will be hydrated from redux-persist
 const initialState: AuthState = {
@@ -20,7 +22,9 @@ export const loginUser = createAsyncThunk('auth/login', async (credentials: Logi
 	try {
 		const response = await authService.login(credentials)
 
-		// Add user to recent users list
+		// Set token immediately so fetchUserPreferences can authenticate
+		dispatch(setLoginToken(response.token))
+
 		dispatch(
 			addRecentUser({
 				username: credentials.username,
@@ -167,6 +171,10 @@ const authSlice = createSlice({
 		},
 	},
 	extraReducers: (builder) => {
+		builder.addCase(setLoginToken, (state, action) => {
+			state.token = action.payload
+		})
+
 		// Login user
 		builder
 			.addCase(loginUser.pending, (state) => {

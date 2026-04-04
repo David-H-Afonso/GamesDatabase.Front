@@ -131,11 +131,21 @@ const BASE = 'https://localhost:7245/api'
 const mockPersistor = { purge: vi.fn().mockResolvedValue(undefined) }
 const mockForceLogout = vi.fn().mockReturnValue({ type: 'auth/forceLogout' })
 
+const authenticatedState = {
+	auth: {
+		isAuthenticated: true,
+		user: { id: 1, username: 'TestUser', role: 'Admin' as const },
+		token: 'test-token',
+		loading: false,
+		error: null,
+	},
+}
+
 describe('Filter & Search Flow — Integration', () => {
 	let store: ReturnType<typeof createTestStore>
 
 	beforeEach(() => {
-		store = createTestStore()
+		store = createTestStore(authenticatedState)
 		initCustomFetch(store, mockPersistor, mockForceLogout)
 		// getPublicGameViews expects GameView[] directly (not paged result)
 		server.use(http.get(`${BASE}/gameviews`, () => HttpResponse.json([])))
