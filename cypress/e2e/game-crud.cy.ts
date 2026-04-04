@@ -145,4 +145,93 @@ describe('Game CRUD Journeys', () => {
 		cy.get('.game-details').should('not.exist')
 		cy.get('.home-component__no-games').should('be.visible')
 	})
+
+	// ── 6.2 Cambiar status inline → guardado ──────────────────────────────────
+
+	it('changing game status via EditableSelect sends a PUT request', () => {
+		cy.intercept('GET', `${API}/games*`, GAMES_LIST).as('getGames')
+		cy.intercept('PUT', `${API}/games/1`, { statusCode: 200, body: { ...GAME_1, statusId: 2, statusName: 'Pendiente' } }).as('updateGame')
+
+		cy.visit('/')
+		cy.wait('@getGames')
+
+		cy.get('.game-row').first().click()
+		cy.get('.game-details').should('be.visible')
+
+		// Find the Status editable select and click its trigger
+		cy.get('.game-details-content-infoList-item').contains('Status').parent().find('.editable-select__trigger').click()
+
+		// Select a different option from the dropdown
+		cy.get('.editable-select__dropdown').should('be.visible')
+		cy.get('.editable-select__option').not('.editable-select__option--selected').first().click()
+
+		cy.wait('@updateGame').then((interception) => {
+			expect(interception.request.body).to.have.property('statusId')
+		})
+	})
+
+	// ── 6.2 Cambiar plataforma inline → guardado ──────────────────────────────
+
+	it('changing game platform via EditableSelect sends a PUT request', () => {
+		cy.intercept('GET', `${API}/games*`, GAMES_LIST).as('getGames')
+		cy.intercept('PUT', `${API}/games/1`, { statusCode: 200, body: { ...GAME_1, platformId: 2, platformName: 'PS5' } }).as('updateGame')
+
+		cy.visit('/')
+		cy.wait('@getGames')
+
+		cy.get('.game-row').first().click()
+		cy.get('.game-details').should('be.visible')
+
+		// Find the Platform editable select
+		cy.get('.game-details-content-infoList-item').contains('Platform').parent().find('.editable-select__trigger').click()
+
+		cy.get('.editable-select__dropdown').should('be.visible')
+		cy.get('.editable-select__option').not('.editable-select__option--selected').first().click()
+
+		cy.wait('@updateGame').then((interception) => {
+			expect(interception.request.body).to.have.property('platformId')
+		})
+	})
+
+	// ── 6.2 Editar fecha inline → guardado ────────────────────────────────────
+
+	it('editing the released date sends a PUT request', () => {
+		cy.intercept('GET', `${API}/games*`, GAMES_LIST).as('getGames')
+		cy.intercept('PUT', `${API}/games/1`, { statusCode: 200, body: { ...GAME_1, released: '2024-06-15' } }).as('updateGame')
+
+		cy.visit('/')
+		cy.wait('@getGames')
+
+		cy.get('.game-row').first().click()
+		cy.get('.game-details').should('be.visible')
+
+		// Find the Released editable field and click it to enter edit mode
+		cy.get('.game-details-content-infoList-item').contains('Released').parent().find('.editable-field').click()
+		cy.get('.game-details-content-infoList-item').contains('Released').parent().find('.editable-field-input').clear().type('2024-06-15{enter}')
+
+		cy.wait('@updateGame').then((interception) => {
+			expect(interception.request.body).to.have.property('released')
+		})
+	})
+
+	// ── 6.2 Score validation (0-100) ──────────────────────────────────────────
+
+	it('editing the grade field with a valid value sends a PUT request', () => {
+		cy.intercept('GET', `${API}/games*`, GAMES_LIST).as('getGames')
+		cy.intercept('PUT', `${API}/games/1`, { statusCode: 200, body: { ...GAME_1, grade: 85 } }).as('updateGame')
+
+		cy.visit('/')
+		cy.wait('@getGames')
+
+		cy.get('.game-row').first().click()
+		cy.get('.game-details').should('be.visible')
+
+		// Find the Grade editable field
+		cy.get('.game-details-content-infoList-item').contains('Grade').parent().find('.editable-field').click()
+		cy.get('.game-details-content-infoList-item').contains('Grade').parent().find('.editable-field-input').clear().type('85{enter}')
+
+		cy.wait('@updateGame').then((interception) => {
+			expect(interception.request.body).to.have.property('grade', 85)
+		})
+	})
 })
