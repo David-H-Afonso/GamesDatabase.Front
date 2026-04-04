@@ -44,7 +44,7 @@ const VIEW_TEMPLATES: ViewTemplate[] = [
 							filters: [
 								{ field: FilterField.Started, operator: FilterOperator.LessThanOrEqual, value: `${y}-12-31` },
 								{ field: FilterField.Finished, operator: FilterOperator.Between, value: `${y}-01-01`, secondValue: `${y}-12-31` },
-								{ field: FilterField.ReplayStarted, operator: FilterOperator.LessThanOrEqual, value: `${y}-12-31` },
+								{ field: FilterField.ReplayStarted, operator: FilterOperator.Between, value: `${y}-01-01`, secondValue: `${y}-12-31` },
 								{ field: FilterField.ReplayFinished, operator: FilterOperator.Between, value: `${y}-01-01`, secondValue: `${y}-12-31` },
 							],
 							combineWith: CombineWith.Or,
