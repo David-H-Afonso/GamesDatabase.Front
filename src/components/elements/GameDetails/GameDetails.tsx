@@ -1,7 +1,7 @@
 ﻿import React, { useState } from 'react'
 import type { Game } from '@/models/api/Game'
 import './GameDetails.scss'
-import { formatToLocaleDate, useClickOutside } from '@/utils'
+import { formatToLocaleDate, searchGoogleImage, useClickOutside } from '@/utils'
 import DeleteIcon from '@/assets/svgs/trashbin.svg?react'
 import { EditableField, OptimizedImage } from '@/components/elements'
 import { EditableSelect } from '../EditableSelect/EditableSelect'
@@ -198,32 +198,38 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 				<div className='game-details-header-title'>
 					{game.logo ? (
 						<div
+							className='game-details-header-title-image'
 							onClick={() => {
-								if (!game.name) return
-								const url = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent('"' + game.name + '" logo')}`
-								window.open(url, '_blank', 'noopener')
-							}}
-							style={{ cursor: game.name ? 'pointer' : 'default' }}>
+								searchGoogleImage(game.name, 'logo')
+							}}>
 							<OptimizedImage src={game.logo} alt={`${game.name} logo`} className='game-details__logo' quality='high' loading='eager' width={80} height={80} />
 						</div>
 					) : null}
-					<div>
+					<div className='game-details-header-title-text'>
 						<EditableField value={formik.values.name} type='text' onSave={(value) => saveField('name', value)} placeholder='No name' allowEmpty={false} />
 					</div>
 				</div>
 			</div>
 
 			<div className='game-details-content'>
-				<div className='game-details-content-cover'>
+				<div
+					className='game-details-content-cover'
+					style={{ cursor: game.cover ? 'default' : 'pointer' }}
+					onClick={() => {
+						searchGoogleImage(game.name, 'cover')
+					}}>
 					{game.cover && (
-						<div
-							onClick={() => {
-								if (!game.name) return
-								const url = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent('"' + game.name + '" cover')}`
-								window.open(url, '_blank', 'noopener')
-							}}
-							style={{ cursor: game.name ? 'pointer' : 'default' }}>
-							<OptimizedImage src={game.cover} alt={`${game.name} cover`} className='game-details__cover' quality='high' loading='eager' width={600} height={350} />
+						<div>
+							<OptimizedImage
+								src={game.cover}
+								alt={`${game.name} cover`}
+								className='game-details__cover'
+								quality='high'
+								loading='eager'
+								width={600}
+								height={350}
+								imageUnavailableText='Cover'
+							/>
 						</div>
 					)}
 				</div>
@@ -410,9 +416,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 									<h3
 										className='clickable'
 										onClick={() => {
-											if (!game.name) return
-											const url = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent('"' + game.name + '" logo')}`
-											window.open(url, '_blank', 'noopener')
+											searchGoogleImage(game.name, 'logo')
 										}}>
 										Logo
 									</h3>
@@ -423,9 +427,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 									<h3
 										className='clickable'
 										onClick={() => {
-											if (!game.name) return
-											const url = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent('"' + game.name + '" cover')}`
-											window.open(url, '_blank', 'noopener')
+											searchGoogleImage(game.name, 'cover')
 										}}>
 										Cover
 									</h3>

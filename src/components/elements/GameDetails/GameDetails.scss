@@ -47,22 +47,27 @@
 			min-height: 40px; /* para evitar que el título cambie de tamaño al cargar la imagen */
 			padding-top: max(0px, calc((40px - (1em * 1.2)) / 2));
 			display: flex;
+			align-items: center;
+
+			&-image {
+				cursor: pointer;
+			}
 
 			img {
 				float: left;
 				width: auto;
 				height: 40px;
 				border-radius: 5px;
-				margin: 0 10px 0 0;
 			}
 
-			div {
+			&-text {
 				font-size: 1.25rem;
 				margin: 0;
 				white-space: normal;
 				word-break: break-word;
 				overflow: visible;
 				padding: 0;
+				margin: 0 0 0 5px;
 			}
 		}
 
@@ -313,5 +318,6 @@
 
 	&-panel {
 		padding: 0;
+		padding-bottom: 20px;
 	}
 }

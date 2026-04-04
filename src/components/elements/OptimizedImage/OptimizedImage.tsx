@@ -12,13 +12,15 @@ interface OptimizedImageProps {
 	fetchPriority?: 'high' | 'low' | 'auto'
 	onLoad?: () => void
 	onError?: () => void
+	imageUnavailableText?: string
 }
 
 /**
  * OptimizedImage component with lazy loading, quality control, and error handling
  * Reduces image quality for URLs when possible to improve performance
  */
-const OptimizedImage: React.FC<OptimizedImageProps> = ({ src, alt, className = '', width, height, quality = 'medium', loading = 'lazy', fetchPriority, onLoad, onError }) => {
+const OptimizedImage: React.FC<OptimizedImageProps> = (props) => {
+	const { src, alt, className = '', width, height, quality = 'medium', loading = 'lazy', fetchPriority, onLoad, onError, imageUnavailableText } = props
 	const [isLoaded, setIsLoaded] = useState(false)
 	const [hasError, setHasError] = useState(false)
 
@@ -115,7 +117,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({ src, alt, className = '
 	if (hasError) {
 		return (
 			<div className={`optimized-image-error ${className}`}>
-				<span className='optimized-image-error__text'>Image unavailable</span>
+				<span className='optimized-image-error__text'>{imageUnavailableText ?? 'Image unavailable'}</span>
 			</div>
 		)
 	}
