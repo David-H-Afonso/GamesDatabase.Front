@@ -22,25 +22,13 @@ export default defineConfig({
 			},
 			include: '**/*.svg?react',
 		}),
-		{
-			name: 'remove-env-config-for-electron',
-			transformIndexHtml(html) {
-				if (process.env.ELECTRON === 'true') {
-					return html.replace(
-						/<!-- Load runtime environment configuration \(for Docker\) -->\s*<script src="[^"]*env-config\.js"><\/script>\s*/,
-						'<!-- env-config.js not needed in Electron -->\n\t\t'
-					)
-				}
-				return html
-			},
-		},
 	],
 	define: {
 		__APP_VERSION__: JSON.stringify(pkg.version),
 		__COMMIT_HASH__: JSON.stringify(commitHash),
 		__BUILD_DATE__: JSON.stringify(buildDate),
 	},
-	base: process.env.ELECTRON === 'true' ? './' : '/',
+	base: './',
 	resolve: {
 		alias: {
 			'@': '/src',
