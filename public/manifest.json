@@ -1,0 +1,21 @@
+{
+	"name": "Games Database",
+	"short_name": "GamesDB",
+	"description": "Track, manage, and explore your personal game collection",
+	"start_url": "/",
+	"display": "standalone",
+	"background_color": "#1a1a1a",
+	"theme_color": "#1a1a1a",
+	"icons": [
+		{
+			"src": "/logo.png",
+			"sizes": "192x192",
+			"type": "image/png"
+		},
+		{
+			"src": "/logo.png",
+			"sizes": "512x512",
+			"type": "image/png"
+		}
+	]
+}
