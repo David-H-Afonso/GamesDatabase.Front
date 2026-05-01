@@ -304,7 +304,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 					</div>
 					<div className='game-details-content-infoList-item'>
 						<h3>Score</h3>
-						<EditableField value={formik.values.score} type='number' onSave={(value) => saveField('score', value)} placeholder='No score' allowEditing={false} />
+						<EditableField value={game.score} type='number' onSave={(value) => saveField('score', value)} placeholder='No score' allowEditing={false} />
 					</div>
 					<div className='game-details-content-infoList-item'>
 						<h3

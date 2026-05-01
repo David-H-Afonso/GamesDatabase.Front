@@ -68,13 +68,15 @@ export const EditableMultiSelect: React.FC<EditableMultiSelectProps> = ({
 	}
 
 	const getDisplayText = () => {
-		if (displayValues.length === 0) return placeholder
-		if (displayValues.length === 1) return displayValues[0]
-		return `${displayValues[0]} +${displayValues.length - 1}`
+		const effectiveDisplayValues = values.length > 0 ? options.filter((o) => values.includes(o.id)).map((o) => o.name) : displayValues
+		if (effectiveDisplayValues.length === 0) return placeholder
+		if (effectiveDisplayValues.length === 1) return effectiveDisplayValues[0]
+		return `${effectiveDisplayValues[0]} +${effectiveDisplayValues.length - 1}`
 	}
 
 	const [hoveredOption, setHoveredOption] = useState<Option | null>(null)
-	const showTitle = hoveredOption ? hoveredOption.name : displayValues.length > 0 ? displayValues.join(', ') : placeholder
+	const effectiveDisplayValues = values.length > 0 ? options.filter((o) => values.includes(o.id)).map((o) => o.name) : displayValues
+	const showTitle = hoveredOption ? hoveredOption.name : effectiveDisplayValues.length > 0 ? effectiveDisplayValues.join(', ') : placeholder
 
 	return (
 		<div ref={dropdownRef} className={`editable-multi-select ${className}`} title={showTitle}>

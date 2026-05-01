@@ -55,7 +55,8 @@ export const EditableSelect: React.FC<EditableSelectProps> = ({ value, displayVa
 
 	const [hoveredOption, setHoveredOption] = useState<Option | null>(null)
 	const selectedOption = options.find((option) => option.id === value)
-	const showTitle = hoveredOption ? hoveredOption.name : selectedOption ? selectedOption.name : placeholder
+	const effectiveDisplay = selectedOption?.name ?? displayValue
+	const showTitle = hoveredOption ? hoveredOption.name : (effectiveDisplay ?? placeholder)
 
 	return (
 		<div ref={dropdownRef} className={`editable-select ${className}`} title={showTitle} onBlur={handleBlur}>
@@ -63,8 +64,8 @@ export const EditableSelect: React.FC<EditableSelectProps> = ({ value, displayVa
 				<span
 					onClick={handleClick}
 					tabIndex={0}
-					className={`editable-select__trigger ${isOpen ? 'editable-select__trigger--open' : ''} ${!displayValue ? 'editable-select__trigger--empty' : ''}`}>
-					<span className='editable-select__trigger-text'>{displayValue || placeholder}</span>
+					className={`editable-select__trigger ${isOpen ? 'editable-select__trigger--open' : ''} ${!effectiveDisplay ? 'editable-select__trigger--empty' : ''}`}>
+					<span className='editable-select__trigger-text'>{effectiveDisplay || placeholder}</span>
 					<span className='editable-select__arrow'>▼</span>
 				</span>
 			)}
