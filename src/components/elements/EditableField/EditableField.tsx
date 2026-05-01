@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import './EditableField.scss'
 
 interface EditableFieldProps {
@@ -26,6 +26,13 @@ export const EditableField: React.FC<EditableFieldProps> = ({
 }) => {
 	const [isEditing, setIsEditing] = useState(false)
 	const [currentValue, setCurrentValue] = useState<string | number | undefined>(value)
+
+	useEffect(() => {
+		if (!isEditing) {
+			setCurrentValue(value)
+		}
+	}, [value, isEditing])
+
 	const hasValue = value !== undefined && value !== null && currentValue !== ''
 	const showTitle = hasValue ? (formatter ? formatter(value) : String(value)) : placeholder
 
