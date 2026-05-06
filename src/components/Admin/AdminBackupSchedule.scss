@@ -102,6 +102,35 @@
 		font-family: monospace;
 	}
 
+	// ── Last run (inside user rows) ───────────────────────────────────────────
+	&__last-run {
+		display: flex;
+		align-items: center;
+		gap: $space-sm;
+		flex-wrap: wrap;
+		margin-bottom: $space-md;
+		padding: $space-sm $space-md;
+		background: var(--bg-secondary);
+		border: 1px solid var(--border);
+		border-radius: $border-radius-md;
+		font-size: $font-size-sm;
+	}
+
+	&__last-run-label {
+		font-weight: $font-weight-medium;
+		color: var(--text-secondary);
+	}
+
+	&__last-run-date {
+		color: var(--text-secondary);
+	}
+
+	&__last-run-message {
+		color: var(--text-secondary);
+		font-family: monospace;
+		width: 100%;
+	}
+
 	.status-badge {
 		display: inline-block;
 		padding: 3px 10px;

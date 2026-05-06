@@ -95,11 +95,9 @@ const UserRow: React.FC<UserRowProps> = ({ entry, onUpdated }) => {
 			{expanded && (
 				<div className='admin-backup-schedule__user-body'>
 					{message && (
-						<div className={`message message--${message.type}`}>
+						<div className={`backup-alert backup-alert--${message.type}`}>
 							{message.text}
-							<button className='message__close' onClick={() => setMessage(null)} aria-label='×'>
-								×
-							</button>
+							<button className='backup-alert__close' onClick={() => setMessage(null)} aria-label='×'></button>
 						</div>
 					)}
 
@@ -265,7 +263,7 @@ const AdminBackupScheduleUsers: React.FC = () => {
 	if (error)
 		return (
 			<div className='admin-backup-schedule'>
-				<p className='message message--error'>{error}</p>
+				<p className='backup-alert backup-alert--error'>{error}</p>
 			</div>
 		)
 
