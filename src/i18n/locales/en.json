@@ -20,6 +20,7 @@
 		"next": "Next",
 		"elementsPerPage": "Elements per page:",
 		"reorderError": "Error reordering. Please try again.",
+		"created": "Created",
 		"yes": "Yes",
 		"no": "No",
 		"close": "Close",
@@ -310,7 +311,12 @@
 			"filterGroupsSummary": "{{groups}} groups, {{count}} filters",
 			"sortingSummary_one": "{{count}} sort",
 			"sortingSummary_other": "{{count}} sorts",
-			"noConfig": "No configuration"
+			"noConfig": "No configuration",
+			"reorderError": "Error reordering views. Please try again.",
+			"importPasteError": "Please paste the view JSON first.",
+			"importInvalidJson": "Invalid JSON format.",
+			"importMissingFields": "Missing required fields: name and configuration.",
+			"importError": "Error importing view. Please try again."
 		},
 		"viewTemplates": {
 			"createFromTemplate": "Create from template",
@@ -320,6 +326,8 @@
 			"createError": "Error creating view from template",
 			"creating": "Creating...",
 			"create": "Create View",
+			"createView": "Create View",
+			"willCreate": "Will create",
 			"back": "Back",
 			"previewName": "View name preview:",
 			"param": {
@@ -574,7 +582,8 @@
 			"instrNote4": "<strong>Date Format:</strong> Use YYYY-MM-DD (e.g. 2025-10-01) or leave empty",
 			"instrNote5": "<strong>Colors:</strong> Hexadecimal format with # (e.g. #2a475e)",
 			"instrNote6": "<strong>Score:</strong> Calculated automatically, no need to include it in the CSV",
-			"instrNote7": "<strong>Boolean values:</strong> True/False for IsActive, IsDefault, etc."
+			"instrNote7": "<strong>Boolean values:</strong> True/False for IsActive, IsDefault, etc.",
+			"imageUrlsResult": "Updated {{updated}} of {{total}} games. Skipped: {{skipped}}. Already correct: {{correct}}. No images found: {{noImages}}."
 		},
 		"audit": {
 			"title": "Audit",
@@ -640,6 +649,16 @@
 	},
 	"game": {
 		"addGame": "Add Game",
+		"addGames": "Add Games",
+		"addGamesCount": "Add {{count}} games",
+		"adding": "Adding...",
+		"titlePlaceholder": "Game title",
+		"addAnotherRow": "Add another row",
+		"cantDeleteOnlyRow": "Cannot delete the only row",
+		"deleteRow": "Delete row",
+		"cheaperBy": "Cheaper by",
+		"cheaperByKey": "Key",
+		"cheaperByStore": "Store",
 		"createModal": {
 			"title": "Add Games",
 			"titlePlaceholder": "Game title",

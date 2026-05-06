@@ -20,6 +20,7 @@
 		"next": "Siguiente",
 		"elementsPerPage": "Elementos por página:",
 		"reorderError": "Error al reordenar. Por favor, intenta de nuevo.",
+		"created": "Creado",
 		"yes": "Sí",
 		"no": "No",
 		"close": "Cerrar",
@@ -310,7 +311,12 @@
 			"filterGroupsSummary": "{{groups}} grupos, {{count}} filtros",
 			"sortingSummary_one": "{{count}} ordenación",
 			"sortingSummary_other": "{{count}} ordenaciones",
-			"noConfig": "Sin configuración"
+			"noConfig": "Sin configuración",
+			"reorderError": "Error al reordenar las vistas. Por favor, intenta de nuevo.",
+			"importPasteError": "Por favor, pega el JSON de la vista primero.",
+			"importInvalidJson": "Formato JSON inválido.",
+			"importMissingFields": "Faltan campos requeridos: nombre y configuración.",
+			"importError": "Error al importar la vista. Por favor, intenta de nuevo."
 		},
 		"viewTemplates": {
 			"createFromTemplate": "Crear desde plantilla",
@@ -320,6 +326,8 @@
 			"createError": "Error al crear la vista desde la plantilla",
 			"creating": "Creando...",
 			"create": "Crear Vista",
+			"createView": "Crear Vista",
+			"willCreate": "Se creará",
 			"back": "Volver",
 			"previewName": "Vista previa del nombre:",
 			"param": {
@@ -574,7 +582,8 @@
 			"instrNote4": "<strong>Formato Fechas:</strong> Usar YYYY-MM-DD (ej: 2025-10-01) o dejar vacío",
 			"instrNote5": "<strong>Colores:</strong> Formato hexadecimal con # (ej: #2a475e)",
 			"instrNote6": "<strong>Score:</strong> Se calcula automáticamente, no es necesario incluirlo en el CSV",
-			"instrNote7": "<strong>Valores booleanos:</strong> True/False para IsActive, IsDefault, etc."
+			"instrNote7": "<strong>Valores booleanos:</strong> True/False para IsActive, IsDefault, etc.",
+			"imageUrlsResult": "Actualizados {{updated}} de {{total}} juegos. Omitidos: {{skipped}}. Ya correctos: {{correct}}. Sin imágenes: {{noImages}}."
 		},
 		"audit": {
 			"title": "Auditoría",
@@ -640,6 +649,16 @@
 	},
 	"game": {
 		"addGame": "Añadir Juego",
+		"addGames": "Añadir Juegos",
+		"addGamesCount": "Añadir {{count}} juegos",
+		"adding": "Añadiendo...",
+		"titlePlaceholder": "Título del juego",
+		"addAnotherRow": "Añadir otra fila",
+		"cantDeleteOnlyRow": "No se puede eliminar la única fila",
+		"deleteRow": "Eliminar fila",
+		"cheaperBy": "Más barato en",
+		"cheaperByKey": "Clave",
+		"cheaperByStore": "Tienda",
 		"createModal": {
 			"title": "Añadir Juegos",
 			"titlePlaceholder": "Título del juego",
