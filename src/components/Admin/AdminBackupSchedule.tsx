@@ -69,6 +69,8 @@ const AdminBackupSchedule: React.FC = () => {
 				backupType,
 				destinationPath,
 				retentionCount,
+				fileNamePrefix,
+				fileNameSuffix,
 			}
 			const updated = await updateBackupSchedule(req)
 			setSchedule(updated)
