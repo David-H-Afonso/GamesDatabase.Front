@@ -1,0 +1,34 @@
+@use '@/assets/styles' as *;
+
+.language-switcher {
+	display: flex;
+	align-items: center;
+
+	&__select {
+		padding: 0.5rem 0.75rem;
+		border: 1px solid $color-border-primary;
+		border-radius: 8px;
+		background-color: $color-bg-secondary;
+		color: $color-text-primary;
+		font-size: 0.875rem;
+		font-weight: 500;
+		cursor: pointer;
+		transition: all 0.2s;
+
+		&:hover {
+			background: $color-bg-tertiary;
+			border-color: $color-border-hover;
+		}
+
+		&:focus {
+			outline: none;
+			border-color: $color-primary;
+			box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+		}
+
+		option {
+			background-color: $color-bg-secondary;
+			color: $color-text-primary;
+		}
+	}
+}

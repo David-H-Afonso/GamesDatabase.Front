@@ -553,6 +553,22 @@
 			color: $color-text-muted;
 			font-weight: 600;
 		}
+
+		.game-filters-chips__popover-divider {
+			border: none;
+			border-top: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+			margin: 10px 0;
+		}
+
+		.game-filters-chips__popover-subtitle {
+			display: block;
+			margin: 0 0 8px;
+			font-size: 10px;
+			text-transform: uppercase;
+			letter-spacing: 0.08em;
+			color: $color-text-muted;
+			font-weight: 600;
+		}
 	}
 
 	&__popover-options {

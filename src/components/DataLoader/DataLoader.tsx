@@ -53,10 +53,11 @@ export const DataLoader = () => {
 		void dispatch(fetchUserPreferences(userId))
 	}, [])
 
-	// Load all active entities on app startup
+	// Load all active entities on app startup (only if authenticated)
 	useEffect(() => {
+		if (!token) return
 		void loadCatalogData()
-	}, [fetchActiveStatusList, fetchActivePlatforms, fetchActiveOptions, fetchActivePlayedStatuses])
+	}, [token, fetchActiveStatusList, fetchActivePlatforms, fetchActiveOptions, fetchActivePlayedStatuses])
 
 	// Reload catalog data when navigating from admin to home
 	useEffect(() => {
@@ -64,7 +65,7 @@ export const DataLoader = () => {
 		const wasInAdmin = previousPath.current.startsWith('/admin/')
 		const isNowHome = currentPath === '/' || currentPath === '/home'
 
-		if (wasInAdmin && isNowHome) {
+		if (wasInAdmin && isNowHome && token) {
 			void loadCatalogData()
 		}
 

@@ -103,6 +103,15 @@ export interface GameQueryParameters extends QueryParameters {
 	criticProvider?: string
 	// View name for custom views
 	viewName?: string
+	// Replay filters
+	replayStartedFrom?: string
+	replayStartedTo?: string
+	replayFinishedFrom?: string
+	replayFinishedTo?: string
+	replayTypeId?: number
+	replayGradeMin?: number
+	replayGradeMax?: number
+	replayMatchMode?: 'any' | 'all'
 }
 
 // Paginated response wrapper

@@ -1,3 +1,4 @@
+import '@/i18n'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { Provider } from 'react-redux'
@@ -11,6 +12,10 @@ import { initCustomFetch } from '@/utils/customFetch'
 import '@/assets/styles/index.scss'
 
 initCustomFetch(store, persistor, forceLogout)
+
+if (import.meta.hot) {
+	import.meta.hot.accept('@/utils/customFetch', () => initCustomFetch(store, persistor, forceLogout))
+}
 
 // Remove preload class after styles are loaded to enable transitions
 setTimeout(() => {

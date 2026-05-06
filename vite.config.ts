@@ -27,7 +27,7 @@ export default defineConfig({
 			transformIndexHtml(html) {
 				if (process.env.ELECTRON === 'true') {
 					return html.replace(
-						/<!-- Load runtime environment configuration \(for Docker\) -->\s*<script src="[^"]*env-config\.js"><\/script>\s*/,
+						/<!-- Load runtime environment configuration \(for Docker\) -->[\s\S]*?<script[^>]*src="[^"]*env-config\.js"[^>]*><\/script>\s*/,
 						'<!-- env-config.js not needed in Electron -->\n\t\t'
 					)
 				}

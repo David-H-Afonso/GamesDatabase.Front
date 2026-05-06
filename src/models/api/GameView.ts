@@ -49,6 +49,11 @@ export const FilterField = {
 	Description: 'Description',
 	Logo: 'Logo',
 	Cover: 'Cover',
+	// Campos de rejugadas
+	ReplayStarted: 'ReplayStarted',
+	ReplayFinished: 'ReplayFinished',
+	ReplayGrade: 'ReplayGrade',
+	ReplayTypeId: 'ReplayTypeId',
 } as const
 
 export type FilterField = (typeof FilterField)[keyof typeof FilterField]
@@ -186,5 +191,6 @@ export interface GameViewQueryParameters {
 	pageSize?: number
 	search?: string
 	isPublic?: boolean
+	includePrivate?: boolean
 	createdBy?: string
 }

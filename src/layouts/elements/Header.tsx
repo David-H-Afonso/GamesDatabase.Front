@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { ThemeSelector } from './ThemeSelector'
+import { LanguageSwitcher } from './LanguageSwitcher'
 import { MobileMenu } from './MobileMenu'
 import CreateGame from '@/components/elements/CreateGame/CreateGame'
 import GameDataActions from '@/components/elements/GameDataActions/GameDataActions'
@@ -12,6 +14,7 @@ import logoImage from '@/assets/pngs/logo.png'
 import './Header.scss'
 
 export const Header: React.FC = () => {
+	const { t } = useTranslation()
 	const location = useLocation()
 	const navigate = useNavigate()
 	const dispatch = useAppDispatch()
@@ -31,27 +34,27 @@ export const Header: React.FC = () => {
 			<header className='app-header'>
 				<div className='app-header-container'>
 					{/* Logo - visible on mobile, hidden on desktop */}
-					<Link to='/' className='header-logo-icon' aria-label='Games Database'>
-						<img src={logoImage} alt='Games Database' />
+					<Link to='/' className='header-logo-icon' aria-label={t('nav.appName')}>
+						<img src={logoImage} alt={t('nav.appName')} />
 					</Link>
 
 					{/* Desktop Logo/Title */}
-					<Link to='/' className='header-logo' aria-label='Games Database'>
-						<h1 className='sr-only'>Games Database</h1>
-						Games Database
+					<Link to='/' className='header-logo' aria-label={t('nav.appName')}>
+						<h1 className='sr-only'>{t('nav.appName')}</h1>
+						{t('nav.appName')}
 					</Link>
 
 					{/* Desktop Navigation */}
 					<div className='app-header-container-navigation'>
 						<Link to='/' className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}>
-							Home
+							{t('nav.home')}
 						</Link>
 						<Link to='/admin/platforms' className={`nav-link ${location.pathname.startsWith('/admin') ? 'active' : ''}`}>
-							Admin
+							{t('nav.admin')}
 						</Link>
 						{isAdmin && (
 							<Link to='/admin/users' className={`nav-link ${location.pathname === '/admin/users' ? 'active' : ''}`}>
-								Users
+								{t('nav.users')}
 							</Link>
 						)}
 					</div>
@@ -59,14 +62,13 @@ export const Header: React.FC = () => {
 					{/* Desktop Actions */}
 					<div className='app-header-container-quick-actions'>
 						<GameDataActions />
-						<CreateGame />
-						<ThemeSelector />
+						<CreateGame /> <LanguageSwitcher /> <ThemeSelector />
 						{currentUser && (
 							<div className='header-user-menu'>
 								<UserIcon width={20} height={20} color='#9ca3af' />
 								<span className='header-username'>{currentUser.username}</span>
-								<button className='btn btn-logout' onClick={handleLogout} title='Logout'>
-									Logout
+								<button className='btn btn-logout' onClick={handleLogout} title={t('nav.logout')}>
+									{t('nav.logout')}
 								</button>
 							</div>
 						)}
@@ -76,7 +78,7 @@ export const Header: React.FC = () => {
 					<div className='app-header-container-mobile-actions'>
 						<GameDataActions />
 						<CreateGame />
-						<button className='header-burger-btn' onClick={() => setIsMobileMenuOpen(true)} aria-label='Abrir menú'>
+						<button className='header-burger-btn' onClick={() => setIsMobileMenuOpen(true)} aria-label={t('nav.openMenu')}>
 							<span></span>
 							<span></span>
 							<span></span>

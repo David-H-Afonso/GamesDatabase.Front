@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import SelectiveExportModal from '@/components/Home/components/SelectiveExportModal'
 import SelectiveImportModal from '@/components/Home/components/SelectiveImportModal'
 import { useAppDispatch } from '@/store/hooks'
@@ -22,6 +23,7 @@ const ImportIcon = () => (
 )
 
 const GameDataActions: React.FC = () => {
+	const { t } = useTranslation()
 	const dispatch = useAppDispatch()
 	const [exportOpen, setExportOpen] = useState(false)
 	const [importOpen, setImportOpen] = useState(false)
@@ -32,13 +34,13 @@ const GameDataActions: React.FC = () => {
 
 	return (
 		<>
-			<button className='game-data-actions__btn' onClick={() => setExportOpen(true)} title='Export games to CSV'>
+			<button className='game-data-actions__btn' onClick={() => setExportOpen(true)} title={t('game.dataActions.exportTitle')}>
 				<ExportIcon />
-				<span className='game-data-actions__btn-text'>Export</span>
+				<span className='game-data-actions__btn-text'>{t('game.dataActions.export')}</span>
 			</button>
-			<button className='game-data-actions__btn' onClick={() => setImportOpen(true)} title='Import games from CSV'>
+			<button className='game-data-actions__btn' onClick={() => setImportOpen(true)} title={t('game.dataActions.importTitle')}>
 				<ImportIcon />
-				<span className='game-data-actions__btn-text'>Import</span>
+				<span className='game-data-actions__btn-text'>{t('game.dataActions.import')}</span>
 			</button>
 			<SelectiveExportModal isOpen={exportOpen} onClose={() => setExportOpen(false)} />
 

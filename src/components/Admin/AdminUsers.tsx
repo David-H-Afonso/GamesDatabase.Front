@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { userService } from '@/services/UserService'
 import { useAppSelector } from '@/store/hooks'
 import { selectCurrentUser } from '@/store/features/auth/selector'
@@ -6,6 +7,7 @@ import type { User, UserCreateDto, UserRole } from '@/models/api/User'
 import './AdminUsers.scss'
 
 export const AdminUsers = () => {
+	const { t } = useTranslation()
 	const currentUser = useAppSelector(selectCurrentUser)
 
 	const [users, setUsers] = useState<User[]>([])
@@ -33,7 +35,7 @@ export const AdminUsers = () => {
 			setUsers(data)
 			setError(null)
 		} catch (err) {
-			setError(err instanceof Error ? err.message : 'Failed to load users')
+			setError(err instanceof Error ? err.message : t('admin.users.errorLoad'))
 		} finally {
 			setLoading(false)
 		}
@@ -90,17 +92,17 @@ export const AdminUsers = () => {
 					username: formData.username,
 					role: formData.role,
 				})
-				showToast(`User "${formData.username}" updated successfully`, 'success')
+				showToast(`${t('admin.users.toastUpdated', { username: formData.username })}`, 'success')
 			} else {
 				// Create new user
 				await userService.createUser(formData)
-				showToast(`User "${formData.username}" created successfully`, 'success')
+				showToast(`${t('admin.users.toastCreated', { username: formData.username })}`, 'success')
 			}
 
 			await loadUsers()
 			handleCloseModal()
 		} catch (err) {
-			const errorMsg = err instanceof Error ? err.message : 'Operation failed'
+			const errorMsg = err instanceof Error ? err.message : t('admin.users.errorOperation')
 			setError(errorMsg)
 			showToast(errorMsg, 'error')
 		} finally {
@@ -110,7 +112,7 @@ export const AdminUsers = () => {
 
 	const handleDeleteClick = (user: User) => {
 		if (user.isDefault) {
-			showToast('Cannot delete the default admin user', 'error')
+			showToast(t('admin.users.errorCantDeleteDefault'), 'error')
 			return
 		}
 		setDeleteConfirm(user)
@@ -122,11 +124,11 @@ export const AdminUsers = () => {
 		try {
 			setActionLoading(true)
 			await userService.deleteUser(deleteConfirm.id)
-			showToast(`User "${deleteConfirm.username}" deleted successfully`, 'success')
+			showToast(`${t('admin.users.toastDeleted', { username: deleteConfirm.username })}`, 'success')
 			await loadUsers()
 			setDeleteConfirm(null)
 		} catch (err) {
-			const errorMsg = err instanceof Error ? err.message : 'Failed to delete user'
+			const errorMsg = err instanceof Error ? err.message : t('admin.users.errorDelete')
 			setError(errorMsg)
 			showToast(errorMsg, 'error')
 		} finally {
@@ -153,9 +155,9 @@ export const AdminUsers = () => {
 			setIsPasswordModalOpen(false)
 			setPasswordChangeUserId(null)
 			setNewPassword('')
-			showToast('Password changed successfully', 'success')
+			showToast(t('admin.users.toastPasswordChanged'), 'success')
 		} catch (err) {
-			const errorMsg = err instanceof Error ? err.message : 'Failed to change password'
+			const errorMsg = err instanceof Error ? err.message : t('admin.users.errorPassword')
 			setError(errorMsg)
 			showToast(errorMsg, 'error')
 		} finally {
@@ -175,22 +177,20 @@ export const AdminUsers = () => {
 
 			<div className='admin-header'>
 				<div>
-					<h1>User Management</h1>
-					<p className='subtitle'>
-						{users.length} user{users.length !== 1 ? 's' : ''} total
-					</p>
+					<h1>{t('admin.users.title')}</h1>
+					<p className='subtitle'>{t('admin.users.totalUsers', { count: users.length })}</p>
 				</div>
 				<button className='btn btn-primary' onClick={() => handleOpenModal()} disabled={actionLoading}>
-					+ Create New User
+					{t('admin.users.createUser')}
 				</button>
 			</div>
 
 			{/* Search Bar */}
 			<div className='search-bar'>
-				<input type='text' placeholder='Search users by username or role...' value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className='search-input' />
+				<input type='text' placeholder={t('admin.users.searchPlaceholder')} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className='search-input' />
 				{searchTerm && (
 					<button className='btn-clear-search' onClick={() => setSearchTerm('')}>
-						Clear
+						{t('common.clear')}
 					</button>
 				)}
 			</div>
@@ -200,22 +200,22 @@ export const AdminUsers = () => {
 			{loading ? (
 				<div className='loading'>
 					<div className='spinner'></div>
-					<p>Loading users...</p>
+					<p>{t('common.loading')}</p>
 				</div>
 			) : filteredUsers.length === 0 ? (
 				<div className='empty-state'>
-					<p>{searchTerm ? `No users found matching "${searchTerm}"` : 'No users yet. Create your first user to get started!'}</p>
+					<p>{searchTerm ? t('admin.users.noResults', { search: searchTerm }) : t('admin.users.empty')}</p>
 				</div>
 			) : (
 				<div className='users-table'>
 					<table>
 						<thead>
 							<tr>
-								<th>Username</th>
-								<th>Role</th>
-								<th>Default</th>
-								<th>Created</th>
-								<th>Actions</th>
+								<th>{t('admin.users.usernameLabel')}</th>
+								<th>{t('admin.users.roleLabel')}</th>
+								<th>{t('admin.users.tableDefault')}</th>
+								<th>{t('admin.users.tableCreated')}</th>
+								<th>{t('admin.users.tableActions')}</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -228,18 +228,18 @@ export const AdminUsers = () => {
 									<td>
 										<span className={`badge badge-${user.role === 'Admin' ? 'admin' : 'standard'}`}>{user.role}</span>
 									</td>
-									<td>{user.isDefault ? 'Yes' : ''}</td>
+									<td>{user.isDefault ? t('common.yes') : ''}</td>
 									<td>{new Date(user.createdAt).toLocaleDateString()}</td>
 									<td>
 										<div className='actions'>
 											<button className='btn btn-small btn-secondary' onClick={() => handleOpenModal(user)} disabled={actionLoading}>
-												Edit
+												{t('admin.crud.edit')}
 											</button>
 											<button className='btn btn-small btn-secondary' onClick={() => handleOpenPasswordModal(user.id)} disabled={actionLoading}>
-												Change Password
+												{t('admin.users.changePassword')}
 											</button>
 											<button className='btn btn-small btn-danger' onClick={() => handleDeleteClick(user)} disabled={user.isDefault || actionLoading}>
-												Delete
+												{t('admin.crud.delete')}
 											</button>
 										</div>
 									</td>
@@ -255,7 +255,7 @@ export const AdminUsers = () => {
 				<div className='modal-overlay' onClick={handleCloseModal}>
 					<div className='modal-content' onClick={(e) => e.stopPropagation()}>
 						<div className='modal-header'>
-							<h2>{editingUser ? 'Edit User' : 'Create New User'}</h2>
+							<h2>{editingUser ? t('admin.users.editTitle') : t('admin.users.createTitle')}</h2>
 							<button className='modal-close' onClick={handleCloseModal}>
 								×
 							</button>
@@ -263,36 +263,36 @@ export const AdminUsers = () => {
 
 						<form onSubmit={handleSubmit}>
 							<div className='form-group'>
-								<label>Username</label>
+								<label>{t('admin.users.usernameLabel')}</label>
 								<input type='text' value={formData.username} onChange={(e) => setFormData({ ...formData, username: e.target.value })} required />
 							</div>
 
 							{!editingUser && (
 								<div className='form-group'>
-									<label>Password (optional)</label>
+									<label>{t('admin.users.passwordLabel')}</label>
 									<input
 										type='password'
 										value={formData.password || ''}
 										onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-										placeholder='Leave empty for no password'
+										placeholder={t('admin.users.passwordPlaceholder')}
 									/>
 								</div>
 							)}
 
 							<div className='form-group'>
-								<label>Role</label>
+								<label>{t('admin.users.roleLabel')}</label>
 								<select value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}>
-									<option value='Standard'>Standard</option>
-									<option value='Admin'>Admin</option>
+									<option value='Standard'>{t('admin.users.roleStandard')}</option>
+									<option value='Admin'>{t('admin.users.roleAdmin')}</option>
 								</select>
 							</div>
 
 							<div className='modal-actions'>
 								<button type='button' className='btn btn-secondary' onClick={handleCloseModal} disabled={actionLoading}>
-									Cancel
+									{t('admin.crud.cancel')}
 								</button>
 								<button type='submit' className='btn btn-primary' disabled={actionLoading}>
-									{actionLoading ? 'Saving...' : editingUser ? 'Update' : 'Create'}
+									{actionLoading ? t('common.saving') : editingUser ? t('admin.crud.update') : t('admin.crud.create')}
 								</button>
 							</div>
 						</form>
@@ -305,34 +305,32 @@ export const AdminUsers = () => {
 				<div className='modal-overlay' onClick={() => setDeleteConfirm(null)}>
 					<div className='modal-content modal-confirm' onClick={(e) => e.stopPropagation()}>
 						<div className='modal-header'>
-							<h2>Confirm Deletion</h2>
+							<h2>{t('admin.users.confirmTitle')}</h2>
 							<button className='modal-close' onClick={() => setDeleteConfirm(null)}>
 								×
 							</button>
 						</div>
 
 						<div className='modal-body'>
-							<p className='warning-text'>
-								Are you sure you want to delete user <strong>"{deleteConfirm.username}"</strong>?
-							</p>
+							<p className='warning-text'>{t('admin.users.deleteWarning', { username: deleteConfirm.username })}</p>
 							<div className='warning-box'>
 								<p>
-									<strong>Warning: This action cannot be undone!</strong>
+									<strong>{t('admin.users.deleteWarning2')}</strong>
 								</p>
 								<ul>
-									<li>All data associated with this user will be permanently deleted</li>
-									<li>Any games or records created by this user will remain but won't be associated with them</li>
-									<li>This user will immediately lose access to the system</li>
+									<li>{t('admin.users.deleteWarning3')}</li>
+									<li>{t('admin.users.deleteWarning4')}</li>
+									<li>{t('admin.users.deleteWarning5')}</li>
 								</ul>
 							</div>
 						</div>
 
 						<div className='modal-actions'>
 							<button type='button' className='btn btn-secondary' onClick={() => setDeleteConfirm(null)} disabled={actionLoading}>
-								Cancel
+								{t('admin.crud.cancel')}
 							</button>
 							<button type='button' className='btn btn-danger' onClick={handleDeleteConfirm} disabled={actionLoading}>
-								{actionLoading ? 'Deleting...' : 'Yes, Delete User'}
+								{actionLoading ? t('admin.users.deleting') : t('admin.users.deleteBtn')}
 							</button>
 						</div>
 					</div>
@@ -344,7 +342,7 @@ export const AdminUsers = () => {
 				<div className='modal-overlay' onClick={() => setIsPasswordModalOpen(false)}>
 					<div className='modal-content' onClick={(e) => e.stopPropagation()}>
 						<div className='modal-header'>
-							<h2>Change Password</h2>
+							<h2>{t('admin.users.changePasswordTitle')}</h2>
 							<button className='modal-close' onClick={() => setIsPasswordModalOpen(false)}>
 								×
 							</button>
@@ -352,17 +350,17 @@ export const AdminUsers = () => {
 
 						<form onSubmit={handleChangePassword}>
 							<div className='form-group'>
-								<label>New Password</label>
-								<input type='password' value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder='Leave empty to remove password' />
-								<small>Leave empty to set no password</small>
+								<label>{t('admin.users.newPasswordLabel')}</label>
+								<input type='password' value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder={t('admin.users.newPasswordPlaceholder')} />
+								<small>{t('admin.users.passwordSmallHint')}</small>
 							</div>
 
 							<div className='modal-actions'>
 								<button type='button' className='btn btn-secondary' onClick={() => setIsPasswordModalOpen(false)} disabled={actionLoading}>
-									Cancel
+									{t('admin.crud.cancel')}
 								</button>
 								<button type='submit' className='btn btn-primary' disabled={actionLoading}>
-									{actionLoading ? 'Changing...' : 'Change Password'}
+									{actionLoading ? t('common.saving') : t('admin.users.changePasswordBtn')}
 								</button>
 							</div>
 						</form>

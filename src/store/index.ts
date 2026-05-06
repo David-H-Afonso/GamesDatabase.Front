@@ -1,6 +1,5 @@
-import { configureStore } from '@reduxjs/toolkit'
+import { configureStore, combineReducers } from '@reduxjs/toolkit'
 import { persistStore, persistReducer } from 'redux-persist'
-import { combineReducers } from '@reduxjs/toolkit'
 import storage from 'redux-persist/lib/storage'
 import gamesReducer from './features/games/gamesSlice'
 import gameStatusReducer from './features/gameStatus/gameStatusSlice'
@@ -60,7 +59,7 @@ export const store = configureStore({
 				ignoredActions: ['persist/FLUSH', 'persist/REHYDRATE', 'persist/PAUSE', 'persist/PERSIST', 'persist/PURGE', 'persist/REGISTER'],
 			},
 		}),
-	devTools: process.env.NODE_ENV !== 'production',
+	devTools: import.meta.env.DEV,
 })
 
 export const persistor = persistStore(store)

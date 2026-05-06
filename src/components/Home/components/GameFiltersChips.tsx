@@ -1,9 +1,11 @@
-﻿import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { GameQueryParameters } from '@/models/api/Game'
 import { useGamePlatform, useGamePlayedStatus, useGamePlayWith, useGameStatus } from '@/hooks'
 import { DEFAULT_PAGE_SIZE } from '@/utils'
 import { useAppSelector, useAppDispatch } from '@/store/hooks'
 import { fetchUserPreferences } from '@/store/features/auth/authSlice'
+import { getActiveGameReplayTypes } from '@/services/GameReplayTypeService'
 import './GameFiltersChips.scss'
 
 interface Props {
@@ -46,11 +48,13 @@ const GameFiltersChips: React.FC<Props> = ({
 }) => {
 	const [openPopover, setOpenPopover] = useState<PopoverKey | null>(null)
 	const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
+	const { t } = useTranslation()
 	const popoverRef = useRef<HTMLDivElement | null>(null)
 	const chipsContainerRef = useRef<HTMLDivElement | null>(null)
 
 	const dispatch = useAppDispatch()
 	const currentUser = useAppSelector((state) => state.auth.user)
+	const token = useAppSelector((state) => state.auth.token)
 	const { fetchList: fetchPlatforms } = useGamePlatform()
 	const { fetchOptions: fetchPlayWithList } = useGamePlayWith()
 	const { fetchActiveStatusList } = useGameStatus()
@@ -60,6 +64,7 @@ const GameFiltersChips: React.FC<Props> = ({
 	const [playWithOptions, setPlayWithOptions] = useState<{ value: number; label: string }[]>([])
 	const [statusOptions, setStatusOptions] = useState<{ value: number; label: string }[]>([])
 	const [playedStatusOptions, setPlayedStatusOptions] = useState<{ value: number; label: string }[]>([])
+	const [replayTypeOptions, setReplayTypeOptions] = useState<{ value: number; label: string }[]>([])
 
 	// Load filter options
 	useEffect(() => {
@@ -71,6 +76,8 @@ const GameFiltersChips: React.FC<Props> = ({
 		}
 
 		void (async () => {
+			if (!token) return
+
 			try {
 				// Load user preferences
 				if (currentUser?.id) {
@@ -92,11 +99,15 @@ const GameFiltersChips: React.FC<Props> = ({
 				const ps = await fetchPlayedStatusList()
 				const psList = normalize(ps)
 				setPlayedStatusOptions(psList.map((s: any) => ({ value: s.id as number, label: String(s.name) })))
+
+				const rt = await getActiveGameReplayTypes()
+				const rtList = normalize(rt)
+				setReplayTypeOptions(rtList.map((r: any) => ({ value: r.id as number, label: String(r.name) })))
 			} catch (err) {
 				console.error('Error loading filter options', err)
 			}
 		})()
-	}, [fetchPlatforms, fetchPlayWithList, fetchActiveStatusList, fetchPlayedStatusList, currentUser?.id, dispatch])
+	}, [token, fetchPlatforms, fetchPlayWithList, fetchActiveStatusList, fetchPlayedStatusList, currentUser?.id, dispatch])
 
 	// Close popover when clicking outside
 	useEffect(() => {
@@ -130,64 +141,94 @@ const GameFiltersChips: React.FC<Props> = ({
 
 	// Label helpers
 	const platformLabel = () => {
-		if (!filters.platformId) return 'Todas'
+		if (!filters.platformId) return t('common.all')
 		const platform = platformOptions.find((p) => p.value === filters.platformId)
-		return platform?.label || 'Todas'
+		return platform?.label || t('common.all')
 	}
 
 	const playWithLabel = () => {
-		if (!filters.playWithId) return 'Todos'
+		if (!filters.playWithId) return t('common.all')
 		const playWith = playWithOptions.find((p) => p.value === filters.playWithId)
-		return playWith?.label || 'Todos'
+		return playWith?.label || t('common.all')
 	}
 
 	const statusLabel = () => {
-		if (!filters.statusId) return 'Todos'
+		if (!filters.statusId) return t('common.all')
 		const status = statusOptions.find((s) => s.value === filters.statusId)
-		return status?.label || 'Todos'
+		return status?.label || t('common.all')
 	}
 
 	const playedStatusLabel = () => {
-		if (!filters.playedStatusId) return 'Todos'
+		if (!filters.playedStatusId) return t('common.all')
 		const playedStatus = playedStatusOptions.find((s) => s.value === filters.playedStatusId)
-		return playedStatus?.label || 'Todos'
+		return playedStatus?.label || t('common.all')
 	}
 
 	const gradesLabel = () => {
 		const { minGrade, maxGrade } = filters
-		if (!minGrade && !maxGrade) return 'Cualquiera'
+		if (!minGrade && !maxGrade) return t('common.any')
 		if (minGrade && maxGrade) return `${minGrade} – ${maxGrade}`
-		if (minGrade) return `Desde ${minGrade}`
-		return `Hasta ${maxGrade}`
+		if (minGrade) return t('home.filters.gradeFrom', { value: minGrade })
+		return t('home.filters.gradeTo', { value: maxGrade })
 	}
 
 	const yearsLabel = () => {
-		const { releasedYear, startedYear, finishedYear } = filters
+		const { releasedYear, startedYear, finishedYear, replayStartedFrom, replayFinishedFrom, replayTypeId } = filters
 		const years = [releasedYear, startedYear, finishedYear].filter((y): y is number => y !== undefined && y !== null)
-		if (years.length === 0) return 'Cualquier año'
-		if (years.length === 1) return `${years[0]}`
-		return `${Math.min(...years)} – ${Math.max(...years)}`
+		const parts: string[] = []
+		if (years.length === 1) parts.push(`${years[0]}`)
+		else if (years.length > 1) parts.push(`${Math.min(...years)} – ${Math.max(...years)}`)
+		if (replayTypeId || replayStartedFrom || replayFinishedFrom) {
+			const replayType = replayTypeOptions.find((t) => t.value === replayTypeId)
+			const replayYear = replayStartedFrom?.substring(0, 4) || replayFinishedFrom?.substring(0, 4)
+			parts.push(
+				replayType ? t('home.filters.replayWithType', { type: replayType.label }) : replayYear ? t('home.filters.replayYear', { year: replayYear }) : t('home.filters.replay')
+			)
+		}
+		return parts.length > 0 ? parts.join(', ') : t('home.filters.anyYear')
 	}
 
 	const priceLabel = () => {
-		if (filters.isCheaperByKey === undefined || filters.isCheaperByKey === null) return 'Todos'
-		return filters.isCheaperByKey ? 'Por clave' : 'En tienda'
+		if (filters.isCheaperByKey === undefined || filters.isCheaperByKey === null) return t('common.all')
+		return filters.isCheaperByKey ? t('home.filters.cheaperByKey') : t('home.filters.cheaperByStore')
 	}
 
 	const criticProviderLabel = () => {
-		if (!filters.criticProvider) return 'Todos'
+		if (!filters.criticProvider) return t('common.all')
 		return filters.criticProvider
 	}
 
 	const excludedLabel = () => {
-		if (!filters.excludeStatusIds?.length) return 'Sin exclusiones'
-		return `${filters.excludeStatusIds.length} activa(s)`
+		if (!filters.excludeStatusIds?.length) return t('home.filters.noExclusions')
+		return t('home.filters.exclusionsCount', { count: filters.excludeStatusIds.length })
 	}
 
 	const pageSizeLabel = () => {
-		if (!filters.pageSize) return `Por defecto (${DEFAULT_PAGE_SIZE})`
-		return `${filters.pageSize} juegos`
+		if (!filters.pageSize) return t('home.filters.defaultPageSize', { size: DEFAULT_PAGE_SIZE })
+		return t('home.filters.gamesPerPage', { size: filters.pageSize })
 	}
+
+	// TODO: replay filter chip helpers (not yet wired up to JSX)
+	// const replayLabel = () => {
+	// 	const { replayTypeId, replayStartedFrom, replayFinishedFrom, replayGradeMin, replayGradeMax } = filters
+	// 	const parts: string[] = []
+	// 	if (replayTypeId) {
+	// 		const type = replayTypeOptions.find((t) => t.value === replayTypeId)
+	// 		if (type) parts.push(type.label)
+	// 	}
+	// 	if (replayStartedFrom) parts.push(`ini ${replayStartedFrom.substring(0, 4)}`)
+	// 	if (replayFinishedFrom) parts.push(`fin ${replayFinishedFrom.substring(0, 4)}`)
+	// 	if (replayGradeMin !== undefined || replayGradeMax !== undefined) parts.push('nota')
+	// 	return parts.length > 0 ? parts.join(', ') : 'Sin filtro'
+	// }
+	// const replayStartedYear = filters.replayStartedFrom ? Number(filters.replayStartedFrom.substring(0, 4)) : undefined
+	// const replayFinishedYear = filters.replayFinishedFrom ? Number(filters.replayFinishedFrom.substring(0, 4)) : undefined
+	// const setReplayStartedYear = (year: number | undefined) => {
+	// 	setFilters({ replayStartedFrom: year ? `${year}-01-01` : undefined, replayStartedTo: year ? `${year}-12-31` : undefined })
+	// }
+	// const setReplayFinishedYear = (year: number | undefined) => {
+	// 	setFilters({ replayFinishedFrom: year ? `${year}-01-01` : undefined, replayFinishedTo: year ? `${year}-12-31` : undefined })
+	// }
 
 	const resetAllFilters = () => {
 		onFiltersChange({
@@ -204,6 +245,14 @@ const GameFiltersChips: React.FC<Props> = ({
 			criticProvider: undefined,
 			excludeStatusIds: undefined,
 			pageSize: undefined,
+			replayTypeId: undefined,
+			replayStartedFrom: undefined,
+			replayStartedTo: undefined,
+			replayFinishedFrom: undefined,
+			replayFinishedTo: undefined,
+			replayGradeMin: undefined,
+			replayGradeMax: undefined,
+			replayMatchMode: undefined,
 		})
 	}
 
@@ -220,7 +269,12 @@ const GameFiltersChips: React.FC<Props> = ({
 			!!filters.finishedYear ||
 			(filters.isCheaperByKey !== undefined && filters.isCheaperByKey !== null) ||
 			!!filters.criticProvider ||
-			!!filters.excludeStatusIds?.length
+			!!filters.excludeStatusIds?.length ||
+			!!filters.replayTypeId ||
+			!!filters.replayStartedFrom ||
+			!!filters.replayFinishedFrom ||
+			!!filters.replayGradeMin ||
+			!!filters.replayGradeMax
 		)
 	}
 
@@ -237,7 +291,7 @@ const GameFiltersChips: React.FC<Props> = ({
 			case 'grades':
 				return !!filters.minGrade || !!filters.maxGrade
 			case 'years':
-				return !!filters.releasedYear || !!filters.startedYear || !!filters.finishedYear
+				return !!filters.releasedYear || !!filters.startedYear || !!filters.finishedYear || !!filters.replayTypeId || !!filters.replayStartedFrom || !!filters.replayFinishedFrom
 			case 'price':
 				return filters.isCheaperByKey !== undefined && filters.isCheaperByKey !== null
 			case 'criticProvider':
@@ -277,20 +331,20 @@ const GameFiltersChips: React.FC<Props> = ({
 			{/* SELECTION CONTROLS */}
 			{selectedCount > 0 && (
 				<div className='game-filters-chips__selection'>
-					<span className='game-filters-chips__selection-count'>{selectedCount} seleccionado(s)</span>
+					<span className='game-filters-chips__selection-count'>{t('home.chips.selected', { count: selectedCount })}</span>
 					{onDeselectAll && (
 						<button type='button' className='game-filters-chips__selection-btn' onClick={onDeselectAll}>
-							Deseleccionar
+							{t('home.chips.deselect')}
 						</button>
 					)}
 					{onBulkEdit && (
 						<button type='button' className='game-filters-chips__selection-btn' onClick={onBulkEdit}>
-							Editar
+							{t('home.chips.bulkEdit')}
 						</button>
 					)}
 					{onBulkDelete && (
 						<button type='button' className='game-filters-chips__selection-btn game-filters-chips__selection-btn--danger' onClick={onBulkDelete}>
-							Eliminar
+							{t('home.chips.bulkDelete')}
 						</button>
 					)}
 					{onBulkExport && (
@@ -300,7 +354,7 @@ const GameFiltersChips: React.FC<Props> = ({
 								<polyline points='17 8 12 3 7 8' />
 								<line x1='12' y1='3' x2='12' y2='15' />
 							</svg>
-							Exportar
+							{t('home.chips.bulkExport')}
 						</button>
 					)}
 				</div>
@@ -311,12 +365,12 @@ const GameFiltersChips: React.FC<Props> = ({
 				<div className='game-filters-chips__top-left'>
 					<div className='game-filters-chips__field game-filters-chips__field--inline'>
 						<label className='game-filters-chips__input-label' htmlFor='search-input'>
-							Buscar
+							{t('home.chips.searchLabel')}
 						</label>
 						<input
 							id='search-input'
 							className='game-filters-chips__input-search'
-							placeholder='Buscar juegos…'
+							placeholder={t('home.searchPlaceholder')}
 							value={filters.search || ''}
 							onChange={(e) => onSearchChange(e.target.value)}
 						/>
@@ -324,37 +378,37 @@ const GameFiltersChips: React.FC<Props> = ({
 
 					<div className='game-filters-chips__field game-filters-chips__field--inline game-filters-chips__field--sort'>
 						<label className='game-filters-chips__input-label' htmlFor='sort-select'>
-							Ordenar por
+							{t('home.filters.sortBy')}
 						</label>
 						<select
 							id='sort-select'
 							className='game-filters-chips__select-pill'
 							value={filters.sortBy || 'name'}
 							onChange={(e) => onSortChange(e.target.value, filters.sortDescending || false)}>
-							<option value='name'>Nombre</option>
-							<option value='grade'>Calificación</option>
-							<option value='critic'>Puntuación Crítica</option>
-							<option value='released'>Fecha de Lanzamiento</option>
-							<option value='started'>Fecha de Inicio</option>
-							<option value='score'>Score</option>
-							<option value='storyDuration'>Story</option>
-							<option value='completionDuration'>Completion</option>
-							<option value='status'>Status</option>
-							<option value='createdat'>Fecha de Creación</option>
-							<option value='updatedat'>Última Modificación</option>
+							<option value='name'>{t('home.filters.fieldName')}</option>
+							<option value='grade'>{t('home.filters.fieldGrade')}</option>
+							<option value='critic'>{t('home.filters.fieldCritic')}</option>
+							<option value='released'>{t('home.filters.fieldReleased')}</option>
+							<option value='started'>{t('home.filters.fieldStarted')}</option>
+							<option value='score'>{t('home.filters.fieldScore')}</option>
+							<option value='storyDuration'>{t('home.chips.sortStory')}</option>
+							<option value='completionDuration'>{t('home.chips.sortCompletion')}</option>
+							<option value='status'>{t('home.filters.fieldStatus')}</option>
+							<option value='createdat'>{t('home.filters.fieldCreatedAt')}</option>
+							<option value='updatedat'>{t('home.filters.fieldUpdatedAt')}</option>
 						</select>
 						<button
 							type='button'
 							className='game-filters-chips__sort-direction'
 							onClick={() => onSortChange(filters.sortBy || 'name', !filters.sortDescending)}
-							title={filters.sortDescending ? 'Descendente' : 'Ascendente'}>
-							{filters.sortDescending ? '↓' : '↑'}
+							title={filters.sortDescending ? t('home.sorting.descending') : t('home.sorting.ascending')}>
+							{filters.sortDescending ? '\u2193' : '\u2191'}
 						</button>
 					</div>
 
 					{onSelectAll && (
 						<button type='button' className='game-filters-chips__action-btn' onClick={onSelectAll}>
-							{selectedCount > 0 ? 'Deseleccionar todos' : 'Seleccionar todos'}
+							{selectedCount > 0 ? t('home.deselectAll') : t('home.selectAll')}
 						</button>
 					)}
 				</div>
@@ -362,9 +416,9 @@ const GameFiltersChips: React.FC<Props> = ({
 				<div className='game-filters-chips__top-right'>
 					{onViewChange && (
 						<div className='game-filters-chips__field game-filters-chips__field--inline game-filters-chips__field--view'>
-							<label htmlFor='view-select'>Vista</label>
+							<label htmlFor='view-select'>{t('home.view')}</label>
 							<select id='view-select' className='game-filters-chips__select-view' value={currentView} onChange={(e) => onViewChange(e.target.value)}>
-								<option value='default'>Predeterminada</option>
+								<option value='default'>{t('home.viewDefault')}</option>
 								{publicGameViews.map((view) => (
 									<option key={view.id} value={view.name}>
 										{view.name}
@@ -377,10 +431,10 @@ const GameFiltersChips: React.FC<Props> = ({
 					{onViewModeChange && viewMode && (
 						<div className='game-filters-chips__mobile-controls-viewtoggle game-filters-chips__view-toggle'>
 							<button type='button' className={'game-filters-chips__view-btn' + (viewMode === 'card' ? ' is-active' : '')} onClick={() => onViewModeChange('card')}>
-								Tarjetas
+								{t('home.viewCard')}
 							</button>
 							<button type='button' className={'game-filters-chips__view-btn' + (viewMode === 'row' ? ' is-active' : '')} onClick={() => onViewModeChange('row')}>
-								Fila
+								{t('home.viewRow')}
 							</button>
 						</div>
 					)}
@@ -389,7 +443,7 @@ const GameFiltersChips: React.FC<Props> = ({
 						type='button'
 						className={'game-filters-chips__advanced-btn' + (showAdvancedFilters ? ' is-active' : '')}
 						onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}>
-						<span className='game-filters-chips__advanced-btn__text'>{showAdvancedFilters ? '✕ Cerrar filtros' : '⚙ Filtros avanzados'}</span>
+						<span className='game-filters-chips__advanced-btn__text'>{showAdvancedFilters ? `✕ ${t('home.filters.closeFilters')}` : `⚙ ${t('home.filters.advancedFilters')}`}</span>
 						<span className='game-filters-chips__advanced-btn__icon'>⚙</span>
 					</button>
 				</div>
@@ -402,26 +456,26 @@ const GameFiltersChips: React.FC<Props> = ({
 					<div className='game-filters-chips__moved-controls'>
 						{onSelectAll && (
 							<button type='button' className='game-filters-chips__moved-controls-selectall game-filters-chips__action-btn' onClick={onSelectAll}>
-								{selectedCount > 0 ? 'Deseleccionar todos' : 'Seleccionar todos'}
+								{selectedCount > 0 ? t('home.deselectAll') : t('home.selectAll')}
 							</button>
 						)}
 
 						{onViewModeChange && viewMode && (
 							<div className='game-filters-chips__moved-controls-viewtoggle game-filters-chips__view-toggle'>
 								<button type='button' className={'game-filters-chips__view-btn' + (viewMode === 'card' ? ' is-active' : '')} onClick={() => onViewModeChange('card')}>
-									Tarjetas
+									{t('home.viewCard')}
 								</button>
 								<button type='button' className={'game-filters-chips__view-btn' + (viewMode === 'row' ? ' is-active' : '')} onClick={() => onViewModeChange('row')}>
-									Fila
+									{t('home.viewRow')}
 								</button>
 							</div>
 						)}
 
 						{onViewChange && (
 							<div className='game-filters-chips__moved-controls-view game-filters-chips__field game-filters-chips__field--inline'>
-								<label>Vista</label>
-								<select aria-label='Vista' className='game-filters-chips__select-view' value={currentView} onChange={(e) => onViewChange(e.target.value)}>
-									<option value='default'>Predeterminada</option>
+								<label>{t('home.view')}</label>
+								<select aria-label={t('home.view')} className='game-filters-chips__select-view' value={currentView} onChange={(e) => onViewChange(e.target.value)}>
+									<option value='default'>{t('home.viewDefault')}</option>
 									{publicGameViews.map((view) => (
 										<option key={view.id} value={view.name}>
 											{view.name}
@@ -432,29 +486,29 @@ const GameFiltersChips: React.FC<Props> = ({
 						)}
 
 						<div className='game-filters-chips__moved-controls-sort game-filters-chips__field game-filters-chips__field--inline'>
-							<label>Ordenar por</label>
+							<label>{t('home.filters.sortBy')}</label>
 							<select
-								aria-label='Ordenar por'
+								aria-label={t('home.filters.sortBy')}
 								className='game-filters-chips__select-pill'
 								value={filters.sortBy || 'name'}
 								onChange={(e) => onSortChange(e.target.value, filters.sortDescending || false)}>
-								<option value='name'>Nombre</option>
-								<option value='grade'>Calificación</option>
-								<option value='critic'>Puntuación Crítica</option>
-								<option value='released'>Fecha de Lanzamiento</option>
-								<option value='started'>Fecha de Inicio</option>
-								<option value='score'>Score</option>
-								<option value='storyDuration'>Story</option>
-								<option value='completionDuration'>Completion</option>
-								<option value='status'>Status</option>
-								<option value='createdat'>Fecha de Creación</option>
-								<option value='updatedat'>Última Modificación</option>
+								<option value='name'>{t('home.filters.fieldName')}</option>
+								<option value='grade'>{t('home.filters.fieldGrade')}</option>
+								<option value='critic'>{t('home.filters.fieldCritic')}</option>
+								<option value='released'>{t('home.filters.fieldReleased')}</option>
+								<option value='started'>{t('home.filters.fieldStarted')}</option>
+								<option value='score'>{t('home.filters.fieldScore')}</option>
+								<option value='storyDuration'>{t('home.chips.sortStory')}</option>
+								<option value='completionDuration'>{t('home.chips.sortCompletion')}</option>
+								<option value='status'>{t('home.filters.fieldStatus')}</option>
+								<option value='createdat'>{t('home.filters.fieldCreatedAt')}</option>
+								<option value='updatedat'>{t('home.filters.fieldUpdatedAt')}</option>
 							</select>
 							<button
 								type='button'
 								className='game-filters-chips__sort-direction'
 								onClick={() => onSortChange(filters.sortBy || 'name', !filters.sortDescending)}
-								title={filters.sortDescending ? 'Descendente' : 'Ascendente'}>
+								title={filters.sortDescending ? t('home.sorting.descending') : t('home.sorting.ascending')}>
 								{filters.sortDescending ? '↓' : '↑'}
 							</button>
 						</div>
@@ -463,58 +517,56 @@ const GameFiltersChips: React.FC<Props> = ({
 					{/* CHIPS ROW */}
 					<div className='game-filters-chips__chips-row' ref={chipsContainerRef}>
 						<button type='button' className={'game-filters-chips__chip' + (hasActiveFilter('platform') ? ' is-active' : '')} onClick={() => togglePopover('platform')}>
-							Plataforma: <span>{platformLabel()}</span>
+							{t('home.filters.platform')}: <span>{platformLabel()}</span>
 						</button>
 
 						<button type='button' className={'game-filters-chips__chip' + (hasActiveFilter('playWith') ? ' is-active' : '')} onClick={() => togglePopover('playWith')}>
-							Jugar con: <span>{playWithLabel()}</span>
+							{t('home.filters.playWith')}: <span>{playWithLabel()}</span>
 						</button>
 
 						<button type='button' className={'game-filters-chips__chip' + (hasActiveFilter('status') ? ' is-active' : '')} onClick={() => togglePopover('status')}>
-							Status: <span>{statusLabel()}</span>
+							{t('home.filters.status')}: <span>{statusLabel()}</span>
 						</button>
 
 						<button type='button' className={'game-filters-chips__chip' + (hasActiveFilter('playedStatus') ? ' is-active' : '')} onClick={() => togglePopover('playedStatus')}>
-							Jugado: <span>{playedStatusLabel()}</span>
+							{t('home.filters.playedStatus')}: <span>{playedStatusLabel()}</span>
 						</button>
 
 						<button type='button' className={'game-filters-chips__chip' + (hasActiveFilter('grades') ? ' is-active' : '')} onClick={() => togglePopover('grades')}>
-							Nota: <span>{gradesLabel()}</span>
+							{t('home.filters.grade')}: <span>{gradesLabel()}</span>
 						</button>
 
 						<button type='button' className={'game-filters-chips__chip' + (hasActiveFilter('years') ? ' is-active' : '')} onClick={() => togglePopover('years')}>
-							Años: <span>{yearsLabel()}</span>
+							{t('home.filters.years')}: <span>{yearsLabel()}</span>
 						</button>
 
 						<button type='button' className={'game-filters-chips__chip' + (hasActiveFilter('price') ? ' is-active' : '')} onClick={() => togglePopover('price')}>
-							Precio: <span>{priceLabel()}</span>
+							{t('home.filters.price')}: <span>{priceLabel()}</span>
 						</button>
 
 						<button type='button' className={'game-filters-chips__chip' + (hasActiveFilter('criticProvider') ? ' is-active' : '')} onClick={() => togglePopover('criticProvider')}>
-							Proveedor: <span>{criticProviderLabel()}</span>
+							{t('home.filters.provider')}: <span>{criticProviderLabel()}</span>
 						</button>
 
 						<button type='button' className={'game-filters-chips__chip' + (hasActiveFilter('excluded') ? ' is-active' : '')} onClick={() => togglePopover('excluded')}>
-							Exclusiones: <span>{excludedLabel()}</span>
+							{t('home.filters.exclusions')}: <span>{excludedLabel()}</span>
 						</button>
 
 						<button type='button' className={'game-filters-chips__chip' + (hasActiveFilter('pageSize') ? ' is-active' : '')} onClick={() => togglePopover('pageSize')}>
-							Página: <span>{pageSizeLabel()}</span>
+							{t('home.filters.page')}: <span>{pageSizeLabel()}</span>
 						</button>
 					</div>
-
-					{/* POPOVERS */}
 					{openPopover && (
 						<div className='game-filters-chips__popover' ref={popoverRef}>
 							{openPopover === 'platform' && (
 								<>
-									<strong className='game-filters-chips__popover-title'>Plataforma</strong>
+									<strong className='game-filters-chips__popover-title'>{t('home.filters.platform')}</strong>
 									<div className='game-filters-chips__popover-options'>
 										<button
 											type='button'
 											className={'game-filters-chips__option' + (!filters.platformId ? ' is-active' : '')}
 											onClick={() => setFilters({ platformId: undefined })}>
-											Todas
+											{t('common.all')}
 										</button>
 										{platformOptions.map((p) => (
 											<button
@@ -531,13 +583,13 @@ const GameFiltersChips: React.FC<Props> = ({
 
 							{openPopover === 'playWith' && (
 								<>
-									<strong className='game-filters-chips__popover-title'>Jugar con</strong>
+									<strong className='game-filters-chips__popover-title'>{t('home.filters.playWith')}</strong>
 									<div className='game-filters-chips__popover-options'>
 										<button
 											type='button'
 											className={'game-filters-chips__option' + (!filters.playWithId ? ' is-active' : '')}
 											onClick={() => setFilters({ playWithId: undefined })}>
-											Todos
+											{t('common.all')}
 										</button>
 										{playWithOptions.map((p) => (
 											<button
@@ -554,10 +606,10 @@ const GameFiltersChips: React.FC<Props> = ({
 
 							{openPopover === 'status' && (
 								<>
-									<strong className='game-filters-chips__popover-title'>Status</strong>
+									<strong className='game-filters-chips__popover-title'>{t('home.filters.status')}</strong>
 									<div className='game-filters-chips__popover-options'>
 										<button type='button' className={'game-filters-chips__option' + (!filters.statusId ? ' is-active' : '')} onClick={() => setFilters({ statusId: undefined })}>
-											Todos
+											{t('common.all')}
 										</button>
 										{statusOptions.map((s) => (
 											<button
@@ -574,13 +626,13 @@ const GameFiltersChips: React.FC<Props> = ({
 
 							{openPopover === 'playedStatus' && (
 								<>
-									<strong className='game-filters-chips__popover-title'>Estado Jugado</strong>
+									<strong className='game-filters-chips__popover-title'>{t('home.filters.playedStatus')}</strong>
 									<div className='game-filters-chips__popover-options'>
 										<button
 											type='button'
 											className={'game-filters-chips__option' + (!filters.playedStatusId ? ' is-active' : '')}
 											onClick={() => setFilters({ playedStatusId: undefined })}>
-											Todos
+											{t('common.all')}
 										</button>
 										{playedStatusOptions.map((s) => (
 											<button
@@ -597,10 +649,10 @@ const GameFiltersChips: React.FC<Props> = ({
 
 							{openPopover === 'grades' && (
 								<>
-									<strong className='game-filters-chips__popover-title'>Nota</strong>
+									<strong className='game-filters-chips__popover-title'>{t('home.filters.grade')}</strong>
 									<div className='game-filters-chips__popover-grid'>
 										<div className='game-filters-chips__field'>
-											<label htmlFor='filter-min-grade'>Mínimo</label>
+											<label htmlFor='filter-min-grade'>{t('common.min')}</label>
 											<input
 												id='filter-min-grade'
 												type='number'
@@ -616,7 +668,7 @@ const GameFiltersChips: React.FC<Props> = ({
 											/>
 										</div>
 										<div className='game-filters-chips__field'>
-											<label htmlFor='filter-max-grade'>Máximo</label>
+											<label htmlFor='filter-max-grade'>{t('common.max')}</label>
 											<input
 												id='filter-max-grade'
 												type='number'
@@ -633,23 +685,23 @@ const GameFiltersChips: React.FC<Props> = ({
 										</div>
 									</div>
 									<button type='button' className='game-filters-chips__clear-btn' onClick={() => setFilters({ minGrade: undefined, maxGrade: undefined })}>
-										Limpiar
+										{t('common.clear')}
 									</button>
 								</>
 							)}
 
 							{openPopover === 'years' && (
 								<>
-									<strong className='game-filters-chips__popover-title'>Años</strong>
+									<strong className='game-filters-chips__popover-title'>{t('home.filters.years')}</strong>
 									<div className='game-filters-chips__popover-grid game-filters-chips__popover-grid--years'>
 										<div className='game-filters-chips__field'>
-											<label htmlFor='filter-released-year'>Lanzamiento</label>
+											<label htmlFor='filter-released-year'>{t('home.filters.fieldReleased')}</label>
 											<input
 												id='filter-released-year'
 												type='number'
 												min='1970'
 												max='2100'
-												placeholder='Año'
+												placeholder={t('home.chips.yearPlaceholder')}
 												value={filters.releasedYear ?? ''}
 												onChange={(e) =>
 													setFilters({
@@ -660,13 +712,13 @@ const GameFiltersChips: React.FC<Props> = ({
 										</div>
 										<div className='played-date'>
 											<div className='game-filters-chips__field'>
-												<label htmlFor='filter-started-year'>Inicio</label>
+												<label htmlFor='filter-started-year'>{t('home.filters.fieldStarted')}</label>
 												<input
 													id='filter-started-year'
 													type='number'
 													min='1970'
 													max='2100'
-													placeholder='Año'
+													placeholder={t('home.chips.yearPlaceholder')}
 													value={filters.startedYear ?? ''}
 													onChange={(e) =>
 														setFilters({
@@ -676,13 +728,13 @@ const GameFiltersChips: React.FC<Props> = ({
 												/>
 											</div>
 											<div className='game-filters-chips__field'>
-												<label htmlFor='filter-finished-year'>Finalización</label>
+												<label htmlFor='filter-finished-year'>{t('home.filters.finished')}</label>
 												<input
 													id='filter-finished-year'
 													type='number'
 													min='1970'
 													max='2100'
-													placeholder='Año'
+													placeholder={t('home.chips.yearPlaceholder')}
 													value={filters.finishedYear ?? ''}
 													onChange={(e) =>
 														setFilters({
@@ -693,6 +745,44 @@ const GameFiltersChips: React.FC<Props> = ({
 											</div>
 										</div>
 									</div>
+									<hr className='game-filters-chips__divider' />
+									<strong className='game-filters-chips__popover-subtitle'>{t('home.filters.replay')}</strong>
+									<div className='game-filters-chips__field'>
+										<select value={filters.replayTypeId ?? ''} onChange={(e) => setFilters({ replayTypeId: e.target.value ? Number(e.target.value) : undefined })}>
+											<option value=''>— {t('home.filters.noType')} —</option>
+											{replayTypeOptions.map((t) => (
+												<option key={t.value} value={t.value}>
+													{t.label}
+												</option>
+											))}
+										</select>
+									</div>
+									{filters.replayTypeId && (
+										<div className='game-filters-chips__popover-grid'>
+											<div className='game-filters-chips__field'>
+												<label>{t('home.filters.replayStarted')}</label>
+												<input
+													type='number'
+													min='1970'
+													max='2100'
+													placeholder={t('home.chips.yearPlaceholder')}
+													value={filters.replayStartedFrom ? filters.replayStartedFrom.substring(0, 4) : ''}
+													onChange={(e) => setFilters({ replayStartedFrom: e.target.value ? `${e.target.value}-01-01` : undefined })}
+												/>
+											</div>
+											<div className='game-filters-chips__field'>
+												<label>{t('home.filters.replayFinished')}</label>
+												<input
+													type='number'
+													min='1970'
+													max='2100'
+													placeholder={t('home.chips.yearPlaceholder')}
+													value={filters.replayFinishedTo ? filters.replayFinishedTo.substring(0, 4) : ''}
+													onChange={(e) => setFilters({ replayFinishedTo: e.target.value ? `${e.target.value}-12-31` : undefined })}
+												/>
+											</div>
+										</div>
+									)}
 									<button
 										type='button'
 										className='game-filters-chips__clear-btn'
@@ -701,34 +791,39 @@ const GameFiltersChips: React.FC<Props> = ({
 												releasedYear: undefined,
 												startedYear: undefined,
 												finishedYear: undefined,
+												replayTypeId: undefined,
+												replayStartedFrom: undefined,
+												replayStartedTo: undefined,
+												replayFinishedFrom: undefined,
+												replayFinishedTo: undefined,
 											})
 										}>
-										Limpiar
+										{t('common.clear')}
 									</button>
 								</>
 							)}
 
 							{openPopover === 'price' && (
 								<>
-									<strong className='game-filters-chips__popover-title'>Precio</strong>
+									<strong className='game-filters-chips__popover-title'>{t('home.filters.price')}</strong>
 									<div className='game-filters-chips__popover-options'>
 										<button
 											type='button'
 											className={'game-filters-chips__option' + (filters.isCheaperByKey === undefined || filters.isCheaperByKey === null ? ' is-active' : '')}
 											onClick={() => setFilters({ isCheaperByKey: undefined })}>
-											Todos
+											{t('common.all')}
 										</button>
 										<button
 											type='button'
 											className={'game-filters-chips__option' + (filters.isCheaperByKey === true ? ' is-active' : '')}
 											onClick={() => setFilters({ isCheaperByKey: true })}>
-											Más barato por clave
+											{t('home.filters.cheaperByKey')}
 										</button>
 										<button
 											type='button'
 											className={'game-filters-chips__option' + (filters.isCheaperByKey === false ? ' is-active' : '')}
 											onClick={() => setFilters({ isCheaperByKey: false })}>
-											Más barato en tienda
+											{t('home.filters.cheaperByStore')}
 										</button>
 									</div>
 								</>
@@ -736,19 +831,19 @@ const GameFiltersChips: React.FC<Props> = ({
 
 							{openPopover === 'criticProvider' && (
 								<>
-									<strong className='game-filters-chips__popover-title'>Proveedor de Crítica</strong>
+									<strong className='game-filters-chips__popover-title'>{t('home.filters.provider')}</strong>
 									<div className='game-filters-chips__popover-options'>
 										<button
 											type='button'
 											className={'game-filters-chips__option' + (!filters.criticProvider ? ' is-active' : '')}
 											onClick={() => setFilters({ criticProvider: undefined })}>
-											Todos
+											{t('common.all')}
 										</button>
 										<button
 											type='button'
 											className={'game-filters-chips__option' + (filters.criticProvider === 'Default' ? ' is-active' : '')}
 											onClick={() => setFilters({ criticProvider: 'Default' })}>
-											Por defecto
+											{t('common.default')}
 										</button>
 										<button
 											type='button'
@@ -774,7 +869,7 @@ const GameFiltersChips: React.FC<Props> = ({
 
 							{openPopover === 'excluded' && (
 								<>
-									<strong className='game-filters-chips__popover-title'>Excluir Status</strong>
+									<strong className='game-filters-chips__popover-title'>{t('home.filters.excludeStatus')}</strong>
 									<div className='game-filters-chips__popover-checkboxes'>
 										{statusOptions.map((status) => {
 											const isExcluded = (filters.excludeStatusIds || []).includes(status.value)
@@ -787,20 +882,20 @@ const GameFiltersChips: React.FC<Props> = ({
 										})}
 									</div>
 									<button type='button' className='game-filters-chips__clear-btn' onClick={() => setFilters({ excludeStatusIds: undefined })}>
-										Limpiar
+										{t('common.clear')}
 									</button>
 								</>
 							)}
 
 							{openPopover === 'pageSize' && (
 								<>
-									<strong className='game-filters-chips__popover-title'>Tamaño de página</strong>
+									<strong className='game-filters-chips__popover-title'>{t('home.filters.pageSize')}</strong>
 									<div className='game-filters-chips__popover-options'>
 										<button
 											type='button'
 											className={'game-filters-chips__option' + (!filters.pageSize || filters.pageSize === 50 ? ' is-active' : '')}
 											onClick={() => setFilters({ pageSize: 50 })}>
-											Por defecto
+											{t('common.default')}
 										</button>
 										{[10, 25, 50, 100, 200].map((size) => (
 											<button
@@ -808,12 +903,32 @@ const GameFiltersChips: React.FC<Props> = ({
 												type='button'
 												className={'game-filters-chips__option' + (filters.pageSize === size ? ' is-active' : '')}
 												onClick={() => setFilters({ pageSize: size })}>
-												{size} juegos
+												{t('home.filters.gamesCount', { size })}
 											</button>
 										))}
 									</div>
 								</>
 							)}
+
+							{/* TODO: wire up replay clear button
+							<button
+								type='button'
+								className='game-filters-chips__clear-btn'
+								onClick={() =>
+									setFilters({
+										replayTypeId: undefined,
+										replayStartedFrom: undefined,
+										replayStartedTo: undefined,
+										replayFinishedFrom: undefined,
+										replayFinishedTo: undefined,
+										replayGradeMin: undefined,
+										replayGradeMax: undefined,
+										replayMatchMode: undefined,
+									})
+								}>
+								Limpiar
+							</button>
+							*/}
 						</div>
 					)}
 
@@ -821,12 +936,12 @@ const GameFiltersChips: React.FC<Props> = ({
 					<div className='game-filters-chips__bottom'>
 						<label className='game-filters-chips__checkbox'>
 							<input type='checkbox' checked={filters.showIncomplete === true} onChange={(e) => setFilters({ showIncomplete: e.target.checked || undefined })} />
-							<span>Mostrar juegos incompletos</span>
+							<span>{t('home.filters.showIncomplete')}</span>
 						</label>
 
 						{hasAnyActiveFilter() && (
 							<button type='button' className='game-filters-chips__reset-btn' onClick={resetAllFilters}>
-								Resetear filtros
+								{t('home.filters.clearFilters')}
 							</button>
 						)}
 					</div>

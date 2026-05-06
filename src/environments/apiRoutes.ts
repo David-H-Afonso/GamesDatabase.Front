@@ -82,6 +82,32 @@ export const apiRoutes = {
 		delete: (id: number) => `/gameviews/${id}`,
 	},
 
+	/** Game Replay Type endpoints */
+	gameReplayTypes: {
+		base: '/gamereplaytypes',
+		active: '/gamereplaytypes/active',
+		special: '/gamereplaytypes/special',
+		byId: (id: number) => `/gamereplaytypes/${id}`,
+		create: '/gamereplaytypes',
+		update: (id: number) => `/gamereplaytypes/${id}`,
+		delete: (id: number) => `/gamereplaytypes/${id}`,
+		reorder: '/gamereplaytypes/reorder',
+	},
+
+	/** Game Replay endpoints */
+	gameReplays: {
+		byGameId: (gameId: number) => `/games/${gameId}/replays`,
+		byId: (gameId: number, id: number) => `/games/${gameId}/replays/${id}`,
+	},
+
+	/** Game History endpoints */
+	gameHistory: {
+		byGameId: (gameId: number) => `/games/${gameId}/history`,
+		entryById: (gameId: number, entryId: number) => `/games/${gameId}/history/${entryId}`,
+		global: '/games/history',
+		adminGlobal: '/admin/history',
+	},
+
 	/** User endpoints */
 	users: {
 		login: '/users/login',
@@ -92,10 +118,9 @@ export const apiRoutes = {
 		delete: (id: number) => `/users/${id}`,
 		changePassword: (id: number) => `/users/${id}/password`,
 	},
-} as const
 
-/**
- * Type for API routes structure
- * Provides type safety when accessing routes
- */
-export type ApiRoutes = typeof apiRoutes
+	backupSchedule: {
+		base: '/backupschedule',
+		runNow: '/backupschedule/run-now',
+	},
+}

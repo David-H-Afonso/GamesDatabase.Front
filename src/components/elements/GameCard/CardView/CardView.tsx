@@ -1,5 +1,6 @@
 import type { Game } from '@/models/api/Game'
 import { useState, memo, type FC } from 'react'
+import { useTranslation } from 'react-i18next'
 import './CardView.scss'
 import { formatToLocaleDate, useClickOutside, getMetacriticColor } from '@/utils'
 import { EditableSelect } from '../../EditableSelect/EditableSelect'
@@ -32,6 +33,7 @@ const CardView: FC<CardViewProps> = (props) => {
 	const isPriority = props.index !== undefined && props.index < 4
 	const { game, openDetails, playWithColors, gameStatusColor, platformColor, onFieldUpdate, isSelected = false, onSelect, deselectAll } = props
 	const [activeSelector, setActiveSelector] = useState<'status' | 'platform' | 'playWith' | null>(null)
+	const { t } = useTranslation()
 
 	// Get options for selectable fields
 	const { activeStatuses: statusOptions } = useAppSelector((state) => state.gameStatus)
@@ -95,7 +97,7 @@ const CardView: FC<CardViewProps> = (props) => {
 
 	// Helper para formatear múltiples nombres
 	const formatMultipleNames = (names: string[] | undefined): string => {
-		if (!names || names.length === 0) return 'N/A'
+		if (!names || names.length === 0) return t('game.card.na')
 		if (names.length === 1) return names[0]
 		return `${names[0]} +${names.length - 1}`
 	}
@@ -130,7 +132,7 @@ const CardView: FC<CardViewProps> = (props) => {
 					{game.cover && (
 						<OptimizedImage
 							src={game.cover}
-							alt={`${game.name} cover`}
+							alt={t('game.card.coverAlt', { name: game.name })}
 							className='game-card-cover'
 							quality='medium'
 							loading={isPriority ? 'eager' : 'lazy'}
@@ -146,7 +148,7 @@ const CardView: FC<CardViewProps> = (props) => {
 							onClick={(e) => e.stopPropagation()}
 							onChange={(e) => handleCheckboxChange(e)}
 							className='game-card-view-container__checkbox'
-							aria-label={`Select ${game.name}`}
+							aria-label={t('game.card.selectGame', { name: game.name })}
 							style={{
 								opacity: isSelected ? 1 : 0,
 								transition: 'opacity 0.2s ease-in-out',
@@ -164,32 +166,34 @@ const CardView: FC<CardViewProps> = (props) => {
 										}
 									}}
 									style={{ cursor: game.keyStoreUrl ? 'pointer' : 'default' }}
-									title={game.isCheaperByKey ? 'Cheaper with Key' : 'Cheaper in Store'}>
+									title={game.isCheaperByKey ? t('game.card.cheaperByKey') : t('game.card.cheaperInStore')}>
 									<PriceComparisonIcon width={16} height={16} color='#f9fafb' focusable={false} />
 								</span>
 							)}
-							<span className='game-card-score game-card-score--grade'>{game.grade ?? 'N/A'}</span>
+							<span className='game-card-score game-card-score--grade'>{game.grade ?? t('game.card.na')}</span>
 							{game.critic != null && !isNaN(game.critic) && (
 								<span
 									className='game-card-score game-card-score--critic'
 									onClick={handleCriticScoreClick}
 									style={{ cursor: 'pointer' }}
-									title={`Click to search on ${effectiveProvider}`}>
+									title={t('game.card.searchOn', { provider: effectiveProvider })}>
 									<ScoreProviderIcon
 										width={13}
 										height={13}
 										color={criticScoreColor === '#f9fafb' ? '#9ca3af' : criticScoreColor}
-										title={`${effectiveProvider} icon`}
+										title={t('game.card.providerIcon', { provider: effectiveProvider })}
 										focusable={false}
 									/>
-									<span style={{ fontFamily: 'monospace', color: criticScoreColor }}>{game.critic ?? 'N/A'}</span>
+									<span style={{ fontFamily: 'monospace', color: criticScoreColor }}>{game.critic ?? t('game.card.na')}</span>
 								</span>
 							)}
 						</div>
 					</div>
 					<div className='game-card-header-info'>
 						<div className='game-card-header-info-logo'>
-							{game.logo && <OptimizedImage src={game.logo} alt={`${game.name} logo`} className='game-card-logo' quality='low' loading='lazy' width={50} height={50} />}
+							{game.logo && (
+								<OptimizedImage src={game.logo} alt={t('game.card.logoAlt', { name: game.name })} className='game-card-logo' quality='low' loading='lazy' width={50} height={50} />
+							)}
 						</div>
 						<div className='game-card-header-info-tags'>
 							<h3 className='game-card-title' title={game.name}>
@@ -198,7 +202,7 @@ const CardView: FC<CardViewProps> = (props) => {
 							<div className='game-card-tags' ref={statusRef} onClick={(e) => e.stopPropagation()}>
 								<div className='game-card-tag-container'>
 									<span
-										title={game.statusName || 'No status'}
+										title={game.statusName || t('game.card.noStatus')}
 										className='game-card-tag game-card-tag--clickable'
 										style={{
 											backgroundColor: `${gameStatusColor}44`,
@@ -214,7 +218,7 @@ const CardView: FC<CardViewProps> = (props) => {
 												displayValue={game.statusName}
 												options={statusOptions}
 												onSave={(value) => handleFieldUpdate('statusId', value)}
-												placeholder='Select status'
+												placeholder={t('game.details.selectStatus')}
 												dropdownOnly
 											/>
 										</div>
@@ -223,7 +227,7 @@ const CardView: FC<CardViewProps> = (props) => {
 								{game.platformName && (
 									<div className='game-card-tag-container'>
 										<span
-											title={game.platformName || 'No platform'}
+											title={game.platformName || t('game.card.na')}
 											className='game-card-tag game-card-tag--clickable'
 											style={{
 												backgroundColor: `${platformColor}44`,
@@ -239,7 +243,7 @@ const CardView: FC<CardViewProps> = (props) => {
 													displayValue={game.platformName}
 													options={platformOptions}
 													onSave={(value) => handleFieldUpdate('platformId', value)}
-													placeholder='Select platform'
+													placeholder={t('game.details.selectPlatform')}
 													dropdownOnly
 												/>
 											</div>
@@ -265,7 +269,7 @@ const CardView: FC<CardViewProps> = (props) => {
 													displayValues={game.playWithNames || []}
 													options={playWithOptions}
 													onSave={(values) => handleFieldUpdate('playWithIds', values)}
-													placeholder='Select play with'
+													placeholder={t('game.details.selectPlayWith')}
 													dropdownOnly
 												/>
 											</div>
@@ -280,23 +284,23 @@ const CardView: FC<CardViewProps> = (props) => {
 				<div className='game-card-body'>
 					<div className='game-card-duration'>
 						<div className='game-card-duration-item'>
-							<p className='game-card-duration-label'>Story</p>
-							<p className='game-card-duration-value'>{game.story ? `${game.story}h` : 'N/A'}</p>
+							<p className='game-card-duration-label'>{t('game.details.fieldStory')}</p>
+							<p className='game-card-duration-value'>{game.story ? `${game.story}h` : t('game.card.na')}</p>
 						</div>
 						<div className='game-card-duration-item'>
-							<p className='game-card-duration-label'>100%</p>
-							<p className='game-card-duration-value'>{game.completion ? `${game.completion}h` : 'N/A'}</p>
+							<p className='game-card-duration-label'>{t('game.card.full')}</p>
+							<p className='game-card-duration-value'>{game.completion ? `${game.completion}h` : t('game.card.na')}</p>
 						</div>
 					</div>
-					<div className='game-card-metadata' role='group' aria-label='Game metadata'>
-						<div className='game-card-score' role='group' aria-label={`Score: ${game.score ?? 'N/A'} / 10`}>
-							<ScoreIcon width={20} height={20} color='#9ca3af' title='Score icon' focusable={false} />
+					<div className='game-card-metadata' role='group' aria-label={t('game.card.gameMeta')}>
+						<div className='game-card-score' role='group' aria-label={t('game.card.scoreDisplay', { score: game.score ?? t('game.card.na') })}>
+							<ScoreIcon width={20} height={20} color='#9ca3af' title={t('game.card.scoreIcon')} focusable={false} />
 							<div className='game-card-score-value'>
-								<p>{game.score ?? 'N/A'} / 10</p>
+								<p>{game.score ?? t('game.card.na')} / 10</p>
 							</div>
 						</div>
-						<div className='game-card-release-date' role='group' aria-label={`Released: ${released}`}>
-							<CalendarIcon width={20} height={20} color='#9ca3af' title='Released icon' focusable={false} />
+						<div className='game-card-release-date' role='group' aria-label={t('game.card.releasedAria', { date: released })}>
+							<CalendarIcon width={20} height={20} color='#9ca3af' title={t('game.card.releasedIcon')} focusable={false} />
 							<p>{released}</p>
 						</div>
 					</div>

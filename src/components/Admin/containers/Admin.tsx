@@ -10,6 +10,9 @@ import AdminDataExport from '../AdminDataExport'
 import AdminGameViews from '../AdminGameViews'
 import AdminUsers from '../AdminUsers'
 import { AdminPreferences } from '../AdminPreferences'
+import AdminReplayTypes from '../AdminReplayTypes'
+import { AdminAuditLog } from '../AdminAuditLog'
+import AdminBackupSchedule from '../AdminBackupSchedule'
 
 const Admin = () => {
 	const isAdmin = useAppSelector(selectIsAdmin)
@@ -22,9 +25,12 @@ const Admin = () => {
 				<Route path='status' element={<AdminStatus />} />
 				<Route path='play-with' element={<AdminPlayWith />} />
 				<Route path='played-status' element={<AdminPlayedStatus />} />
+				<Route path='replay-types' element={<AdminReplayTypes />} />
 				<Route path='data-export' element={<AdminDataExport />} />
 				<Route path='game-views' element={<AdminGameViews />} />
+				<Route path='audit-log' element={<AdminAuditLog />} />
 				{isAdmin && <Route path='users' element={<AdminUsers />} />}
+				{isAdmin && <Route path='backup-schedule' element={<AdminBackupSchedule />} />}
 				<Route path='preferences' element={<AdminPreferences />} />
 			</Route>
 		</Routes>

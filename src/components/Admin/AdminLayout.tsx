@@ -1,10 +1,12 @@
 import { Outlet, NavLink } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAppSelector } from '@/store/hooks'
 import { selectIsAdmin } from '@/store/features/auth/selector'
 import './AdminLayout.scss'
 import { Header } from '@/layouts/elements/Header'
 
 export const AdminLayout = () => {
+	const { t } = useTranslation()
 	const isAdmin = useAppSelector(selectIsAdmin)
 
 	return (
@@ -12,33 +14,44 @@ export const AdminLayout = () => {
 			<Header />
 			<div className='admin-body'>
 				<div className='admin-sidebar'>
-					<h2>Administración</h2>
+					<h2>{t('admin.sidebarTitle')}</h2>
 					<nav className='admin-nav'>
 						{isAdmin && (
 							<NavLink to='/admin/users' className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
-								Usuarios
+								{t('admin.nav.users')}
 							</NavLink>
 						)}
 						<NavLink to='/admin/platforms' className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
-							Plataformas
+							{t('admin.nav.platforms')}
 						</NavLink>
 						<NavLink to='/admin/status' className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
-							Status
+							{t('admin.nav.status')}
 						</NavLink>
 						<NavLink to='/admin/play-with' className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
-							Play With
+							{t('admin.nav.playWith')}
 						</NavLink>
 						<NavLink to='/admin/played-status' className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
-							Played Status
+							{t('admin.nav.playedStatus')}
+						</NavLink>
+						<NavLink to='/admin/replay-types' className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
+							{t('admin.nav.replayTypes')}
 						</NavLink>
 						<NavLink to='/admin/data-export' className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
-							Importar/Exportar
+							{t('admin.nav.importExport')}
 						</NavLink>
 						<NavLink to='/admin/game-views' className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
-							Vistas de Juego
+							{t('admin.nav.gameViews')}
 						</NavLink>
+						<NavLink to='/admin/audit-log' className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
+							{t('admin.nav.audit')}
+						</NavLink>
+						{isAdmin && (
+							<NavLink to='/admin/backup-schedule' className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
+								{t('admin.nav.backupSchedule')}
+							</NavLink>
+						)}
 						<NavLink to='/admin/preferences' className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
-							Preferencias
+							{t('admin.nav.preferences')}
 						</NavLink>
 					</nav>
 					<div className='admin-build-info'>

@@ -1,4 +1,5 @@
 import { useEffect, useState, type FC } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useFormik } from 'formik'
 import type { Game, GameCreateDto } from '@/models/api/Game'
 import { Modal, GameDetails } from '@/components/elements'
@@ -20,6 +21,7 @@ const mapCheaperByToBoolean = (cheaperBy: string | undefined): boolean | undefin
 }
 
 const CreateGame: FC = () => {
+	const { t } = useTranslation()
 	const [isModalOpen, setIsModalOpen] = useState(false)
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const { createNewGame, deleteGameById } = useGames()
@@ -216,7 +218,7 @@ const CreateGame: FC = () => {
 						<input
 							type='text'
 							className='add-game-row__name-input'
-							placeholder='Título del juego'
+							placeholder={t('game.titlePlaceholder')}
 							value={row.name}
 							autoFocus={id === lastAddedRowIndex}
 							onChange={(e) => updateRow(id, { name: e.target.value })}
@@ -258,7 +260,7 @@ const CreateGame: FC = () => {
 							className='add-game-row__delete'
 							onClick={() => removeRow(id)}
 							disabled={formik.values.games.length <= 1}
-							title={formik.values.games.length <= 1 ? 'No se puede eliminar la única fila' : 'Eliminar fila'}>
+							title={formik.values.games.length <= 1 ? t('game.cantDeleteOnlyRow') : t('game.deleteRow')}>
 							×
 						</button>
 					</div>
@@ -266,11 +268,11 @@ const CreateGame: FC = () => {
 					{row.showExtraFields && (
 						<div className='add-game-row__extra'>
 							<div className='add-game-row__extra-field'>
-								<label>Más barato por:</label>
+								<label>{t('game.cheaperBy')}:</label>
 								<select value={row.cheaperBy ?? ''} onChange={(e) => updateRow(id, { cheaperBy: e.target.value as 'key' | 'store' | undefined })}>
-									<option value=''>Ninguno</option>
-									<option value='key'>Clave</option>
-									<option value='store'>Tienda</option>
+									<option value=''>{t('common.none')}</option>
+									<option value='key'>{t('game.cheaperByKey')}</option>
+									<option value='store'>{t('game.cheaperByStore')}</option>
 								</select>
 							</div>
 						</div>
@@ -285,16 +287,16 @@ const CreateGame: FC = () => {
 		<>
 			{/* Game Form Modal */}
 			{isModalOpen && (
-				<Modal isOpen={isModalOpen} onClose={closeModal} title={'Añadir Juegos'} bodyPadding='14px' hideBorders={true} headerPaddingBottom='14px'>
+				<Modal isOpen={isModalOpen} onClose={closeModal} title={t('game.addGames')} bodyPadding='14px' hideBorders={true} headerPaddingBottom='14px'>
 					<div className='create-game-modal'>
 						<div className='create-game-modal__rows'>{formik.values.games.map((r: any, i: number) => gameRow(r, i))}</div>
 
 						<div className='create-game-modal__actions'>
-							<button type='button' className='create-game-modal__add-row' onClick={addRow} title='Añadir otra fila'>
+							<button type='button' className='create-game-modal__add-row' onClick={addRow} title={t('game.addAnotherRow')}>
 								+
 							</button>
 							<button type='button' className='create-game-modal__submit' onClick={handleBatchSubmit} disabled={isSubmitting}>
-								{isSubmitting ? 'Añadiendo...' : formik.values.games.length === 1 ? 'Añadir juego' : `Añadir ${formik.values.games.length} juegos`}
+								{isSubmitting ? t('game.adding') : formik.values.games.length === 1 ? t('game.addGame') : t('game.addGamesCount', { count: formik.values.games.length })}
 							</button>
 						</div>
 					</div>
@@ -312,7 +314,7 @@ const CreateGame: FC = () => {
 						setCreatedGameId(null)
 					}}
 					onDelete={async (game) => {
-						if (!window.confirm('Are you sure you want to delete this game?')) return
+						if (!window.confirm(t('home.confirmDeleteGame'))) return
 						await deleteGameById(game.id)
 						setIsDetailsOpen(false)
 						setCreatedGameFallback(null)
@@ -340,7 +342,7 @@ const CreateGame: FC = () => {
 					<circle cx='16' cy='14' r='1.2' fill='currentColor' stroke='none' />
 					<circle cx='13' cy='12' r='1.2' fill='currentColor' stroke='none' />
 				</svg>
-				Add Game
+				{t('game.addGame')}
 			</button>
 		</>
 	)

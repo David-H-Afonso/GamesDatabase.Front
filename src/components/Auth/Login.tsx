@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { loginUser, clearError } from '@/store/features/auth/authSlice'
 import { selectIsAuthenticated, selectAuthLoading, selectAuthError } from '@/store/features/auth/selector'
@@ -8,6 +9,7 @@ import { RecentUsersList } from './RecentUsersList'
 import './Login.scss'
 
 export const Login = () => {
+	const { t } = useTranslation()
 	const navigate = useNavigate()
 	const dispatch = useAppDispatch()
 
@@ -81,13 +83,13 @@ export const Login = () => {
 		<div className='login-container'>
 			<div className='login-card'>
 				<div className='login-header'>
-					<h1>Games Database</h1>
-					<p>Sign in to continue</p>
+					<h1>{t('auth.title')}</h1>
+					<p>{t('auth.subtitle')}</p>
 				</div>
 
 				{error && (
 					<div className='login-alert login-alert--error'>
-						<strong>Error:</strong> {error}
+						<strong>{t('auth.errorPrefix')}</strong> {error}
 					</div>
 				)}
 
@@ -96,26 +98,24 @@ export const Login = () => {
 				{showDefaultHint && !hasRecentUsers && (
 					<div className='login-alert login-alert--info'>
 						<p>
-							<strong>First time?</strong> Use the default admin account:
+							<strong>{t('auth.firstTime')}</strong> {t('auth.firstTimeHint')}
 						</p>
 						<button type='button' className='btn-link' onClick={handleUseDefaultCredentials}>
-							Use Default Credentials
+							{t('auth.useDefaultCredentials')}
 						</button>
-						<p className='login-hint'>
-							Username: <strong>Admin</strong> • Password: <em>(leave empty)</em>
-						</p>
+						<p className='login-hint'>{t('auth.credentialsHint', { username: 'Admin' })}</p>
 					</div>
 				)}
 
 				<form onSubmit={handleSubmit} className='login-form'>
 					<div className='form-group'>
-						<label htmlFor='username'>Username</label>
+						<label htmlFor='username'>{t('auth.usernameLabel')}</label>
 						<input
 							type='text'
 							id='username'
 							value={username}
 							onChange={(e) => setUsername(e.target.value)}
-							placeholder='Enter your username'
+							placeholder={t('auth.usernamePlaceholder')}
 							required
 							autoFocus
 							disabled={loading}
@@ -124,7 +124,7 @@ export const Login = () => {
 
 					<div className='form-group'>
 						<label htmlFor='password'>
-							Password <span className='optional-label'>(optional)</span>
+							{t('auth.passwordLabel')} <span className='optional-label'>{t('auth.passwordOptional')}</span>
 						</label>
 						<input
 							type='password'
@@ -132,19 +132,19 @@ export const Login = () => {
 							ref={passwordInputRef}
 							value={password}
 							onChange={(e) => setPassword(e.target.value)}
-							placeholder='Enter your password (leave empty if none)'
+							placeholder={t('auth.passwordPlaceholder')}
 							disabled={loading}
 						/>
-						<small className='form-hint'>Leave empty if your account has no password</small>
+						<small className='form-hint'>{t('auth.passwordHint')}</small>
 					</div>
 
 					<button type='submit' className='btn btn-primary btn-block' disabled={loading || !username}>
-						{loading ? 'Signing in...' : 'Sign In'}
+						{loading ? t('auth.signingIn') : t('auth.signIn')}
 					</button>
 				</form>
 
 				<div className='login-footer'>
-					<p className='text-muted'>Multi-user support with JWT authentication</p>
+					<p className='text-muted'>{t('auth.footer')}</p>
 				</div>
 			</div>
 		</div>

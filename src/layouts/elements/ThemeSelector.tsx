@@ -1,17 +1,19 @@
 import React from 'react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { setTheme } from '@/store/features/theme/themeSlice'
+import { useTranslation } from 'react-i18next'
 import './ThemeSelector.scss'
 import { AVAILABLE_THEMES } from '@/assets/styles/themes/AVAILABLE_THEMES'
 
 export const ThemeSelector: React.FC = () => {
+	const { t } = useTranslation()
 	const dispatch = useAppDispatch()
 	const { currentTheme, availableThemes } = useAppSelector((state) => state.theme)
 
 	// Display name based on the known AVAILABLE_THEMES
 	const THEME_DISPLAY_NAMES: Record<string, string> = {
-		[AVAILABLE_THEMES[0]]: 'Claro',
-		[AVAILABLE_THEMES[1]]: 'Oscuro',
+		[AVAILABLE_THEMES[0]]: t('nav.themeLight'),
+		[AVAILABLE_THEMES[1]]: t('nav.themeDark'),
 	}
 
 	const handleThemeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -28,7 +30,7 @@ export const ThemeSelector: React.FC = () => {
 	return (
 		<div className='theme-selector'>
 			<label htmlFor='theme-select' className='sr-only'>
-				Tema
+				{t('nav.theme')}
 			</label>
 			<select id='theme-select' value={currentTheme} onChange={handleThemeChange} className='theme-selector__select'>
 				{availableThemes.map((themeKey) => (

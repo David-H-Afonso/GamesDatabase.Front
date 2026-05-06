@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useGamePlayedStatus } from '@/hooks/useGamePlayedStatus'
 import { reorderGamePlayedStatuses } from '@/services/GamePlayedStatusService'
 import { fetchPlayedStatuses } from '@/store/features/gamePlayedStatus/thunk'
@@ -9,6 +10,7 @@ import { ReorderButtons } from '@/components/elements/ReorderButtons/ReorderButt
 import './AdminPlayedStatus.scss'
 
 export const AdminPlayedStatus: React.FC = () => {
+	const { t } = useTranslation()
 	const dispatch = useAppDispatch()
 	const { playedStatuses, loading, error, pagination, loadPlayedStatuses, createPlayedStatus, updatePlayedStatus, deletePlayedStatus } = useGamePlayedStatus()
 
@@ -75,7 +77,7 @@ export const AdminPlayedStatus: React.FC = () => {
 			await dispatch(fetchPlayedStatuses({ ...queryParams })).unwrap()
 		} catch (err) {
 			console.error('Failed to reorder played statuses:', err)
-			window.alert('Error al reordenar. Por favor, intenta de nuevo.')
+			window.alert(t('admin.playedStatus.reorderError'))
 		} finally {
 			setIsReordering(false)
 		}
@@ -127,7 +129,7 @@ export const AdminPlayedStatus: React.FC = () => {
 	}
 
 	const handleDelete = async (id: number) => {
-		if (window.confirm('¿Estás seguro de que quieres eliminar este estado?')) {
+		if (window.confirm(t('admin.playedStatus.confirmDelete'))) {
 			try {
 				await deletePlayedStatus(id)
 				await loadPlayedStatuses(queryParams) // Reload data after delete
@@ -140,9 +142,9 @@ export const AdminPlayedStatus: React.FC = () => {
 	return (
 		<div className='admin-played-status'>
 			<div className='admin-header'>
-				<h1>Gestión de Played Status</h1>
+				<h1>{t('admin.playedStatus.title')}</h1>
 				<button className='btn btn-primary' onClick={() => handleOpenModal()}>
-					Nuevo Estado
+					{t('admin.playedStatus.newOption')}
 				</button>
 			</div>
 
@@ -150,7 +152,7 @@ export const AdminPlayedStatus: React.FC = () => {
 
 			<div className='admin-controls'>
 				<div className='page-size-control'>
-					<label>Elementos por página:</label>
+					<label>{t('admin.pagination.perPage')}</label>
 					<select value={queryParams.pageSize || 10} onChange={(e) => handlePageSizeChange(Number(e.target.value))}>
 						<option value={5}>5</option>
 						<option value={10}>10</option>
@@ -161,18 +163,18 @@ export const AdminPlayedStatus: React.FC = () => {
 			</div>
 
 			{loading ? (
-				<div className='loading'>Cargando...</div>
+				<div className='loading'>{t('common.loading')}</div>
 			) : (
 				<>
 					<div className='statuses-table'>
 						<table>
 							<thead>
 								<tr>
-									<th style={{ width: '60px' }}>Orden</th>
-									<th>Nombre</th>
-									<th>Color</th>
-									<th>Estado</th>
-									<th>Acciones</th>
+									<th style={{ width: '60px' }}>{t('common.order')}</th>
+									<th>{t('common.name')}</th>
+									<th>{t('common.color')}</th>
+									<th>{t('common.status')}</th>
+									<th>{t('common.actions')}</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -208,19 +210,19 @@ export const AdminPlayedStatus: React.FC = () => {
 															}}
 														/>
 													)}
-													<span>{status.color || 'Sin color'}</span>
+													<span>{status.color || t('common.noColor')}</span>
 												</div>
 											</td>
 											<td>
-												<span className={`status ${status.isActive ? 'active' : 'inactive'}`}>{status.isActive ? 'Activo' : 'Inactivo'}</span>
+												<span className={`status ${status.isActive ? 'active' : 'inactive'}`}>{status.isActive ? t('common.active') : t('common.inactive')}</span>
 											</td>
 											<td>
 												<div className='actions'>
 													<button className='btn btn-sm btn-secondary' onClick={() => handleOpenModal(status)}>
-														Editar
+														{t('admin.crud.edit')}
 													</button>
 													<button className='btn btn-sm btn-danger' onClick={() => handleDelete(status.id)}>
-														Eliminar
+														{t('admin.crud.delete')}
 													</button>
 												</div>
 											</td>
@@ -232,13 +234,13 @@ export const AdminPlayedStatus: React.FC = () => {
 
 					<div className='pagination-controls'>
 						<button className='pagination-btn' disabled={pagination.page <= 1} onClick={() => handlePageChange(pagination.page - 1)}>
-							Anterior
+							{t('common.previous')}
 						</button>
 						<span className='pagination-info'>
-							Página {pagination.page} de {pagination.totalPages}({pagination.totalCount} elementos)
+							{t('common.page')} {pagination.page} {t('common.of')} {pagination.totalPages}({pagination.totalCount} {t('admin.pagination.elements')})
 						</span>
 						<button className='pagination-btn' disabled={pagination.page >= pagination.totalPages} onClick={() => handlePageChange(pagination.page + 1)}>
-							Siguiente
+							{t('common.next')}
 						</button>
 					</div>
 				</>
@@ -248,18 +250,18 @@ export const AdminPlayedStatus: React.FC = () => {
 				<div className='modal-overlay'>
 					<div className='modal'>
 						<div className='modal-header'>
-							<h2>{editingStatus ? 'Editar Estado' : 'Nuevo Estado'}</h2>
+							<h2>{editingStatus ? t('admin.playedStatus.editOption') : t('admin.playedStatus.newOption')}</h2>
 							<button className='close-btn' onClick={handleCloseModal}>
-								×
+								{t('admin.crud.close')}
 							</button>
 						</div>
 						<form onSubmit={handleSubmit} className='modal-body'>
 							<div className='form-group'>
-								<label htmlFor='name'>Nombre</label>
+								<label htmlFor='name'>{t('admin.crud.form.nameLabel')}</label>
 								<input type='text' id='name' value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
 							</div>
 							<div className='form-group'>
-								<label htmlFor='color'>Color</label>
+								<label htmlFor='color'>{t('admin.crud.form.colorLabel')}</label>
 								<div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
 									<input
 										type='color'
@@ -282,15 +284,15 @@ export const AdminPlayedStatus: React.FC = () => {
 							<div className='form-group'>
 								<label className='checkbox-label'>
 									<input type='checkbox' checked={formData.isActive} onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })} />
-									Activo
+									{t('admin.crud.form.activeLabel')}
 								</label>
 							</div>
 							<div className='modal-footer'>
 								<button type='button' className='btn btn-secondary' onClick={handleCloseModal}>
-									Cancelar
+									{t('admin.crud.cancel')}
 								</button>
 								<button type='submit' className='btn btn-primary'>
-									{editingStatus ? 'Actualizar' : 'Crear'}
+									{editingStatus ? t('admin.crud.update') : t('admin.crud.create')}
 								</button>
 							</div>
 						</form>

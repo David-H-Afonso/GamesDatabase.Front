@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useGameViews, useGameStatus, useGamePlatform, useGamePlayedStatus, useGamePlayWith } from '@/hooks'
 import type { GameView, GameViewCreateDto, ViewFilter, ViewSort, FilterGroup } from '@/models/api/GameView'
 import { FilterField, FilterOperator, SortField, SortDirection, CombineWith } from '@/models/api/GameView'
+import { getActiveGameReplayTypes } from '@/services/GameReplayTypeService'
+import type { GameReplayType } from '@/models/api/GameReplayType'
 import './GameViewModal.scss'
 
 interface Props {
@@ -11,11 +14,13 @@ interface Props {
 }
 
 const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
+	const { t } = useTranslation()
 	const { createGameView, updateGameView } = useGameViews()
 	const { activeStatuses, loadActiveStatuses } = useGameStatus()
 	const { activeItems: activePlatforms, loadActivePlatforms } = useGamePlatform()
 	const { activeItems: activePlayedStatuses, fetchActiveList: loadActivePlayedStatus } = useGamePlayedStatus()
 	const { activeOptions: activePlayWithOptions, fetchActiveOptions: loadActivePlayWith } = useGamePlayWith()
+	const [replayTypes, setReplayTypes] = useState<GameReplayType[]>([])
 
 	const [loading, setLoading] = useState(false)
 	const [formData, setFormData] = useState({
@@ -33,6 +38,9 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 		loadActivePlatforms()
 		loadActivePlayedStatus()
 		loadActivePlayWith()
+		getActiveGameReplayTypes()
+			.then(setReplayTypes)
+			.catch(() => {})
 	}, [loadActiveStatuses, loadActivePlatforms, loadActivePlayedStatus, loadActivePlayWith])
 
 	// Load gameView data when editing
@@ -258,10 +266,12 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 							} else if (Array.isArray(f.value)) {
 								out.value = f.value.map((v: any) => String(v))
 							} else {
-								// Expect YYYY-MM-DD from date input; normalize to that
 								const s = String(f.value)
-								// If includes T, split
 								out.value = s.split('T')[0]
+							}
+							// Normalize secondValue for Between operator
+							if (f.operator === FilterOperator.Between && f.secondValue) {
+								out.secondValue = String(f.secondValue).split('T')[0]
 							}
 							return out
 						}
@@ -349,39 +359,40 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 	}
 
 	const getFieldOptions = () => [
-		{ value: FilterField.Name, label: 'Nombre' },
-		{ value: FilterField.StatusId, label: 'Estado' },
-		{ value: FilterField.PlatformId, label: 'Plataforma' },
-		{ value: FilterField.PlayWithId, label: 'Jugar con' },
-		{ value: FilterField.PlayedStatusId, label: 'Estado jugado' },
-		{ value: FilterField.Released, label: 'Fecha lanzamiento' },
-		{ value: FilterField.ReleaseDate, label: 'Fecha lanzamiento (Alt)' },
-		{ value: FilterField.Started, label: 'Fecha inicio' },
-		{ value: FilterField.Finished, label: 'Fecha fin' },
-		{ value: FilterField.Score, label: 'Puntuación' },
-		{ value: FilterField.Grade, label: 'Calificación' },
-		{ value: FilterField.Critic, label: 'Crítica' },
-		{ value: FilterField.Description, label: 'Descripción' },
-		{ value: FilterField.Comment, label: 'Comentario' },
+		{ value: FilterField.Name, label: t('game.filters.fieldName') },
+		{ value: FilterField.StatusId, label: t('game.filters.fieldStatus') },
+		{ value: FilterField.PlatformId, label: t('game.filters.fieldPlatform') },
+		{ value: FilterField.PlayWithId, label: t('game.filters.fieldPlayWith') },
+		{ value: FilterField.PlayedStatusId, label: t('game.filters.fieldPlayedStatus') },
+		{ value: FilterField.Released, label: t('game.filters.fieldReleased') },
+		{ value: FilterField.ReleaseDate, label: t('game.filters.fieldReleaseDateAlt') },
+		{ value: FilterField.Started, label: t('game.filters.fieldStarted') },
+		{ value: FilterField.Finished, label: t('game.filters.fieldFinished') },
+		{ value: FilterField.Score, label: t('game.filters.fieldScore') },
+		{ value: FilterField.Grade, label: t('game.filters.fieldGrade') },
+		{ value: FilterField.Critic, label: t('game.filters.fieldCritic') },
+		{ value: FilterField.Description, label: t('game.filters.fieldDescription') },
+		{ value: FilterField.Comment, label: t('game.filters.fieldComment') },
+		{ value: 'ReplayGroup', label: t('game.filters.fieldReplay') },
 	]
 
 	const getOperatorOptions = () => [
-		{ value: FilterOperator.Equals, label: 'Igual a' },
-		{ value: FilterOperator.NotEquals, label: 'No igual a' },
-		{ value: FilterOperator.Contains, label: 'Contiene' },
-		{ value: FilterOperator.NotContains, label: 'No contiene' },
-		{ value: FilterOperator.GreaterThan, label: 'Mayor que' },
-		{ value: FilterOperator.GreaterThanOrEqual, label: 'Mayor o igual' },
-		{ value: FilterOperator.LessThan, label: 'Menor que' },
-		{ value: FilterOperator.LessThanOrEqual, label: 'Menor o igual' },
-		{ value: FilterOperator.In, label: 'En' },
-		{ value: FilterOperator.NotIn, label: 'No en' },
-		{ value: FilterOperator.IsNull, label: 'Es nulo' },
-		{ value: FilterOperator.IsNotNull, label: 'No es nulo' },
-		{ value: FilterOperator.IsEmpty, label: 'Está vacío' },
-		{ value: FilterOperator.IsNotEmpty, label: 'No está vacío' },
-		{ value: FilterOperator.StartsWith, label: 'Empieza con' },
-		{ value: FilterOperator.EndsWith, label: 'Termina con' },
+		{ value: FilterOperator.Equals, label: t('game.filters.opEquals') },
+		{ value: FilterOperator.NotEquals, label: t('game.filters.opNotEquals') },
+		{ value: FilterOperator.Contains, label: t('game.filters.opContains') },
+		{ value: FilterOperator.NotContains, label: t('game.filters.opNotContains') },
+		{ value: FilterOperator.GreaterThan, label: t('game.filters.opGreaterThan') },
+		{ value: FilterOperator.GreaterThanOrEqual, label: t('game.filters.opGreaterThanOrEqual') },
+		{ value: FilterOperator.LessThan, label: t('game.filters.opLessThan') },
+		{ value: FilterOperator.LessThanOrEqual, label: t('game.filters.opLessThanOrEqual') },
+		{ value: FilterOperator.In, label: t('game.filters.opIn') },
+		{ value: FilterOperator.NotIn, label: t('game.filters.opNotIn') },
+		{ value: FilterOperator.IsNull, label: t('game.filters.opIsNull') },
+		{ value: FilterOperator.IsNotNull, label: t('game.filters.opIsNotNull') },
+		{ value: FilterOperator.IsEmpty, label: t('game.filters.opIsEmpty') },
+		{ value: FilterOperator.IsNotEmpty, label: t('game.filters.opIsNotEmpty') },
+		{ value: FilterOperator.StartsWith, label: t('game.filters.opStartsWith') },
+		{ value: FilterOperator.EndsWith, label: t('game.filters.opEndsWith') },
 	]
 
 	/**
@@ -391,55 +402,57 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 	const getOperatorsForField = (field: string) => {
 		const TEXT_FIELDS = [FilterField.Name, FilterField.Comment, FilterField.Description]
 		// Numeric fields (StatusId, PlatformId, etc.) - ONLY Equals/NotEquals supported
-		const NUMERIC_ID_FIELDS = [FilterField.StatusId, FilterField.PlatformId, FilterField.PlayWithId, FilterField.PlayedStatusId]
+		const NUMERIC_ID_FIELDS = [FilterField.StatusId, FilterField.PlatformId, FilterField.PlayWithId, FilterField.PlayedStatusId, FilterField.ReplayTypeId]
 		// Numeric score fields - may support more operators
-		const NUMERIC_SCORE_FIELDS = [FilterField.Score, FilterField.Grade, FilterField.Critic, FilterField.Story, FilterField.Completion]
+		const NUMERIC_SCORE_FIELDS = [FilterField.Score, FilterField.Grade, FilterField.Critic, FilterField.Story, FilterField.Completion, FilterField.ReplayGrade]
 		// Date fields - ONLY Equals/GreaterThanOrEqual/LessThanOrEqual supported
-		const DATE_FIELDS = [FilterField.Released, FilterField.Started, FilterField.Finished, FilterField.ReleaseDate]
+		const DATE_FIELDS = [FilterField.Released, FilterField.Started, FilterField.Finished, FilterField.ReleaseDate, FilterField.ReplayStarted, FilterField.ReplayFinished]
 		const DATETIME_FIELDS = [FilterField.CreatedAt, FilterField.UpdatedAt]
 
 		// Text field operators
 		if (TEXT_FIELDS.includes(field as any)) {
 			return [
-				{ value: FilterOperator.Equals, label: 'Igual a' },
-				{ value: FilterOperator.NotEquals, label: 'No igual a' },
-				{ value: FilterOperator.Contains, label: 'Contiene' },
-				{ value: FilterOperator.NotContains, label: 'No contiene' },
-				{ value: FilterOperator.StartsWith, label: 'Empieza con' },
-				{ value: FilterOperator.EndsWith, label: 'Termina con' },
-				{ value: FilterOperator.IsEmpty, label: 'Está vacío' },
-				{ value: FilterOperator.IsNotEmpty, label: 'No está vacío' },
+				{ value: FilterOperator.Equals, label: t('game.filters.opEquals') },
+				{ value: FilterOperator.NotEquals, label: t('game.filters.opNotEquals') },
+				{ value: FilterOperator.Contains, label: t('game.filters.opContains') },
+				{ value: FilterOperator.NotContains, label: t('game.filters.opNotContains') },
+				{ value: FilterOperator.StartsWith, label: t('game.filters.opStartsWith') },
+				{ value: FilterOperator.EndsWith, label: t('game.filters.opEndsWith') },
+				{ value: FilterOperator.IsEmpty, label: t('game.filters.opIsEmpty') },
+				{ value: FilterOperator.IsNotEmpty, label: t('game.filters.opIsNotEmpty') },
 			]
 		}
 
 		// Numeric ID fields (StatusId, PlatformId, etc.) - ONLY Equals/NotEquals
 		if (NUMERIC_ID_FIELDS.includes(field as any)) {
 			return [
-				{ value: FilterOperator.Equals, label: 'Tiene el estado' },
-				{ value: FilterOperator.NotEquals, label: 'No tiene el estado' },
+				{ value: FilterOperator.Equals, label: t('game.filters.opHasStatus') },
+				{ value: FilterOperator.NotEquals, label: t('game.filters.opNotHasStatus') },
 			]
 		}
 
 		// Numeric score fields - allow range operators
 		if (NUMERIC_SCORE_FIELDS.includes(field as any)) {
 			return [
-				{ value: FilterOperator.Equals, label: 'Igual a' },
-				{ value: FilterOperator.NotEquals, label: 'No igual a' },
-				{ value: FilterOperator.GreaterThan, label: 'Mayor que' },
-				{ value: FilterOperator.GreaterThanOrEqual, label: 'Mayor o igual' },
-				{ value: FilterOperator.LessThan, label: 'Menor que' },
-				{ value: FilterOperator.LessThanOrEqual, label: 'Menor o igual' },
+				{ value: FilterOperator.Equals, label: t('game.filters.opEquals') },
+				{ value: FilterOperator.NotEquals, label: t('game.filters.opNotEquals') },
+				{ value: FilterOperator.GreaterThan, label: t('game.filters.opGreaterThan') },
+				{ value: FilterOperator.GreaterThanOrEqual, label: t('game.filters.opGreaterThanOrEqual') },
+				{ value: FilterOperator.LessThan, label: t('game.filters.opLessThan') },
+				{ value: FilterOperator.LessThanOrEqual, label: t('game.filters.opLessThanOrEqual') },
+				{ value: FilterOperator.Between, label: t('game.filters.opBetween') },
 			]
 		}
 
-		// Date field operators - Equals/GreaterThanOrEqual/LessThanOrEqual/IsNull/IsNotNull
+		// Date field operators - Equals/GreaterThanOrEqual/LessThanOrEqual/Between/IsNull/IsNotNull
 		if (DATE_FIELDS.includes(field as any) || DATETIME_FIELDS.includes(field as any)) {
 			return [
-				{ value: FilterOperator.Equals, label: 'Fecha exacta' },
-				{ value: FilterOperator.GreaterThanOrEqual, label: 'En la fecha o después' },
-				{ value: FilterOperator.LessThanOrEqual, label: 'En la fecha o antes' },
-				{ value: FilterOperator.IsNull, label: 'No tiene fecha' },
-				{ value: FilterOperator.IsNotNull, label: 'Tiene fecha' },
+				{ value: FilterOperator.Equals, label: t('game.filters.opExactDate') },
+				{ value: FilterOperator.GreaterThanOrEqual, label: t('game.filters.opOnOrAfter') },
+				{ value: FilterOperator.LessThanOrEqual, label: t('game.filters.opOnOrBefore') },
+				{ value: FilterOperator.Between, label: t('game.filters.opBetweenDates') },
+				{ value: FilterOperator.IsNull, label: t('game.filters.opNoDate') },
+				{ value: FilterOperator.IsNotNull, label: t('game.filters.opHasDate') },
 			]
 		}
 
@@ -448,24 +461,34 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 	}
 
 	const getSortFieldOptions = () => [
-		{ value: SortField.Name, label: 'Nombre' },
-		{ value: SortField.Status, label: 'Estado' },
-		{ value: SortField.Released, label: 'Fecha lanzamiento' },
-		{ value: SortField.Started, label: 'Fecha inicio' },
-		{ value: SortField.Finished, label: 'Fecha fin' },
-		{ value: SortField.Score, label: 'Puntuación' },
-		{ value: SortField.Grade, label: 'Calificación' },
-		{ value: SortField.Critic, label: 'Crítica' },
-		{ value: SortField.CreatedAt, label: 'Fecha creación' },
-		{ value: SortField.UpdatedAt, label: 'Última modificación' },
+		{ value: SortField.Name, label: t('game.filters.fieldName') },
+		{ value: SortField.Status, label: t('game.filters.fieldStatus') },
+		{ value: SortField.Released, label: t('game.filters.fieldReleased') },
+		{ value: SortField.Started, label: t('game.filters.fieldStarted') },
+		{ value: SortField.Finished, label: t('game.filters.fieldFinished') },
+		{ value: SortField.Score, label: t('game.filters.fieldScore') },
+		{ value: SortField.Grade, label: t('game.filters.fieldGrade') },
+		{ value: SortField.Critic, label: t('game.filters.fieldCritic') },
+		{ value: SortField.CreatedAt, label: t('game.filters.fieldCreatedAt') },
+		{ value: SortField.UpdatedAt, label: t('game.filters.fieldUpdatedAt') },
+	]
+
+	const REPLAY_FIELDS = [FilterField.ReplayStarted, FilterField.ReplayFinished, FilterField.ReplayGrade, FilterField.ReplayTypeId]
+	const isReplayField = (field: string) => REPLAY_FIELDS.includes(field as any)
+
+	const getReplaySubOptions = () => [
+		{ value: FilterField.ReplayStarted, label: t('game.filters.replayStarted') },
+		{ value: FilterField.ReplayFinished, label: t('game.filters.replayFinished') },
+		{ value: FilterField.ReplayGrade, label: t('game.filters.replayGrade') },
+		{ value: FilterField.ReplayTypeId, label: t('game.filters.replayType') },
 	]
 
 	const isDropdownField = (field: string) => {
-		return [FilterField.StatusId, FilterField.PlatformId, FilterField.PlayWithId, FilterField.PlayedStatusId].includes(field as any)
+		return [FilterField.StatusId, FilterField.PlatformId, FilterField.PlayWithId, FilterField.PlayedStatusId, FilterField.ReplayTypeId].includes(field as any)
 	}
 
 	const isDateLikeField = (field: string) => {
-		return [FilterField.Released, FilterField.Started, FilterField.Finished, FilterField.ReleaseDate].includes(field as any)
+		return [FilterField.Released, FilterField.Started, FilterField.Finished, FilterField.ReleaseDate, FilterField.ReplayStarted, FilterField.ReplayFinished].includes(field as any)
 	}
 
 	const isDateTimeField = (field: string) => {
@@ -491,6 +514,8 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 					value: status.id.toString(),
 					label: status.name,
 				}))
+			case FilterField.ReplayTypeId:
+				return replayTypes.map((rt) => ({ value: rt.id.toString(), label: rt.name }))
 			default:
 				return []
 		}
@@ -510,7 +535,7 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 		if (isDropdownField(filter.field)) {
 			return (
 				<select value={filter.value} onChange={(e) => updateFilter(groupIndex, filterIndex, 'value', e.target.value)}>
-					<option value=''>Selecciona una opción</option>
+					<option value=''>{t('common.selectOption')}</option>
 					{getDropdownOptions(filter.field).map((option) => (
 						<option key={option.value} value={option.value}>
 							{option.label}
@@ -523,6 +548,17 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 		if (isDateLikeField(filter.field)) {
 			// date input expects YYYY-MM-DD
 			const value = filter.value ? String(filter.value).split('T')[0] : ''
+
+			if (filter.operator === FilterOperator.Between) {
+				const secondValue = filter.secondValue ? String(filter.secondValue).split('T')[0] : ''
+				return (
+					<>
+						<input type='date' value={value} onChange={(e) => updateFilter(groupIndex, filterIndex, 'value', e.target.value)} title='Desde' />
+						<span style={{ margin: '0 4px' }}>—</span>
+						<input type='date' value={secondValue} onChange={(e) => updateFilter(groupIndex, filterIndex, 'secondValue', e.target.value)} title='Hasta' />
+					</>
+				)
+			}
 
 			return <input type='date' value={value} onChange={(e) => updateFilter(groupIndex, filterIndex, 'value', e.target.value)} />
 		}
@@ -546,14 +582,14 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 		}
 
 		// Default text input
-		return <input type='text' value={filter.value} onChange={(e) => updateFilter(groupIndex, filterIndex, 'value', e.target.value)} placeholder='Valor' />
+		return <input type='text' value={filter.value} onChange={(e) => updateFilter(groupIndex, filterIndex, 'value', e.target.value)} placeholder={t('common.value')} />
 	}
 
 	return (
 		<div className='game-view-modal' onClick={onClose}>
 			<div className='modal-content' onClick={(e) => e.stopPropagation()}>
 				<div className='modal-header'>
-					<h2>{gameView ? 'Editar Vista' : 'Nueva Vista'}</h2>
+					<h2>{gameView ? t('admin.gameViews.editView') : t('admin.gameViews.newView')}</h2>
 					<button className='close-btn' onClick={onClose}>
 						×
 					</button>
@@ -561,46 +597,48 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 
 				<div className='modal-body'>
 					<div className='form-group'>
-						<label>Nombre *</label>
-						<input type='text' value={formData.name} onChange={(e) => handleInputChange('name', e.target.value)} placeholder='Nombre de la vista' />
+						<label>{t('common.name')} *</label>
+						<input type='text' value={formData.name} onChange={(e) => handleInputChange('name', e.target.value)} placeholder={t('game.viewNamePlaceholder')} />
 					</div>
 
 					<div className='configuration-section'>
 						<div className='section-header'>
-							<h3>Filtros</h3>
+							<h3>{t('game.filters.title')}</h3>
 							<button className='add-btn' onClick={addFilterGroup}>
-								Agregar Grupo
+								{t('game.filters.addGroup')}
 							</button>
 						</div>
 
 						{filterGroups.length > 1 && (
 							<div className='global-combine'>
-								<label>Combinar grupos con:</label>
+								<label>{t('game.filters.combineGroups')}:</label>
 								<select value={groupCombineWith} onChange={(e) => setGroupCombineWith(e.target.value as CombineWith)}>
-									<option value={CombineWith.And}>Y (AND)</option>
-									<option value={CombineWith.Or}>O (OR)</option>
+									<option value={CombineWith.And}>{t('game.filters.combineAnd')} (AND)</option>
+									<option value={CombineWith.Or}>{t('game.filters.combineOr')} (OR)</option>
 								</select>
 							</div>
 						)}
 
 						{filterGroups.length === 0 ? (
-							<div className='no-items'>No hay filtros configurados</div>
+							<div className='no-items'>{t('game.filters.noFilters')}</div>
 						) : (
 							filterGroups.map((group, groupIndex) => (
 								<div key={groupIndex} className='filter-group'>
 									<div className='group-header'>
-										<h4>Grupo {groupIndex + 1}</h4>
+										<h4>
+											{t('game.filters.group')} {groupIndex + 1}
+										</h4>
 										{group.filters.length > 1 && (
 											<>
-												<label>Combinar con:</label>
+												<label>{t('game.filters.combineWith')}:</label>
 												<select value={group.combineWith} onChange={(e) => updateFilterGroup(groupIndex, 'combineWith', e.target.value)}>
-													<option value={CombineWith.And}>Y (AND)</option>
-													<option value={CombineWith.Or}>O (OR)</option>
+													<option value={CombineWith.And}>{t('game.filters.combineAnd')}</option>
+													<option value={CombineWith.Or}>{t('game.filters.combineOr')}</option>
 												</select>
 											</>
 										)}
 										{filterGroups.length > 1 && (
-											<button className='remove-group-btn' onClick={() => removeFilterGroup(groupIndex)} title='Eliminar grupo'>
+											<button className='remove-group-btn' onClick={() => removeFilterGroup(groupIndex)} title={t('game.filters.removeGroup')}>
 												×
 											</button>
 										)}
@@ -609,21 +647,35 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 									<div className='group-filters'>
 										{group.filters.length === 0 ? (
 											<div className='no-filters-in-group'>
-												<p>No hay filtros en este grupo</p>
+												<p>{t('game.filters.noFiltersInGroup')}</p>
 												<button className='add-first-filter-btn' onClick={() => addFilter(groupIndex)}>
-													Agregar Filtro
+													{t('game.filters.addFilter')}
 												</button>
 											</div>
 										) : (
 											group.filters.map((filter, filterIndex) => (
 												<div key={filterIndex} className='filter-item'>
-													<select value={filter.field} onChange={(e) => updateFilter(groupIndex, filterIndex, 'field', e.target.value)}>
+													<select
+														value={isReplayField(filter.field) ? 'ReplayGroup' : filter.field}
+														onChange={(e) => {
+															const val = e.target.value
+															updateFilter(groupIndex, filterIndex, 'field', val === 'ReplayGroup' ? FilterField.ReplayStarted : val)
+														}}>
 														{getFieldOptions().map((option) => (
 															<option key={option.value} value={option.value}>
 																{option.label}
 															</option>
 														))}
 													</select>
+													{isReplayField(filter.field) && (
+														<select value={filter.field} onChange={(e) => updateFilter(groupIndex, filterIndex, 'field', e.target.value)}>
+															{getReplaySubOptions().map((opt) => (
+																<option key={opt.value} value={opt.value}>
+																	{opt.label}
+																</option>
+															))}
+														</select>
+													)}
 													<select value={filter.operator} onChange={(e) => updateFilter(groupIndex, filterIndex, 'operator', e.target.value)}>
 														{getOperatorsForField(filter.field).map((option) => (
 															<option key={option.value} value={option.value}>
@@ -632,7 +684,7 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 														))}
 													</select>
 													{renderValueInput(filter, groupIndex, filterIndex)}
-													<button className='remove-btn' onClick={() => removeFilter(groupIndex, filterIndex)} title='Eliminar filtro'>
+													<button className='remove-btn' onClick={() => removeFilter(groupIndex, filterIndex)} title={t('game.filters.removeFilter')}>
 														×
 													</button>
 												</div>
@@ -640,7 +692,7 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 										)}
 										{group.filters.length > 0 && (
 											<button className='add-filter-btn' onClick={() => addFilter(groupIndex)}>
-												Agregar Filtro
+												{t('game.filters.addFilter')}
 											</button>
 										)}
 									</div>
@@ -651,18 +703,18 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 
 					<div className='configuration-section'>
 						<div className='section-header'>
-							<h3>Ordenamiento</h3>
+							<h3>{t('game.sorting.title')}</h3>
 							<button className='add-btn' onClick={addSort}>
-								Agregar Ordenamiento
+								{t('game.sorting.addSort')}
 							</button>
 						</div>
 						{sorting.length === 0 ? (
-							<div className='no-items'>No hay ordenamientos configurados</div>
+							<div className='no-items'>{t('game.sorting.noSorts')}</div>
 						) : (
 							sorting.map((sort, index) => (
 								<div key={index} className='sort-item'>
 									<div className='sort-order'>
-										<button className='order-btn' onClick={() => moveSort(index, Math.max(0, index - 1))} disabled={index === 0} title='Mover arriba'>
+										<button className='order-btn' onClick={() => moveSort(index, Math.max(0, index - 1))} disabled={index === 0} title={t('game.sorting.moveUp')}>
 											<svg width='12' height='12' viewBox='0 0 12 12' fill='none' xmlns='http://www.w3.org/2000/svg'>
 												<path d='M6 3L2 7h8L6 3z' fill='currentColor' />
 											</svg>
@@ -672,7 +724,7 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 											className='order-btn'
 											onClick={() => moveSort(index, Math.min(sorting.length - 1, index + 1))}
 											disabled={index === sorting.length - 1}
-											title='Mover abajo'>
+											title={t('game.sorting.moveDown')}>
 											<svg width='12' height='12' viewBox='0 0 12 12' fill='none' xmlns='http://www.w3.org/2000/svg'>
 												<path d='M6 9L2 5h8L6 9z' fill='currentColor' />
 											</svg>
@@ -686,8 +738,8 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 										))}
 									</select>
 									<select value={sort.direction} onChange={(e) => updateSort(index, 'direction', e.target.value)}>
-										<option value={SortDirection.Ascending}>Ascendente</option>
-										<option value={SortDirection.Descending}>Descendente</option>
+										<option value={SortDirection.Ascending}>{t('game.sorting.ascending')}</option>
+										<option value={SortDirection.Descending}>{t('game.sorting.descending')}</option>
 									</select>
 									<button className='remove-btn' onClick={() => removeSort(index)}>
 										×
@@ -700,10 +752,10 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 
 				<div className='modal-actions'>
 					<button className='btn btn-secondary' onClick={onClose}>
-						Cancelar
+						{t('common.cancel')}
 					</button>
 					<button className='btn btn-primary' onClick={handleSave} disabled={loading || !formData.name.trim()}>
-						{loading ? 'Guardando...' : 'Guardar'}
+						{loading ? t('common.saving') : t('common.save')}
 					</button>
 				</div>
 			</div>

@@ -1,5 +1,6 @@
 import type { Game } from '@/models/api/Game'
 import { useState, useRef, useEffect, memo, type FC } from 'react'
+import { useTranslation } from 'react-i18next'
 import './RowView.scss'
 import { formatToLocaleDate, useClickOutside, getMetacriticColor } from '@/utils'
 import { EditableSelect } from '../../EditableSelect/EditableSelect'
@@ -26,7 +27,7 @@ interface RowViewProps {
 const RowView: FC<RowViewProps> = (props) => {
 	const isPriority = props.index !== undefined && props.index < 4
 	const { game, openDetails, playWithColors, gameStatusColor, platformColor, playedStatusColor, onFieldUpdate, isSelected = false, onSelect, deselectAll } = props
-
+	const { t } = useTranslation()
 	const [activeSelector, setActiveSelector] = useState<'status' | 'platform' | 'playWith' | 'playStatus' | null>(null)
 
 	// opciones de selects
@@ -142,7 +143,7 @@ const RowView: FC<RowViewProps> = (props) => {
 
 	// Helper para formatear múltiples nombres
 	const formatMultipleNames = (names: string[] | undefined): string => {
-		if (!names || names.length === 0) return 'N/A'
+		if (!names || names.length === 0) return t('game.card.na')
 		if (names.length === 1) return names[0]
 		return `${names[0]} +${names.length - 1}`
 	}
@@ -172,7 +173,7 @@ const RowView: FC<RowViewProps> = (props) => {
 					checked={isSelected}
 					onChange={handleCheckboxChange}
 					className='game-row-checkbox'
-					aria-label='Seleccionar fila'
+					aria-label={t('game.card.selectRow')}
 					style={{ opacity: isSelected ? 1 : 0, transition: 'opacity .2s ease' }}
 				/>
 			</div>
@@ -182,11 +183,11 @@ const RowView: FC<RowViewProps> = (props) => {
 				<div>
 					<span
 						className='badge'
-						title={game.statusName || 'No status'}
+						title={game.statusName || t('game.card.noStatus')}
 						style={{ backgroundColor: `${gameStatusColor}88`, borderColor: `${gameStatusColor}99` }}
 						onClick={(e) => handleBadgeClick(e, 'status')}
 						ref={statusBtnRef}>
-						{game.statusName ?? 'N/A'}
+						{game.statusName ?? t('game.card.na')}
 					</span>
 
 					{activeSelector === 'status' && (
@@ -197,7 +198,7 @@ const RowView: FC<RowViewProps> = (props) => {
 									displayValue={game.statusName}
 									options={statusOptions}
 									onSave={(value) => handleFieldUpdate('statusId', value)}
-									placeholder='Select status'
+									placeholder={t('game.details.selectStatus')}
 									dropdownOnly
 								/>
 							</div>
@@ -211,7 +212,7 @@ const RowView: FC<RowViewProps> = (props) => {
 				{hasLogo && (
 					<OptimizedImage
 						src={game.logo!}
-						alt={`${game.name} logo`}
+						alt={t('game.card.logoAlt', { name: game.name })}
 						className='game-row-logo'
 						quality='low'
 						loading={isPriority ? 'eager' : 'lazy'}
@@ -225,30 +226,34 @@ const RowView: FC<RowViewProps> = (props) => {
 
 			{/* Grade */}
 			<div className='game-row-grade'>
-				<div aria-label='Grade' title={`Grade: ${gradeText}`}>
+				<div aria-label={t('game.details.fieldGrade')} title={`${t('game.details.fieldGrade')}: ${gradeText}`}>
 					<span>{gradeText}</span>
 				</div>
 			</div>
 
 			{/* Critic */}
 			<div className='game-row-critic'>
-				<div aria-label='Critic' title={`Click to search on ${effectiveProvider}`} onClick={handleCriticScoreClick} style={{ cursor: 'pointer' }}>
+				<div
+					aria-label={t('game.details.fieldCriticScore')}
+					title={t('game.card.searchOn', { provider: effectiveProvider })}
+					onClick={handleCriticScoreClick}
+					style={{ cursor: 'pointer' }}>
 					<span style={{ color: criticScoreColor, fontWeight: useScoreColors ? 600 : 'normal' }}>{criticText}</span>
 				</div>
 			</div>
 
 			{/* Story */}
-			<div className='game-row-story' aria-label='Story' title={`Story: ${storyText}`}>
+			<div className='game-row-story' aria-label={t('game.details.fieldStory')} title={`${t('game.details.fieldStory')}: ${storyText}`}>
 				<span>{storyText}</span>
 			</div>
 
 			{/* Completion */}
-			<div className='game-row-completion' aria-label='Completion' title={`Completion: ${completionText}`}>
+			<div className='game-row-completion' aria-label={t('game.details.fieldCompletion')} title={`${t('game.details.fieldCompletion')}: ${completionText}`}>
 				<span>{completionText}</span>
 			</div>
 
 			{/* Score */}
-			<div className='game-row-score' aria-label='Score' title={`Score: ${scoreText}`}>
+			<div className='game-row-score' aria-label={t('game.details.fieldScore')} title={`${t('game.details.fieldScore')}: ${scoreText}`}>
 				<span>{scoreText}</span>
 			</div>
 
@@ -261,7 +266,7 @@ const RowView: FC<RowViewProps> = (props) => {
 						style={{ backgroundColor: `${platformColor}88`, borderColor: `${platformColor}99` }}
 						onClick={(e) => handleBadgeClick(e, 'platform')}
 						ref={platformBtnRef}>
-						{game.platformName ?? 'N/A'}
+						{game.platformName ?? t('game.card.na')}
 					</span>
 					{activeSelector === 'platform' && (
 						<PortalDropdown style={platformPortalStyle} contentRef={platformRef}>
@@ -271,7 +276,7 @@ const RowView: FC<RowViewProps> = (props) => {
 									displayValue={game.platformName}
 									options={platformOptions}
 									onSave={(value) => handleFieldUpdate('platformId', value)}
-									placeholder='Select platform'
+									placeholder={t('game.details.selectPlatform')}
 									dropdownOnly
 								/>
 							</div>
@@ -301,7 +306,7 @@ const RowView: FC<RowViewProps> = (props) => {
 						}}
 						onClick={(e) => handleBadgeClick(e, 'playStatus')}
 						ref={playedBtnRef}>
-						{game.playedStatusName ?? 'N/A'}
+						{game.playedStatusName ?? t('game.card.na')}
 					</span>
 					{activeSelector === 'playStatus' && (
 						<PortalDropdown style={playedPortalStyle} contentRef={playStatusRef}>
@@ -311,7 +316,7 @@ const RowView: FC<RowViewProps> = (props) => {
 									displayValue={game.playedStatusName}
 									options={playedStatusOptions}
 									onSave={(value) => handleFieldUpdate('playedStatusId', value)}
-									placeholder='Select'
+									placeholder={t('game.details.selectStatus')}
 									dropdownOnly
 								/>
 							</div>
@@ -347,7 +352,7 @@ const RowView: FC<RowViewProps> = (props) => {
 									displayValues={game.playWithNames || []}
 									options={playWithOptions}
 									onSave={(values) => handleFieldUpdate('playWithIds', values)}
-									placeholder='Select'
+									placeholder={t('game.details.selectStatus')}
 									dropdownOnly
 								/>
 							</div>
