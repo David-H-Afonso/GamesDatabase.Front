@@ -12,7 +12,6 @@ import AdminUsers from '../AdminUsers'
 import { AdminPreferences } from '../AdminPreferences'
 import AdminReplayTypes from '../AdminReplayTypes'
 import { AdminAuditLog } from '../AdminAuditLog'
-import AdminBackupSchedule from '../AdminBackupSchedule'
 import AdminBackupScheduleUsers from '../AdminBackupScheduleUsers'
 
 const Admin = () => {
@@ -31,7 +30,7 @@ const Admin = () => {
 				<Route path='game-views' element={<AdminGameViews />} />
 				<Route path='audit-log' element={<AdminAuditLog />} />
 				{isAdmin && <Route path='users' element={<AdminUsers />} />}
-				{isAdmin && <Route path='backup-schedule' element={<AdminBackupSchedule />} />}
+				{isAdmin && <Route path='backup-schedule' element={<Navigate to='/admin/backup-schedule-users' replace />} />}
 				{isAdmin && <Route path='backup-schedule-users' element={<AdminBackupScheduleUsers />} />}
 				<Route path='preferences' element={<AdminPreferences />} />
 			</Route>

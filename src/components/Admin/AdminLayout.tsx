@@ -46,11 +46,6 @@ export const AdminLayout = () => {
 							{t('admin.nav.audit')}
 						</NavLink>
 						{isAdmin && (
-							<NavLink to='/admin/backup-schedule' className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
-								{t('admin.nav.backupSchedule')}
-							</NavLink>
-						)}
-						{isAdmin && (
 							<NavLink to='/admin/backup-schedule-users' className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
 								{t('admin.nav.backupScheduleUsers')}
 							</NavLink>
