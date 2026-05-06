@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
 	getGameReplayTypes,
 	createGameReplayType,
@@ -13,6 +14,7 @@ import { ReorderButtons } from '@/components/elements/ReorderButtons/ReorderButt
 import './AdminReplayTypes.scss'
 
 export const AdminReplayTypes: React.FC = () => {
+	const { t } = useTranslation()
 	const [replayTypes, setReplayTypes] = useState<GameReplayType[]>([])
 	const [loading, setLoading] = useState(false)
 	const [error, setError] = useState<string | null>(null)
@@ -48,7 +50,7 @@ export const AdminReplayTypes: React.FC = () => {
 			setPagination({ page: result.page, totalPages: result.totalPages, totalCount: result.totalCount })
 			if (special) setSpecialTypeId(special.id)
 		} catch (err) {
-			setError('Error al cargar los tipos de rejugada')
+			setError(t('admin.replayTypes.errorLoad'))
 		} finally {
 			setLoading(false)
 		}
@@ -72,7 +74,7 @@ export const AdminReplayTypes: React.FC = () => {
 			await reorderGameReplayTypes(ordered.map((t) => t.id))
 			await loadData(queryParams)
 		} catch {
-			window.alert('Error al reordenar. Por favor, intenta de nuevo.')
+			window.alert(t('admin.replayTypes.reorderError'))
 		} finally {
 			setIsReordering(false)
 		}
@@ -113,18 +115,18 @@ export const AdminReplayTypes: React.FC = () => {
 			handleCloseModal()
 			await loadData(queryParams)
 		} catch {
-			setError('Error al guardar el tipo de rejugada')
+			setError(t('admin.replayTypes.errorSave'))
 		}
 	}
 
 	const handleDelete = async (id: number) => {
 		if (id === specialTypeId) return
-		if (!window.confirm('¿Estás seguro de que quieres eliminar este tipo de rejugada?')) return
+		if (!window.confirm(t('admin.replayTypes.confirmDelete'))) return
 		try {
 			await deleteGameReplayType(id)
 			await loadData(queryParams)
 		} catch {
-			setError('Error al eliminar el tipo de rejugada')
+			setError(t('admin.replayTypes.errorDelete'))
 		}
 	}
 
@@ -133,9 +135,9 @@ export const AdminReplayTypes: React.FC = () => {
 	return (
 		<div className='admin-replay-types'>
 			<div className='admin-header'>
-				<h1>Tipos de Rejugada</h1>
+				<h1>{t('admin.replayTypes.title')}</h1>
 				<button className='btn btn-primary' onClick={() => handleOpenModal()}>
-					Nuevo Tipo
+					{t('admin.replayTypes.newType')}
 				</button>
 			</div>
 
@@ -143,7 +145,7 @@ export const AdminReplayTypes: React.FC = () => {
 
 			<div className='admin-controls'>
 				<div className='page-size-control'>
-					<label>Elementos por página:</label>
+					<label>{t('admin.pagination.perPage')}</label>
 					<select value={queryParams.pageSize ?? 50} onChange={(e) => setQueryParams((p) => ({ ...p, pageSize: Number(e.target.value), page: 1 }))}>
 						<option value={10}>10</option>
 						<option value={25}>25</option>
@@ -153,18 +155,18 @@ export const AdminReplayTypes: React.FC = () => {
 			</div>
 
 			{loading ? (
-				<div className='loading'>Cargando...</div>
+				<div className='loading'>{t('common.loading')}</div>
 			) : (
 				<>
 					<div className='replay-types-table'>
 						<table>
 							<thead>
 								<tr>
-									<th style={{ width: '60px' }}>Orden</th>
-									<th>Nombre</th>
-									<th>Color</th>
-									<th>Estado</th>
-									<th>Acciones</th>
+									<th style={{ width: '60px' }}>{t('common.order')}</th>
+									<th>{t('common.name')}</th>
+									<th>{t('common.color')}</th>
+									<th>{t('common.status')}</th>
+									<th>{t('common.actions')}</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -182,28 +184,28 @@ export const AdminReplayTypes: React.FC = () => {
 										</td>
 										<td>
 											{type.name}
-											{type.replayType === 'Replay' && <span className='special-badge'>Especial</span>}
+											{type.replayType === 'Replay' && <span className='special-badge'>{t('admin.replayTypes.specialBadge')}</span>}
 										</td>
 										<td>
 											<div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
 												{type.color && <div style={{ width: '20px', height: '20px', backgroundColor: type.color, borderRadius: '3px', border: '1px solid var(--border)' }} />}
-												<span>{type.color ?? 'Sin color'}</span>
+												<span>{type.color ?? t('common.noColor')}</span>
 											</div>
 										</td>
 										<td>
-											<span className={`status ${type.isActive ? 'active' : 'inactive'}`}>{type.isActive ? 'Activo' : 'Inactivo'}</span>
+											<span className={`status ${type.isActive ? 'active' : 'inactive'}`}>{type.isActive ? t('common.active') : t('common.inactive')}</span>
 										</td>
 										<td>
 											<div className='actions'>
 												<button className='btn btn-sm btn-secondary' onClick={() => handleOpenModal(type)}>
-													Editar
+													{t('admin.crud.edit')}
 												</button>
 												<button
 													className='btn btn-sm btn-danger'
 													onClick={() => handleDelete(type.id)}
 													disabled={type.id === specialTypeId}
-													title={type.id === specialTypeId ? 'El tipo especial no se puede eliminar' : 'Eliminar'}>
-													Eliminar
+													title={type.id === specialTypeId ? t('admin.replayTypes.cantDeleteSpecial') : t('admin.crud.delete')}>
+													{t('admin.crud.delete')}
 												</button>
 											</div>
 										</td>
@@ -215,13 +217,13 @@ export const AdminReplayTypes: React.FC = () => {
 
 					<div className='pagination-controls'>
 						<button className='pagination-btn' disabled={pagination.page <= 1} onClick={() => setQueryParams((p) => ({ ...p, page: p.page! - 1 }))}>
-							Anterior
+							{t('common.previous')}
 						</button>
 						<span className='pagination-info'>
-							Página {pagination.page} de {pagination.totalPages} ({pagination.totalCount} elementos)
+							{t('common.page')} {pagination.page} {t('common.of')} {pagination.totalPages} ({pagination.totalCount} {t('admin.pagination.elements')})
 						</span>
 						<button className='pagination-btn' disabled={pagination.page >= pagination.totalPages} onClick={() => setQueryParams((p) => ({ ...p, page: p.page! + 1 }))}>
-							Siguiente
+							{t('common.next')}
 						</button>
 					</div>
 				</>
@@ -231,18 +233,18 @@ export const AdminReplayTypes: React.FC = () => {
 				<div className='modal-overlay'>
 					<div className='modal'>
 						<div className='modal-header'>
-							<h2>{editingType ? 'Editar Tipo de Rejugada' : 'Nuevo Tipo de Rejugada'}</h2>
+							<h2>{editingType ? t('admin.replayTypes.editType') : t('admin.replayTypes.newType')}</h2>
 							<button className='close-btn' onClick={handleCloseModal}>
-								×
+								{t('admin.crud.close')}
 							</button>
 						</div>
 						<form onSubmit={handleSubmit} className='modal-body'>
 							<div className='form-group'>
-								<label htmlFor='rt-name'>Nombre</label>
+								<label htmlFor='rt-name'>{t('admin.crud.form.nameLabel')}</label>
 								<input id='rt-name' type='text' value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
 							</div>
 							<div className='form-group'>
-								<label htmlFor='rt-color'>Color</label>
+								<label htmlFor='rt-color'>{t('admin.crud.form.colorLabel')}</label>
 								<div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
 									<input
 										id='rt-color'
@@ -257,7 +259,7 @@ export const AdminReplayTypes: React.FC = () => {
 							<div className='form-group'>
 								<label>
 									<input type='checkbox' checked={formData.isActive} onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })} style={{ marginRight: '8px' }} />
-									Activo
+									{t('admin.crud.form.activeLabel')}
 								</label>
 							</div>
 							<div className='form-group'>
@@ -268,15 +270,15 @@ export const AdminReplayTypes: React.FC = () => {
 										onChange={(e) => setFormData({ ...formData, isDefault: e.target.checked })}
 										style={{ marginRight: '8px' }}
 									/>
-									Por defecto
+									{t('admin.replayTypes.defaultLabel')}
 								</label>
 							</div>
 							<div className='modal-footer'>
 								<button type='button' className='btn btn-secondary' onClick={handleCloseModal}>
-									Cancelar
+									{t('admin.crud.cancel')}
 								</button>
 								<button type='submit' className='btn btn-primary'>
-									{editingType ? 'Guardar cambios' : 'Crear'}
+									{editingType ? t('admin.crud.save') : t('admin.crud.create')}
 								</button>
 							</div>
 						</form>

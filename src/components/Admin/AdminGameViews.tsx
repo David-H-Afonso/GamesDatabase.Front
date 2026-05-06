@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useGameViews } from '@/hooks/useGameViews'
 import { reorderGameViews } from '@/services/GameViewService'
 import type { GameView, GameViewCreateDto, GameViewQueryParameters } from '@/models/api/GameView'
@@ -8,6 +9,7 @@ import { ReorderButtons } from '@/components/elements/ReorderButtons/ReorderButt
 import './AdminGameViews.scss'
 
 export const AdminGameViews: React.FC = () => {
+	const { t } = useTranslation()
 	const { gameViews, loading, error, loadGameViews, loadGameViewById, deleteGameView, createGameView } = useGameViews()
 
 	const [isModalOpen, setIsModalOpen] = useState(false)
@@ -62,7 +64,7 @@ export const AdminGameViews: React.FC = () => {
 			await loadGameViews(queryParams)
 		} catch (err) {
 			console.error('Failed to reorder views:', err)
-			window.alert('Error al reordenar las vistas. Por favor, intenta de nuevo.')
+			window.alert(t('admin.gameViews.reorderError'))
 		} finally {
 			setIsReordering(false)
 		}
@@ -118,18 +120,18 @@ export const AdminGameViews: React.FC = () => {
 	const handleImportView = async () => {
 		setImportError(null)
 		if (!importText.trim()) {
-			setImportError('Pega el JSON de la vista')
+			setImportError(t('admin.gameViews.importPasteError'))
 			return
 		}
 		let parsed: any
 		try {
 			parsed = JSON.parse(importText.trim())
 		} catch {
-			setImportError('JSON inválido. Comprueba el formato.')
+			setImportError(t('admin.gameViews.importInvalidJson'))
 			return
 		}
 		if (!parsed.name || !parsed.configuration) {
-			setImportError('El JSON debe tener "name" y "configuration"')
+			setImportError(t('admin.gameViews.importMissingFields'))
 			return
 		}
 		setImporting(true)
@@ -144,14 +146,14 @@ export const AdminGameViews: React.FC = () => {
 			setImportText('')
 			await loadGameViews(queryParams)
 		} catch (err: any) {
-			setImportError(err?.message ?? 'Error al importar la vista')
+			setImportError(err?.message ?? t('admin.gameViews.importError'))
 		} finally {
 			setImporting(false)
 		}
 	}
 
 	const handleDelete = async (id: number, name: string) => {
-		if (window.confirm(`¿Estás seguro de que quieres eliminar la vista "${name}"?`)) {
+		if (window.confirm(t('admin.gameViews.confirmDelete', { name }))) {
 			try {
 				await deleteGameView(id)
 				await loadGameViews(queryParams) // Reload data after delete
@@ -201,20 +203,20 @@ export const AdminGameViews: React.FC = () => {
 		const parts: string[] = []
 		if (filtersCount > 0) {
 			if (config?.filterGroups && config.filterGroups.length > 1) {
-				parts.push(`${config.filterGroups.length} grupos (${filtersCount} filtros)`)
+				parts.push(t('admin.gameViews.filterGroupsSummary', { groups: config.filterGroups.length, count: filtersCount }))
 			} else {
-				parts.push(`${filtersCount} filtro${filtersCount > 1 ? 's' : ''}`)
+				parts.push(t('admin.gameViews.filtersSummary', { count: filtersCount }))
 			}
 		}
-		if (sortingCount > 0) parts.push(`${sortingCount} ordenamiento${sortingCount > 1 ? 's' : ''}`)
+		if (sortingCount > 0) parts.push(t('admin.gameViews.sortingSummary', { count: sortingCount }))
 
-		return parts.length > 0 ? parts.join(', ') : 'Sin configuración'
+		return parts.length > 0 ? parts.join(', ') : t('admin.gameViews.noConfig')
 	}
 
 	return (
 		<div className='admin-game-views'>
 			<div className='admin-header'>
-				<h1>Gestión de Vistas de Juegos</h1>
+				<h1>{t('admin.gameViews.title')}</h1>
 				<div className='header-actions'>
 					<button
 						className='btn btn-secondary'
@@ -222,7 +224,7 @@ export const AdminGameViews: React.FC = () => {
 							setTemplatePanelOpen((v) => !v)
 							setImportPanelOpen(false)
 						}}>
-						{templatePanelOpen ? 'Cancelar' : '⚡ Plantillas'}
+						{templatePanelOpen ? t('admin.crud.cancel') : `⚡ ${t('admin.gameViews.templates')}`}
 					</button>
 					<button
 						className='btn btn-secondary'
@@ -231,10 +233,10 @@ export const AdminGameViews: React.FC = () => {
 							setImportError(null)
 							setTemplatePanelOpen(false)
 						}}>
-						{importPanelOpen ? 'Cancelar' : '📥 Importar Vista'}
+						{importPanelOpen ? t('admin.crud.cancel') : `📥 ${t('admin.gameViews.importView')}`}
 					</button>
 					<button className='btn btn-primary' onClick={() => handleOpenModal()}>
-						Nueva Vista
+						{t('admin.gameViews.newView')}
 					</button>
 				</div>
 			</div>
@@ -243,7 +245,7 @@ export const AdminGameViews: React.FC = () => {
 
 			{importPanelOpen && (
 				<div className='import-panel'>
-					<p className='import-panel__hint'>Pega aquí el JSON de la vista que quieres importar:</p>
+					<p className='import-panel__hint'>{t('admin.gameViews.importHint')}</p>
 					<textarea
 						ref={importTextareaRef}
 						className='import-panel__textarea'
@@ -256,7 +258,7 @@ export const AdminGameViews: React.FC = () => {
 					{importError && <p className='import-panel__error'>{importError}</p>}
 					<div className='import-panel__actions'>
 						<button className='btn btn-primary' onClick={handleImportView} disabled={importing}>
-							{importing ? 'Importando...' : 'Importar'}
+							{importing ? t('admin.gameViews.importing') : t('admin.gameViews.import')}
 						</button>
 						<button
 							className='btn btn-secondary'
@@ -265,7 +267,7 @@ export const AdminGameViews: React.FC = () => {
 								setImportText('')
 								setImportError(null)
 							}}>
-							Cancelar
+							{t('admin.crud.cancel')}
 						</button>
 					</div>
 				</div>
@@ -285,21 +287,27 @@ export const AdminGameViews: React.FC = () => {
 			)}
 
 			<div className='controls'>
-				<input type='text' placeholder='Buscar vistas...' value={queryParams.search || ''} onChange={(e) => handleSearchChange(e.target.value)} className='search-input' />
+				<input
+					type='text'
+					placeholder={t('admin.gameViews.searchPlaceholder')}
+					value={queryParams.search || ''}
+					onChange={(e) => handleSearchChange(e.target.value)}
+					className='search-input'
+				/>
 			</div>
 
 			{loading ? (
-				<div className='loading'>Cargando...</div>
+				<div className='loading'>{t('common.loading')}</div>
 			) : (
 				<div className='game-views-table'>
 					<table>
 						<thead>
 							<tr>
-								<th style={{ width: '80px' }}>Orden</th>
-								<th>Nombre</th>
-								<th>Configuración</th>
-								<th>Creado</th>
-								<th>Acciones</th>
+								<th style={{ width: '80px' }}>{t('common.order')}</th>
+								<th>{t('common.name')}</th>
+								<th>{t('admin.gameViews.configHeader')}</th>
+								<th>{t('common.created')}</th>
+								<th>{t('common.actions')}</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -325,14 +333,14 @@ export const AdminGameViews: React.FC = () => {
 												className={`action-btn export${copiedId === gameView.id ? ' copied' : ''}`}
 												onClick={() => handleExportView(gameView)}
 												disabled={exportingId === gameView.id}
-												title='Exportar como JSON (copia al portapapeles)'>
-												{exportingId === gameView.id ? '...' : copiedId === gameView.id ? '✓ Copiado' : 'Exportar'}
+												title={t('admin.gameViews.exportTitle')}>
+												{exportingId === gameView.id ? '...' : copiedId === gameView.id ? `✓ ${t('admin.gameViews.copied')}` : t('admin.gameViews.export')}
 											</button>
 											<button className='action-btn edit' onClick={() => handleOpenModal(gameView)}>
-												Editar
+												{t('admin.crud.edit')}
 											</button>
 											<button className='action-btn delete' onClick={() => handleDelete(gameView.id, gameView.name)}>
-												Eliminar
+												{t('admin.crud.delete')}
 											</button>
 										</td>
 									</tr>
@@ -346,7 +354,7 @@ export const AdminGameViews: React.FC = () => {
 											padding: '2rem',
 											color: 'var(--text-secondary)',
 										}}>
-										No se encontraron vistas de juegos
+										{t('admin.gameViews.noViews')}
 									</td>
 								</tr>
 							)}

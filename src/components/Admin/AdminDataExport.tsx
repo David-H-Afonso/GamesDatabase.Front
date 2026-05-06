@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
 	exportFullDatabase,
 	downloadBlob,
@@ -45,6 +46,7 @@ interface DatabaseDuplicateGroup {
 }
 
 export const AdminDataExport: React.FC = () => {
+	const { t } = useTranslation()
 	const [loading, setLoading] = useState(false)
 	const [message, setMessage] = useState<string | null>(null)
 	const [messageType, setMessageType] = useState<'success' | 'error'>('success')
@@ -106,9 +108,12 @@ export const AdminDataExport: React.FC = () => {
 				- Statuses: ${catalogStats.statuses.imported} new, ${catalogStats.statuses.updated} updated
 				- PlayWith: ${catalogStats.playWiths.imported} new, ${catalogStats.playWiths.updated} updated
 				- PlayedStatuses: ${catalogStats.playedStatuses.imported} new, ${catalogStats.playedStatuses.updated} updated
+				${catalogStats.replayTypes ? `\n\t\t\t\t- Replay Types: ${catalogStats.replayTypes.imported} new, ${catalogStats.replayTypes.updated} updated` : ''}
 				${result.views ? `\n\t\t\t\t- Views: ${result.views.imported} new, ${result.views.updated} updated` : ''}
 				
 				Games: ${gameStats.imported} new, ${gameStats.updated} updated
+				${result.replays ? `\n\t\t\t\tReplays: ${result.replays.imported} new, ${result.replays.updated} updated` : ''}
+				${result.history ? `\n\t\t\t\tHistory: ${result.history.imported} entries imported` : ''}
 				
 				${result.errors && result.errors.length > 0 ? `Errors: ${result.errors.join(', ')}` : ''}
 			`
@@ -194,7 +199,7 @@ Statistics:
 			const result = await analyzeFolders()
 			setAnalysisResult(result)
 			const dbDups = result.databaseDuplicates?.duplicateGroups.length ?? 0
-			const msg = dbDups > 0 ? `Análisis completado. ${dbDups} grupo(s) de duplicados en la base de datos.` : 'Análisis de carpetas completado'
+			const msg = dbDups > 0 ? t('admin.dataExport.analysisDuplicates', { count: dbDups }) : t('admin.dataExport.analysisComplete')
 			showMessage(msg, 'success')
 		} catch (error) {
 			console.error('Folder analysis error:', error)
@@ -216,7 +221,7 @@ Statistics:
 			}
 		} catch (error) {
 			console.error('DB duplicate analysis error:', error)
-			showMessage(error instanceof Error ? error.message : 'Error analyzing database duplicates', 'error')
+			showMessage(error instanceof Error ? error.message : t('admin.dataExport.errorAnalyze'), 'error')
 		} finally {
 			setAnalyzingDbDuplicates(false)
 		}
@@ -229,7 +234,7 @@ Statistics:
 			showMessage(result.message, 'success')
 		} catch (error) {
 			console.error('Clear image cache error:', error)
-			showMessage(error instanceof Error ? error.message : 'Error al limpiar el caché', 'error')
+			showMessage(error instanceof Error ? error.message : t('admin.dataExport.errorClearCache'), 'error')
 		} finally {
 			setClearingCache(false)
 		}
@@ -239,15 +244,13 @@ Statistics:
 		try {
 			setLoading(true)
 			const result = await updateImageUrls()
-			const message = `
-Actualización de URLs de imágenes completada:
-
-✅ Total juegos: ${result.totalGames}
-📝 Actualizados: ${result.updatedGames}
-⏭️ Omitidos: ${result.skippedGames}
-✓ Ya correctos: ${result.alreadyCorrect}
-⚠️ Sin imágenes: ${result.noImagesFound}
-			`
+			const message = t('admin.dataExport.imageUrlsResult', {
+				total: result.totalGames,
+				updated: result.updatedGames,
+				skipped: result.skippedGames,
+				correct: result.alreadyCorrect,
+				noImages: result.noImagesFound,
+			})
 			showMessage(message, 'success')
 		} catch (error) {
 			console.error('Update image URLs error:', error)
@@ -260,7 +263,7 @@ Actualización de URLs de imágenes completada:
 	return (
 		<div className='admin-data-export'>
 			<div className='admin-header'>
-				<h1>Importar/Exportar Datos</h1>
+				<h1>{t('admin.dataExport.title')}</h1>
 			</div>
 
 			{message && (
@@ -275,31 +278,26 @@ Actualización de URLs de imágenes completada:
 			<div className='export-import-sections'>
 				{/* Full Database Export/Import Section */}
 				<div className='section full-export-section highlight-section'>
-					<h2>🗄️ Exportar e Importar Base de Datos</h2>
-					<p className='section-description'>
-						Exporta o importa <strong>toda la base de datos</strong> incluyendo juegos y todos los catálogos (Platforms, Status, PlayWith, PlayedStatus) con sus colores y
-						configuración.
-					</p>
+					<h2>🗄️ {t('admin.dataExport.dbSectionTitle')}</h2>
+					<p className='section-description'>{t('admin.dataExport.dbSectionDesc')}</p>
 
 					<div className='action-group'>
 						<div className='action-item'>
-							<h3>Exportar Base de Datos Completa (CSV)</h3>
-							<p>Descarga un backup completo en formato CSV único con todos tus datos.</p>
+							<h3>{t('admin.dataExport.exportDbTitle')}</h3>
+							<p>{t('admin.dataExport.exportDbDesc')}</p>
 							<button className='btn btn-primary btn-large' onClick={handleExportFullDatabase} disabled={loading}>
-								{loading ? '⏳ Exportando...' : '📥 Exportar CSV'}
+								{loading ? `⏳ ${t('admin.dataExport.exporting')}` : `📥 ${t('admin.dataExport.exportBtn')}`}
 							</button>
 						</div>
 
 						<div className='action-item'>
-							<h3>Importar Base de Datos Completa (CSV)</h3>
-							<p>
-								<strong>Modo MERGE:</strong> Actualiza registros existentes y crea nuevos. Los datos que no están en el CSV se mantienen intactos.
-							</p>
-							<small className='help-text'>⚠️ El CSV debe incluir columna "Type" (Platform/Status/PlayWith/PlayedStatus/Game)</small>
+							<h3>{t('admin.dataExport.importDbTitle')}</h3>
+							<p>{t('admin.dataExport.importDbDesc')}</p>
+							<small className='help-text'>⚠️ {t('admin.dataExport.importDbHint')}</small>
 							<div className='file-input-container'>
 								<input type='file' accept='.csv' onChange={handleImportFullDatabase} disabled={loading} id='csv-full-import' className='file-input' />
 								<label htmlFor='csv-full-import' className='file-input-label btn btn-success btn-large'>
-									{loading ? '⏳ Importando...' : '📤 Importar CSV'}
+									{loading ? `⏳ ${t('admin.dataExport.importing')}` : `📤 ${t('admin.dataExport.importBtn')}`}
 								</label>
 							</div>
 						</div>
@@ -343,23 +341,23 @@ Actualización de URLs de imágenes completada:
 				{/* Network Sync Section - Only show on local environments */}
 				{isLocalEnvironment && (
 					<div className='section network-sync-section'>
-						<h2>🌐 Sincronizar a Red</h2>
-						<p className='section-description'>Sincroniza la base de datos y las imágenes a una ubicación de red compartida.</p>
+						<h2>🌐 {t('admin.dataExport.networkSyncTitle')}</h2>
+						<p className='section-description'>{t('admin.dataExport.networkSyncDesc')}</p>
 
 						<div className='action-group'>
 							<div className='action-item'>
-								<h3>Sincronizar Todo (Full)</h3>
-								<p>Sincroniza toda la base de datos con todas las imágenes a la red.</p>
+								<h3>{t('admin.dataExport.syncFullTitle')}</h3>
+								<p>{t('admin.dataExport.syncFullDesc')}</p>
 								<button className='btn btn-success btn-large' onClick={() => handleSyncToNetwork(true)} disabled={loading}>
-									{loading ? '⏳ Sincronizando...' : '🌐 Sync Full'}
+									{loading ? `⏳ ${t('admin.dataExport.syncing')}` : `🌐 ${t('admin.dataExport.syncFullBtn')}`}
 								</button>
 							</div>
 
 							<div className='action-item'>
-								<h3>Sincronizar Solo Actualizado (Parcial)</h3>
-								<p>Sincroniza únicamente los datos y las imágenes que han sido modificados.</p>
+								<h3>{t('admin.dataExport.syncPartialTitle')}</h3>
+								<p>{t('admin.dataExport.syncPartialDesc')}</p>
 								<button className='btn btn-secondary btn-large' onClick={() => handleSyncToNetwork(false)} disabled={loading}>
-									{loading ? '⏳ Sincronizando...' : '🌐 Sync Parcial'}
+									{loading ? `⏳ ${t('admin.dataExport.syncing')}` : `🌐 ${t('admin.dataExport.syncPartialBtn')}`}
 								</button>
 							</div>
 						</div>
@@ -368,36 +366,36 @@ Actualización de URLs de imágenes completada:
 
 				{isLocalEnvironment && (
 					<div className='section folder-analysis-section'>
-						<h2>📁 Análisis de Carpetas</h2>
-						<p className='section-description'>Detecta duplicados potenciales y carpetas huérfanas comparando la base de datos con el sistema de archivos.</p>
+						<h2>📁 {t('admin.dataExport.folderAnalysisTitle')}</h2>
+						<p className='section-description'>{t('admin.dataExport.folderAnalysisDesc')}</p>
 
 						<div className='action-group'>
 							<button className='btn btn-primary btn-large' onClick={handleAnalyzeFolders} disabled={analyzingFolders}>
-								{analyzingFolders ? '⏳ Analizando...' : '🔍 Analizar Carpetas'}
+								{analyzingFolders ? `⏳ ${t('common.analyzing')}` : `🔍 ${t('admin.dataExport.analyzeFolders')}`}
 							</button>
 							<button className='btn btn-warning btn-large' onClick={handleUpdateImageUrls} disabled={loading}>
-								{loading ? '⏳ Actualizando...' : '🔄 Actualizar URLs de Imágenes'}
+								{loading ? `⏳ ${t('common.updating')}` : `🔄 ${t('admin.dataExport.updateImageUrls')}`}
 							</button>
 							<button className='btn btn-danger btn-large' onClick={handleClearImageCache} disabled={clearingCache}>
-								{clearingCache ? '⏳ Limpiando...' : '🗑️ Limpiar Caché de Imágenes'}
+								{clearingCache ? `⏳ ${t('common.clearing')}` : `🗑️ ${t('admin.dataExport.clearImageCache')}`}
 							</button>{' '}
 						</div>
 
 						{analysisResult && (
 							<div className='analysis-results'>
 								<div className='analysis-summary'>
-									<h3>📊 Resumen</h3>
+									<h3>📊 {t('admin.dataExport.summary')}</h3>
 									<div className='summary-grid'>
 										<div className='summary-item'>
-											<span className='summary-label'>Juegos en DB:</span>
+											<span className='summary-label'>{t('admin.dataExport.gamesInDb')}:</span>
 											<span className='summary-value'>{analysisResult.totalGamesInDatabase}</span>
 										</div>
 										<div className='summary-item'>
-											<span className='summary-label'>Carpetas en Disco:</span>
+											<span className='summary-label'>{t('admin.dataExport.foldersOnDisk')}:</span>
 											<span className='summary-value'>{analysisResult.totalFoldersInFilesystem}</span>
 										</div>
 										<div className='summary-item'>
-											<span className='summary-label'>Diferencia:</span>
+											<span className='summary-label'>{t('admin.dataExport.difference')}:</span>
 											<span className={`summary-value ${analysisResult.difference > 0 ? 'warning' : analysisResult.difference < 0 ? 'error' : 'success'}`}>
 												{analysisResult.difference > 0 && '+'}
 												{analysisResult.difference}
@@ -408,7 +406,7 @@ Actualización de URLs de imágenes completada:
 
 								{analysisResult.potentialDuplicates.length > 0 && (
 									<div className='duplicates-section'>
-										<h3>🔍 Duplicados Potenciales ({analysisResult.potentialDuplicates.length})</h3>
+										<h3>🔍 {t('admin.dataExport.potentialDuplicates', { count: analysisResult.potentialDuplicates.length })}</h3>
 										{analysisResult.potentialDuplicates.map((dup, idx) => (
 											<div key={idx} className='duplicate-item'>
 												<div className='duplicate-header'>
@@ -429,8 +427,8 @@ Actualización de URLs de imágenes completada:
 
 								{analysisResult.orphanFolders.length > 0 && (
 									<div className='orphans-section'>
-										<h3>👻 Carpetas Huérfanas ({analysisResult.orphanFolders.length})</h3>
-										<p className='section-note'>Carpetas que no corresponden a ningún juego en la base de datos</p>
+										<h3>👻 {t('admin.dataExport.orphanFolders', { count: analysisResult.orphanFolders.length })}</h3>
+										<p className='section-note'>{t('admin.dataExport.orphanFoldersNote')}</p>
 										<ul className='folder-list'>
 											{analysisResult.orphanFolders.map((orphan, idx) => (
 												<li key={idx}>
@@ -443,7 +441,7 @@ Actualización de URLs de imágenes completada:
 
 								{(analysisResult.databaseDuplicates?.duplicateGroups.length ?? 0) > 0 && (
 									<div className='duplicates-section'>
-										<h3>🔁 Duplicados en Base de Datos ({analysisResult.databaseDuplicates!.duplicateGroups.length})</h3>
+										<h3>🔁 {t('admin.dataExport.dbDuplicates', { count: analysisResult.databaseDuplicates!.duplicateGroups.length })}</h3>
 										{analysisResult.databaseDuplicates!.duplicateGroups.map((group, idx) => (
 											<div key={idx} className='duplicate-item'>
 												<div className='duplicate-header'>
@@ -469,8 +467,8 @@ Actualización de URLs de imágenes completada:
 									analysisResult.difference === 0 &&
 									(analysisResult.databaseDuplicates?.duplicateGroups.length ?? 0) === 0 && (
 										<div className='analysis-success'>
-											<h3>✅ Todo Correcto</h3>
-											<p>No se encontraron duplicados ni carpetas huérfanas. La base de datos y el sistema de archivos están sincronizados.</p>
+											<h3>✅ {t('admin.dataExport.allCorrect')}</h3>
+											<p>{t('admin.dataExport.allCorrectDesc')}</p>
 										</div>
 									)}
 							</div>
@@ -480,26 +478,26 @@ Actualización de URLs de imágenes completada:
 
 				{/* Database Duplicates Section - visible to all authenticated users */}
 				<div className='section folder-analysis-section'>
-					<h2>🔁 Duplicados en Base de Datos</h2>
-					<p className='section-description'>Detecta juegos con nombres idénticos o equivalentes (mismas palabras, distinto formato) directamente en la base de datos.</p>
+					<h2>🔁 {t('admin.dataExport.dbDuplicatesTitle')}</h2>
+					<p className='section-description'>{t('admin.dataExport.dbDuplicatesDesc')}</p>
 
 					<div className='action-group'>
 						<button className='btn btn-primary btn-large' onClick={handleAnalyzeDatabaseDuplicates} disabled={analyzingDbDuplicates}>
-							{analyzingDbDuplicates ? '⏳ Analizando...' : '🔁 Buscar Duplicados'}
+							{analyzingDbDuplicates ? `⏳ ${t('common.analyzing')}` : `🔁 ${t('admin.dataExport.findDuplicates')}`}
 						</button>
 					</div>
 
 					{dbDuplicatesResult && (
 						<div className='analysis-results'>
 							<div className='analysis-summary'>
-								<h3>📊 Resumen</h3>
+								<h3>📊 {t('admin.dataExport.summary')}</h3>
 								<div className='summary-grid'>
 									<div className='summary-item'>
-										<span className='summary-label'>Juegos en DB:</span>
+										<span className='summary-label'>{t('admin.dataExport.gamesInDb')}:</span>
 										<span className='summary-value'>{dbDuplicatesResult.totalGamesInDatabase}</span>
 									</div>
 									<div className='summary-item'>
-										<span className='summary-label'>Grupos duplicados:</span>
+										<span className='summary-label'>{t('admin.dataExport.duplicateGroups')}:</span>
 										<span className={`summary-value ${dbDuplicatesResult.duplicateGroups.length > 0 ? 'warning' : 'success'}`}>{dbDuplicatesResult.duplicateGroups.length}</span>
 									</div>
 								</div>
@@ -507,7 +505,7 @@ Actualización de URLs de imágenes completada:
 
 							{dbDuplicatesResult.duplicateGroups.length > 0 && (
 								<div className='duplicates-section'>
-									<h3>🔍 Duplicados Encontrados ({dbDuplicatesResult.duplicateGroups.length} grupos)</h3>
+									<h3>🔍 {t('admin.dataExport.duplicatesFound', { count: dbDuplicatesResult.duplicateGroups.length })}</h3>
 									{dbDuplicatesResult.duplicateGroups.map((group, idx) => (
 										<div key={idx} className='duplicate-item'>
 											<div className='duplicate-header'>
@@ -527,8 +525,8 @@ Actualización de URLs de imágenes completada:
 
 							{dbDuplicatesResult.duplicateGroups.length === 0 && (
 								<div className='analysis-success'>
-									<h3>✅ Sin Duplicados</h3>
-									<p>No se encontraron juegos duplicados en la base de datos.</p>
+									<h3>✅ {t('admin.dataExport.noDuplicates')}</h3>
+									<p>{t('admin.dataExport.noDuplicatesDesc')}</p>
 								</div>
 							)}
 						</div>
@@ -538,84 +536,52 @@ Actualización de URLs de imágenes completada:
 
 			{/* Instructions Section */}
 			<div className='section instructions-section'>
-				<h2>📚 Instrucciones y Casos de Uso</h2>
+				<h2>📚 {t('admin.dataExport.instructionsTitle')}</h2>
 				<div className='instructions-content'>
 					<div className='instruction-item'>
-						<h3>� Exportar Base de Datos</h3>
+						<h3>📥 {t('admin.dataExport.instrExportTitle')}</h3>
 						<ul>
-							<li>Descarga TODO: juegos + catálogos (Platforms, Status, PlayWith, PlayedStatus)</li>
-							<li>Incluye colores, orden personalizado y configuración de cada catálogo</li>
-							<li>Formato único con columna "Type" para identificar cada tipo de registro</li>
-							<li>Ideal para backups completos o migración entre instancias</li>
-							<li>
-								El archivo se descarga como: <code>database_full_export_YYYY-MM-DD.csv</code>
-							</li>
+							<li>{t('admin.dataExport.instrExport1')}</li>
+							<li>{t('admin.dataExport.instrExport2')}</li>
+							<li>{t('admin.dataExport.instrExport3')}</li>
+							<li>{t('admin.dataExport.instrExport4')}</li>
+							<li>{t('admin.dataExport.instrExport5')}</li>
 						</ul>
 					</div>
 
 					<div className='instruction-item'>
-						<h3>📤 Importar Base de Datos (Modo MERGE)</h3>
+						<h3>📤 {t('admin.dataExport.instrImportTitle')}</h3>
 						<ul>
-							<li>
-								<strong>Actualiza</strong> registros existentes con los datos del CSV (identificación por nombre)
-							</li>
-							<li>
-								<strong>Crea</strong> nuevos registros que no existen en la base de datos
-							</li>
-							<li>
-								<strong>Mantiene</strong> los registros que NO están en el CSV (no es destructivo)
-							</li>
-							<li>En caso de conflicto, el CSV importado tiene preferencia</li>
-							<li>Perfecto para sincronización y actualizaciones masivas sin perder datos</li>
-							<li>Muestra estadísticas detalladas después de la importación</li>
+							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrImport1') }} />
+							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrImport2') }} />
+							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrImport3') }} />
+							<li>{t('admin.dataExport.instrImport4')}</li>
+							<li>{t('admin.dataExport.instrImport5')}</li>
+							<li>{t('admin.dataExport.instrImport6')}</li>
 						</ul>
 					</div>
 
 					<div className='instruction-item'>
-						<h3>💡 Casos de Uso</h3>
+						<h3>💡 {t('admin.dataExport.instrUseCasesTitle')}</h3>
 						<ul>
-							<li>
-								<strong>Backup y Restauración:</strong> Exporta regularmente → Guarda el CSV → Importa cuando necesites restaurar
-							</li>
-							<li>
-								<strong>Migración:</strong> Exporta de una instancia → Importa en otra (modo MERGE combina datos automáticamente)
-							</li>
-							<li>
-								<strong>Sincronización entre equipos:</strong> Exporta cambios de un equipo → Importa en otros (los datos únicos de cada equipo se mantienen)
-							</li>
-							<li>
-								<strong>Edición masiva:</strong> Exporta → Edita en Excel/LibreOffice → Reimporta (actualiza solo lo modificado en el CSV)
-							</li>
-							<li>
-								<strong>Compartir configuración:</strong> Exporta tus catálogos personalizados → Comparte con otros usuarios
-							</li>
+							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrUseCase1') }} />
+							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrUseCase2') }} />
+							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrUseCase3') }} />
+							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrUseCase4') }} />
+							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrUseCase5') }} />
 						</ul>
 					</div>
 
 					<div className='instruction-item warning-item'>
-						<h3>⚠️ Notas Importantes</h3>
+						<h3>⚠️ {t('admin.dataExport.instrNotesTitle')}</h3>
 						<ul>
-							<li>
-								<strong>Identificación:</strong> Los registros se identifican por nombre (case-insensitive, sin distinguir mayúsculas)
-							</li>
-							<li>
-								<strong>Orden CSV:</strong> Los catálogos deben ir antes que los juegos en el archivo
-							</li>
-							<li>
-								<strong>Columna Type:</strong> Obligatoria (Platform/Status/PlayWith/PlayedStatus/Game)
-							</li>
-							<li>
-								<strong>Formato Fechas:</strong> Usar YYYY-MM-DD (ej: 2025-10-01) o dejar vacío
-							</li>
-							<li>
-								<strong>Colores:</strong> Formato hexadecimal con # (ej: #2a475e)
-							</li>
-							<li>
-								<strong>Score:</strong> Se calcula automáticamente, no es necesario incluirlo en el CSV
-							</li>
-							<li>
-								<strong>Valores booleanos:</strong> True/False para IsActive, IsDefault, etc.
-							</li>
+							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrNote1') }} />
+							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrNote2') }} />
+							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrNote3') }} />
+							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrNote4') }} />
+							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrNote5') }} />
+							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrNote6') }} />
+							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrNote7') }} />
 						</ul>
 					</div>
 				</div>

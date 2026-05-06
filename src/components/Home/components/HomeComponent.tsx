@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, lazy, Suspense } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Button, GameCard } from '@/components/elements'
 import { useGames, useGameViews } from '@/hooks'
 import { useAppSelector, useAppDispatch } from '@/store/hooks'
@@ -17,6 +18,7 @@ const HomeComponent = () => {
 	const { games, error, pagination, fetchGamesList, refreshGames, deleteGameById, bulkUpdateGamesById } = useGames()
 	const { publicGameViews, loadPublicGameViews } = useGameViews()
 
+	const { t } = useTranslation()
 	const dispatch = useAppDispatch()
 	const cardStyle = useAppSelector((s) => s.theme.cardStyle ?? 'row')
 	const token = useAppSelector((s) => s.auth.token)
@@ -154,7 +156,7 @@ const HomeComponent = () => {
 	}
 
 	const handleBulkDelete = async () => {
-		if (!window.confirm('Are you sure you want to delete the selected games?')) return
+		if (!window.confirm(t('home.confirmDeleteSelected'))) return
 		try {
 			await Promise.all(selectedGames.map((id) => deleteGameById(id)))
 			setSelectedGames([])
@@ -169,7 +171,7 @@ const HomeComponent = () => {
 	const handleSortChange = (sortBy: string, sortDescending: boolean) => setFilters({ ...filters, sortBy, sortDescending })
 
 	const handleDeleteGame = async (id: number) => {
-		if (!window.confirm('Are you sure you want to delete this game?')) return
+		if (!window.confirm(t('home.confirmDeleteGame'))) return
 		try {
 			await deleteGameById(id)
 			fetchGamesList(filters)
@@ -187,7 +189,7 @@ const HomeComponent = () => {
 
 			// Type assertion since we know the shape of the result
 			const bulkResult = result as { updatedCount: number; totalRequested: number }
-			alert(`Successfully updated ${bulkResult.updatedCount} of ${bulkResult.totalRequested} games`)
+			alert(t('home.bulkUpdateSuccess', { updated: bulkResult.updatedCount, total: bulkResult.totalRequested }))
 			setSelectedGames([])
 			setBulkEditOpen(false)
 			await refreshGames(filters)
@@ -242,26 +244,26 @@ const HomeComponent = () => {
 					{cardStyle === 'row' && (
 						<div className='home-component-games-row-header'>
 							<p className='gr-select'></p>
-							<p className='gr-status'>Status</p>
-							<p className='gr-name'>Name</p>
-							<p className='gr-grade'>Grade</p>
-							<p className='gr-critic'>Critic</p>
-							<p className='gr-story'>Story</p>
-							<p className='gr-completion'>100%</p>
-							<p className='gr-score'>Score</p>
-							<p className='gr-platform'>Platform</p>
-							<p className='gr-released'>Released</p>
-							<p className='gr-started'>Started</p>
-							<p className='gr-finished'>Finished</p>
-							<p className='gr-play-status'>Play Status</p>
-							<p className='gr-comment'>Comment</p>
-							<p className='gr-play-with'>Play With</p>
+							<p className='gr-status'>{t('home.columns.status')}</p>
+							<p className='gr-name'>{t('home.columns.name')}</p>
+							<p className='gr-grade'>{t('home.columns.grade')}</p>
+							<p className='gr-critic'>{t('home.columns.critic')}</p>
+							<p className='gr-story'>{t('home.columns.story')}</p>
+							<p className='gr-completion'>{t('home.columns.completion')}</p>
+							<p className='gr-score'>{t('home.columns.score')}</p>
+							<p className='gr-platform'>{t('home.columns.platform')}</p>
+							<p className='gr-released'>{t('home.columns.released')}</p>
+							<p className='gr-started'>{t('home.columns.started')}</p>
+							<p className='gr-finished'>{t('home.columns.finished')}</p>
+							<p className='gr-play-status'>{t('home.columns.playStatus')}</p>
+							<p className='gr-comment'>{t('home.columns.comment')}</p>
+							<p className='gr-play-with'>{t('home.columns.playWith')}</p>
 						</div>
 					)}
 
 					{(() => {
 						const list = games
-						if (!list || list.length === 0) return <p className='home-component__no-games'>No games found.</p>
+						if (!list || list.length === 0) return <p className='home-component__no-games'>{t('home.noGames')}</p>
 						return list.map((game: any, index: number) => (
 							<GameCard
 								key={game.id}
@@ -281,9 +283,7 @@ const HomeComponent = () => {
 					<button className='pagination-btn' disabled={pagination.page <= 1} onClick={() => handlePageChange(pagination.page - 1)}>
 						&lt;
 					</button>
-					<span className='pagination-info'>
-						Página {pagination.page} de {pagination.totalPages} ({pagination.totalCount} juegos)
-					</span>
+					<span className='pagination-info'>{t('home.pagination', { page: pagination.page, total: pagination.totalPages, count: pagination.totalCount })}</span>
 					<button className='pagination-btn' disabled={pagination.page >= pagination.totalPages} onClick={() => handlePageChange(pagination.page + 1)}>
 						&gt;
 					</button>

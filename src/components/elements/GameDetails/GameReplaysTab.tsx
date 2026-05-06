@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { getReplaysByGameId, createGameReplay, updateGameReplay, deleteGameReplay } from '@/services/GameReplayService'
 import { getActiveGameReplayTypes, getSpecialGameReplayType } from '@/services/GameReplayTypeService'
 import type { GameReplay, GameReplayCreateDto } from '@/models/api/GameReplay'
@@ -20,6 +21,7 @@ const emptyForm = (defaultTypeId?: number): GameReplayCreateDto => ({
 })
 
 export const GameReplaysTab: React.FC<Props> = ({ gameId }) => {
+	const { t } = useTranslation()
 	const [replays, setReplays] = useState<GameReplay[]>([])
 	const [replayTypes, setReplayTypes] = useState<GameReplayType[]>([])
 	const [defaultTypeId, setDefaultTypeId] = useState<number | undefined>()
@@ -105,7 +107,7 @@ export const GameReplaysTab: React.FC<Props> = ({ gameId }) => {
 	}
 
 	const handleDelete = async (id: number) => {
-		if (!window.confirm('¿Eliminar esta rejugada?')) return
+		if (!window.confirm(t('game.replays.confirmDelete'))) return
 		try {
 			await deleteGameReplay(gameId, id)
 			setReplays((prev) => prev.filter((r) => r.id !== id))
@@ -114,20 +116,18 @@ export const GameReplaysTab: React.FC<Props> = ({ gameId }) => {
 		}
 	}
 
-	if (loading) return <div className='grt-loading'>Cargando rejugadas...</div>
+	if (loading) return <div className='grt-loading'>{t('game.replays.loading')}</div>
 
 	return (
 		<div className='game-replays-tab'>
 			<div className='grt-header'>
-				<span className='grt-count'>
-					{replays.length} rejugada{replays.length !== 1 ? 's' : ''}
-				</span>
+				<span className='grt-count'>{t('game.replays.count', { count: replays.length })}</span>
 				<button className='grt-add-btn' onClick={openNewForm}>
-					+ Añadir rejugada
+					+ {t('game.replays.addReplay')}
 				</button>
 			</div>
 
-			{replays.length === 0 && !isFormOpen && <p className='grt-empty'>Sin rejugadas registradas.</p>}
+			{replays.length === 0 && !isFormOpen && <p className='grt-empty'>{t('game.replays.noReplays')}</p>}
 
 			{replays.length > 0 && (
 				<ul className='grt-list'>
@@ -147,10 +147,10 @@ export const GameReplaysTab: React.FC<Props> = ({ gameId }) => {
 							{replay.notes && <p className='grt-notes'>{replay.notes}</p>}
 							<div className='grt-actions'>
 								<button className='grt-edit-btn' onClick={() => openEditForm(replay)}>
-									Editar
+									{t('common.edit')}
 								</button>
 								<button className='grt-delete-btn' onClick={() => handleDelete(replay.id)}>
-									Eliminar
+									{t('common.delete')}
 								</button>
 							</div>
 						</li>
@@ -161,19 +161,19 @@ export const GameReplaysTab: React.FC<Props> = ({ gameId }) => {
 			{isFormOpen && (
 				<div className='grt-form'>
 					<div className='grt-form-header'>
-						<h3>{editingReplay ? 'Editar rejugada' : 'Nueva rejugada'}</h3>
+						<h3>{editingReplay ? t('game.replays.editReplay') : t('game.replays.newReplay')}</h3>
 						<button className='grt-form-close' onClick={handleCloseForm}>
 							×
 						</button>
 					</div>
 					<form onSubmit={handleSubmit}>
 						<div className='grt-form-field'>
-							<label htmlFor='grt-type'>Tipo</label>
+							<label htmlFor='grt-type'>{t('game.replays.type')}</label>
 							<select
 								id='grt-type'
 								value={formData.replayTypeId ?? ''}
 								onChange={(e) => setFormData({ ...formData, replayTypeId: e.target.value ? Number(e.target.value) : undefined })}>
-								<option value=''> Sin tipo </option>
+								<option value=''> {t('game.replays.noType')} </option>
 								{replayTypes.map((t) => (
 									<option key={t.id} value={t.id}>
 										{t.name}
@@ -183,16 +183,16 @@ export const GameReplaysTab: React.FC<Props> = ({ gameId }) => {
 						</div>
 						<div className='grt-form-row'>
 							<div className='grt-form-field'>
-								<label htmlFor='grt-started'>Inicio</label>
+								<label htmlFor='grt-started'>{t('game.replays.started')}</label>
 								<input id='grt-started' type='date' value={formData.started ?? ''} onChange={(e) => setFormData({ ...formData, started: e.target.value })} />
 							</div>
 							<div className='grt-form-field'>
-								<label htmlFor='grt-finished'>Fin</label>
+								<label htmlFor='grt-finished'>{t('game.replays.finished')}</label>
 								<input id='grt-finished' type='date' value={formData.finished ?? ''} onChange={(e) => setFormData({ ...formData, finished: e.target.value })} />
 							</div>
 						</div>
 						<div className='grt-form-field'>
-							<label htmlFor='grt-grade'>Nota (0-100)</label>
+							<label htmlFor='grt-grade'>{t('game.replays.grade')}</label>
 							<input
 								id='grt-grade'
 								type='number'
@@ -200,19 +200,25 @@ export const GameReplaysTab: React.FC<Props> = ({ gameId }) => {
 								max={100}
 								value={formData.grade ?? ''}
 								onChange={(e) => setFormData({ ...formData, grade: e.target.value ? Number(e.target.value) : undefined })}
-								placeholder='Opcional'
+								placeholder={t('common.optional')}
 							/>
 						</div>
 						<div className='grt-form-field'>
-							<label htmlFor='grt-notes'>Notas</label>
-							<textarea id='grt-notes' rows={3} value={formData.notes ?? ''} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder='Opcional' />
+							<label htmlFor='grt-notes'>{t('game.replays.notes')}</label>
+							<textarea
+								id='grt-notes'
+								rows={3}
+								value={formData.notes ?? ''}
+								onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+								placeholder={t('common.optional')}
+							/>
 						</div>
 						<div className='grt-form-actions'>
 							<button type='button' className='grt-cancel-btn' onClick={handleCloseForm}>
-								Cancelar
+								{t('common.cancel')}
 							</button>
 							<button type='submit' className='grt-submit-btn' disabled={saving}>
-								{saving ? 'Guardando...' : editingReplay ? 'Guardar cambios' : 'Crear'}
+								{saving ? t('common.saving') : editingReplay ? t('common.saveChanges') : t('common.create')}
 							</button>
 						</div>
 					</form>

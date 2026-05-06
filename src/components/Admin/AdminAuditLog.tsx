@@ -1,15 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { getGlobalHistory, getAdminHistory } from '@/services/GameHistoryService'
 import { useAppSelector } from '@/store/hooks'
 import { selectIsAdmin } from '@/store/features/auth/selector'
 import type { GameHistoryEntry, GameHistoryQueryParameters } from '@/models/api/GameHistoryEntry'
 import './AdminAuditLog.scss'
-
-const ACTION_LABELS: Record<string, string> = {
-	Created: 'Creado',
-	Updated: 'Actualizado',
-	Deleted: 'Eliminado',
-}
 
 const ACTION_CLASS: Record<string, string> = {
 	Created: 'action-created',
@@ -18,6 +13,7 @@ const ACTION_CLASS: Record<string, string> = {
 }
 
 export const AdminAuditLog: React.FC = () => {
+	const { t } = useTranslation()
 	const isAdmin = useAppSelector(selectIsAdmin)
 
 	const [entries, setEntries] = useState<GameHistoryEntry[]>([])
@@ -76,43 +72,43 @@ export const AdminAuditLog: React.FC = () => {
 	return (
 		<div className='admin-audit-log'>
 			<div className='admin-header'>
-				<h1>Auditoría{isAdmin ? ' (todos los usuarios)' : ''}</h1>
-				<span className='aal-count'>{totalCount} entradas</span>
+				<h1>{isAdmin ? t('admin.audit.titleAll') : t('admin.audit.title')}</h1>
+				<span className='aal-count'>{t('admin.audit.entriesCount', { count: totalCount })}</span>
 			</div>
 
 			<div className='aal-filters'>
 				<select value={filters.actionType ?? ''} onChange={(e) => handleFilterChange('actionType', e.target.value)}>
-					<option value=''>Todas las acciones</option>
-					<option value='Created'>Creados</option>
-					<option value='Updated'>Actualizados</option>
-					<option value='Deleted'>Eliminados</option>
+					<option value=''>{t('admin.audit.filterAllActions')}</option>
+					<option value='Created'>{t('admin.audit.filterCreated')}</option>
+					<option value='Updated'>{t('admin.audit.filterUpdated')}</option>
+					<option value='Deleted'>{t('admin.audit.filterDeleted')}</option>
 				</select>
-				<input type='text' placeholder='Filtrar por campo...' value={filters.field ?? ''} onChange={(e) => handleFilterChange('field', e.target.value)} />
-				<input type='date' value={filters.from ?? ''} onChange={(e) => handleFilterChange('from', e.target.value)} title='Desde' />
-				<input type='date' value={filters.to ?? ''} onChange={(e) => handleFilterChange('to', e.target.value)} title='Hasta' />
+				<input type='text' placeholder={t('admin.audit.filterFieldPlaceholder')} value={filters.field ?? ''} onChange={(e) => handleFilterChange('field', e.target.value)} />
+				<input type='date' value={filters.from ?? ''} onChange={(e) => handleFilterChange('from', e.target.value)} title={t('admin.audit.dateFrom')} />
+				<input type='date' value={filters.to ?? ''} onChange={(e) => handleFilterChange('to', e.target.value)} title={t('admin.audit.dateTo')} />
 			</div>
 
 			{loading ? (
-				<div className='loading'>Cargando...</div>
+				<div className='loading'>{t('common.loading')}</div>
 			) : (
 				<>
 					<div className='aal-table-wrapper'>
 						<table className='aal-table'>
 							<thead>
 								<tr>
-									<th>Fecha</th>
-									<th>Juego</th>
-									<th>Acción</th>
-									<th>Campo</th>
-									<th>Antes</th>
-									<th>Después</th>
+									<th>{t('admin.audit.tableDate')}</th>
+									<th>{t('admin.audit.tableGame')}</th>
+									<th>{t('admin.audit.tableAction')}</th>
+									<th>{t('admin.audit.tableField')}</th>
+									<th>{t('admin.audit.tableBefore')}</th>
+									<th>{t('admin.audit.tableAfter')}</th>
 								</tr>
 							</thead>
 							<tbody>
 								{entries.length === 0 ? (
 									<tr>
 										<td colSpan={6} className='aal-empty'>
-											Sin entradas
+											{t('admin.audit.empty')}
 										</td>
 									</tr>
 								) : (
@@ -121,7 +117,7 @@ export const AdminAuditLog: React.FC = () => {
 											<td className='aal-date'>{new Date(entry.changedAt).toLocaleString()}</td>
 											<td className='aal-game'>{entry.gameName}</td>
 											<td>
-												<span className={`aal-badge ${ACTION_CLASS[entry.actionType] ?? ''}`}>{ACTION_LABELS[entry.actionType] ?? entry.actionType}</span>
+												<span className={`aal-badge ${ACTION_CLASS[entry.actionType] ?? ''}`}>{t(`admin.audit.badge${entry.actionType}`)}</span>
 											</td>
 											<td className='aal-field'>{entry.field}</td>
 											<td className='aal-value aal-old'>{entry.oldValue ?? '—'}</td>
@@ -135,13 +131,13 @@ export const AdminAuditLog: React.FC = () => {
 
 					<div className='pagination-controls'>
 						<button className='pagination-btn' disabled={page <= 1} onClick={() => handlePageChange(page - 1)}>
-							Anterior
+							{t('common.previous')}
 						</button>
 						<span className='pagination-info'>
-							Página {page} de {totalPages} ({totalCount} entradas)
+							{t('common.page')} {page} {t('common.of')} {totalPages} ({t('admin.audit.entriesCount', { count: totalCount })})
 						</span>
 						<button className='pagination-btn' disabled={page >= totalPages} onClick={() => handlePageChange(page + 1)}>
-							Siguiente
+							{t('common.next')}
 						</button>
 					</div>
 				</>

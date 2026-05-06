@@ -1,0 +1,345 @@
+@use '@/assets/styles' as *;
+
+.admin-backup-schedule {
+	max-width: 800px;
+	margin: 0 auto;
+	padding: $space-lg;
+
+	&__header {
+		margin-bottom: $space-xl;
+
+		h1 {
+			font-size: $font-size-2xl;
+			font-weight: $font-weight-bold;
+			color: var(--text-primary);
+			margin: 0 0 $space-sm 0;
+		}
+	}
+
+	&__subtitle {
+		font-size: $font-size-base;
+		color: var(--text-secondary);
+		margin: 0;
+	}
+
+	&__loading {
+		text-align: center;
+		padding: $space-xl;
+		color: var(--text-secondary);
+	}
+
+	// ── Alert ─────────────────────────────────────────────────────────────────
+	.backup-alert {
+		position: relative;
+		padding: 14px 44px 14px 18px;
+		border-radius: 8px;
+		margin-bottom: $space-lg;
+		font-weight: 500;
+		font-size: $font-size-sm;
+
+		&--success {
+			background: #d4edda;
+			color: #155724;
+			border: 1px solid #c3e6cb;
+		}
+
+		&--error {
+			background: #f8d7da;
+			color: #721c24;
+			border: 1px solid #f5c6cb;
+		}
+
+		&__close {
+			position: absolute;
+			top: 6px;
+			right: 10px;
+			background: transparent;
+			border: none;
+			font-size: 1.5rem;
+			line-height: 1;
+			color: inherit;
+			cursor: pointer;
+			opacity: 0.6;
+
+			&:hover {
+				opacity: 1;
+			}
+		}
+	}
+
+	// ── Status card ───────────────────────────────────────────────────────────
+	&__status-card {
+		background: var(--bg-secondary);
+		border: 1px solid var(--border);
+		border-radius: $border-radius-lg;
+		padding: $space-lg;
+		margin-bottom: $space-xl;
+
+		h2 {
+			font-size: $font-size-lg;
+			font-weight: $font-weight-semibold;
+			color: var(--text-primary);
+			margin: 0 0 $space-md 0;
+		}
+	}
+
+	&__status-row {
+		display: flex;
+		align-items: center;
+		gap: $space-md;
+		flex-wrap: wrap;
+	}
+
+	&__status-date {
+		font-size: $font-size-sm;
+		color: var(--text-secondary);
+	}
+
+	&__status-message {
+		margin: $space-sm 0 0 0;
+		font-size: $font-size-sm;
+		color: var(--text-secondary);
+		font-family: monospace;
+	}
+
+	.status-badge {
+		display: inline-block;
+		padding: 3px 10px;
+		border-radius: 12px;
+		font-size: $font-size-xs;
+		font-weight: $font-weight-semibold;
+		text-transform: uppercase;
+		letter-spacing: 0.5px;
+
+		&--success {
+			background: #d4edda;
+			color: #155724;
+		}
+
+		&--error {
+			background: #f8d7da;
+			color: #721c24;
+		}
+
+		&--running {
+			background: #fff3cd;
+			color: #856404;
+		}
+
+		&--never {
+			background: var(--bg-tertiary, #eee);
+			color: var(--text-secondary);
+		}
+	}
+
+	// ── Form ──────────────────────────────────────────────────────────────────
+	&__section {
+		background: var(--bg-secondary);
+		border: 1px solid var(--border);
+		border-radius: $border-radius-lg;
+		padding: $space-lg;
+		margin-bottom: $space-xl;
+
+		h2 {
+			font-size: $font-size-lg;
+			font-weight: $font-weight-semibold;
+			color: var(--text-primary);
+			margin: 0 0 $space-lg 0;
+			padding-bottom: $space-sm;
+			border-bottom: 1px solid var(--border);
+		}
+	}
+
+	&__field {
+		margin-bottom: $space-lg;
+
+		&--toggle {
+			display: flex;
+			flex-direction: column;
+			gap: $space-xs;
+		}
+	}
+
+	&__label {
+		display: block;
+		font-size: $font-size-sm;
+		font-weight: $font-weight-medium;
+		color: var(--text-primary);
+		margin-bottom: $space-xs;
+	}
+
+	&__field-hint {
+		margin: $space-xs 0 0 0;
+		font-size: $font-size-xs;
+		color: var(--text-secondary);
+		line-height: $line-height-relaxed;
+	}
+
+	&__toggle-label {
+		display: flex;
+		align-items: center;
+		gap: $space-sm;
+		cursor: pointer;
+		font-size: $font-size-base;
+		font-weight: $font-weight-medium;
+		color: var(--text-primary);
+	}
+
+	&__toggle-input {
+		width: 16px;
+		height: 16px;
+		cursor: pointer;
+	}
+
+	&__toggle-text {
+		user-select: none;
+	}
+
+	&__time-row {
+		display: flex;
+		align-items: center;
+		gap: $space-sm;
+	}
+
+	&__time-sep {
+		font-size: $font-size-lg;
+		font-weight: $font-weight-bold;
+		color: var(--text-primary);
+	}
+
+	&__time-utc {
+		font-size: $font-size-sm;
+		color: var(--text-secondary);
+		margin-left: $space-xs;
+	}
+
+	&__select {
+		padding: 8px 12px;
+		border: 1px solid var(--border);
+		border-radius: $border-radius-md;
+		background: var(--bg-primary);
+		color: var(--text-primary);
+		font-size: $font-size-base;
+		cursor: pointer;
+		min-width: 70px;
+
+		&:focus {
+			outline: 2px solid var(--primary);
+			outline-offset: 2px;
+		}
+	}
+
+	&__radio-group {
+		display: flex;
+		flex-direction: column;
+		gap: $space-sm;
+	}
+
+	&__radio-label {
+		display: flex;
+		align-items: center;
+		gap: $space-sm;
+		cursor: pointer;
+		font-size: $font-size-base;
+		color: var(--text-primary);
+
+		input[type='radio'] {
+			width: 16px;
+			height: 16px;
+			cursor: pointer;
+		}
+	}
+
+	&__input {
+		width: 100%;
+		padding: 8px 12px;
+		border: 1px solid var(--border);
+		border-radius: $border-radius-md;
+		background: var(--bg-primary);
+		color: var(--text-primary);
+		font-size: $font-size-base;
+		box-sizing: border-box;
+
+		&:focus {
+			outline: 2px solid var(--primary);
+			outline-offset: 2px;
+		}
+
+		&--short {
+			width: 120px;
+		}
+	}
+
+	// ── Actions ───────────────────────────────────────────────────────────────
+	&__actions {
+		display: flex;
+		gap: $space-md;
+		margin-bottom: $space-xl;
+		flex-wrap: wrap;
+	}
+
+	// ── Info card ─────────────────────────────────────────────────────────────
+	&__info-card {
+		background: var(--bg-secondary);
+		border: 1px solid var(--border);
+		border-radius: $border-radius-lg;
+		padding: $space-lg;
+		border-left: 4px solid var(--primary);
+
+		h3 {
+			font-size: $font-size-base;
+			font-weight: $font-weight-semibold;
+			color: var(--text-primary);
+			margin: 0 0 $space-md 0;
+		}
+
+		ul {
+			margin: 0;
+			padding-left: $space-lg;
+			display: flex;
+			flex-direction: column;
+			gap: $space-sm;
+		}
+
+		li {
+			font-size: $font-size-sm;
+			color: var(--text-secondary);
+			line-height: $line-height-relaxed;
+		}
+	}
+
+	// ── Buttons (generic utility; app may provide .btn globally) ──────────────
+	.btn {
+		padding: 10px 22px;
+		border: none;
+		border-radius: $border-radius-md;
+		font-size: $font-size-base;
+		font-weight: $font-weight-semibold;
+		cursor: pointer;
+		transition: all 0.2s ease;
+
+		&:disabled {
+			opacity: 0.6;
+			cursor: not-allowed;
+		}
+
+		&-primary {
+			background: var(--primary, #667eea);
+			color: #fff;
+
+			&:hover:not(:disabled) {
+				filter: brightness(1.1);
+			}
+		}
+
+		&-secondary {
+			background: var(--bg-tertiary, #555);
+			color: var(--text-primary);
+			border: 1px solid var(--border);
+
+			&:hover:not(:disabled) {
+				filter: brightness(1.1);
+			}
+		}
+	}
+}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { updateUserPreferences, fetchUserPreferences } from '@/store/features/auth/authSlice'
 import './AdminPreferences.scss'
@@ -6,6 +7,7 @@ import './AdminPreferences.scss'
 const SCORE_PROVIDER_OPTIONS = ['Metacritic', 'OpenCritic', 'SteamDB'] as const
 
 export const AdminPreferences = () => {
+	const { t } = useTranslation()
 	const dispatch = useAppDispatch()
 	const user = useAppSelector((state) => state.auth.user)
 	const [useScoreColors, setUseScoreColors] = useState(user?.useScoreColors ?? false)
@@ -13,6 +15,7 @@ export const AdminPreferences = () => {
 	const [showPriceComparisonIcon, setShowPriceComparisonIcon] = useState(user?.showPriceComparisonIcon ?? false)
 	const [isSaving, setIsSaving] = useState(false)
 	const [saveMessage, setSaveMessage] = useState<string | null>(null)
+	const [saveSuccess, setSaveSuccess] = useState<boolean | null>(null)
 
 	useEffect(() => {
 		// Fetch latest user preferences when component mounts
@@ -39,10 +42,12 @@ export const AdminPreferences = () => {
 
 		try {
 			await dispatch(updateUserPreferences({ userId: user.id, useScoreColors: checked })).unwrap()
-			setSaveMessage('Score colors preference saved')
+			setSaveMessage(t('admin.preferences.savedScoreColors'))
+			setSaveSuccess(true)
 			setTimeout(() => setSaveMessage(null), 3000)
 		} catch (error) {
-			setSaveMessage('Failed to save score colors preference')
+			setSaveMessage(t('admin.preferences.errorScoreColors'))
+			setSaveSuccess(false)
 			setUseScoreColors(!checked) // Revert on error
 			setTimeout(() => setSaveMessage(null), 3000)
 		} finally {
@@ -59,10 +64,12 @@ export const AdminPreferences = () => {
 
 		try {
 			await dispatch(updateUserPreferences({ userId: user.id, scoreProvider: provider })).unwrap()
-			setSaveMessage('Score provider preference saved')
+			setSaveMessage(t('admin.preferences.savedScoreProvider'))
+			setSaveSuccess(true)
 			setTimeout(() => setSaveMessage(null), 3000)
 		} catch (error) {
-			setSaveMessage('Failed to save score provider preference')
+			setSaveMessage(t('admin.preferences.errorScoreProvider'))
+			setSaveSuccess(false)
 			setScoreProvider(user.scoreProvider ?? 'Metacritic') // Revert on error
 			setTimeout(() => setSaveMessage(null), 3000)
 		} finally {
@@ -79,10 +86,12 @@ export const AdminPreferences = () => {
 
 		try {
 			await dispatch(updateUserPreferences({ userId: user.id, showPriceComparisonIcon: checked })).unwrap()
-			setSaveMessage('Price comparison icon preference saved')
+			setSaveMessage(t('admin.preferences.savedPriceIcon'))
+			setSaveSuccess(true)
 			setTimeout(() => setSaveMessage(null), 3000)
 		} catch (error) {
-			setSaveMessage('Failed to save price comparison icon preference')
+			setSaveMessage(t('admin.preferences.errorPriceIcon'))
+			setSaveSuccess(false)
 			setShowPriceComparisonIcon(!checked)
 			setTimeout(() => setSaveMessage(null), 3000)
 		} finally {
@@ -93,7 +102,7 @@ export const AdminPreferences = () => {
 	if (!user) {
 		return (
 			<div className='admin-preferences'>
-				<div className='admin-preferences__loading'>Loading...</div>
+				<div className='admin-preferences__loading'>{t('common.loading')}</div>
 			</div>
 		)
 	}
@@ -101,24 +110,25 @@ export const AdminPreferences = () => {
 	return (
 		<div className='admin-preferences'>
 			<div className='admin-preferences__header'>
-				<h1>User Preferences</h1>
-				<p className='admin-preferences__subtitle'>Customize your experience</p>
+				<h1>{t('admin.preferences.title')}</h1>
+				<p className='admin-preferences__subtitle'>{t('admin.preferences.subtitle')}</p>
 			</div>
 
 			<div className='admin-preferences__content'>
 				<div className='admin-preferences__section'>
-					<h2 className='admin-preferences__section-title'>Visual Settings</h2>
+					<h2 className='admin-preferences__section-title'>{t('admin.preferences.visualSettings')}</h2>
 
 					<div className='admin-preferences__option'>
 						<div className='admin-preferences__option-info'>
 							<label htmlFor='score-colors' className='admin-preferences__option-label'>
-								Metacritic Score Colors
+								{t('admin.preferences.scoreColors')}
 							</label>
 							<p className='admin-preferences__option-description'>
-								Apply color-coded styling to critic scores based on Metacritic's rating system:
+								{t('admin.preferences.scoreColorsDesc')}
 								<br />
-								<span style={{ color: '#66cc33', fontWeight: 'bold' }}>● Green (75-100)</span>, <span style={{ color: '#ffcc33', fontWeight: 'bold' }}>● Yellow (50-74)</span>,{' '}
-								<span style={{ color: '#ff0000', fontWeight: 'bold' }}>● Red (0-49)</span>
+								<span style={{ color: '#66cc33', fontWeight: 'bold' }}>{t('admin.preferences.scoreColorsGreen')}</span>,{' '}
+								<span style={{ color: '#ffcc33', fontWeight: 'bold' }}>{t('admin.preferences.scoreColorsYellow')}</span>,{' '}
+								<span style={{ color: '#ff0000', fontWeight: 'bold' }}>{t('admin.preferences.scoreColorsRed')}</span>
 							</p>
 						</div>
 						<label className='admin-preferences__toggle'>
@@ -137,9 +147,9 @@ export const AdminPreferences = () => {
 					<div className='admin-preferences__option'>
 						<div className='admin-preferences__option-info'>
 							<label htmlFor='score-provider' className='admin-preferences__option-label'>
-								Score Provider Logo
+								{t('admin.preferences.scoreProvider')}
 							</label>
-							<p className='admin-preferences__option-description'>Select which logo to display next to critic scores in the game cards</p>
+							<p className='admin-preferences__option-description'>{t('admin.preferences.scoreProviderDesc')}</p>
 						</div>
 						<select id='score-provider' value={scoreProvider} onChange={(e) => handleScoreProviderChange(e.target.value)} disabled={isSaving} className='admin-preferences__select'>
 							{SCORE_PROVIDER_OPTIONS.map((option) => (
@@ -153,9 +163,9 @@ export const AdminPreferences = () => {
 					<div className='admin-preferences__option'>
 						<div className='admin-preferences__option-info'>
 							<label htmlFor='price-comparison-icon' className='admin-preferences__option-label'>
-								Price Comparison Icon
+								{t('admin.preferences.priceIcon')}
 							</label>
-							<p className='admin-preferences__option-description'>Show a small key or store icon next to the user note when the price comparison field is defined for a game</p>
+							<p className='admin-preferences__option-description'>{t('admin.preferences.priceIconDesc')}</p>
 						</div>
 						<label className='admin-preferences__toggle'>
 							<input
@@ -171,21 +181,19 @@ export const AdminPreferences = () => {
 					</div>
 
 					{saveMessage && (
-						<div className={`admin-preferences__message ${saveMessage.includes('success') ? 'admin-preferences__message--success' : 'admin-preferences__message--error'}`}>
-							{saveMessage}
-						</div>
+						<div className={`admin-preferences__message ${saveSuccess ? 'admin-preferences__message--success' : 'admin-preferences__message--error'}`}>{saveMessage}</div>
 					)}
 				</div>
 
 				<div className='admin-preferences__section'>
-					<h2 className='admin-preferences__section-title'>Account Information</h2>
+					<h2 className='admin-preferences__section-title'>{t('admin.preferences.accountInfo')}</h2>
 					<div className='admin-preferences__info-grid'>
 						<div className='admin-preferences__info-item'>
-							<span className='admin-preferences__info-label'>Username:</span>
+							<span className='admin-preferences__info-label'>{t('admin.users.usernameLabel')}:</span>
 							<span className='admin-preferences__info-value'>{user.username}</span>
 						</div>
 						<div className='admin-preferences__info-item'>
-							<span className='admin-preferences__info-label'>Role:</span>
+							<span className='admin-preferences__info-label'>{t('admin.users.roleLabel')}:</span>
 							<span className='admin-preferences__info-value'>{user.role}</span>
 						</div>
 					</div>

@@ -1,15 +1,17 @@
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import './NotFound.scss'
 
 export const NotFound = () => {
+	const { t } = useTranslation()
 	return (
 		<div className='not-found'>
 			<div className='not-found-content'>
-				<div className='not-found-code'>404</div>
-				<h1>Page Not Found</h1>
-				<p>The page you are looking for does not exist or has been moved.</p>
+				<div className='not-found-code'>{t('errors.notFoundCode')}</div>
+				<h1>{t('errors.notFoundTitle')}</h1>
+				<p>{t('errors.notFoundText')}</p>
 				<Link to='/' className='btn btn-primary'>
-					Go to Home
+					{t('errors.goHome')}
 				</Link>
 			</div>
 		</div>

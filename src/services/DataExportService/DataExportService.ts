@@ -68,9 +68,12 @@ export const importFullDatabase = async (
 		statuses: { imported: number; updated: number }
 		playWiths: { imported: number; updated: number }
 		playedStatuses: { imported: number; updated: number }
+		replayTypes?: { imported: number; updated: number }
 	}
 	views?: { imported: number; updated: number }
 	games: { imported: number; updated: number }
+	replays?: { imported: number; updated: number }
+	history?: { imported: number }
 	errors?: string[]
 }> => {
 	const endpoint = environment.apiRoutes.dataExport.fullImport

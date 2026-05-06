@@ -118,10 +118,9 @@ export const apiRoutes = {
 		delete: (id: number) => `/users/${id}`,
 		changePassword: (id: number) => `/users/${id}/password`,
 	},
-} as const
 
-/**
- * Type for API routes structure
- * Provides type safety when accessing routes
- */
-export type ApiRoutes = typeof apiRoutes
+	backupSchedule: {
+		base: '/backupschedule',
+		runNow: '/backupschedule/run-now',
+	},
+}

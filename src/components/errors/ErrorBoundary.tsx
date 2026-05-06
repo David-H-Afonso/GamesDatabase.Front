@@ -1,5 +1,6 @@
 import { Component } from 'react'
 import type { ErrorInfo, ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import './ErrorBoundary.scss'
 
 interface Props {
@@ -10,6 +11,37 @@ interface State {
 	hasError: boolean
 	error: Error | null
 	errorInfo: ErrorInfo | null
+}
+
+const ErrorFallback = ({ error, errorInfo }: { error: Error | null; errorInfo: ErrorInfo | null }) => {
+	const { t } = useTranslation()
+	return (
+		<div className='error-boundary'>
+			<div className='error-boundary-content'>
+				<div className='error-icon'>⚠</div>
+				<h1>{t('errors.somethingWrong')}</h1>
+				<p className='error-message'>{error?.message || t('errors.unexpectedError')}</p>
+				{import.meta.env.DEV && errorInfo && (
+					<details className='error-details'>
+						<summary>{t('errors.errorDetails')}</summary>
+						<pre>{errorInfo.componentStack}</pre>
+					</details>
+				)}
+				<div className='error-actions'>
+					<button
+						onClick={() => {
+							window.location.href = '/'
+						}}
+						className='btn btn-primary'>
+						{t('errors.returnHome')}
+					</button>
+					<button onClick={() => window.location.reload()} className='btn btn-secondary'>
+						{t('errors.reloadPage')}
+					</button>
+				</div>
+			</div>
+		</div>
+	)
 }
 
 export class ErrorBoundary extends Component<Props, State> {
@@ -45,31 +77,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
 	render() {
 		if (this.state.hasError) {
-			return (
-				<div className='error-boundary'>
-					<div className='error-boundary-content'>
-						<div className='error-icon'>⚠</div>
-						<h1>Something went wrong</h1>
-						<p className='error-message'>{this.state.error?.message || 'An unexpected error occurred'}</p>
-
-						{import.meta.env.DEV && this.state.errorInfo && (
-							<details className='error-details'>
-								<summary>Error details (Development only)</summary>
-								<pre>{this.state.errorInfo.componentStack}</pre>
-							</details>
-						)}
-
-						<div className='error-actions'>
-							<button onClick={this.handleReload} className='btn btn-primary'>
-								Return to Home
-							</button>
-							<button onClick={() => window.location.reload()} className='btn btn-secondary'>
-								Reload Page
-							</button>
-						</div>
-					</div>
-				</div>
-			)
+			return <ErrorFallback error={this.state.error} errorInfo={this.state.errorInfo} />
 		}
 
 		return this.props.children

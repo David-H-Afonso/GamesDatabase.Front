@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { GameViewCreateDto } from '@/models/api/GameView'
 import { FilterField, FilterOperator, SortField, SortDirection, CombineWith } from '@/models/api/GameView'
 
@@ -190,6 +191,7 @@ interface ViewTemplateSelectorProps {
 }
 
 const ViewTemplateSelector: React.FC<ViewTemplateSelectorProps> = ({ onCreateFromTemplate, onClose }) => {
+	const { t } = useTranslation()
 	const [selectedTemplate, setSelectedTemplate] = useState<ViewTemplate | null>(null)
 	const [paramValues, setParamValues] = useState<Record<string, string>>({})
 	const [creating, setCreating] = useState(false)
@@ -218,13 +220,13 @@ const ViewTemplateSelector: React.FC<ViewTemplateSelectorProps> = ({ onCreateFro
 		// Validate params
 		for (const p of selectedTemplate.params) {
 			if (!paramValues[p.key]?.trim()) {
-				setError(`El campo "${p.label}" es obligatorio`)
+				setError(t('admin.viewTemplates.fieldRequired', { field: p.label }))
 				return
 			}
 			if (p.type === 'year') {
 				const yearNum = Number(paramValues[p.key])
 				if (isNaN(yearNum) || yearNum < 1970 || yearNum > 2100) {
-					setError(`"${p.label}" debe ser un año válido (1970-2100)`)
+					setError(t('admin.viewTemplates.invalidYear', { field: p.label }))
 					return
 				}
 			}
@@ -236,7 +238,7 @@ const ViewTemplateSelector: React.FC<ViewTemplateSelectorProps> = ({ onCreateFro
 			const dto = selectedTemplate.generate(paramValues)
 			await onCreateFromTemplate(dto)
 		} catch (err: any) {
-			setError(err?.message ?? 'Error al crear la vista')
+			setError(err?.message ?? t('admin.viewTemplates.createError'))
 		} finally {
 			setCreating(false)
 		}
@@ -245,10 +247,15 @@ const ViewTemplateSelector: React.FC<ViewTemplateSelectorProps> = ({ onCreateFro
 	// Preview the generated name
 	const previewName = selectedTemplate ? selectedTemplate.generate(paramValues).name : ''
 
+	const getTemplateDisplay = (id: string) => ({
+		name: t(`admin.viewTemplates.templates.${id}.name`, { defaultValue: '' }) || id,
+		description: t(`admin.viewTemplates.templates.${id}.desc`, { defaultValue: '' }),
+	})
+
 	return (
 		<div className='view-templates'>
 			<div className='view-templates__header'>
-				<h3>{selectedTemplate ? 'Configurar plantilla' : 'Crear desde plantilla'}</h3>
+				<h3>{selectedTemplate ? t('admin.viewTemplates.configureTemplate') : t('admin.viewTemplates.createFromTemplate')}</h3>
 				<button className='close-btn' onClick={onClose}>
 					×
 				</button>
@@ -256,21 +263,31 @@ const ViewTemplateSelector: React.FC<ViewTemplateSelectorProps> = ({ onCreateFro
 
 			{!selectedTemplate ? (
 				<div className='view-templates__grid'>
-					{VIEW_TEMPLATES.map((t) => (
-						<button key={t.id} className='template-card' onClick={() => handleSelectTemplate(t)}>
-							<span className='template-card__icon'>{t.icon}</span>
-							<span className='template-card__name'>{t.name}</span>
-							<span className='template-card__desc'>{t.description}</span>
-						</button>
-					))}
+					{VIEW_TEMPLATES.map((tmpl) => {
+						const display = getTemplateDisplay(tmpl.id)
+						return (
+							<button key={tmpl.id} className='template-card' onClick={() => handleSelectTemplate(tmpl)}>
+								<span className='template-card__icon'>{tmpl.icon}</span>
+								<span className='template-card__name'>{display.name || tmpl.name}</span>
+								<span className='template-card__desc'>{display.description || tmpl.description}</span>
+							</button>
+						)
+					})}
 				</div>
 			) : (
 				<div className='view-templates__config'>
 					<div className='template-selected'>
 						<span className='template-selected__icon'>{selectedTemplate.icon}</span>
 						<div>
-							<strong>{selectedTemplate.name}</strong>
-							<p>{selectedTemplate.description}</p>
+							{(() => {
+								const d = getTemplateDisplay(selectedTemplate.id)
+								return (
+									<>
+										<strong>{d.name || selectedTemplate.name}</strong>
+										<p>{d.description || selectedTemplate.description}</p>
+									</>
+								)
+							})()}
 						</div>
 					</div>
 
@@ -278,7 +295,7 @@ const ViewTemplateSelector: React.FC<ViewTemplateSelectorProps> = ({ onCreateFro
 						<div className='template-params'>
 							{selectedTemplate.params.map((p) => (
 								<div key={p.key} className='template-param'>
-									<label>{p.label}</label>
+									<label>{t(`admin.viewTemplates.param.${p.key}`, { defaultValue: p.label })}</label>
 									{p.type === 'year' && (
 										<input
 											type='number'
@@ -295,18 +312,16 @@ const ViewTemplateSelector: React.FC<ViewTemplateSelectorProps> = ({ onCreateFro
 					)}
 
 					<div className='template-preview'>
-						Se creará: <strong>{previewName}</strong>
-					</div>
-
-					{error && <p className='template-error'>{error}</p>}
-
-					<div className='template-actions'>
-						<button className='btn btn-secondary' onClick={handleBack} disabled={creating}>
-							← Volver
-						</button>
-						<button className='btn btn-primary' onClick={handleCreate} disabled={creating}>
-							{creating ? 'Creando...' : 'Crear Vista'}
-						</button>
+						{t('admin.viewTemplates.willCreate')}: <strong>{previewName}</strong>
+						{error && <p className='template-error'>{error}</p>}
+						<div className='template-actions'>
+							<button className='btn btn-secondary' onClick={handleBack} disabled={creating}>
+								← {t('common.back')}
+							</button>
+							<button className='btn btn-primary' onClick={handleCreate} disabled={creating}>
+								{creating ? t('admin.viewTemplates.creating') : t('admin.viewTemplates.createView')}
+							</button>
+						</div>
 					</div>
 				</div>
 			)}

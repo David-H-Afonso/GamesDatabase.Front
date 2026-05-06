@@ -12,6 +12,7 @@ import AdminUsers from '../AdminUsers'
 import { AdminPreferences } from '../AdminPreferences'
 import AdminReplayTypes from '../AdminReplayTypes'
 import { AdminAuditLog } from '../AdminAuditLog'
+import AdminBackupSchedule from '../AdminBackupSchedule'
 
 const Admin = () => {
 	const isAdmin = useAppSelector(selectIsAdmin)
@@ -29,6 +30,7 @@ const Admin = () => {
 				<Route path='game-views' element={<AdminGameViews />} />
 				<Route path='audit-log' element={<AdminAuditLog />} />
 				{isAdmin && <Route path='users' element={<AdminUsers />} />}
+				{isAdmin && <Route path='backup-schedule' element={<AdminBackupSchedule />} />}
 				<Route path='preferences' element={<AdminPreferences />} />
 			</Route>
 		</Routes>
