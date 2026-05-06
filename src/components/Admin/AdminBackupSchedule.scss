@@ -213,6 +213,14 @@
 		margin-left: $space-xs;
 	}
 
+	&__time-local {
+		font-size: $font-size-sm;
+		color: var(--text-secondary);
+		cursor: help;
+		margin-left: $space-xs;
+		white-space: nowrap;
+	}
+
 	&__select {
 		padding: 8px 12px;
 		border: 1px solid var(--border);

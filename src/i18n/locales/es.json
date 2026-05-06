@@ -619,6 +619,8 @@
 			"enableHint": "Cuando esté activado, las copias de seguridad se ejecutarán automáticamente a la hora configurada",
 			"timeLabel": "Hora de la copia (UTC)",
 			"timeHint": "La copia de seguridad se ejecutará a esta hora todos los días (zona horaria UTC)",
+			"timeLocalShort": "local",
+			"timeLocalTooltip": "Equivale a {{time}} en tu zona horaria local",
 			"typeLabel": "Tipo de copia",
 			"typeFull": "Copia completa — exportar todos los datos",
 			"typePartial": "Copia parcial — solo registros modificados",

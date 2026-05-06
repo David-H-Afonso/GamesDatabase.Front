@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getBackupSchedule, updateBackupSchedule, runBackupNow } from '@/services/BackupScheduleService'
 import type { BackupScheduleDto, UpdateBackupScheduleRequest } from '@/services/BackupScheduleService'
@@ -94,6 +94,12 @@ const AdminBackupSchedule: React.FC = () => {
 
 	const pad = (n: number) => String(n).padStart(2, '0')
 
+	const localTimeEquivalent = useMemo(() => {
+		const d = new Date()
+		d.setUTCHours(backupHour, backupMinute, 0, 0)
+		return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+	}, [backupHour, backupMinute])
+
 	const statusClass = (status: string) => {
 		if (status === 'success') return 'status-badge status-badge--success'
 		if (status === 'failed') return 'status-badge status-badge--error'
@@ -169,7 +175,10 @@ const AdminBackupSchedule: React.FC = () => {
 									</option>
 								))}
 							</select>
-							<span className='admin-backup-schedule__time-utc'>UTC</span>
+							<span className='admin-backup-schedule__time-utc'>UTC</span>{' '}
+							<span className='admin-backup-schedule__time-local' title={t('admin.backupSchedule.timeLocalTooltip', { time: localTimeEquivalent })}>
+								≈ {localTimeEquivalent} {t('admin.backupSchedule.timeLocalShort')}
+							</span>{' '}
 						</div>
 						<p className='admin-backup-schedule__field-hint'>{t('admin.backupSchedule.timeHint')}</p>
 					</div>

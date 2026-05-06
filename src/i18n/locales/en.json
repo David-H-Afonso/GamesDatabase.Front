@@ -619,6 +619,8 @@
 			"enableHint": "When enabled, backups will run automatically at the configured time",
 			"timeLabel": "Backup time (UTC)",
 			"timeHint": "The backup will run at this time every day (UTC timezone)",
+			"timeLocalShort": "local",
+			"timeLocalTooltip": "Equivalent to {{time}} in your local timezone",
 			"typeLabel": "Backup type",
 			"typeFull": "Full backup — export all data",
 			"typePartial": "Partial backup — modified records only",

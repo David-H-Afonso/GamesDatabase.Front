@@ -229,7 +229,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 						searchGoogleImage(game.name, 'cover')
 					}}>
 					{game.cover && (
-						<div style={{ width: '100%', height: '100%' }}>
+						<div style={{ width: '100%' }}>
 							<OptimizedImage
 								src={game.cover}
 								alt={t('game.card.coverAlt', { name: game.name })}
