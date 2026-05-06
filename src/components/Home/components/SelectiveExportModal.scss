@@ -173,6 +173,66 @@
 		gap: 0.6rem;
 	}
 
+	// ── Filename Controls (shared with .filename-controls) ────────────────────
+	.filename-controls {
+		display: flex;
+		flex-direction: column;
+		gap: 0.65rem;
+		padding: 0.85rem 1rem;
+		background: var(--color-surface-2, rgba(255, 255, 255, 0.03));
+		border-radius: 6px;
+		border: 1px solid var(--color-border, #555);
+	}
+
+	.filename-row {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+	}
+
+	.filename-label {
+		font-size: 0.82rem;
+		color: var(--color-text-secondary, #bbb);
+		min-width: 70px;
+		flex-shrink: 0;
+	}
+
+	.filename-input {
+		flex: 1;
+		min-width: 140px;
+		padding: 0.3rem 0.55rem;
+		border-radius: 5px;
+		border: 1px solid var(--color-border, #555);
+		background: var(--color-surface, #1e2127);
+		color: var(--color-text, #eee);
+		font-size: 0.85rem;
+		font-family: inherit;
+
+		&:focus {
+			outline: none;
+			border-color: var(--color-accent, #61afef);
+		}
+	}
+
+	.filename-preview {
+		font-size: 0.78rem;
+		color: var(--color-text-secondary, #bbb);
+		margin: 0;
+
+		span {
+			font-weight: 600;
+		}
+
+		code {
+			color: var(--color-accent, #61afef);
+			background: rgba(97, 175, 239, 0.1);
+			padding: 0.1rem 0.4rem;
+			border-radius: 4px;
+			font-size: 0.78rem;
+		}
+	}
+
 	&__btn {
 		padding: 0.45rem 1.1rem;
 		border-radius: 6px;

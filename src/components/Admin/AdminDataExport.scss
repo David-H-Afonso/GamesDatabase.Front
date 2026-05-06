@@ -198,6 +198,85 @@
 		line-height: 1.4;
 	}
 
+	.filename-controls {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		margin-bottom: 1.25rem;
+		padding: 1rem;
+		background: var(--bg-secondary);
+		border-radius: 8px;
+		border: 1px solid var(--border-light);
+	}
+
+	.filename-row {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+	}
+
+	.filename-label {
+		font-size: 0.85rem;
+		color: var(--text-secondary);
+		min-width: 90px;
+		flex-shrink: 0;
+	}
+
+	.filename-input {
+		flex: 1;
+		min-width: 160px;
+		padding: 0.35rem 0.6rem;
+		border-radius: 6px;
+		border: 1px solid var(--border-light);
+		background: var(--bg-primary);
+		color: var(--text-primary);
+		font-size: 0.875rem;
+		font-family: inherit;
+
+		&:focus {
+			outline: none;
+			border-color: var(--accent);
+		}
+	}
+
+	.filename-type {
+		display: flex;
+		gap: 1.25rem;
+	}
+
+	.filename-radio {
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+		color: var(--text-secondary);
+		font-size: 0.875rem;
+		cursor: pointer;
+
+		input[type='radio'] {
+			accent-color: var(--accent);
+			cursor: pointer;
+		}
+	}
+
+	.filename-preview {
+		font-size: 0.8rem;
+		color: var(--text-secondary);
+		margin: 0;
+
+		span {
+			font-weight: 600;
+		}
+
+		code {
+			color: var(--accent);
+			background: rgba(102, 126, 234, 0.1);
+			padding: 0.1rem 0.4rem;
+			border-radius: 4px;
+			font-size: 0.8rem;
+		}
+	}
+
 	.instructions-section {
 		margin-top: 20px;
 
