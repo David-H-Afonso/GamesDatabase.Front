@@ -56,7 +56,9 @@ export {
 	selectiveExportGames,
 	selectiveImportGames,
 	parseCSVGameNames,
+	buildExportFileName,
 } from './DataExportService'
+export type { ExportType, ExportFileNameOptions } from './DataExportService'
 
 export { getGameViews, getGameViewById, createGameView, updateGameView, updateGameViewConfiguration, deleteGameView, getPublicGameViews, reorderGameViews } from './GameViewService'
 
