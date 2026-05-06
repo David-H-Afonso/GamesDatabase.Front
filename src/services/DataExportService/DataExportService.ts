@@ -250,6 +250,27 @@ export const downloadBlob = (blob: Blob, filename: string): void => {
 	document.body.removeChild(a)
 	window.URL.revokeObjectURL(objectUrl)
 }
+
+export type ExportType = 'full' | 'partial'
+
+export interface ExportFileNameOptions {
+	prefix?: string
+	suffix?: string
+	exportType?: ExportType
+	extension?: string
+}
+
+/**
+ * Builds a customizable export filename.
+ * Format: {prefix}-{YYYYMMDD}-{exportType}[-{suffix}].{ext}
+ */
+export const buildExportFileName = (options: ExportFileNameOptions = {}): string => {
+	const { prefix = '', suffix = '', exportType = 'full', extension = 'csv' } = options
+	const date = new Date().toISOString().slice(0, 10).replace(/-/g, '')
+	const parts = [prefix.trim(), date, exportType]
+	if (suffix.trim()) parts.push(suffix.trim())
+	return `${parts.filter(Boolean).join('-')}.${extension}`
+}
 /**
  * Exports a selective set of games to CSV using per-property cleaning rules.
  * @param request - IDs of games to export + global/per-game property configs

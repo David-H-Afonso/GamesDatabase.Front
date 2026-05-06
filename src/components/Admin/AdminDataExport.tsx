@@ -10,8 +10,12 @@ import {
 	analyzeDatabaseDuplicates,
 	updateImageUrls,
 	clearImageCache,
+	buildExportFileName,
+	type ExportType,
 } from '@/services/DataExportService'
 import { useGames } from '@/hooks/useGames'
+import { useAppSelector } from '@/store/hooks'
+import { selectCurrentUser } from '@/store/features/auth/selector'
 import './AdminDataExport.scss'
 
 interface FolderAnalysisResult {
@@ -47,6 +51,7 @@ interface DatabaseDuplicateGroup {
 
 export const AdminDataExport: React.FC = () => {
 	const { t } = useTranslation()
+	const currentUser = useAppSelector(selectCurrentUser)
 	const [loading, setLoading] = useState(false)
 	const [message, setMessage] = useState<string | null>(null)
 	const [messageType, setMessageType] = useState<'success' | 'error'>('success')
@@ -55,6 +60,11 @@ export const AdminDataExport: React.FC = () => {
 	const [dbDuplicatesResult, setDbDuplicatesResult] = useState<DatabaseDuplicatesResult | null>(null)
 	const [analyzingDbDuplicates, setAnalyzingDbDuplicates] = useState(false)
 	const [clearingCache, setClearingCache] = useState(false)
+
+	const defaultPrefix = currentUser ? `${currentUser.id}-${currentUser.username}` : ''
+	const [filePrefix, setFilePrefix] = useState(defaultPrefix)
+	const [fileSuffix, setFileSuffix] = useState('')
+	const [exportType, setExportType] = useState<ExportType>('full')
 
 	// Hook para manejar los juegos
 	const { refreshGames, filters } = useGames()
@@ -78,7 +88,7 @@ export const AdminDataExport: React.FC = () => {
 		try {
 			setLoading(true)
 			const blob = await exportFullDatabase()
-			const filename = `database_full_export_${new Date().toISOString().split('T')[0]}.csv`
+			const filename = buildExportFileName({ prefix: filePrefix, suffix: fileSuffix, exportType })
 			downloadBlob(blob, filename)
 			showMessage('Database exported successfully!', 'success')
 		} catch (error) {
@@ -285,6 +295,32 @@ Statistics:
 						<div className='action-item'>
 							<h3>{t('admin.dataExport.exportDbTitle')}</h3>
 							<p>{t('admin.dataExport.exportDbDesc')}</p>
+							<div className='filename-controls'>
+								<div className='filename-row'>
+									<label className='filename-label'>{t('admin.dataExport.prefix')}</label>
+									<input type='text' className='filename-input' value={filePrefix} onChange={(e) => setFilePrefix(e.target.value)} />
+								</div>
+								<div className='filename-row'>
+									<label className='filename-label'>{t('admin.dataExport.suffix')}</label>
+									<input type='text' className='filename-input' value={fileSuffix} onChange={(e) => setFileSuffix(e.target.value)} />
+								</div>
+								<div className='filename-row'>
+									<label className='filename-label'>{t('admin.dataExport.exportType')}</label>
+									<div className='filename-type'>
+										<label className='filename-radio'>
+											<input type='radio' name='exportType' value='full' checked={exportType === 'full'} onChange={() => setExportType('full')} />
+											{t('admin.dataExport.exportTypeFull')}
+										</label>
+										<label className='filename-radio'>
+											<input type='radio' name='exportType' value='partial' checked={exportType === 'partial'} onChange={() => setExportType('partial')} />
+											{t('admin.dataExport.exportTypePartial')}
+										</label>
+									</div>
+								</div>
+								<p className='filename-preview'>
+									<span>{t('admin.dataExport.fileNamePreview')}:</span> <code>{buildExportFileName({ prefix: filePrefix, suffix: fileSuffix, exportType })}</code>
+								</p>
+							</div>
 							<button className='btn btn-primary btn-large' onClick={handleExportFullDatabase} disabled={loading}>
 								{loading ? `⏳ ${t('admin.dataExport.exporting')}` : `📥 ${t('admin.dataExport.exportBtn')}`}
 							</button>

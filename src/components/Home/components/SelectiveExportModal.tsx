@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { Modal } from '@/components/elements'
-import { selectiveExportGames, downloadBlob } from '@/services'
+import { selectiveExportGames, downloadBlob, buildExportFileName } from '@/services'
+import { useAppSelector } from '@/store/hooks'
+import { selectCurrentUser } from '@/store/features/auth/selector'
 import type { GameExportConfig, SelectiveExportRequest } from '@/models/api/ImportExport'
 import GameSelectorPanel from './shared/GameSelectorPanel'
 import PropertyConfigPanel from './shared/PropertyConfigPanel'
@@ -18,6 +20,8 @@ const ITEMS_PER_PAGE = 50
 const DEFAULT_GLOBAL_CONFIG: GameExportConfig = { mode: 'simple' }
 
 const SelectiveExportModal: React.FC<Props> = ({ isOpen, onClose, preSelectedGames = [] }) => {
+	const currentUser = useAppSelector(selectCurrentUser)
+	const defaultPrefix = currentUser ? `${currentUser.id}-${currentUser.username}` : ''
 	const [selectedGames, setSelectedGames] = useState<Array<{ id: number; name: string }>>([])
 	const [globalConfig, setGlobalConfig] = useState<GameExportConfig>(DEFAULT_GLOBAL_CONFIG)
 	const [perGameConfig, setPerGameConfig] = useState<Record<number, GameExportConfig>>({})
@@ -25,6 +29,8 @@ const SelectiveExportModal: React.FC<Props> = ({ isOpen, onClose, preSelectedGam
 	const [loading, setLoading] = useState(false)
 	const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null)
 	const [perGamePage, setPerGamePage] = useState(0)
+	const [filePrefix, setFilePrefix] = useState(defaultPrefix)
+	const [fileSuffix, setFileSuffix] = useState('')
 
 	useEffect(() => {
 		if (isOpen) {
@@ -62,7 +68,7 @@ const SelectiveExportModal: React.FC<Props> = ({ isOpen, onClose, preSelectedGam
 			}
 
 			const blob = await selectiveExportGames(request)
-			const filename = `games_export_${new Date().toISOString().split('T')[0]}.csv`
+			const filename = buildExportFileName({ prefix: filePrefix, suffix: fileSuffix, exportType: 'partial' })
 			downloadBlob(blob, filename)
 			setMessage({ text: `Exported ${selectedGames.length} game(s) successfully.`, type: 'success' })
 		} catch (err) {
@@ -124,10 +130,28 @@ const SelectiveExportModal: React.FC<Props> = ({ isOpen, onClose, preSelectedGam
 					<PropertyConfigPanel panelMode='export' config={globalConfig} onChange={(cfg) => setGlobalConfig(cfg as GameExportConfig)} />
 				</section>
 
-				{/* ── Section 3: Per-game Overrides ────────────────────────────────── */}
+				{/* ── Section 3: File Name ─────────────────────────────────────────── */}
+				<section className='sem__section'>
+					<h3 className='sem__section-title'>3. File Name</h3>
+					<div className='filename-controls'>
+						<div className='filename-row'>
+							<label className='filename-label'>Prefix</label>
+							<input type='text' className='filename-input' value={filePrefix} onChange={(e) => setFilePrefix(e.target.value)} />
+						</div>
+						<div className='filename-row'>
+							<label className='filename-label'>Suffix</label>
+							<input type='text' className='filename-input' value={fileSuffix} onChange={(e) => setFileSuffix(e.target.value)} />
+						</div>
+						<p className='filename-preview'>
+							<span>Preview:</span> <code>{buildExportFileName({ prefix: filePrefix, suffix: fileSuffix, exportType: 'partial' })}</code>
+						</p>
+					</div>
+				</section>
+
+				{/* ── Section 4: Per-game Overrides ────────────────────────────────── */}
 				{selectedGames.length > 0 && (
 					<section className='sem__section'>
-						<h3 className='sem__section-title'>3. Per-Game Overrides (optional)</h3>
+						<h3 className='sem__section-title'>4. Per-Game Overrides (optional)</h3>
 						<p className='sem__section-desc'>Expand a game to configure export rules that override the global settings for that game only.</p>
 
 						<div className='sem__per-game-list'>
