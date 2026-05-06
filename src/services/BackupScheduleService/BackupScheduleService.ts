@@ -8,6 +8,8 @@ export interface BackupScheduleDto {
 	backupType: 'full' | 'partial'
 	destinationPath: string
 	retentionCount: number
+	fileNamePrefix: string
+	fileNameSuffix: string
 	lastRunAt: string | null
 	lastRunStatus: 'never' | 'running' | 'success' | 'failed'
 	lastRunMessage: string | null
@@ -20,6 +22,8 @@ export interface UpdateBackupScheduleRequest {
 	backupType: 'full' | 'partial'
 	destinationPath: string
 	retentionCount: number
+	fileNamePrefix: string
+	fileNameSuffix: string
 }
 
 export const getBackupSchedule = async (): Promise<BackupScheduleDto> => {

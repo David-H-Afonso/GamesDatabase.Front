@@ -2,6 +2,9 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getBackupSchedule, updateBackupSchedule, runBackupNow } from '@/services/BackupScheduleService'
 import type { BackupScheduleDto, UpdateBackupScheduleRequest } from '@/services/BackupScheduleService'
+import { buildExportFileName } from '@/services/DataExportService'
+import { useAppSelector } from '@/store/hooks'
+import { selectCurrentUser } from '@/store/features/auth/selector'
 import './AdminBackupSchedule.scss'
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i)
@@ -9,6 +12,7 @@ const MINUTES = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55]
 
 const AdminBackupSchedule: React.FC = () => {
 	const { t } = useTranslation()
+	const currentUser = useAppSelector(selectCurrentUser)
 
 	const [schedule, setSchedule] = useState<BackupScheduleDto | null>(null)
 	const [loading, setLoading] = useState(true)
@@ -23,6 +27,9 @@ const AdminBackupSchedule: React.FC = () => {
 	const [backupType, setBackupType] = useState<'full' | 'partial'>('full')
 	const [destinationPath, setDestinationPath] = useState('/backups')
 	const [retentionCount, setRetentionCount] = useState(7)
+	const defaultPrefix = currentUser ? `${currentUser.id}-${currentUser.username}` : ''
+	const [fileNamePrefix, setFileNamePrefix] = useState(defaultPrefix)
+	const [fileNameSuffix, setFileNameSuffix] = useState('')
 
 	const showMessage = (text: string, type: 'success' | 'error') => {
 		setMessage({ text, type })
@@ -40,6 +47,8 @@ const AdminBackupSchedule: React.FC = () => {
 				setBackupType(data.backupType)
 				setDestinationPath(data.destinationPath)
 				setRetentionCount(data.retentionCount)
+				setFileNamePrefix(data.fileNamePrefix || defaultPrefix)
+				setFileNameSuffix(data.fileNameSuffix || '')
 			} catch (err) {
 				showMessage(t('admin.backupSchedule.errorLoad'), 'error')
 			} finally {
@@ -230,6 +239,43 @@ const AdminBackupSchedule: React.FC = () => {
 							className='admin-backup-schedule__input admin-backup-schedule__input--short'
 						/>
 						<p className='admin-backup-schedule__field-hint'>{t('admin.backupSchedule.retentionHint')}</p>
+					</div>
+
+					{/* File name prefix */}
+					<div className='admin-backup-schedule__field'>
+						<label className='admin-backup-schedule__label' htmlFor='filename-prefix'>
+							{t('admin.backupSchedule.fileNamePrefix')}
+						</label>
+						<input
+							id='filename-prefix'
+							type='text'
+							value={fileNamePrefix}
+							onChange={(e) => setFileNamePrefix(e.target.value)}
+							className='admin-backup-schedule__input'
+							placeholder={defaultPrefix}
+						/>
+						<p className='admin-backup-schedule__field-hint'>{t('admin.backupSchedule.fileNamePrefixHint')}</p>
+					</div>
+
+					{/* File name suffix */}
+					<div className='admin-backup-schedule__field'>
+						<label className='admin-backup-schedule__label' htmlFor='filename-suffix'>
+							{t('admin.backupSchedule.fileNameSuffix')}
+						</label>
+						<input
+							id='filename-suffix'
+							type='text'
+							value={fileNameSuffix}
+							onChange={(e) => setFileNameSuffix(e.target.value)}
+							className='admin-backup-schedule__input'
+							placeholder=''
+						/>
+					</div>
+
+					{/* Filename preview */}
+					<div className='admin-backup-schedule__field'>
+						<label className='admin-backup-schedule__label'>{t('admin.backupSchedule.fileNamePreview')}</label>
+						<code className='admin-backup-schedule__filename-preview'>{buildExportFileName({ prefix: fileNamePrefix, suffix: fileNameSuffix, exportType: backupType })}</code>
 					</div>
 				</div>
 
