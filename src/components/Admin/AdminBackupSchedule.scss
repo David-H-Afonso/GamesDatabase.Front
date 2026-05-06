@@ -350,4 +350,55 @@
 			}
 		}
 	}
+
+	// ── Users list (admin per-user view) ─────────────────────────────────────
+	&__users-list {
+		display: flex;
+		flex-direction: column;
+		gap: $space-md;
+	}
+
+	&__user-row {
+		border: 1px solid var(--border);
+		border-radius: $border-radius-lg;
+		overflow: hidden;
+	}
+
+	&__user-row-header {
+		width: 100%;
+		display: flex;
+		align-items: center;
+		gap: $space-md;
+		padding: $space-md $space-lg;
+		background: var(--bg-secondary);
+		border: none;
+		cursor: pointer;
+		text-align: left;
+
+		&:hover {
+			background: var(--bg-tertiary);
+		}
+	}
+
+	&__user-name {
+		font-weight: $font-weight-semibold;
+		color: var(--text-primary);
+		flex: 1;
+	}
+
+	&__user-enabled {
+		font-size: $font-size-sm;
+		color: var(--text-secondary);
+	}
+
+	&__user-chevron {
+		font-size: $font-size-xs;
+		color: var(--text-secondary);
+	}
+
+	&__user-body {
+		padding: $space-lg;
+		border-top: 1px solid var(--border);
+		background: var(--bg-primary);
+	}
 }

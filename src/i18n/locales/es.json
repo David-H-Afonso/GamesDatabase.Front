@@ -109,6 +109,7 @@
 			"gameViews": "Vistas de Juego",
 			"audit": "Auditoría",
 			"backupSchedule": "Copia de Seguridad",
+			"backupScheduleUsers": "Copias por Usuario",
 			"preferences": "Preferencias"
 		},
 		"table": {
@@ -651,6 +652,12 @@
 			"infoNote2": "<strong>Copia parcial</strong>: exporta solo los registros cuyo <code>ModifiedAt</code> sea posterior a la última copia.",
 			"infoNote3": "<strong>Retención 0</strong>: conserva todos los archivos. Establece un número para eliminar automáticamente los más antiguos cuando se alcance el límite.",
 			"infoNote4": "<strong>Ejecutar Ahora</strong>: lanza una copia de seguridad inmediata usando la configuración guardada actualmente."
+		},
+		"backupScheduleUsers": {
+			"title": "Copias de Seguridad por Usuario",
+			"subtitle": "Gestiona las copias de seguridad programadas para todos los usuarios. Expande un usuario para ver y editar su configuración.",
+			"enabled": "Activado",
+			"disabled": "Desactivado"
 		}
 	},
 	"game": {

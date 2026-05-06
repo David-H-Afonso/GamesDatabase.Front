@@ -109,6 +109,7 @@
 			"gameViews": "Game Views",
 			"audit": "Audit",
 			"backupSchedule": "Backup Schedule",
+			"backupScheduleUsers": "User Backups",
 			"preferences": "Preferences"
 		},
 		"table": {
@@ -651,6 +652,12 @@
 			"infoNote2": "<strong>Partial backup</strong>: exports only records whose <code>ModifiedAt</code> is after the last backup run.",
 			"infoNote3": "<strong>Retention 0</strong>: keeps all backup files. Set a number to automatically delete the oldest files when the limit is reached.",
 			"infoNote4": "<strong>Run Now</strong>: triggers an immediate backup using the currently saved configuration."
+		},
+		"backupScheduleUsers": {
+			"title": "User Backup Schedules",
+			"subtitle": "Manage backup schedules for all users. Expand a user to view and edit their settings.",
+			"enabled": "Enabled",
+			"disabled": "Disabled"
 		}
 	},
 	"game": {
