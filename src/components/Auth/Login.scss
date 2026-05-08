@@ -216,3 +216,47 @@
 		box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
 	}
 }
+
+.login-divider {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	margin: 1.5rem 0 1rem;
+
+	&::before,
+	&::after {
+		content: '';
+		flex: 1;
+		height: 1px;
+		background: var(--border-color);
+	}
+
+	span {
+		color: var(--text-tertiary);
+		font-size: 0.85rem;
+	}
+}
+
+.btn-steam {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: #1b2838;
+	color: #c6d4df;
+	border: 1px solid #4a90d9;
+	border-radius: 4px;
+	padding: 0.65rem 1rem;
+	font-size: 0.9rem;
+	cursor: pointer;
+	width: 100%;
+	transition: background 0.2s;
+
+	&:hover:not(:disabled) {
+		background: #2a475e;
+	}
+
+	&:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+	}
+}

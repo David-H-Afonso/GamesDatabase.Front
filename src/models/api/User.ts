@@ -15,6 +15,10 @@ export interface User {
 	useScoreColors: boolean
 	scoreProvider: string
 	showPriceComparisonIcon: boolean
+	steamId?: string
+	steamNickname?: string
+	steamAvatarUrl?: string
+	steamLinkedAt?: string
 	createdAt: string
 	updatedAt: string
 }
@@ -29,6 +33,9 @@ export interface LoginResponse {
 	username: string
 	role: UserRole
 	token: string
+	steamId?: string
+	steamNickname?: string
+	steamAvatarUrl?: string
 }
 
 export interface UserCreateDto {

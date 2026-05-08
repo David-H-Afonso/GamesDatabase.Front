@@ -1,17 +1,19 @@
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { loginUser, clearError } from '@/store/features/auth/authSlice'
 import { selectIsAuthenticated, selectAuthLoading, selectAuthError } from '@/store/features/auth/selector'
 import { selectRecentUsers } from '@/store/features/recentUsers/selector'
 import { RecentUsersList } from './RecentUsersList'
+import { environment } from '@/environments'
 import './Login.scss'
 
 export const Login = () => {
 	const { t } = useTranslation()
 	const navigate = useNavigate()
 	const dispatch = useAppDispatch()
+	const [searchParams] = useSearchParams()
 
 	const isAuthenticated = useAppSelector(selectIsAuthenticated)
 	const loading = useAppSelector(selectAuthLoading)
@@ -21,10 +23,17 @@ export const Login = () => {
 	const [username, setUsername] = useState('')
 	const [password, setPassword] = useState('')
 	const [showDefaultHint, setShowDefaultHint] = useState(true)
+	const [steamError, setSteamError] = useState<string | null>(null)
 	const passwordInputRef = useRef<HTMLInputElement>(null)
 
 	// Hide default hint if there are recent users
 	const hasRecentUsers = recentUsers.length > 0
+
+	// Show Steam error from callback
+	useEffect(() => {
+		const err = searchParams.get('steamError')
+		if (err) setSteamError(decodeURIComponent(err))
+	}, [searchParams])
 
 	// Redirect if already authenticated
 	useEffect(() => {
@@ -79,6 +88,11 @@ export const Login = () => {
 		}
 	}
 
+	const handleSteamLogin = () => {
+		const steamLoginUrl = `${environment.baseUrl}${environment.apiRoutes.steam.authLogin}?mode=login`
+		window.location.href = steamLoginUrl
+	}
+
 	return (
 		<div className='login-container'>
 			<div className='login-card'>
@@ -87,9 +101,9 @@ export const Login = () => {
 					<p>{t('auth.subtitle')}</p>
 				</div>
 
-				{error && (
+				{(error || steamError) && (
 					<div className='login-alert login-alert--error'>
-						<strong>{t('auth.errorPrefix')}</strong> {error}
+						<strong>{t('auth.errorPrefix')}</strong> {error || steamError}
 					</div>
 				)}
 
@@ -146,6 +160,15 @@ export const Login = () => {
 				<div className='login-footer'>
 					<p className='text-muted'>{t('auth.footer')}</p>
 				</div>
+
+				<div className='login-divider'>
+					<span>o</span>
+				</div>
+
+				<button type='button' className='btn btn-steam btn-block' onClick={handleSteamLogin} disabled={loading}>
+					<img src='https://store.steampowered.com/favicon.ico' alt='' width={16} height={16} style={{ marginRight: 8 }} />
+					Iniciar sesión con Steam
+				</button>
 			</div>
 		</div>
 	)

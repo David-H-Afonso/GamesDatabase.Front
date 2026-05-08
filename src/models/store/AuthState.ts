@@ -10,6 +10,9 @@ export interface AuthState {
 		useScoreColors?: boolean
 		scoreProvider?: string
 		showPriceComparisonIcon?: boolean
+		steamId?: string
+		steamNickname?: string
+		steamAvatarUrl?: string
 	} | null
 	token: string | null
 	loading: boolean

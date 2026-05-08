@@ -5,6 +5,15 @@ import type { AuthState } from '@/models/store/AuthState'
 import { addRecentUser } from '../recentUsers/recentUsersSlice'
 
 const setLoginToken = createAction<string>('auth/setLoginToken')
+const steamLoginAction = createAction<{
+	token: string
+	userId: number
+	username: string
+	role: 'Admin' | 'Standard'
+	steamId?: string
+	steamNickname?: string
+	steamAvatarUrl?: string
+}>('auth/steamLogin')
 
 // Initial state - will be hydrated from redux-persist
 const initialState: AuthState = {
@@ -169,10 +178,49 @@ const authSlice = createSlice({
 				}
 			}
 		},
+
+		/**
+		 * Update Steam profile in local state (after linking/unlinking)
+		 */
+		setSteamProfile: (
+			state,
+			action: PayloadAction<{
+				steamId?: string
+				steamNickname?: string
+				steamAvatarUrl?: string
+			} | null>
+		) => {
+			if (state.user) {
+				if (action.payload === null) {
+					state.user.steamId = undefined
+					state.user.steamNickname = undefined
+					state.user.steamAvatarUrl = undefined
+				} else {
+					state.user.steamId = action.payload.steamId
+					state.user.steamNickname = action.payload.steamNickname
+					state.user.steamAvatarUrl = action.payload.steamAvatarUrl
+				}
+			}
+		},
 	},
 	extraReducers: (builder) => {
 		builder.addCase(setLoginToken, (state, action) => {
 			state.token = action.payload
+		})
+
+		builder.addCase(steamLoginAction, (state, action) => {
+			state.isAuthenticated = true
+			state.token = action.payload.token
+			state.user = {
+				id: action.payload.userId,
+				username: action.payload.username,
+				role: action.payload.role,
+				steamId: action.payload.steamId,
+				steamNickname: action.payload.steamNickname,
+				steamAvatarUrl: action.payload.steamAvatarUrl,
+			}
+			state.error = null
+			state.loading = false
 		})
 
 		// Login user
@@ -188,6 +236,9 @@ const authSlice = createSlice({
 					id: action.payload.userId,
 					username: action.payload.username,
 					role: action.payload.role,
+					steamId: action.payload.steamId,
+					steamNickname: action.payload.steamNickname,
+					steamAvatarUrl: action.payload.steamAvatarUrl,
 				}
 				state.token = action.payload.token
 				state.error = null
@@ -254,5 +305,5 @@ const authSlice = createSlice({
 	},
 })
 
-export const { clearError, restoreAuth, forceLogout, setUserPreferences } = authSlice.actions
+export const { clearError, restoreAuth, forceLogout, setUserPreferences, setSteamProfile } = authSlice.actions
 export default authSlice.reducer

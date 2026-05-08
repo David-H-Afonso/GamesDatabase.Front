@@ -126,4 +126,20 @@ export const apiRoutes = {
 		adminUser: (userId: number) => `/backupschedule/admin/${userId}`,
 		adminRunNow: (userId: number) => `/backupschedule/admin/${userId}/run-now`,
 	},
+
+	/** Steam integration endpoints */
+	steam: {
+		authLogin: '/auth/steam/login',
+		linkUrl: '/auth/steam/link-url',
+		profile: '/steam/profile',
+		unlink: '/steam/link',
+		library: '/steam/library',
+		import: '/steam/import',
+		syncAll: '/steam/sync',
+		syncGame: (gameId: number) => `/steam/sync/${gameId}`,
+		achievements: (gameId: number) => `/steam/achievements/${gameId}`,
+		appMetadata: (appId: number) => `/steam/app/${appId}/metadata`,
+		linkGame: '/steam/link-game',
+		matchSuggestions: '/steam/match-suggestions',
+	},
 }

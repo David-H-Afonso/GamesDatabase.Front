@@ -26,6 +26,10 @@ export interface Game {
 	updatedAt?: string // ISO date string - when the game was last modified
 	isCheaperByKey?: boolean // true if game is cheaper by key, false if cheaper in official store
 	keyStoreUrl?: string // URL to key store (only if isCheaperByKey is true)
+	steamAppId?: number
+	steamPlaytimeForever?: number // minutes
+	steamPlaytime2Weeks?: number // minutes
+	steamLastSynced?: string // ISO date string
 }
 
 // DTOs for create and update operations
@@ -47,6 +51,7 @@ export interface GameCreateDto {
 	playedStatusId?: number
 	isCheaperByKey?: boolean
 	keyStoreUrl?: string
+	steamAppId?: number
 }
 
 export interface GameUpdateDto extends GameCreateDto {
