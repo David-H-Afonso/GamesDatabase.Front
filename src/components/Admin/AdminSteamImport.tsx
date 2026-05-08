@@ -168,7 +168,11 @@ export const AdminSteamImport = () => {
 		} catch {
 			setStoreAdded((prev) => new Map(prev).set(appId, 'error'))
 		} finally {
-			setStoreAdding((prev) => { const s = new Set(prev); s.delete(appId); return s })
+			setStoreAdding((prev) => {
+				const s = new Set(prev)
+				s.delete(appId)
+				return s
+			})
 		}
 	}
 
@@ -284,18 +288,9 @@ export const AdminSteamImport = () => {
 			{activeTab === 'store' ? (
 				<div className='store-search-view'>
 					<p className='store-search-hint'>Busca juegos en la tienda de Steam para añadirlos a GDB aunque no los tengas comprados.</p>
-					<input
-						className='search-input'
-						type='text'
-						placeholder='Buscar juego en Steam...'
-						value={storeQuery}
-						onChange={handleStoreQueryChange}
-						autoFocus
-					/>
+					<input className='search-input' type='text' placeholder='Buscar juego en Steam...' value={storeQuery} onChange={handleStoreQueryChange} autoFocus />
 					{storeLoading && <p className='store-loading'>Buscando...</p>}
-					{!storeLoading && storeSearched && storeResults.length === 0 && (
-						<p className='store-no-results'>No se encontraron resultados para &quot;{storeQuery}&quot;.</p>
-					)}
+					{!storeLoading && storeSearched && storeResults.length === 0 && <p className='store-no-results'>No se encontraron resultados para &quot;{storeQuery}&quot;.</p>}
 					{storeResults.length > 0 && (
 						<div className='store-results-grid'>
 							{storeResults.map((game) => {
@@ -305,9 +300,7 @@ export const AdminSteamImport = () => {
 								const inGdb = addedState === 'created' || alreadyInLibrary || addedState === 'exists'
 								return (
 									<div key={game.appId} className={`store-card${inGdb ? ' store-card--added' : ''}`}>
-										<div className='store-card-cover'>
-											{game.coverUrl && <img src={game.coverUrl} alt={game.name} loading='lazy' />}
-										</div>
+										<div className='store-card-cover'>{game.coverUrl && <img src={game.coverUrl} alt={game.name} loading='lazy' />}</div>
 										<div className='store-card-info'>
 											<span className='store-card-name'>{game.name}</span>
 											<span className='store-card-appid'>App {game.appId}</span>
