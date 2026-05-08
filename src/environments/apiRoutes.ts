@@ -141,5 +141,7 @@ export const apiRoutes = {
 		appMetadata: (appId: number) => `/steam/app/${appId}/metadata`,
 		linkGame: '/steam/link-game',
 		matchSuggestions: '/steam/match-suggestions',
+		storeSearch: '/steam/store/search',
+		storeAdd: '/steam/store/add',
 	},
 }

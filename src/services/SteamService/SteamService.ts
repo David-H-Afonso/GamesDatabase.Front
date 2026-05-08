@@ -81,6 +81,16 @@ export interface SteamMatchSuggestion {
 	confidence: number
 }
 
+export interface SteamStoreSearchResult {
+	appId: number
+	name: string
+	coverUrl?: string
+	price?: string
+	discountPercent?: number
+	originalPrice?: string
+	metascore?: number
+}
+
 class SteamService {
 	async getProfile(): Promise<SteamProfile> {
 		return customFetch<SteamProfile>(base.profile)
@@ -122,6 +132,17 @@ class SteamService {
 
 	async getMatchSuggestions(): Promise<SteamMatchSuggestion[]> {
 		return customFetch<SteamMatchSuggestion[]>(base.matchSuggestions)
+	}
+
+	async searchStore(query: string): Promise<SteamStoreSearchResult[]> {
+		return customFetch<SteamStoreSearchResult[]>(`${base.storeSearch}?q=${encodeURIComponent(query)}`)
+	}
+
+	async addStoreGame(appId: number): Promise<SteamImportedGame> {
+		return customFetch<SteamImportedGame>(base.storeAdd, {
+			method: 'POST',
+			body: { appId },
+		})
 	}
 
 	async getAchievements(gameId: number): Promise<SteamAchievement[]> {

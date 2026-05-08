@@ -2,12 +2,13 @@ import { useEffect, useState, useRef, useCallback } from 'react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { fetchSteamLibrary, importSteamGames, clearLastImportResult } from '@/store/features/steam/steamSlice'
 import { steamService } from '@/services'
-import type { SteamMatchSuggestion } from '@/services/SteamService/SteamService'
+import type { SteamMatchSuggestion, SteamStoreSearchResult } from '@/services/SteamService/SteamService'
 import { getGames } from '@/services/GamesService/GamesService'
 import type { Game } from '@/models/api/Game'
 import './AdminSteamImport.scss'
 
 type ImportAction = 'create' | 'skip' | 'link'
+type ActiveTab = 'library' | 'suggestions' | 'store'
 
 interface LinkTarget {
 	gameId: number
@@ -24,13 +25,22 @@ export const AdminSteamImport = () => {
 	const [filterUnmatched, setFilterUnmatched] = useState(false)
 	const [linkLoading, setLinkLoading] = useState(false)
 	const [linkResults, setLinkResults] = useState<{ linked: number; errors: string[] } | null>(null)
-	const [activeTab, setActiveTab] = useState<'library' | 'suggestions'>('library')
+	const [activeTab, setActiveTab] = useState<ActiveTab>('library')
 	const [suggestions, setSuggestions] = useState<SteamMatchSuggestion[]>([])
 	const [suggestionsLoading, setSuggestionsLoading] = useState(false)
 	const [suggestionsError, setSuggestionsError] = useState<string | null>(null)
 	const [librarySearch, setLibrarySearch] = useState('')
 	const [suggestionSearch, setSuggestionSearch] = useState('')
 	const [selectedSuggestionIds, setSelectedSuggestionIds] = useState<Set<number>>(new Set())
+
+	// Store search state
+	const [storeQuery, setStoreQuery] = useState('')
+	const [storeResults, setStoreResults] = useState<SteamStoreSearchResult[]>([])
+	const [storeLoading, setStoreLoading] = useState(false)
+	const [storeSearched, setStoreSearched] = useState(false)
+	const [storeAdding, setStoreAdding] = useState<Set<number>>(new Set())
+	const [storeAdded, setStoreAdded] = useState<Map<number, 'created' | 'exists' | 'error'>>(new Map())
+	const storeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
 	const isSteamLinked = !!authUser?.steamId
 
@@ -123,6 +133,47 @@ export const AdminSteamImport = () => {
 			})
 		}
 	}
+
+	const handleStoreSearch = useCallback(async (q: string) => {
+		if (q.trim().length < 2) {
+			setStoreResults([])
+			setStoreSearched(false)
+			return
+		}
+		setStoreLoading(true)
+		try {
+			const results = await steamService.searchStore(q.trim())
+			setStoreResults(results)
+			setStoreSearched(true)
+		} catch {
+			setStoreResults([])
+		} finally {
+			setStoreLoading(false)
+		}
+	}, [])
+
+	const handleStoreQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const q = e.target.value
+		setStoreQuery(q)
+		if (storeTimerRef.current) clearTimeout(storeTimerRef.current)
+		storeTimerRef.current = setTimeout(() => handleStoreSearch(q), 400)
+	}
+
+	const handleAddStoreGame = async (appId: number) => {
+		setStoreAdding((prev) => new Set(prev).add(appId))
+		try {
+			const result = await steamService.addStoreGame(appId)
+			setStoreAdded((prev) => new Map(prev).set(appId, result.action === 'created' ? 'created' : result.action === 'exists' ? 'exists' : 'error'))
+			if (result.action === 'created') await dispatch(fetchSteamLibrary())
+		} catch {
+			setStoreAdded((prev) => new Map(prev).set(appId, 'error'))
+		} finally {
+			setStoreAdding((prev) => { const s = new Set(prev); s.delete(appId); return s })
+		}
+	}
+
+	// Set of appIds already in GDB (from current library)
+	const libraryAppIds = new Set(library.filter((g) => g.gdbGameId).map((g) => g.appId))
 
 	const getAction = (appId: number): ImportAction => rowActions.get(appId) ?? 'skip'
 
@@ -223,11 +274,82 @@ export const AdminSteamImport = () => {
 				<button className={`tab-btn${activeTab === 'suggestions' ? ' tab-btn--active' : ''}`} onClick={() => setActiveTab('suggestions')}>
 					Sugerencias de vinculación
 				</button>
+				<button className={`tab-btn${activeTab === 'store' ? ' tab-btn--active' : ''}`} onClick={() => setActiveTab('store')}>
+					Buscar en Steam
+				</button>
 			</div>
 
 			{error && <div className='alert alert--error'>{error}</div>}
 
-			{activeTab === 'suggestions' ? (
+			{activeTab === 'store' ? (
+				<div className='store-search-view'>
+					<p className='store-search-hint'>Busca juegos en la tienda de Steam para añadirlos a GDB aunque no los tengas comprados.</p>
+					<input
+						className='search-input'
+						type='text'
+						placeholder='Buscar juego en Steam...'
+						value={storeQuery}
+						onChange={handleStoreQueryChange}
+						autoFocus
+					/>
+					{storeLoading && <p className='store-loading'>Buscando...</p>}
+					{!storeLoading && storeSearched && storeResults.length === 0 && (
+						<p className='store-no-results'>No se encontraron resultados para &quot;{storeQuery}&quot;.</p>
+					)}
+					{storeResults.length > 0 && (
+						<div className='store-results-grid'>
+							{storeResults.map((game) => {
+								const addedState = storeAdded.get(game.appId)
+								const isAdding = storeAdding.has(game.appId)
+								const alreadyInLibrary = libraryAppIds.has(game.appId)
+								const inGdb = addedState === 'created' || alreadyInLibrary || addedState === 'exists'
+								return (
+									<div key={game.appId} className={`store-card${inGdb ? ' store-card--added' : ''}`}>
+										<div className='store-card-cover'>
+											{game.coverUrl && <img src={game.coverUrl} alt={game.name} loading='lazy' />}
+										</div>
+										<div className='store-card-info'>
+											<span className='store-card-name'>{game.name}</span>
+											<span className='store-card-appid'>App {game.appId}</span>
+											<div className='store-card-meta'>
+												{game.metascore != null && <span className='store-card-score'>{game.metascore}</span>}
+												{game.price ? (
+													<span className='store-card-price'>
+														{game.discountPercent ? (
+															<>
+																<span className='price-original'>{game.originalPrice}</span>
+																<span className='price-discount'>-{game.discountPercent}%</span>
+																<span className='price-final'>{game.price}</span>
+															</>
+														) : (
+															game.price
+														)}
+													</span>
+												) : (
+													<span className='store-card-price store-card-price--free'>Gratis</span>
+												)}
+											</div>
+										</div>
+										<div className='store-card-action'>
+											{inGdb ? (
+												<span className='badge badge--exists'>En GDB</span>
+											) : addedState === 'error' ? (
+												<button className='btn btn-secondary btn-sm' onClick={() => handleAddStoreGame(game.appId)}>
+													Reintentar
+												</button>
+											) : (
+												<button className='btn btn-primary btn-sm' onClick={() => handleAddStoreGame(game.appId)} disabled={isAdding}>
+													{isAdding ? '...' : 'Añadir'}
+												</button>
+											)}
+										</div>
+									</div>
+								)
+							})}
+						</div>
+					)}
+				</div>
+			) : activeTab === 'suggestions' ? (
 				<div className='suggestions-view'>
 					{suggestionsLoading ? (
 						<p>Buscando coincidencias...</p>
