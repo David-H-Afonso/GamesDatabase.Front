@@ -1,0 +1,146 @@
+.steam-tab {
+	padding: 0.5rem 1rem;
+
+	.steam-tab-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
+		margin-bottom: 1rem;
+	}
+
+	.steam-tab-stats {
+		display: flex;
+		gap: 1.5rem;
+		flex-wrap: wrap;
+	}
+
+	.stat {
+		display: flex;
+		flex-direction: column;
+
+		.stat-label {
+			font-size: 0.75rem;
+			color: var(--text-tertiary);
+		}
+
+		.stat-value {
+			font-size: 1rem;
+			font-weight: 600;
+		}
+	}
+
+	.sync-message {
+		font-size: 0.85rem;
+		color: var(--text-secondary);
+		margin-bottom: 0.75rem;
+	}
+
+	.achievement-summary {
+		margin-bottom: 1rem;
+	}
+
+	.achievement-progress-bar {
+		height: 8px;
+		background: var(--border-color);
+		border-radius: 4px;
+		overflow: hidden;
+		margin-bottom: 0.35rem;
+	}
+
+	.achievement-progress-fill {
+		height: 100%;
+		background: linear-gradient(90deg, #4a90d9, #70b5f9);
+		border-radius: 4px;
+		transition: width 0.4s ease;
+	}
+
+	.achievement-progress-label {
+		font-size: 0.82rem;
+		color: var(--text-secondary);
+		margin: 0;
+	}
+
+	.achievement-filter-tabs {
+		display: flex;
+		gap: 0.5rem;
+		margin-bottom: 0.75rem;
+
+		button {
+			padding: 0.25rem 0.75rem;
+			border-radius: 12px;
+			border: 1px solid var(--border-color);
+			background: transparent;
+			color: var(--text-secondary);
+			cursor: pointer;
+			font-size: 0.82rem;
+			transition: all 0.15s;
+
+			&.active,
+			&:hover {
+				background: var(--primary, #4a90d9);
+				color: white;
+				border-color: var(--primary, #4a90d9);
+			}
+		}
+	}
+
+	.achievement-grid {
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+		max-height: 340px;
+		overflow-y: auto;
+	}
+
+	.achievement-item {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 0.4rem 0.5rem;
+		border-radius: 6px;
+
+		&.achieved {
+			background: var(--bg-secondary);
+		}
+
+		&.locked {
+			opacity: 0.55;
+		}
+
+		img {
+			flex-shrink: 0;
+			border-radius: 2px;
+		}
+	}
+
+	.achievement-info {
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+	}
+
+	.achievement-name {
+		font-size: 0.85rem;
+		font-weight: 500;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.achievement-date {
+		font-size: 0.75rem;
+		color: var(--text-tertiary);
+	}
+
+	.no-achievements {
+		color: var(--text-secondary);
+		font-size: 0.9rem;
+		text-align: center;
+		padding: 1rem 0;
+	}
+}
+
+.btn-sm {
+	padding: 0.3rem 0.75rem;
+	font-size: 0.82rem;
+}

@@ -10,6 +10,7 @@ import gameViewsReducer from './features/gameViews/gameViewSlice'
 import themeReducer from './features/theme/themeSlice'
 import authReducer from './features/auth/authSlice'
 import recentUsersReducer from './features/recentUsers/recentUsersSlice'
+import steamReducer from './features/steam/steamSlice'
 
 /**
  * CENTRALIZED PERSISTENCE CONFIGURATION
@@ -46,6 +47,7 @@ const rootReducer = combineReducers({
 	theme: themeReducer,
 	auth: authReducer,
 	recentUsers: recentUsersReducer,
+	steam: steamReducer,
 })
 
 // Create persisted reducer - Single point of persistence configuration

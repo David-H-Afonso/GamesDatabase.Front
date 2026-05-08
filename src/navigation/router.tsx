@@ -2,7 +2,7 @@ import { lazy, Suspense } from 'react'
 import { createHashRouter } from 'react-router-dom'
 import { AppLayout, EmptyLayout } from '@/layouts'
 import Home from '@/components/Home/containers/Home'
-import { Login, ProtectedRoute, PublicRoute } from '@/components/Auth'
+import { Login, ProtectedRoute, PublicRoute, SteamCallback } from '@/components/Auth'
 import { RouteError, NotFound } from '@/components/errors'
 import AdminFallback from './AdminFallback'
 
@@ -49,6 +49,14 @@ export const router = createHashRouter([
 			</ProtectedRoute>
 		),
 		errorElement: <RouteError />,
+	},
+	{
+		path: '/steam-callback',
+		element: (
+			<EmptyLayout>
+				<SteamCallback />
+			</EmptyLayout>
+		),
 	},
 	{
 		path: '*',

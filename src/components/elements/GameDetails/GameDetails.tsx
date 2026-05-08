@@ -13,8 +13,9 @@ import { useFormik } from 'formik'
 import { getCriticScoreUrl, getCriticProviderIdFromName, getCriticProviderNameFromId, resolveEffectiveProvider, type CriticProvider } from '@/helpers/criticScoreHelper'
 import { GameReplaysTab } from './GameReplaysTab'
 import { GameHistoryTab } from './GameHistoryTab'
+import { SteamTab } from './SteamTab'
 
-type DetailTab = 'info' | 'replays' | 'history'
+type DetailTab = 'info' | 'replays' | 'history' | 'steam'
 
 interface GameDetailsProps {
 	game: Game
@@ -101,7 +102,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 		let payloadValue: any = value
 
 		// Handle numeric fields (all optional)
-		if (field === 'critic' || field === 'grade' || field === 'story' || field === 'completion' || field === 'score') {
+		if (field === 'critic' || field === 'grade' || field === 'story' || field === 'completion' || field === 'score' || field === 'steamAppId') {
 			if (value === '' || value === null || typeof value === 'undefined') {
 				payloadValue = null
 				formik.setFieldValue(field as any, undefined)
@@ -256,6 +257,11 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 					<button className={activeTab === 'history' ? 'active' : ''} onClick={() => setActiveTab('history')}>
 						{t('game.details.tabHistory')}
 					</button>
+					{game.steamAppId && (
+						<button className={activeTab === 'steam' ? 'active' : ''} onClick={() => setActiveTab('steam')}>
+							Steam
+						</button>
+					)}
 				</nav>
 
 				<div className='game-details-tabs-panel'>
@@ -502,10 +508,23 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 									className='comment-field'
 								/>
 							</div>
+
+							<div className='game-details-content-infoList'>
+								<div className='game-details-content-infoList-item'>
+									<h3>Steam App ID</h3>
+									<EditableField
+										value={game.steamAppId?.toString() ?? ''}
+										type='text'
+										onSave={(value) => saveField('steamAppId', value ? parseInt(value as string, 10) : null)}
+										placeholder='Ej: 570'
+									/>
+								</div>
+							</div>
 						</>
 					)}
 					{activeTab === 'replays' && <GameReplaysTab gameId={game.id} />}
 					{activeTab === 'history' && <GameHistoryTab gameId={game.id} />}
+					{activeTab === 'steam' && game.steamAppId && <SteamTab game={game} />}
 				</div>
 			</div>
 		</div>

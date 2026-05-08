@@ -303,6 +303,12 @@ const CardView: FC<CardViewProps> = (props) => {
 							<CalendarIcon width={20} height={20} color='#9ca3af' title={t('game.card.releasedIcon')} focusable={false} />
 							<p>{released}</p>
 						</div>
+						{game.steamAppId && game.steamPlaytimeForever != null && game.steamPlaytimeForever > 0 && (
+							<div className='game-card-steam-playtime' title='Tiempo en Steam'>
+								<img src='https://store.steampowered.com/favicon.ico' alt='Steam' width={14} height={14} />
+								<p>{Math.round(game.steamPlaytimeForever / 60)}h</p>
+							</div>
+						)}
 					</div>
 				</div>
 			</div>

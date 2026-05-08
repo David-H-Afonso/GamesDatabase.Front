@@ -13,6 +13,8 @@ import { AdminPreferences } from '../AdminPreferences'
 import AdminReplayTypes from '../AdminReplayTypes'
 import { AdminAuditLog } from '../AdminAuditLog'
 import AdminBackupScheduleUsers from '../AdminBackupScheduleUsers'
+import { AdminSteam } from '../AdminSteam'
+import { AdminSteamImport } from '../AdminSteamImport'
 
 const Admin = () => {
 	const isAdmin = useAppSelector(selectIsAdmin)
@@ -33,6 +35,8 @@ const Admin = () => {
 				{isAdmin && <Route path='backup-schedule' element={<Navigate to='/admin/backup-schedule-users' replace />} />}
 				{isAdmin && <Route path='backup-schedule-users' element={<AdminBackupScheduleUsers />} />}
 				<Route path='preferences' element={<AdminPreferences />} />
+				<Route path='steam' element={<AdminSteam />} />
+				<Route path='steam-import' element={<AdminSteamImport />} />
 			</Route>
 		</Routes>
 	)
