@@ -57,7 +57,7 @@ export const AdminSteamImport = () => {
 		if (isSteamLinked && activeTab === 'suggestions') {
 			loadSuggestions()
 		}
-	}, [isSteamLinked, activeTab]) // eslint-disable-line react-hooks/exhaustive-deps
+	}, [isSteamLinked, activeTab])
 
 	const loadSuggestions = async () => {
 		setSuggestionsLoading(true)
@@ -163,7 +163,7 @@ export const AdminSteamImport = () => {
 		setStoreAdding((prev) => new Set(prev).add(appId))
 		try {
 			const result = await steamService.addStoreGame(appId)
-			setStoreAdded((prev) => new Map(prev).set(appId, result.action === 'created' ? 'created' : result.action === 'exists' ? 'exists' : 'error'))
+			setStoreAdded((prev) => new Map(prev).set(appId, result.action === 'created' ? 'created' : result.action === 'linked' ? 'exists' : 'error'))
 			if (result.action === 'created') await dispatch(fetchSteamLibrary())
 		} catch {
 			setStoreAdded((prev) => new Map(prev).set(appId, 'error'))
