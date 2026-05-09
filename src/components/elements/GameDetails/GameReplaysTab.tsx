@@ -147,7 +147,11 @@ export const GameReplaysTab: React.FC<Props> = ({ gameId }) => {
 								{replay.started && replay.finished && <span> – </span>}
 								{replay.finished && <span>{formatToLocaleDate(replay.finished)}</span>}
 							</div>
-							{replay.released && <p className='grt-released'>{t('game.replays.released')}: {formatToLocaleDate(replay.released)}</p>}
+							{replay.released && (
+								<p className='grt-released'>
+									{t('game.replays.released')}: {formatToLocaleDate(replay.released)}
+								</p>
+							)}
 							{replay.notes && <p className='grt-notes'>{replay.notes}</p>}
 							<div className='grt-actions'>
 								<button className='grt-edit-btn' onClick={() => openEditForm(replay)}>
