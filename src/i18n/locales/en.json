@@ -804,8 +804,8 @@
 			"started": "Started",
 			"finished": "Finished",
 			"grade": "Grade (0–100)",
-			"notes": "Notes"
-		},
+			"notes": "Notes",
+			"released": "Release date"
 		"history": {
 			"loading": "Loading history...",
 			"count_one": "{{count}} entry",

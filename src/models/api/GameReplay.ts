@@ -9,6 +9,7 @@ export interface GameReplay {
 	finished?: string
 	grade?: number
 	notes?: string
+	released?: string
 	userId: number
 	createdAt?: string
 	updatedAt?: string
@@ -21,6 +22,7 @@ export interface GameReplayCreateDto {
 	finished?: string
 	grade?: number
 	notes?: string
+	released?: string
 }
 
 export interface GameReplayUpdateDto extends GameReplayCreateDto {

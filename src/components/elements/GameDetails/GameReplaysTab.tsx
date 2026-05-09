@@ -18,6 +18,7 @@ const emptyForm = (defaultTypeId?: number): GameReplayCreateDto => ({
 	finished: '',
 	grade: undefined,
 	notes: '',
+	released: '',
 })
 
 export const GameReplaysTab: React.FC<Props> = ({ gameId }) => {
@@ -71,6 +72,7 @@ export const GameReplaysTab: React.FC<Props> = ({ gameId }) => {
 			finished: replay.finished ?? '',
 			grade: replay.grade ?? undefined,
 			notes: replay.notes ?? '',
+			released: replay.released ?? '',
 		})
 		setIsFormOpen(true)
 	}
@@ -91,6 +93,7 @@ export const GameReplaysTab: React.FC<Props> = ({ gameId }) => {
 				finished: formData.finished || undefined,
 				grade: formData.grade !== undefined && formData.grade !== null && String(formData.grade) !== '' ? Number(formData.grade) : undefined,
 				notes: formData.notes || undefined,
+				released: formData.released || undefined,
 			}
 			if (editingReplay) {
 				await updateGameReplay(gameId, editingReplay.id, { ...payload, id: editingReplay.id })
@@ -144,6 +147,7 @@ export const GameReplaysTab: React.FC<Props> = ({ gameId }) => {
 								{replay.started && replay.finished && <span> – </span>}
 								{replay.finished && <span>{formatToLocaleDate(replay.finished)}</span>}
 							</div>
+							{replay.released && <p className='grt-released'>{t('game.replays.released')}: {formatToLocaleDate(replay.released)}</p>}
 							{replay.notes && <p className='grt-notes'>{replay.notes}</p>}
 							<div className='grt-actions'>
 								<button className='grt-edit-btn' onClick={() => openEditForm(replay)}>
@@ -189,6 +193,10 @@ export const GameReplaysTab: React.FC<Props> = ({ gameId }) => {
 							<div className='grt-form-field'>
 								<label htmlFor='grt-finished'>{t('game.replays.finished')}</label>
 								<input id='grt-finished' type='date' value={formData.finished ?? ''} onChange={(e) => setFormData({ ...formData, finished: e.target.value })} />
+							</div>
+							<div className='grt-form-field'>
+								<label htmlFor='grt-released'>{t('game.replays.released')}</label>
+								<input id='grt-released' type='date' value={formData.released ?? ''} onChange={(e) => setFormData({ ...formData, released: e.target.value })} />
 							</div>
 						</div>
 						<div className='grt-form-field'>
