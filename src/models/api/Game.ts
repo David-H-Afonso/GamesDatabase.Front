@@ -98,6 +98,7 @@ export interface GameQueryParameters extends QueryParameters {
 	releasedYear?: number
 	startedYear?: number
 	finishedYear?: number
+	includeReplayDates?: boolean
 	// Exclude specific status IDs (can be multiple)
 	excludeStatusIds?: number[]
 	// Filter by price comparison
@@ -116,6 +117,7 @@ export interface GameQueryParameters extends QueryParameters {
 	replayTypeId?: number
 	replayGradeMin?: number
 	replayGradeMax?: number
+	hasReplays?: boolean
 	replayMatchMode?: 'any' | 'all'
 }
 

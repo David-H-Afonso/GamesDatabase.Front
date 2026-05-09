@@ -27,7 +27,7 @@ interface Props {
 	onBulkExport?: () => void
 }
 
-type PopoverKey = 'platform' | 'playWith' | 'status' | 'playedStatus' | 'grades' | 'years' | 'price' | 'criticProvider' | 'excluded' | 'pageSize'
+type PopoverKey = 'platform' | 'playWith' | 'status' | 'playedStatus' | 'grades' | 'years' | 'replay' | 'price' | 'criticProvider' | 'excluded' | 'pageSize'
 
 const GameFiltersChips: React.FC<Props> = ({
 	filters,
@@ -173,19 +173,30 @@ const GameFiltersChips: React.FC<Props> = ({
 	}
 
 	const yearsLabel = () => {
-		const { releasedYear, startedYear, finishedYear, replayStartedFrom, replayFinishedFrom, replayTypeId } = filters
+		const { releasedYear, startedYear, finishedYear, includeReplayDates } = filters
 		const years = [releasedYear, startedYear, finishedYear].filter((y): y is number => y !== undefined && y !== null)
 		const parts: string[] = []
 		if (years.length === 1) parts.push(`${years[0]}`)
 		else if (years.length > 1) parts.push(`${Math.min(...years)} – ${Math.max(...years)}`)
-		if (replayTypeId || replayStartedFrom || replayFinishedFrom) {
-			const replayType = replayTypeOptions.find((t) => t.value === replayTypeId)
-			const replayYear = replayStartedFrom?.substring(0, 4) || replayFinishedFrom?.substring(0, 4)
-			parts.push(
-				replayType ? t('home.filters.replayWithType', { type: replayType.label }) : replayYear ? t('home.filters.replayYear', { year: replayYear }) : t('home.filters.replay')
-			)
-		}
+		if (includeReplayDates === false) parts.push(t('home.filters.excludeReplayDatesShort'))
 		return parts.length > 0 ? parts.join(', ') : t('home.filters.anyYear')
+	}
+
+	const replayLabel = () => {
+		const { hasReplays, replayTypeId, replayStartedFrom, replayFinishedTo, replayGradeMin, replayGradeMax } = filters
+		const parts: string[] = []
+		if (hasReplays === true) parts.push(t('home.filters.withReplays'))
+		if (hasReplays === false) parts.push(t('home.filters.withoutReplays'))
+		if (replayTypeId) {
+			const type = replayTypeOptions.find((t) => t.value === replayTypeId)
+			parts.push(type?.label || t('home.filters.replay'))
+		}
+		const replayStartedYear = replayStartedFrom?.substring(0, 4)
+		const replayFinishedYear = replayFinishedTo?.substring(0, 4)
+		if (replayStartedYear) parts.push(t('home.filters.replayStartedYear', { year: replayStartedYear }))
+		if (replayFinishedYear) parts.push(t('home.filters.replayFinishedYear', { year: replayFinishedYear }))
+		if (replayGradeMin !== undefined || replayGradeMax !== undefined) parts.push(t('home.filters.replayGrade'))
+		return parts.length > 0 ? parts.join(', ') : t('common.all')
 	}
 
 	const priceLabel = () => {
@@ -208,28 +219,6 @@ const GameFiltersChips: React.FC<Props> = ({
 		return t('home.filters.gamesPerPage', { size: filters.pageSize })
 	}
 
-	// TODO: replay filter chip helpers (not yet wired up to JSX)
-	// const replayLabel = () => {
-	// 	const { replayTypeId, replayStartedFrom, replayFinishedFrom, replayGradeMin, replayGradeMax } = filters
-	// 	const parts: string[] = []
-	// 	if (replayTypeId) {
-	// 		const type = replayTypeOptions.find((t) => t.value === replayTypeId)
-	// 		if (type) parts.push(type.label)
-	// 	}
-	// 	if (replayStartedFrom) parts.push(`ini ${replayStartedFrom.substring(0, 4)}`)
-	// 	if (replayFinishedFrom) parts.push(`fin ${replayFinishedFrom.substring(0, 4)}`)
-	// 	if (replayGradeMin !== undefined || replayGradeMax !== undefined) parts.push('nota')
-	// 	return parts.length > 0 ? parts.join(', ') : 'Sin filtro'
-	// }
-	// const replayStartedYear = filters.replayStartedFrom ? Number(filters.replayStartedFrom.substring(0, 4)) : undefined
-	// const replayFinishedYear = filters.replayFinishedFrom ? Number(filters.replayFinishedFrom.substring(0, 4)) : undefined
-	// const setReplayStartedYear = (year: number | undefined) => {
-	// 	setFilters({ replayStartedFrom: year ? `${year}-01-01` : undefined, replayStartedTo: year ? `${year}-12-31` : undefined })
-	// }
-	// const setReplayFinishedYear = (year: number | undefined) => {
-	// 	setFilters({ replayFinishedFrom: year ? `${year}-01-01` : undefined, replayFinishedTo: year ? `${year}-12-31` : undefined })
-	// }
-
 	const resetAllFilters = () => {
 		onFiltersChange({
 			platformId: undefined,
@@ -241,6 +230,7 @@ const GameFiltersChips: React.FC<Props> = ({
 			releasedYear: undefined,
 			startedYear: undefined,
 			finishedYear: undefined,
+			includeReplayDates: undefined,
 			isCheaperByKey: undefined,
 			criticProvider: undefined,
 			excludeStatusIds: undefined,
@@ -252,6 +242,7 @@ const GameFiltersChips: React.FC<Props> = ({
 			replayFinishedTo: undefined,
 			replayGradeMin: undefined,
 			replayGradeMax: undefined,
+			hasReplays: undefined,
 			replayMatchMode: undefined,
 		})
 	}
@@ -267,9 +258,11 @@ const GameFiltersChips: React.FC<Props> = ({
 			!!filters.releasedYear ||
 			!!filters.startedYear ||
 			!!filters.finishedYear ||
+			filters.includeReplayDates === false ||
 			(filters.isCheaperByKey !== undefined && filters.isCheaperByKey !== null) ||
 			!!filters.criticProvider ||
 			!!filters.excludeStatusIds?.length ||
+			filters.hasReplays !== undefined ||
 			!!filters.replayTypeId ||
 			!!filters.replayStartedFrom ||
 			!!filters.replayFinishedFrom ||
@@ -291,7 +284,21 @@ const GameFiltersChips: React.FC<Props> = ({
 			case 'grades':
 				return !!filters.minGrade || !!filters.maxGrade
 			case 'years':
-				return !!filters.releasedYear || !!filters.startedYear || !!filters.finishedYear || !!filters.replayTypeId || !!filters.replayStartedFrom || !!filters.replayFinishedFrom
+				return (
+					!!filters.releasedYear ||
+					!!filters.startedYear ||
+					!!filters.finishedYear ||
+					filters.includeReplayDates === false
+				)
+			case 'replay':
+				return (
+					filters.hasReplays !== undefined ||
+					!!filters.replayTypeId ||
+					!!filters.replayStartedFrom ||
+					!!filters.replayFinishedFrom ||
+					!!filters.replayGradeMin ||
+					!!filters.replayGradeMax
+				)
 			case 'price':
 				return filters.isCheaperByKey !== undefined && filters.isCheaperByKey !== null
 			case 'criticProvider':
@@ -540,6 +547,10 @@ const GameFiltersChips: React.FC<Props> = ({
 							{t('home.filters.years')}: <span>{yearsLabel()}</span>
 						</button>
 
+						<button type='button' className={'game-filters-chips__chip' + (hasActiveFilter('replay') ? ' is-active' : '')} onClick={() => togglePopover('replay')}>
+							{t('home.filters.replay')}: <span>{replayLabel()}</span>
+						</button>
+
 						<button type='button' className={'game-filters-chips__chip' + (hasActiveFilter('price') ? ' is-active' : '')} onClick={() => togglePopover('price')}>
 							{t('home.filters.price')}: <span>{priceLabel()}</span>
 						</button>
@@ -745,44 +756,10 @@ const GameFiltersChips: React.FC<Props> = ({
 											</div>
 										</div>
 									</div>
-									<hr className='game-filters-chips__divider' />
-									<strong className='game-filters-chips__popover-subtitle'>{t('home.filters.replay')}</strong>
-									<div className='game-filters-chips__field'>
-										<select value={filters.replayTypeId ?? ''} onChange={(e) => setFilters({ replayTypeId: e.target.value ? Number(e.target.value) : undefined })}>
-											<option value=''>— {t('home.filters.noType')} —</option>
-											{replayTypeOptions.map((t) => (
-												<option key={t.value} value={t.value}>
-													{t.label}
-												</option>
-											))}
-										</select>
-									</div>
-									{filters.replayTypeId && (
-										<div className='game-filters-chips__popover-grid'>
-											<div className='game-filters-chips__field'>
-												<label>{t('home.filters.replayStarted')}</label>
-												<input
-													type='number'
-													min='1970'
-													max='2100'
-													placeholder={t('home.chips.yearPlaceholder')}
-													value={filters.replayStartedFrom ? filters.replayStartedFrom.substring(0, 4) : ''}
-													onChange={(e) => setFilters({ replayStartedFrom: e.target.value ? `${e.target.value}-01-01` : undefined })}
-												/>
-											</div>
-											<div className='game-filters-chips__field'>
-												<label>{t('home.filters.replayFinished')}</label>
-												<input
-													type='number'
-													min='1970'
-													max='2100'
-													placeholder={t('home.chips.yearPlaceholder')}
-													value={filters.replayFinishedTo ? filters.replayFinishedTo.substring(0, 4) : ''}
-													onChange={(e) => setFilters({ replayFinishedTo: e.target.value ? `${e.target.value}-12-31` : undefined })}
-												/>
-											</div>
-										</div>
-									)}
+									<label className='game-filters-chips__checkbox'>
+										<input type='checkbox' checked={filters.includeReplayDates !== false} onChange={(e) => setFilters({ includeReplayDates: e.target.checked ? undefined : false })} />
+										<span>{t('home.filters.includeReplayDates')}</span>
+									</label>
 									<button
 										type='button'
 										className='game-filters-chips__clear-btn'
@@ -791,11 +768,129 @@ const GameFiltersChips: React.FC<Props> = ({
 												releasedYear: undefined,
 												startedYear: undefined,
 												finishedYear: undefined,
+												includeReplayDates: undefined,
+											})
+										}>
+										{t('common.clear')}
+									</button>
+								</>
+							)}
+
+							{openPopover === 'replay' && (
+								<>
+									<strong className='game-filters-chips__popover-title'>{t('home.filters.replay')}</strong>
+									<div className='game-filters-chips__field'>
+										<select
+											value={filters.hasReplays === true ? 'true' : filters.hasReplays === false ? 'false' : ''}
+											onChange={(e) => {
+												const value = e.target.value
+												setFilters({
+													hasReplays: value === '' ? undefined : value === 'true',
+													...(value === 'false'
+														? {
+																replayTypeId: undefined,
+																replayStartedFrom: undefined,
+																replayStartedTo: undefined,
+																replayFinishedFrom: undefined,
+																replayFinishedTo: undefined,
+																replayGradeMin: undefined,
+																replayGradeMax: undefined,
+															}
+														: {}),
+												})
+											}}>
+											<option value=''>{t('common.all')}</option>
+											<option value='true'>{t('home.filters.withReplays')}</option>
+											<option value='false'>{t('home.filters.withoutReplays')}</option>
+										</select>
+									</div>
+									{filters.hasReplays !== false && (
+										<>
+											<div className='game-filters-chips__field'>
+												<label>{t('home.filters.replayType')}</label>
+												<select value={filters.replayTypeId ?? ''} onChange={(e) => setFilters({ replayTypeId: e.target.value ? Number(e.target.value) : undefined, hasReplays: e.target.value ? true : filters.hasReplays })}>
+													<option value=''>— {t('home.filters.noType')} —</option>
+													{replayTypeOptions.map((t) => (
+														<option key={t.value} value={t.value}>
+															{t.label}
+														</option>
+													))}
+												</select>
+											</div>
+											<div className='game-filters-chips__popover-grid'>
+												<div className='game-filters-chips__field'>
+													<label>{t('home.filters.replayStarted')}</label>
+													<input
+														type='number'
+														min='1970'
+														max='2100'
+														placeholder={t('home.chips.yearPlaceholder')}
+														value={filters.replayStartedFrom ? filters.replayStartedFrom.substring(0, 4) : ''}
+														onChange={(e) =>
+															setFilters({
+																replayStartedFrom: e.target.value ? `${e.target.value}-01-01` : undefined,
+																replayStartedTo: e.target.value ? `${e.target.value}-12-31` : undefined,
+																hasReplays: e.target.value ? true : filters.hasReplays,
+															})
+														}
+													/>
+												</div>
+												<div className='game-filters-chips__field'>
+													<label>{t('home.filters.replayFinished')}</label>
+													<input
+														type='number'
+														min='1970'
+														max='2100'
+														placeholder={t('home.chips.yearPlaceholder')}
+														value={filters.replayFinishedFrom ? filters.replayFinishedFrom.substring(0, 4) : ''}
+														onChange={(e) =>
+															setFilters({
+																replayFinishedFrom: e.target.value ? `${e.target.value}-01-01` : undefined,
+																replayFinishedTo: e.target.value ? `${e.target.value}-12-31` : undefined,
+																hasReplays: e.target.value ? true : filters.hasReplays,
+															})
+														}
+													/>
+												</div>
+												<div className='game-filters-chips__field'>
+													<label>{t('common.min')}</label>
+													<input
+														type='number'
+														min='0'
+														max='100'
+														placeholder='0'
+														value={filters.replayGradeMin ?? ''}
+														onChange={(e) => setFilters({ replayGradeMin: e.target.value ? Number(e.target.value) : undefined, hasReplays: e.target.value ? true : filters.hasReplays })}
+													/>
+												</div>
+												<div className='game-filters-chips__field'>
+													<label>{t('common.max')}</label>
+													<input
+														type='number'
+														min='0'
+														max='100'
+														placeholder='100'
+														value={filters.replayGradeMax ?? ''}
+														onChange={(e) => setFilters({ replayGradeMax: e.target.value ? Number(e.target.value) : undefined, hasReplays: e.target.value ? true : filters.hasReplays })}
+													/>
+												</div>
+											</div>
+										</>
+									)}
+									<button
+										type='button'
+										className='game-filters-chips__clear-btn'
+										onClick={() =>
+											setFilters({
+												hasReplays: undefined,
 												replayTypeId: undefined,
 												replayStartedFrom: undefined,
 												replayStartedTo: undefined,
 												replayFinishedFrom: undefined,
 												replayFinishedTo: undefined,
+												replayGradeMin: undefined,
+												replayGradeMax: undefined,
+												replayMatchMode: undefined,
 											})
 										}>
 										{t('common.clear')}

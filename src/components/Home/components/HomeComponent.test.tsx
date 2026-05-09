@@ -1,7 +1,41 @@
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test/utils/renderWithProviders'
 import type { RootState } from '@/store'
+
+vi.mock('react-i18next', () => ({
+	useTranslation: () => ({
+		t: (key: string, options?: Record<string, unknown>) => {
+			const translations: Record<string, string> = {
+				'home.bulkUpdateSuccess': '{{updated}} of {{total}} games updated',
+				'home.columns.comment': 'Comment',
+				'home.columns.completion': 'Completion',
+				'home.columns.critic': 'Critic',
+				'home.columns.finished': 'Finished',
+				'home.columns.grade': 'Grade',
+				'home.columns.name': 'Name',
+				'home.columns.platform': 'Platform',
+				'home.columns.playStatus': 'Play status',
+				'home.columns.playWith': 'Play with',
+				'home.columns.released': 'Released',
+				'home.columns.score': 'Score',
+				'home.columns.started': 'Started',
+				'home.columns.status': 'Status',
+				'home.columns.story': 'Story',
+				'home.confirmDeleteGame': 'Delete game?',
+				'home.confirmDeleteSelected': 'Delete selected games?',
+				'home.noGames': 'No games found.',
+				'home.pagination': 'Página {{page}} de {{total}} · {{count}} juegos',
+			}
+
+			return (translations[key] ?? key)
+				.replace('{{updated}}', String(options?.updated ?? ''))
+				.replace('{{total}}', String(options?.total ?? ''))
+				.replace('{{page}}', String(options?.page ?? ''))
+				.replace('{{count}}', String(options?.count ?? ''))
+		},
+	}),
+}))
 
 const mockGames = [
 	{ id: 1, name: 'Dark Souls', statusId: 1, platformId: 1 },
@@ -188,6 +222,25 @@ describe('HomeComponent', () => {
 
 		await user.click(screen.getByTestId('view-card'))
 		expect(store.getState().theme.cardStyle).toBe('card')
+	})
+
+	it('refreshes the active game view when a replay mutation requests refresh', async () => {
+		const HomeComponent = await loadHomeComponent()
+		renderWithProviders(<HomeComponent />, {
+			preloadedState: {
+				...defaultState,
+				theme: { ...defaultState.theme!, viewMode: 'goty2025' },
+				games: {
+					...defaultState.games!,
+					needsRefresh: true,
+					filters: { page: 1, pageSize: 50, sortBy: 'name', sortDescending: false, releasedYear: 2026 } as any,
+				},
+			},
+		})
+
+		await waitFor(() => {
+			expect(mockRefreshGames).toHaveBeenCalledWith(expect.objectContaining({ releasedYear: 2026, viewName: 'goty2025' }))
+		})
 	})
 
 	it('calls deleteGameById with confirm when delete button is clicked', async () => {

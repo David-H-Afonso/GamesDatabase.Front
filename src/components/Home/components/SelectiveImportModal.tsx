@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Modal } from '@/components/elements'
 import { selectiveImportGames, parseCSVGameNames } from '@/services'
 import type { GameImportConfig, SelectiveImportRequest } from '@/models/api/ImportExport'
@@ -17,6 +18,7 @@ const ITEMS_PER_PAGE = 50
 const DEFAULT_GLOBAL_CONFIG: GameImportConfig = { mode: 'simple' }
 
 const SelectiveImportModal: React.FC<Props> = ({ isOpen, onClose, onImportComplete }) => {
+	const { t } = useTranslation()
 	const fileInputRef = useRef<HTMLInputElement>(null)
 
 	const [sourceType, setSourceType] = useState<'file' | 'text'>('file')
@@ -66,10 +68,10 @@ const SelectiveImportModal: React.FC<Props> = ({ isOpen, onClose, onImportComple
 			const names = await parseCSVGameNames(file)
 			setParsedGameNames(names)
 			if (names.length === 0) {
-				setMessage({ text: 'No games found in the uploaded CSV.', type: 'error' })
+				setMessage({ text: t('home.importModal.errorEmpty'), type: 'error' })
 			}
 		} catch {
-			setMessage({ text: 'Failed to parse the CSV file.', type: 'error' })
+			setMessage({ text: t('home.importModal.errorParse'), type: 'error' })
 		} finally {
 			setParsing(false)
 		}
@@ -124,11 +126,11 @@ const SelectiveImportModal: React.FC<Props> = ({ isOpen, onClose, onImportComple
 	const handleImport = async () => {
 		const source = sourceType === 'file' ? csvFile : csvText
 		if (!source || (typeof source === 'string' && !source.trim())) {
-			setMessage({ text: 'Please provide a CSV source.', type: 'error' })
+			setMessage({ text: t('home.importModal.errorNoSource'), type: 'error' })
 			return
 		}
 		if (parsedGameNames.length === 0) {
-			setMessage({ text: 'No games to import. Please check your CSV.', type: 'error' })
+			setMessage({ text: t('home.importModal.errorNoGames'), type: 'error' })
 			return
 		}
 
@@ -144,13 +146,17 @@ const SelectiveImportModal: React.FC<Props> = ({ isOpen, onClose, onImportComple
 			const hasErrors = result.errors && result.errors.length > 0
 
 			setMessage({
-				text: `Import complete. Imported: ${result.imported}, Updated: ${result.updated}.${hasErrors ? ` Errors: ${result.errors!.join('; ')}` : ''}`,
+				text: t('home.importModal.successImport', {
+					imported: result.imported,
+					updated: result.updated,
+					errors: hasErrors ? t('home.importModal.successErrors', { errors: result.errors!.join('; ') }) : '',
+				}),
 				type: hasErrors ? 'error' : 'success',
 			})
 
 			onImportComplete?.()
 		} catch (err) {
-			setMessage({ text: err instanceof Error ? err.message : 'Import failed.', type: 'error' })
+			setMessage({ text: err instanceof Error ? err.message : t('home.importModal.errorImport'), type: 'error' })
 		} finally {
 			setLoading(false)
 		}
@@ -166,15 +172,15 @@ const SelectiveImportModal: React.FC<Props> = ({ isOpen, onClose, onImportComple
 		<Modal
 			isOpen={isOpen}
 			onClose={handleClose}
-			title='Import Games'
+			title={t('home.importModal.title')}
 			maxWidth='780px'
 			footer={
 				<div className='sim__footer'>
 					<button type='button' className='sim__btn sim__btn--secondary' onClick={handleClose} disabled={loading}>
-						Cancel
+						{t('home.importModal.cancel')}
 					</button>
 					<button type='button' className='sim__btn sim__btn--primary' onClick={handleImport} disabled={!canImport}>
-						{loading ? 'Importing…' : `Import${parsedGameNames.length > 0 ? ` (${parsedGameNames.length} games)` : ''}`}
+						{loading ? t('home.importModal.importing') : parsedGameNames.length > 0 ? t('home.importModal.importBtn', { count: parsedGameNames.length }) : t('home.importModal.importBtnNoCount')}
 					</button>
 				</div>
 			}>
@@ -187,16 +193,16 @@ const SelectiveImportModal: React.FC<Props> = ({ isOpen, onClose, onImportComple
 
 				{/* ── Section 1: Source ─────────────────────────────────────────── */}
 				<section className='sim__section'>
-					<h3 className='sim__section-title'>1. CSV Source</h3>
+					<h3 className='sim__section-title'>{t('home.importModal.section1')}</h3>
 
 					<div className='sim__source-toggle'>
 						<label className={`sim__source-btn ${sourceType === 'file' ? 'is-active' : ''}`}>
 							<input type='radio' name='sim-source' checked={sourceType === 'file'} onChange={() => setSourceType('file')} />
-							Upload File
+							{t('home.importModal.uploadFile')}
 						</label>
 						<label className={`sim__source-btn ${sourceType === 'text' ? 'is-active' : ''}`}>
 							<input type='radio' name='sim-source' checked={sourceType === 'text'} onChange={() => setSourceType('text')} />
-							Paste Text
+							{t('home.importModal.pasteText')}
 						</label>
 					</div>
 
@@ -204,22 +210,22 @@ const SelectiveImportModal: React.FC<Props> = ({ isOpen, onClose, onImportComple
 						<div className='sim__file-input-wrapper'>
 							<input ref={fileInputRef} type='file' accept='.csv' className='sim__file-input' id='sim-file' onChange={handleFileChange} />
 							<label htmlFor='sim-file' className='sim__file-label'>
-								{csvFile ? csvFile.name : 'Choose a CSV file…'}
+								{csvFile ? csvFile.name : t('home.importModal.chooseFile')}
 							</label>
 						</div>
 					)}
 
 					{sourceType === 'text' && (
-						<textarea className='sim__text-input' placeholder='Paste CSV content here…' rows={6} value={csvText} onChange={(e) => handleTextChange(e.target.value)} />
+						<textarea className='sim__text-input' placeholder={t('home.importModal.textareaPlaceholder')} rows={6} value={csvText} onChange={(e) => handleTextChange(e.target.value)} />
 					)}
 
-					{parsing && <p className='sim__parsing-indicator'>Parsing CSV…</p>}
+					{parsing && <p className='sim__parsing-indicator'>{t('home.importModal.parsing')}</p>}
 				</section>
 
 				{/* ── Section 2: Preview ────────────────────────────────────────── */}
 				{parsedGameNames.length > 0 && (
 					<section className='sim__section'>
-						<h3 className='sim__section-title'>2. Games Found ({parsedGameNames.length})</h3>
+						<h3 className='sim__section-title'>{t('home.importModal.section2', { count: parsedGameNames.length })}</h3>
 						<div className='sim__preview-list'>
 							{parsedGameNames.map((name, index) => (
 								<span key={`${name}-${index}`} className='sim__preview-chip'>
@@ -233,11 +239,11 @@ const SelectiveImportModal: React.FC<Props> = ({ isOpen, onClose, onImportComple
 				{/* ── Section 3: Global Import Options ─────────────────────────── */}
 				{parsedGameNames.length > 0 && (
 					<section className='sim__section'>
-						<h3 className='sim__section-title'>3. Global Import Options</h3>
+						<h3 className='sim__section-title'>{t('home.importModal.section3')}</h3>
 						<p className='sim__section-desc'>
-							These rules apply to all games in the CSV unless a per-game override is configured below.
+							{t('home.importModal.globalDesc')}
 							<br />
-							<strong>Status</strong> cannot be cleaned — games with no matching status will automatically receive the <em>Not Fulfilled</em> status.
+							<strong>{t('home.importModal.statusNoteStrong')}</strong> {t('home.importModal.statusNote1')} <em>{t('home.importModal.statusNoteEm')}</em> {t('home.importModal.statusNote2')}
 						</p>
 						<PropertyConfigPanel panelMode='import' config={globalConfig} onChange={(cfg) => setGlobalConfig(cfg as GameImportConfig)} />
 					</section>
@@ -246,8 +252,8 @@ const SelectiveImportModal: React.FC<Props> = ({ isOpen, onClose, onImportComple
 				{/* ── Section 4: Per-game Overrides ────────────────────────────── */}
 				{parsedGameNames.length > 0 && (
 					<section className='sim__section'>
-						<h3 className='sim__section-title'>4. Per-Game Overrides (optional)</h3>
-						<p className='sim__section-desc'>Expand a game to set rules that override the global import options for that game only.</p>
+						<h3 className='sim__section-title'>{t('home.importModal.section4')}</h3>
+						<p className='sim__section-desc'>{t('home.importModal.overrideDesc')}</p>
 
 						<div className='sim__per-game-list'>
 							{pagedGameNames.map((name) => {
@@ -260,17 +266,17 @@ const SelectiveImportModal: React.FC<Props> = ({ isOpen, onClose, onImportComple
 										<button type='button' className='sim__per-game-header' onClick={() => toggleExpand(name)}>
 											<span className='sim__per-game-arrow'>{isExpanded ? '▾' : '▸'}</span>
 											<span className='sim__per-game-name'>{name}</span>
-											<span className='sim__per-game-badge'>{hasOverride ? 'Override active' : 'Using global'}</span>
+											<span className='sim__per-game-badge'>{hasOverride ? t('home.importModal.overrideActive') : t('home.importModal.usingGlobal')}</span>
 											{hasOverride && (
 												<button
 													type='button'
 													className='sim__per-game-reset'
-													title='Remove override'
+													title={t('home.importModal.removeOverride')}
 													onClick={(e) => {
 														e.stopPropagation()
 														updatePerGameConfig(name, null)
 													}}>
-													Reset
+													{t('home.importModal.resetOverride')}
 												</button>
 											)}
 										</button>
@@ -281,7 +287,7 @@ const SelectiveImportModal: React.FC<Props> = ({ isOpen, onClose, onImportComple
 													panelMode='import'
 													config={gameCfg}
 													onChange={(cfg) => updatePerGameConfig(name, cfg as GameImportConfig)}
-													headingLabel={`Override for: ${name}`}
+													headingLabel={t('home.importModal.overrideForLabel', { name })}
 												/>
 											</div>
 										)}
@@ -292,13 +298,13 @@ const SelectiveImportModal: React.FC<Props> = ({ isOpen, onClose, onImportComple
 						{pageCount > 1 && (
 							<div className='sim__pagination'>
 								<button className='sim__pagination-btn' onClick={() => setPerGamePage((p) => p - 1)} disabled={perGamePage === 0}>
-									← Prev
+									{t('home.importModal.prevPage')}
 								</button>
 								<span className='sim__pagination-info'>
-									Page {perGamePage + 1} of {pageCount}
+									{t('home.importModal.pageInfo', { page: perGamePage + 1, total: pageCount })}
 								</span>
 								<button className='sim__pagination-btn' onClick={() => setPerGamePage((p) => p + 1)} disabled={perGamePage >= pageCount - 1}>
-									Next →
+									{t('home.importModal.nextPage')}
 								</button>
 							</div>
 						)}

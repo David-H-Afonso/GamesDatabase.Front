@@ -24,6 +24,7 @@ const HomeComponent = () => {
 	const token = useAppSelector((s) => s.auth.token)
 	const filters = useAppSelector(selectGamesFilters)
 	const needsRefresh = useAppSelector(selectNeedsRefresh)
+	const viewMode = useAppSelector((s) => s.theme.viewMode ?? 'default')
 	const setFilters = (next: GameQueryParameters) => dispatch(setGamesFilters(next))
 	const [selectedGames, setSelectedGames] = useState<number[]>([])
 	const [bulkEditOpen, setBulkEditOpen] = useState(false)
@@ -38,9 +39,8 @@ const HomeComponent = () => {
 	useEffect(() => {
 		if (!needsRefresh) return
 		dispatch(clearGamesRefresh())
-		void refreshGames(filtersRef.current)
-	}, [needsRefresh, dispatch, refreshGames])
-	const viewMode = useAppSelector((s) => s.theme.viewMode ?? 'default')
+		void refreshGames({ ...filtersRef.current, viewName: viewMode })
+	}, [needsRefresh, dispatch, refreshGames, viewMode])
 	const [viewError, setViewError] = useState<string | null>(null)
 
 	const prevViewModeRef = useRef<string>(viewMode)

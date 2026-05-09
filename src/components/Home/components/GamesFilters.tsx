@@ -162,6 +162,30 @@ const GamesFilters: React.FC<Props> = ({ value, onChange, isOpen = true, onClear
 				onChange={(e) => update({ finishedYear: e.target.value ? Number(e.target.value) : undefined })}
 				className='gf-input'
 			/>
+			<div className='gf-checkbox-row' style={{ marginTop: '8px', marginBottom: '8px' }}>
+				<label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+					<input
+						type='checkbox'
+						checked={value.includeReplayDates !== false}
+						onChange={(e) => update({ includeReplayDates: e.target.checked ? undefined : false })}
+						style={{ marginRight: '8px' }}
+					/>
+					<span style={{ fontSize: '13px', fontWeight: 'bold' }}>Include replay dates</span>
+				</label>
+			</div>
+
+			<select
+				aria-label='Replay presence filter'
+				value={value.hasReplays === true ? 'true' : value.hasReplays === false ? 'false' : ''}
+				onChange={(e) => {
+					const val = e.target.value
+					update({ hasReplays: val === '' ? undefined : val === 'true' })
+				}}
+				className='gf-select'>
+				<option value=''>All Replays</option>
+				<option value='true'>With Replays</option>
+				<option value='false'>Without Replays</option>
+			</select>
 
 			<select
 				aria-label='Page size'

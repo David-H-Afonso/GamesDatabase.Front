@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { getGames } from '@/services/GamesService'
 import type { Game } from '@/models/api/Game'
 import './GameSelectorPanel.scss'
@@ -18,6 +19,7 @@ interface GameSelectorPanelProps {
 const SEARCH_LIMIT = 20
 
 const GameSelectorPanel: React.FC<GameSelectorPanelProps> = ({ selectedGames, onSelectionChange, preSelectedGames = [] }) => {
+	const { t } = useTranslation()
 	const [searchText, setSearchText] = useState('')
 	const [searchResults, setSearchResults] = useState<Game[]>([])
 	const [searching, setSearching] = useState(false)
@@ -78,13 +80,20 @@ const GameSelectorPanel: React.FC<GameSelectorPanelProps> = ({ selectedGames, on
 		<div className='gsp'>
 			{/* Left: search */}
 			<div className='gsp__search-panel'>
-				<p className='gsp__panel-title'>Search &amp; Add Games</p>
-				<input type='text' className='gsp__search-input' placeholder='Type a game name…' value={searchText} onChange={(e) => setSearchText(e.target.value)} autoFocus />
+				<p className='gsp__panel-title'>{t('home.gameSelector.panelTitle')}</p>
+				<input
+					type='text'
+					className='gsp__search-input'
+					placeholder={t('home.gameSelector.searchPlaceholder')}
+					value={searchText}
+					onChange={(e) => setSearchText(e.target.value)}
+					autoFocus
+				/>
 
 				<div className='gsp__results'>
-					{searching && <p className='gsp__status'>Searching…</p>}
+					{searching && <p className='gsp__status'>{t('home.gameSelector.searching')}</p>}
 
-					{!searching && searchText.trim() && searchResults.length === 0 && <p className='gsp__status'>No games found.</p>}
+					{!searching && searchText.trim() && searchResults.length === 0 && <p className='gsp__status'>{t('home.gameSelector.noGames')}</p>}
 
 					{!searching &&
 						searchResults.map((game) => (
@@ -99,16 +108,16 @@ const GameSelectorPanel: React.FC<GameSelectorPanelProps> = ({ selectedGames, on
 			{/* Right: selected games */}
 			<div className='gsp__selected-panel'>
 				<p className='gsp__panel-title'>
-					Selected <span className='gsp__count'>{selectedGames.length}</span>
+					{t('home.gameSelector.selected')} <span className='gsp__count'>{selectedGames.length}</span>
 				</p>
 
 				<div className='gsp__selected-list'>
-					{selectedGames.length === 0 && <p className='gsp__status'>No games selected yet.</p>}
+					{selectedGames.length === 0 && <p className='gsp__status'>{t('home.gameSelector.noneSelected')}</p>}
 
 					{selectedGames.map((game) => (
 						<div key={game.id} className='gsp__selected-item'>
 							<span className='gsp__selected-name'>{game.name}</span>
-							<button type='button' className='gsp__selected-remove' aria-label={`Remove ${game.name}`} onClick={() => removeGame(game.id)}>
+							<button type='button' className='gsp__selected-remove' aria-label={t('home.gameSelector.removeGame', { name: game.name })} onClick={() => removeGame(game.id)}>
 								×
 							</button>
 						</div>

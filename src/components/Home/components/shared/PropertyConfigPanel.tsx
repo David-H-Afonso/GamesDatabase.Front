@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback, useId } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useGameStatus, useGamePlatform, useGamePlayWith, useGamePlayedStatus } from '@/hooks'
 import { GAME_PROPERTY_FIELDS } from '@/models/api/ImportExport'
 import type { ConfigurableGameProperty, GameImportConfig, GameExportConfig, ImportPropertyOverride, ExportPropertyOverride } from '@/models/api/ImportExport'
@@ -21,6 +22,7 @@ interface PropertyConfigPanelProps {
 }
 
 const PropertyConfigPanel: React.FC<PropertyConfigPanelProps> = ({ panelMode, config, onChange, headingLabel }) => {
+	const { t } = useTranslation()
 	const radioGroupId = useId()
 	const { fetchActiveStatusList } = useGameStatus()
 	const { fetchList: fetchPlatforms } = useGamePlatform()
@@ -135,11 +137,11 @@ const PropertyConfigPanel: React.FC<PropertyConfigPanelProps> = ({ panelMode, co
 
 		const selectEditor = (options: Option[]) => (
 			<select
-				aria-label={`${field.label} custom value`}
+				aria-label={t('home.propertyConfig.ariaCustomValue', { field: field.label })}
 				className='pcp__custom-select'
 				value={currentValue}
 				onChange={(e) => handleCustomValueChange(propKey, e.target.value || null)}>
-				<option value=''>— select —</option>
+				<option value=''>{t('home.propertyConfig.dropdownDefault')}</option>
 				{options.map((o) => (
 					<option key={o.value} value={o.value}>
 						{o.label}
@@ -187,9 +189,9 @@ const PropertyConfigPanel: React.FC<PropertyConfigPanelProps> = ({ panelMode, co
 				)
 			case 'criticProvider':
 				return selectEditor([
-					{ value: 'Metacritic', label: 'Metacritic' },
-					{ value: 'OpenCritic', label: 'OpenCritic' },
-					{ value: 'SteamDB', label: 'SteamDB' },
+					{ value: 'Metacritic', label: t('home.propertyConfig.criticMetacritic') },
+					{ value: 'OpenCritic', label: t('home.propertyConfig.criticOpenCritic') },
+					{ value: 'SteamDB', label: t('home.propertyConfig.criticSteamDB') },
 				])
 			case 'number':
 				return (
@@ -198,7 +200,7 @@ const PropertyConfigPanel: React.FC<PropertyConfigPanelProps> = ({ panelMode, co
 						className='pcp__custom-input'
 						min={field.numberMin}
 						max={field.numberMax}
-						placeholder={field.numberMin !== undefined && field.numberMax !== undefined ? `${field.numberMin}–${field.numberMax}` : 'Enter number…'}
+						placeholder={field.numberMin !== undefined && field.numberMax !== undefined ? t('home.propertyConfig.numberPlaceholder', { min: field.numberMin, max: field.numberMax }) : t('home.propertyConfig.numberPlaceholderGeneric')}
 						value={currentValue}
 						onChange={(e) => handleCustomValueChange(propKey, e.target.value || null)}
 					/>
@@ -207,15 +209,15 @@ const PropertyConfigPanel: React.FC<PropertyConfigPanelProps> = ({ panelMode, co
 				return <input type='date' className='pcp__custom-input' value={currentValue} onChange={(e) => handleCustomValueChange(propKey, e.target.value || null)} />
 			case 'boolean':
 				return selectEditor([
-					{ value: 'true', label: 'True (cheaper by key)' },
-					{ value: 'false', label: 'False (cheaper in store)' },
+					{ value: 'true', label: t('home.propertyConfig.boolTrue') },
+					{ value: 'false', label: t('home.propertyConfig.boolFalse') },
 				])
 			case 'text':
 				return (
 					<input
 						type='text'
 						className='pcp__custom-input'
-						placeholder='Enter value…'
+						placeholder={t('home.propertyConfig.textPlaceholder')}
 						value={currentValue}
 						onChange={(e) => handleCustomValueChange(propKey, e.target.value || null)}
 					/>
@@ -235,15 +237,15 @@ const PropertyConfigPanel: React.FC<PropertyConfigPanelProps> = ({ panelMode, co
 			<div className='pcp__mode-toggle'>
 				<label className={`pcp__mode-btn ${config.mode === 'simple' ? 'is-active' : ''}`}>
 					<input type='radio' name={radioGroupId} checked={config.mode === 'simple'} onChange={() => handleModeToggle('simple')} />
-					{panelMode === 'import' ? 'As Imported (all)' : 'As Stored (all)'}
+					{panelMode === 'import' ? t('home.propertyConfig.modeAsImported') : t('home.propertyConfig.modeAsStored')}
 				</label>
 				<label className={`pcp__mode-btn ${config.mode === 'customCleared' ? 'is-active' : ''}`}>
 					<input type='radio' name={radioGroupId} checked={config.mode === 'customCleared'} onChange={() => handleModeToggle('customCleared')} />
-					Custom Cleared
+					{t('home.propertyConfig.modeCustomCleared')}
 				</label>
 				<label className={`pcp__mode-btn ${config.mode === 'custom' ? 'is-active' : ''}`}>
 					<input type='radio' name={radioGroupId} checked={config.mode === 'custom'} onChange={() => handleModeToggle('custom')} />
-					Custom (per property)
+					{t('home.propertyConfig.modeCustom')}
 				</label>
 			</div>
 
@@ -252,12 +254,11 @@ const PropertyConfigPanel: React.FC<PropertyConfigPanelProps> = ({ panelMode, co
 				<p className='pcp__mode-desc'>
 					{panelMode === 'export' ? (
 						<>
-							Clears personal fields (<strong>Started, Finished, Grade, Comment, Status, Play With</strong>) and keeps all other fields as stored. Useful for sharing a clean copy.
+							{t('home.propertyConfig.customClearedExportDesc1')}<strong>{t('home.propertyConfig.customClearedExportFields')}</strong>{t('home.propertyConfig.customClearedExportDesc2')}
 						</>
 					) : (
 						<>
-							Ignores personal fields from the CSV (<strong>Started, Finished, Grade, Comment, Status, Play With</strong>) and keeps all other values as imported. Status falls back
-							to <em>Not Fulfilled</em>.
+							{t('home.propertyConfig.customClearedImportDesc1')}<strong>{t('home.propertyConfig.customClearedImportFields')}</strong>{t('home.propertyConfig.customClearedImportDesc2')}<em>{t('home.propertyConfig.customClearedImportFallback')}</em>{t('home.propertyConfig.customClearedImportDesc3')}
 						</>
 					)}
 				</p>
@@ -268,9 +269,9 @@ const PropertyConfigPanel: React.FC<PropertyConfigPanelProps> = ({ panelMode, co
 				<table className='pcp__table'>
 					<thead>
 						<tr>
-							<th>Property</th>
-							<th>Mode</th>
-							{panelMode === 'import' && <th>Custom Value</th>}
+							<th>{t('home.propertyConfig.tableProperty')}</th>
+							<th>{t('home.propertyConfig.tableMode')}</th>
+							{panelMode === 'import' && <th>{t('home.propertyConfig.tableCustomValue')}</th>}
 						</tr>
 					</thead>
 					<tbody>
@@ -280,18 +281,18 @@ const PropertyConfigPanel: React.FC<PropertyConfigPanelProps> = ({ panelMode, co
 							const modeOptions =
 								panelMode === 'import'
 									? [
-											{ value: 'asImported', label: 'As Imported' },
-											...(field.canCleanOnImport ? [{ value: 'clean', label: 'Clean' }] : []),
-											...(field.canCustomOnImport ? [{ value: 'custom', label: 'Custom Value' }] : []),
+											{ value: 'asImported', label: t('home.propertyConfig.perModeAsImported') },
+											...(field.canCleanOnImport ? [{ value: 'clean', label: t('home.propertyConfig.perModeClean') }] : []),
+											...(field.canCustomOnImport ? [{ value: 'custom', label: t('home.propertyConfig.perModeCustom') }] : []),
 										]
-									: [{ value: 'asStored', label: 'As Stored' }, ...(field.canCleanOnExport ? [{ value: 'clean', label: 'Clean' }] : [])]
+									: [{ value: 'asStored', label: t('home.propertyConfig.perModeAsStored') }, ...(field.canCleanOnExport ? [{ value: 'clean', label: t('home.propertyConfig.perModeClean') }] : [])]
 
 							return (
 								<tr key={field.key} className={`pcp__row ${propMode !== 'asImported' && propMode !== 'asStored' ? 'pcp__row--modified' : ''}`}>
-									<td className='pcp__label'>{field.label}</td>
+									<td className='pcp__label'>{t(`home.propertyConfig.fields.${field.key}` as any)}</td>
 									<td className='pcp__mode-cell'>
 										<select
-											aria-label={`${field.label} import/export mode`}
+											aria-label={t('home.propertyConfig.ariaMode', { field: field.label })}
 											className='pcp__mode-select'
 											value={propMode}
 											onChange={(e) => handlePropertyModeChange(field.key, e.target.value)}>

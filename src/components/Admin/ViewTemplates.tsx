@@ -27,7 +27,7 @@ const VIEW_TEMPLATES: ViewTemplate[] = [
 	{
 		id: 'goty',
 		name: 'GOTY',
-		description: 'Juegos lanzados en el año seleccionado que hayas jugado o rejugado ese año. Ordenados por nota.',
+		description: 'Juegos lanzados en el año seleccionado que hayas jugado o rejugado ese año. Ordenados por nota relevante.',
 		icon: '🏆',
 		params: [{ key: 'year', label: 'Año', type: 'year', defaultValue: String(currentYear) }],
 		generate: ({ year }) => {
@@ -38,8 +38,11 @@ const VIEW_TEMPLATES: ViewTemplate[] = [
 				configuration: {
 					filterGroups: [
 						{
-							filters: [{ field: FilterField.Released, operator: FilterOperator.Between, value: `${y}-01-01`, secondValue: `${y}-12-31` }],
-							combineWith: CombineWith.And,
+							filters: [
+								{ field: FilterField.Released, operator: FilterOperator.Between, value: `${y}-01-01`, secondValue: `${y}-12-31` },
+								{ field: FilterField.ReplayReleased, operator: FilterOperator.Between, value: `${y}-01-01`, secondValue: `${y}-12-31` },
+							],
+							combineWith: CombineWith.Or,
 						},
 						{
 							filters: [
@@ -53,7 +56,7 @@ const VIEW_TEMPLATES: ViewTemplate[] = [
 					],
 					groupCombineWith: CombineWith.And,
 					sorting: [
-						{ field: SortField.Grade, direction: SortDirection.Descending, order: 1 },
+						{ field: SortField.EffectiveGrade, direction: SortDirection.Descending, order: 1 },
 						{ field: SortField.Name, direction: SortDirection.Ascending, order: 2 },
 					],
 				},
@@ -63,7 +66,7 @@ const VIEW_TEMPLATES: ViewTemplate[] = [
 	{
 		id: 'played-year',
 		name: 'Jugados en año',
-		description: 'Todos los juegos que empezaste o terminaste en el año seleccionado, sin importar cuándo salieron.',
+		description: 'Todos los juegos que empezaste o terminaste en el año seleccionado, incluyendo rejugadas.',
 		icon: '🎮',
 		params: [{ key: 'year', label: 'Año', type: 'year', defaultValue: String(currentYear) }],
 		generate: ({ year }) => {
@@ -77,14 +80,17 @@ const VIEW_TEMPLATES: ViewTemplate[] = [
 							filters: [
 								{ field: FilterField.Started, operator: FilterOperator.Between, value: `${y}-01-01`, secondValue: `${y}-12-31` },
 								{ field: FilterField.Finished, operator: FilterOperator.Between, value: `${y}-01-01`, secondValue: `${y}-12-31` },
+								{ field: FilterField.ReplayStarted, operator: FilterOperator.Between, value: `${y}-01-01`, secondValue: `${y}-12-31` },
+								{ field: FilterField.ReplayFinished, operator: FilterOperator.Between, value: `${y}-01-01`, secondValue: `${y}-12-31` },
 							],
 							combineWith: CombineWith.Or,
 						},
 					],
 					groupCombineWith: CombineWith.And,
 					sorting: [
-						{ field: SortField.Finished, direction: SortDirection.Descending, order: 1 },
-						{ field: SortField.Name, direction: SortDirection.Ascending, order: 2 },
+						{ field: SortField.EffectiveFinished, direction: SortDirection.Descending, order: 1 },
+						{ field: SortField.EffectiveStarted, direction: SortDirection.Descending, order: 2 },
+						{ field: SortField.Name, direction: SortDirection.Ascending, order: 3 },
 					],
 				},
 			}
@@ -141,7 +147,7 @@ const VIEW_TEMPLATES: ViewTemplate[] = [
 	{
 		id: 'released-year',
 		name: 'Lanzados en año',
-		description: 'Juegos lanzados en el año seleccionado, sin importar si los jugaste o no.',
+		description: 'Juegos o rejugadas lanzados en el año seleccionado, sin importar si los jugaste o no.',
 		icon: '📅',
 		params: [{ key: 'year', label: 'Año', type: 'year', defaultValue: String(currentYear) }],
 		generate: ({ year }) => {
@@ -152,13 +158,16 @@ const VIEW_TEMPLATES: ViewTemplate[] = [
 				configuration: {
 					filterGroups: [
 						{
-							filters: [{ field: FilterField.Released, operator: FilterOperator.Between, value: `${y}-01-01`, secondValue: `${y}-12-31` }],
-							combineWith: CombineWith.And,
+							filters: [
+								{ field: FilterField.Released, operator: FilterOperator.Between, value: `${y}-01-01`, secondValue: `${y}-12-31` },
+								{ field: FilterField.ReplayReleased, operator: FilterOperator.Between, value: `${y}-01-01`, secondValue: `${y}-12-31` },
+							],
+							combineWith: CombineWith.Or,
 						},
 					],
 					groupCombineWith: CombineWith.And,
 					sorting: [
-						{ field: SortField.Released, direction: SortDirection.Ascending, order: 1 },
+						{ field: SortField.EffectiveReleased, direction: SortDirection.Ascending, order: 1 },
 						{ field: SortField.Name, direction: SortDirection.Ascending, order: 2 },
 					],
 				},

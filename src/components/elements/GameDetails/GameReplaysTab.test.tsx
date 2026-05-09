@@ -2,6 +2,39 @@ import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test/utils/renderWithProviders'
 
+vi.mock('react-i18next', () => ({
+	useTranslation: () => ({
+		t: (key: string, options?: Record<string, unknown>) => {
+			const count = Number(options?.count ?? 0)
+			const translations: Record<string, string> = {
+				'common.cancel': 'Cancel',
+				'common.create': 'Create',
+				'common.delete': 'Delete',
+				'common.edit': 'Edit',
+				'common.optional': 'Optional',
+				'common.saveChanges': 'Save changes',
+				'common.saving': 'Saving...',
+				'game.replays.addReplay': 'Add replay',
+				'game.replays.confirmDelete': 'Delete this replay?',
+				'game.replays.count': count === 1 ? '1 entry' : '{{count}} entries',
+				'game.replays.editReplay': 'Edit replay',
+				'game.replays.finished': 'Finished',
+				'game.replays.grade': 'Grade (0–100)',
+				'game.replays.loading': 'Loading replays...',
+				'game.replays.newReplay': 'New replay',
+				'game.replays.noReplays': 'No replays recorded.',
+				'game.replays.noType': 'No type',
+				'game.replays.notes': 'Notes',
+				'game.replays.released': 'Release date',
+				'game.replays.started': 'Started',
+				'game.replays.type': 'Type',
+			}
+
+			return (translations[key] ?? key).replace('{{count}}', String(count))
+		},
+	}),
+}))
+
 const mockReplays = [
 	{
 		id: 1,
@@ -53,7 +86,7 @@ describe('GameReplaysTab', () => {
 		const { GameReplaysTab } = await import('./GameReplaysTab')
 		renderWithProviders(<GameReplaysTab gameId={1} />)
 
-		expect(screen.getByText('Cargando rejugadas...')).toBeInTheDocument()
+		expect(screen.getByText('Loading replays...')).toBeInTheDocument()
 	})
 
 	it('renders replays after loading', async () => {
@@ -61,7 +94,7 @@ describe('GameReplaysTab', () => {
 		renderWithProviders(<GameReplaysTab gameId={1} />)
 
 		await waitFor(() => {
-			expect(screen.getByText('1 rejugada')).toBeInTheDocument()
+			expect(screen.getByText('1 entry')).toBeInTheDocument()
 		})
 
 		expect(screen.getByText('New Game+')).toBeInTheDocument()
@@ -75,7 +108,7 @@ describe('GameReplaysTab', () => {
 		renderWithProviders(<GameReplaysTab gameId={1} />)
 
 		await waitFor(() => {
-			expect(screen.getByText('Sin rejugadas registradas.')).toBeInTheDocument()
+			expect(screen.getByText('No replays recorded.')).toBeInTheDocument()
 		})
 	})
 
@@ -84,17 +117,17 @@ describe('GameReplaysTab', () => {
 		renderWithProviders(<GameReplaysTab gameId={1} />)
 
 		await waitFor(() => {
-			expect(screen.getByText('+ Añadir rejugada')).toBeInTheDocument()
+			expect(screen.getByText('+ Add replay')).toBeInTheDocument()
 		})
 
-		await user.click(screen.getByText('+ Añadir rejugada'))
+		await user.click(screen.getByText('+ Add replay'))
 
-		expect(screen.getByText('Nueva rejugada')).toBeInTheDocument()
-		expect(screen.getByLabelText('Tipo')).toBeInTheDocument()
-		expect(screen.getByLabelText('Inicio')).toBeInTheDocument()
-		expect(screen.getByLabelText('Fin')).toBeInTheDocument()
-		expect(screen.getByLabelText('Nota (0-100)')).toBeInTheDocument()
-		expect(screen.getByLabelText('Notas')).toBeInTheDocument()
+		expect(screen.getByText('New replay')).toBeInTheDocument()
+		expect(screen.getByLabelText('Type')).toBeInTheDocument()
+		expect(screen.getByLabelText('Started')).toBeInTheDocument()
+		expect(screen.getByLabelText('Finished')).toBeInTheDocument()
+		expect(screen.getByLabelText('Grade (0–100)')).toBeInTheDocument()
+		expect(screen.getByLabelText('Notes')).toBeInTheDocument()
 	})
 
 	it('opens edit form when Editar button is clicked', async () => {
@@ -102,13 +135,13 @@ describe('GameReplaysTab', () => {
 		renderWithProviders(<GameReplaysTab gameId={1} />)
 
 		await waitFor(() => {
-			expect(screen.getByText('Editar')).toBeInTheDocument()
+			expect(screen.getByText('Edit')).toBeInTheDocument()
 		})
 
-		await user.click(screen.getByText('Editar'))
+		await user.click(screen.getByText('Edit'))
 
-		expect(screen.getByText('Editar rejugada')).toBeInTheDocument()
-		expect(screen.getByText('Guardar cambios')).toBeInTheDocument()
+		expect(screen.getByText('Edit replay')).toBeInTheDocument()
+		expect(screen.getByText('Save changes')).toBeInTheDocument()
 	})
 
 	it('deletes a replay after confirmation', async () => {
@@ -117,10 +150,10 @@ describe('GameReplaysTab', () => {
 		renderWithProviders(<GameReplaysTab gameId={1} />)
 
 		await waitFor(() => {
-			expect(screen.getByText('Eliminar')).toBeInTheDocument()
+			expect(screen.getByText('Delete')).toBeInTheDocument()
 		})
 
-		await user.click(screen.getByText('Eliminar'))
+		await user.click(screen.getByText('Delete'))
 
 		expect(mockDeleteGameReplay).toHaveBeenCalledWith(1, 1)
 		vi.mocked(globalThis.confirm).mockRestore()
@@ -131,14 +164,14 @@ describe('GameReplaysTab', () => {
 		renderWithProviders(<GameReplaysTab gameId={1} />)
 
 		await waitFor(() => {
-			expect(screen.getByText('+ Añadir rejugada')).toBeInTheDocument()
+			expect(screen.getByText('+ Add replay')).toBeInTheDocument()
 		})
 
-		await user.click(screen.getByText('+ Añadir rejugada'))
-		expect(screen.getByText('Nueva rejugada')).toBeInTheDocument()
+		await user.click(screen.getByText('+ Add replay'))
+		expect(screen.getByText('New replay')).toBeInTheDocument()
 
-		await user.click(screen.getByText('Cancelar'))
-		expect(screen.queryByText('Nueva rejugada')).not.toBeInTheDocument()
+		await user.click(screen.getByText('Cancel'))
+		expect(screen.queryByText('New replay')).not.toBeInTheDocument()
 	})
 
 	it('submits new replay form', async () => {
@@ -148,11 +181,11 @@ describe('GameReplaysTab', () => {
 		renderWithProviders(<GameReplaysTab gameId={1} />)
 
 		await waitFor(() => {
-			expect(screen.getByText('+ Añadir rejugada')).toBeInTheDocument()
+			expect(screen.getByText('+ Add replay')).toBeInTheDocument()
 		})
 
-		await user.click(screen.getByText('+ Añadir rejugada'))
-		await user.click(screen.getByText('Crear'))
+		await user.click(screen.getByText('+ Add replay'))
+		await user.click(screen.getByText('Create'))
 
 		await waitFor(() => {
 			expect(mockCreateGameReplay).toHaveBeenCalled()

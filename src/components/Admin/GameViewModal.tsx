@@ -259,8 +259,8 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 					filters: group.filters.map((f) => {
 						const out: any = { ...f }
 
-						// Date-like fields (Released, Started, Finished, ReleaseDate) -> YYYY-MM-DD
-						if ([FilterField.Released, FilterField.Started, FilterField.Finished, FilterField.ReleaseDate].includes(f.field as any)) {
+						// Date-like fields -> YYYY-MM-DD
+						if ([FilterField.Released, FilterField.Started, FilterField.Finished, FilterField.ReleaseDate, FilterField.ReplayStarted, FilterField.ReplayFinished, FilterField.ReplayReleased].includes(f.field as any)) {
 							if (f.value === '' || f.value === null || f.value === undefined) {
 								out.value = null
 							} else if (Array.isArray(f.value)) {
@@ -406,7 +406,15 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 		// Numeric score fields - may support more operators
 		const NUMERIC_SCORE_FIELDS = [FilterField.Score, FilterField.Grade, FilterField.Critic, FilterField.Story, FilterField.Completion, FilterField.ReplayGrade]
 		// Date fields - ONLY Equals/GreaterThanOrEqual/LessThanOrEqual supported
-		const DATE_FIELDS = [FilterField.Released, FilterField.Started, FilterField.Finished, FilterField.ReleaseDate, FilterField.ReplayStarted, FilterField.ReplayFinished]
+		const DATE_FIELDS = [
+			FilterField.Released,
+			FilterField.Started,
+			FilterField.Finished,
+			FilterField.ReleaseDate,
+			FilterField.ReplayStarted,
+			FilterField.ReplayFinished,
+			FilterField.ReplayReleased,
+		]
 		const DATETIME_FIELDS = [FilterField.CreatedAt, FilterField.UpdatedAt]
 
 		// Text field operators
@@ -464,21 +472,26 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 		{ value: SortField.Name, label: t('game.filters.fieldName') },
 		{ value: SortField.Status, label: t('game.filters.fieldStatus') },
 		{ value: SortField.Released, label: t('game.filters.fieldReleased') },
+		{ value: SortField.EffectiveReleased, label: t('game.filters.fieldEffectiveReleased') },
 		{ value: SortField.Started, label: t('game.filters.fieldStarted') },
 		{ value: SortField.Finished, label: t('game.filters.fieldFinished') },
+		{ value: SortField.EffectiveStarted, label: t('game.filters.fieldEffectiveStarted') },
+		{ value: SortField.EffectiveFinished, label: t('game.filters.fieldEffectiveFinished') },
 		{ value: SortField.Score, label: t('game.filters.fieldScore') },
 		{ value: SortField.Grade, label: t('game.filters.fieldGrade') },
+		{ value: SortField.EffectiveGrade, label: t('game.filters.fieldEffectiveGrade') },
 		{ value: SortField.Critic, label: t('game.filters.fieldCritic') },
 		{ value: SortField.CreatedAt, label: t('game.filters.fieldCreatedAt') },
 		{ value: SortField.UpdatedAt, label: t('game.filters.fieldUpdatedAt') },
 	]
 
-	const REPLAY_FIELDS = [FilterField.ReplayStarted, FilterField.ReplayFinished, FilterField.ReplayGrade, FilterField.ReplayTypeId]
+	const REPLAY_FIELDS = [FilterField.ReplayStarted, FilterField.ReplayFinished, FilterField.ReplayReleased, FilterField.ReplayGrade, FilterField.ReplayTypeId]
 	const isReplayField = (field: string) => REPLAY_FIELDS.includes(field as any)
 
 	const getReplaySubOptions = () => [
 		{ value: FilterField.ReplayStarted, label: t('game.filters.replayStarted') },
 		{ value: FilterField.ReplayFinished, label: t('game.filters.replayFinished') },
+		{ value: FilterField.ReplayReleased, label: t('game.filters.replayReleased') },
 		{ value: FilterField.ReplayGrade, label: t('game.filters.replayGrade') },
 		{ value: FilterField.ReplayTypeId, label: t('game.filters.replayType') },
 	]
@@ -488,7 +501,15 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 	}
 
 	const isDateLikeField = (field: string) => {
-		return [FilterField.Released, FilterField.Started, FilterField.Finished, FilterField.ReleaseDate, FilterField.ReplayStarted, FilterField.ReplayFinished].includes(field as any)
+		return [
+			FilterField.Released,
+			FilterField.Started,
+			FilterField.Finished,
+			FilterField.ReleaseDate,
+			FilterField.ReplayStarted,
+			FilterField.ReplayFinished,
+			FilterField.ReplayReleased,
+		].includes(field as any)
 	}
 
 	const isDateTimeField = (field: string) => {

@@ -22,8 +22,21 @@ const FILTER_KEYS: (keyof GameQueryParameters)[] = [
 	'startedYear',
 	'finished',
 	'finishedYear',
+	'includeReplayDates',
 	'excludeStatusIds',
+	'isCheaperByKey',
+	'showIncomplete',
+	'criticProvider',
 	'viewName',
+	'replayStartedFrom',
+	'replayStartedTo',
+	'replayFinishedFrom',
+	'replayFinishedTo',
+	'replayTypeId',
+	'replayGradeMin',
+	'replayGradeMax',
+	'hasReplays',
+	'replayMatchMode',
 ]
 
 /** Normalize null -> undefined for consistent comparisons */
@@ -85,5 +98,6 @@ export const cloneFilters = (filters: GameQueryParameters): GameQueryParameters 
 	startedYear: filters.startedYear,
 	finished: cloneDateOrValue(filters.finished) as GameQueryParameters['finished'],
 	finishedYear: filters.finishedYear,
+	includeReplayDates: filters.includeReplayDates,
 	excludeStatusIds: filters.excludeStatusIds ? [...filters.excludeStatusIds] : undefined,
 })

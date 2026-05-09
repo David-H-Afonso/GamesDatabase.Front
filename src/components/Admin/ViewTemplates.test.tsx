@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { FilterField, SortField } from '@/models/api/GameView'
 
 async function loadComponent() {
 	const mod = await import('./ViewTemplates')
@@ -22,11 +23,11 @@ describe('ViewTemplates', () => {
 		const C = await loadComponent()
 		render(<C onCreateFromTemplate={mockOnCreate} onClose={mockOnClose} />)
 		expect(screen.getByText('GOTY')).toBeInTheDocument()
-		expect(screen.getByText('Jugados en año')).toBeInTheDocument()
+		expect(screen.getByText('Jugados en Año')).toBeInTheDocument()
 		expect(screen.getByText('Mejores por Score')).toBeInTheDocument()
 		expect(screen.getByText('Mejores por Nota')).toBeInTheDocument()
-		expect(screen.getByText('Lanzados en año')).toBeInTheDocument()
-		expect(screen.getByText('Añadidos recientemente')).toBeInTheDocument()
+		expect(screen.getByText('Lanzados en Año')).toBeInTheDocument()
+		expect(screen.getByText('Añadidos Recientemente')).toBeInTheDocument()
 	})
 
 	it('shows config view when clicking a template with params', async () => {
@@ -62,6 +63,61 @@ describe('ViewTemplates', () => {
 		await user.click(screen.getByText('GOTY'))
 		await user.click(screen.getByText('Crear Vista'))
 		expect(mockOnCreate).toHaveBeenCalledWith(expect.objectContaining({ name: expect.stringContaining('GOTY') }))
+	})
+
+	it('generates replay-aware sorting for year templates', async () => {
+		const C = await loadComponent()
+		const user = userEvent.setup()
+		render(<C onCreateFromTemplate={mockOnCreate} onClose={mockOnClose} />)
+
+		await user.click(screen.getByText('GOTY'))
+		await user.click(screen.getByText('Crear Vista'))
+		expect(mockOnCreate).toHaveBeenLastCalledWith(
+			expect.objectContaining({
+				configuration: expect.objectContaining({
+					filterGroups: expect.arrayContaining([
+						expect.objectContaining({
+							filters: expect.arrayContaining([expect.objectContaining({ field: FilterField.ReplayReleased })]),
+						}),
+					]),
+					sorting: expect.arrayContaining([expect.objectContaining({ field: SortField.EffectiveGrade })]),
+				}),
+			})
+		)
+
+		mockOnCreate.mockClear()
+		await user.click(screen.getByText('← Volver'))
+		await user.click(screen.getByText('Jugados en Año'))
+		await user.click(screen.getByText('Crear Vista'))
+		expect(mockOnCreate).toHaveBeenLastCalledWith(
+			expect.objectContaining({
+				configuration: expect.objectContaining({
+					filterGroups: expect.arrayContaining([
+						expect.objectContaining({
+							filters: expect.arrayContaining([expect.objectContaining({ field: FilterField.ReplayStarted }), expect.objectContaining({ field: FilterField.ReplayFinished })]),
+						}),
+					]),
+					sorting: expect.arrayContaining([expect.objectContaining({ field: SortField.EffectiveFinished }), expect.objectContaining({ field: SortField.EffectiveStarted })]),
+				}),
+			})
+		)
+
+		mockOnCreate.mockClear()
+		await user.click(screen.getByText('← Volver'))
+		await user.click(screen.getByText('Lanzados en Año'))
+		await user.click(screen.getByText('Crear Vista'))
+		expect(mockOnCreate).toHaveBeenLastCalledWith(
+			expect.objectContaining({
+				configuration: expect.objectContaining({
+					filterGroups: expect.arrayContaining([
+						expect.objectContaining({
+							filters: expect.arrayContaining([expect.objectContaining({ field: FilterField.ReplayReleased })]),
+						}),
+					]),
+					sorting: expect.arrayContaining([expect.objectContaining({ field: SortField.EffectiveReleased })]),
+				}),
+			})
+		)
 	})
 
 	it('shows year input defaulting to current year for GOTY template', async () => {

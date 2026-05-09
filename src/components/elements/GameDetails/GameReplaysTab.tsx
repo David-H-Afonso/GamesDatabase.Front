@@ -5,6 +5,8 @@ import { getActiveGameReplayTypes, getSpecialGameReplayType } from '@/services/G
 import type { GameReplay, GameReplayCreateDto } from '@/models/api/GameReplay'
 import type { GameReplayType } from '@/models/api/GameReplayType'
 import { formatToLocaleDate } from '@/utils'
+import { useAppDispatch } from '@/store/hooks'
+import { triggerGamesRefresh } from '@/store/features/games/gamesSlice'
 import './GameReplaysTab.scss'
 
 interface Props {
@@ -23,6 +25,7 @@ const emptyForm = (defaultTypeId?: number): GameReplayCreateDto => ({
 
 export const GameReplaysTab: React.FC<Props> = ({ gameId }) => {
 	const { t } = useTranslation()
+	const dispatch = useAppDispatch()
 	const [replays, setReplays] = useState<GameReplay[]>([])
 	const [replayTypes, setReplayTypes] = useState<GameReplayType[]>([])
 	const [defaultTypeId, setDefaultTypeId] = useState<number | undefined>()
@@ -102,6 +105,7 @@ export const GameReplaysTab: React.FC<Props> = ({ gameId }) => {
 			}
 			handleCloseForm()
 			await loadReplays()
+			dispatch(triggerGamesRefresh())
 		} catch {
 			// silent — user sees nothing changed
 		} finally {
@@ -114,6 +118,7 @@ export const GameReplaysTab: React.FC<Props> = ({ gameId }) => {
 		try {
 			await deleteGameReplay(gameId, id)
 			setReplays((prev) => prev.filter((r) => r.id !== id))
+			dispatch(triggerGamesRefresh())
 		} catch {
 			// silent
 		}

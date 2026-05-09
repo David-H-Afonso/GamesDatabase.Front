@@ -4,6 +4,90 @@ import { renderWithProviders } from '@/test/utils/renderWithProviders'
 import type { GameQueryParameters } from '@/models/api/Game'
 import type { RootState } from '@/store'
 
+vi.mock('react-i18next', () => ({
+	useTranslation: () => ({
+		t: (key: string, options?: Record<string, unknown>) => {
+			const translations: Record<string, string> = {
+				'common.all': 'All',
+				'common.any': 'Any',
+				'common.clear': 'Clear',
+				'common.default': 'Default',
+				'common.max': 'Max',
+				'common.min': 'Min',
+				'home.chips.bulkDelete': 'Delete',
+				'home.chips.bulkEdit': 'Edit',
+				'home.chips.bulkExport': 'Export',
+				'home.chips.deselect': 'Deselect',
+				'home.chips.searchLabel': 'Search',
+				'home.chips.selected': '{{count}} selected',
+				'home.chips.sortCompletion': 'Completion',
+				'home.chips.sortStory': 'Story',
+				'home.chips.yearPlaceholder': 'Year',
+				'home.deselectAll': 'Deselect all',
+				'home.filters.advancedFilters': 'Advanced filters',
+				'home.filters.anyYear': 'Any year',
+				'home.filters.cheaperByKey': 'Cheaper by key',
+				'home.filters.cheaperByStore': 'Cheaper by store',
+				'home.filters.clearFilters': 'Clear filters',
+				'home.filters.closeFilters': 'Close filters',
+				'home.filters.defaultPageSize': '{{size}} per page',
+				'home.filters.excludeReplayDatesShort': 'excluding replays',
+				'home.filters.exclusions': 'Exclusions',
+				'home.filters.exclusionsCount': '{{count}} exclusions',
+				'home.filters.fieldCreatedAt': 'Created',
+				'home.filters.fieldCritic': 'Critic',
+				'home.filters.fieldGrade': 'Grade',
+				'home.filters.fieldName': 'Name',
+				'home.filters.fieldReleased': 'Release Date',
+				'home.filters.fieldScore': 'Score',
+				'home.filters.fieldStarted': 'Start Date',
+				'home.filters.fieldUpdatedAt': 'Updated',
+				'home.filters.finished': 'Finished',
+				'home.filters.gamesPerPage': '{{size}} games per page',
+				'home.filters.grade': 'Grade',
+				'home.filters.gradeFrom': 'From {{value}}',
+				'home.filters.gradeTo': 'To {{value}}',
+				'home.filters.noExclusions': 'No exclusions',
+				'home.filters.noType': 'No type',
+				'home.filters.page': 'Page',
+				'home.filters.pageSize': 'Page size',
+				'home.filters.platform': 'Platform',
+				'home.filters.playWith': 'Play with',
+				'home.filters.playedStatus': 'Played status',
+				'home.filters.price': 'Price',
+				'home.filters.provider': 'Provider',
+				'home.filters.replay': 'Replay',
+				'home.filters.replayFinished': 'Replay finished',
+				'home.filters.replayFinishedYear': 'Finished {{year}}',
+				'home.filters.replayGrade': 'Replay grade',
+				'home.filters.replayStarted': 'Replay started',
+				'home.filters.replayStartedYear': 'Started {{year}}',
+				'home.filters.replayType': 'Replay type',
+				'home.filters.showIncomplete': 'Show incomplete',
+				'home.filters.sortBy': 'Sort by',
+				'home.filters.status': 'Status',
+				'home.filters.withReplays': 'With replays',
+				'home.filters.withoutReplays': 'Without replays',
+				'home.filters.years': 'Years',
+				'home.searchPlaceholder': 'Search games…',
+				'home.selectAll': 'Select all',
+				'home.sorting.ascending': 'Ascending',
+				'home.sorting.descending': 'Descending',
+				'home.view': 'View',
+				'home.viewCard': 'Cards',
+				'home.viewDefault': 'Default',
+				'home.viewRow': 'Row',
+			}
+
+			return (translations[key] ?? key)
+				.replace('{{count}}', String(options?.count ?? ''))
+				.replace('{{size}}', String(options?.size ?? ''))
+				.replace('{{value}}', String(options?.value ?? ''))
+				.replace('{{year}}', String(options?.year ?? ''))
+		},
+	}),
+}))
+
 vi.mock('@/hooks', () => ({
 	useGamePlatform: () => ({ fetchList: vi.fn().mockResolvedValue([{ id: 1, name: 'PC' }]) }),
 	useGamePlayWith: () => ({ fetchOptions: vi.fn().mockResolvedValue([{ id: 1, name: 'Solo' }]) }),
@@ -44,7 +128,7 @@ describe('GameFiltersChips', () => {
 		const GameFiltersChips = await loadGameFiltersChips()
 		renderWithProviders(<GameFiltersChips filters={defaultFilters} onFiltersChange={vi.fn()} onSearchChange={vi.fn()} onSortChange={vi.fn()} />, { preloadedState: defaultState })
 
-		expect(screen.getByPlaceholderText('Buscar juegos…')).toBeInTheDocument()
+		expect(screen.getByPlaceholderText('Search games…')).toBeInTheDocument()
 	})
 
 	it('calls onSearchChange when typing in search input', async () => {
@@ -54,7 +138,7 @@ describe('GameFiltersChips', () => {
 			preloadedState: defaultState,
 		})
 
-		await user.type(screen.getByPlaceholderText('Buscar juegos…'), 'dark')
+		await user.type(screen.getByPlaceholderText('Search games…'), 'dark')
 
 		expect(onSearchChange).toHaveBeenCalled()
 	})
@@ -63,7 +147,7 @@ describe('GameFiltersChips', () => {
 		const GameFiltersChips = await loadGameFiltersChips()
 		renderWithProviders(<GameFiltersChips filters={defaultFilters} onFiltersChange={vi.fn()} onSearchChange={vi.fn()} onSortChange={vi.fn()} />, { preloadedState: defaultState })
 
-		const sortSelect = screen.getByLabelText('Ordenar por')
+		const sortSelect = screen.getByLabelText('Sort by')
 		expect(sortSelect).toBeInTheDocument()
 		expect(sortSelect).toHaveValue('name')
 	})
@@ -75,7 +159,7 @@ describe('GameFiltersChips', () => {
 			preloadedState: defaultState,
 		})
 
-		await user.selectOptions(screen.getByLabelText('Ordenar por'), 'grade')
+		await user.selectOptions(screen.getByLabelText('Sort by'), 'grade')
 
 		expect(onSortChange).toHaveBeenCalledWith('grade', false)
 	})
@@ -87,7 +171,7 @@ describe('GameFiltersChips', () => {
 			preloadedState: defaultState,
 		})
 
-		const dirBtn = screen.getByTitle('Ascendente')
+		const dirBtn = screen.getByTitle('Ascending')
 		await user.click(dirBtn)
 
 		expect(onSortChange).toHaveBeenCalledWith('name', true)
@@ -112,10 +196,10 @@ describe('GameFiltersChips', () => {
 			{ preloadedState: defaultState }
 		)
 
-		expect(screen.getByText('3 seleccionado(s)')).toBeInTheDocument()
-		expect(screen.getByText('Deseleccionar')).toBeInTheDocument()
-		expect(screen.getByText('Editar')).toBeInTheDocument()
-		expect(screen.getByText('Eliminar')).toBeInTheDocument()
+		expect(screen.getByText('3 selected')).toBeInTheDocument()
+		expect(screen.getByText('Deselect')).toBeInTheDocument()
+		expect(screen.getByText('Edit')).toBeInTheDocument()
+		expect(screen.getByText('Delete')).toBeInTheDocument()
 	})
 
 	it('calls onBulkDelete when Eliminar button is clicked', async () => {
@@ -126,7 +210,7 @@ describe('GameFiltersChips', () => {
 			{ preloadedState: defaultState }
 		)
 
-		await user.click(screen.getByText('Eliminar'))
+		await user.click(screen.getByText('Delete'))
 
 		expect(onBulkDelete).toHaveBeenCalledOnce()
 	})
@@ -139,11 +223,11 @@ describe('GameFiltersChips', () => {
 			{ preloadedState: defaultState }
 		)
 
-		const cardBtn = screen.getByText('Tarjetas')
+		const cardBtn = screen.getByText('Cards')
 		expect(cardBtn).toBeInTheDocument()
 		expect(cardBtn.className).toContain('is-active')
 
-		await user.click(screen.getByText('Fila'))
+		await user.click(screen.getByText('Row'))
 		expect(onViewModeChange).toHaveBeenCalledWith('row')
 	})
 
@@ -152,15 +236,15 @@ describe('GameFiltersChips', () => {
 		renderWithProviders(<GameFiltersChips filters={defaultFilters} onFiltersChange={vi.fn()} onSearchChange={vi.fn()} onSortChange={vi.fn()} />, { preloadedState: defaultState })
 
 		// Advanced filters should not be visible initially
-		expect(screen.queryByText('Resetear filtros')).not.toBeInTheDocument()
+		expect(screen.queryByText('Clear filters')).not.toBeInTheDocument()
 
 		// Click the toggle button
-		await user.click(screen.getByText('⚙ Filtros avanzados'))
+		await user.click(screen.getByText('⚙ Advanced filters'))
 
 		// Advanced filter chips should now be visible
-		expect(screen.getByText(/Plataforma:/)).toBeInTheDocument()
+		expect(screen.getByText(/Platform:/)).toBeInTheDocument()
 		expect(screen.getByText(/Status:/)).toBeInTheDocument()
-		expect(screen.getByText(/Nota:/)).toBeInTheDocument()
+		expect(screen.getByText(/Grade:/)).toBeInTheDocument()
 	})
 
 	it('renders Exportar button when onBulkExport is provided and items selected', async () => {
@@ -171,7 +255,7 @@ describe('GameFiltersChips', () => {
 			{ preloadedState: defaultState }
 		)
 
-		await user.click(screen.getByText('Exportar'))
+		await user.click(screen.getByText('Export'))
 		expect(onBulkExport).toHaveBeenCalledOnce()
 	})
 
@@ -182,7 +266,7 @@ describe('GameFiltersChips', () => {
 			preloadedState: defaultState,
 		})
 
-		const btn = screen.getByText('Seleccionar todos')
+		const btn = screen.getByText('Select all')
 		await user.click(btn)
 		expect(onSelectAll).toHaveBeenCalledOnce()
 	})
