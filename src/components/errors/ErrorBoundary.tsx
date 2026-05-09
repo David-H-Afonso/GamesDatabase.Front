@@ -13,7 +13,7 @@ interface State {
 	errorInfo: ErrorInfo | null
 }
 
-const ErrorFallback = ({ error, errorInfo }: { error: Error | null; errorInfo: ErrorInfo | null }) => {
+export const ErrorFallback = ({ error, errorInfo }: { error: Error | null; errorInfo: ErrorInfo | null }) => {
 	const { t } = useTranslation()
 	return (
 		<div className='error-boundary'>
