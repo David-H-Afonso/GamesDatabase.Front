@@ -1,19 +1,22 @@
 import { createSlice, createAsyncThunk, createAction, type PayloadAction } from '@reduxjs/toolkit'
 import { authService, userService } from '@/services'
-import type { LoginRequest } from '@/models/api/User'
+import type { LoginRequest, User } from '@/models/api/User'
 import type { AuthState } from '@/models/store/AuthState'
 import { addRecentUser } from '../recentUsers/recentUsersSlice'
 
 const setLoginToken = createAction<string>('auth/setLoginToken')
-const steamLoginAction = createAction<{
-	token: string
-	userId: number
-	username: string
-	role: 'Admin' | 'Standard'
-	steamId?: string
-	steamNickname?: string
-	steamAvatarUrl?: string
-}>('auth/steamLogin')
+
+const mapUserToAuthState = (user: User) => ({
+	id: user.id,
+	username: user.username,
+	role: user.role,
+	useScoreColors: user.useScoreColors,
+	scoreProvider: user.scoreProvider,
+	showPriceComparisonIcon: user.showPriceComparisonIcon,
+	steamId: user.steamId,
+	steamNickname: user.steamNickname,
+	steamAvatarUrl: user.steamAvatarUrl,
+})
 
 // Initial state - will be hydrated from redux-persist
 const initialState: AuthState = {
@@ -50,6 +53,25 @@ export const loginUser = createAsyncThunk('auth/login', async (credentials: Logi
 			return rejectWithValue(error.message)
 		}
 		return rejectWithValue('Login failed')
+	}
+})
+
+/**
+ * Async thunk: Complete Steam login with canonical user data.
+ */
+export const steamLoginUser = createAsyncThunk('auth/steamLogin', async ({ token, userId }: { token: string; userId: number }, { rejectWithValue, dispatch }) => {
+	try {
+		// Set token immediately so the profile fetch can authenticate.
+		dispatch(setLoginToken(token))
+
+		const user = await userService.getUserById(userId)
+
+		return { token, user }
+	} catch (error) {
+		if (error instanceof Error) {
+			return rejectWithValue(error.message)
+		}
+		return rejectWithValue('Steam login failed')
 	}
 })
 
@@ -208,20 +230,25 @@ const authSlice = createSlice({
 			state.token = action.payload
 		})
 
-		builder.addCase(steamLoginAction, (state, action) => {
-			state.isAuthenticated = true
-			state.token = action.payload.token
-			state.user = {
-				id: action.payload.userId,
-				username: action.payload.username,
-				role: action.payload.role,
-				steamId: action.payload.steamId,
-				steamNickname: action.payload.steamNickname,
-				steamAvatarUrl: action.payload.steamAvatarUrl,
-			}
-			state.error = null
-			state.loading = false
-		})
+		builder
+			.addCase(steamLoginUser.pending, (state) => {
+				state.loading = true
+				state.error = null
+			})
+			.addCase(steamLoginUser.fulfilled, (state, action) => {
+				state.isAuthenticated = true
+				state.token = action.payload.token
+				state.user = mapUserToAuthState(action.payload.user)
+				state.error = null
+				state.loading = false
+			})
+			.addCase(steamLoginUser.rejected, (state, action) => {
+				state.isAuthenticated = false
+				state.user = null
+				state.token = null
+				state.error = action.payload as string
+				state.loading = false
+			})
 
 		// Login user
 		builder

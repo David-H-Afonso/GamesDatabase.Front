@@ -1,6 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { configureStore } from '@reduxjs/toolkit'
-import authReducer, { clearError, forceLogout, restoreAuth, setUserPreferences, loginUser, logoutUser, fetchUserPreferences, updateUserPreferences } from '../authSlice'
+import authReducer, {
+	clearError,
+	forceLogout,
+	restoreAuth,
+	setUserPreferences,
+	loginUser,
+	logoutUser,
+	fetchUserPreferences,
+	updateUserPreferences,
+	steamLoginUser,
+} from '../authSlice'
 import type { AuthState } from '@/models/store/AuthState'
 import { selectAuth, selectIsAuthenticated, selectCurrentUser, selectIsAdmin, selectAuthLoading, selectAuthError, selectAuthToken } from '../selector'
 import { createTestStore } from '@/test/utils/createTestStore'
@@ -143,6 +153,39 @@ describe('authSlice — extraReducers', () => {
 		expect(next.token).toBeNull()
 	})
 
+	it('steamLoginUser.fulfilled stores canonical user data', () => {
+		const user = {
+			id: 7,
+			username: 'steam-user',
+			role: 'Admin' as const,
+			isDefault: false,
+			hasPassword: true,
+			useScoreColors: true,
+			scoreProvider: 'SteamDB',
+			showPriceComparisonIcon: true,
+			steamId: '76561198000000000',
+			steamNickname: 'Steam Persona',
+			steamAvatarUrl: 'https://example.com/avatar.jpg',
+			createdAt: '2026-05-09T00:00:00Z',
+			updatedAt: '2026-05-09T00:00:00Z',
+		}
+		const action = steamLoginUser.fulfilled({ token: 'steam-token', user }, '', { token: 'steam-token', userId: 7 })
+		const next = authReducer(initialState, action)
+		expect(next.isAuthenticated).toBe(true)
+		expect(next.token).toBe('steam-token')
+		expect(next.user).toMatchObject({
+			id: 7,
+			username: 'steam-user',
+			role: 'Admin',
+			useScoreColors: true,
+			scoreProvider: 'SteamDB',
+			showPriceComparisonIcon: true,
+			steamId: '76561198000000000',
+			steamNickname: 'Steam Persona',
+			steamAvatarUrl: 'https://example.com/avatar.jpg',
+		})
+	})
+
 	it('fetchUserPreferences.fulfilled updates user preferences when user exists', () => {
 		const prefs = { useScoreColors: false, scoreProvider: 'SteamDB', showPriceComparisonIcon: true }
 		const action = fetchUserPreferences.fulfilled(prefs, '', 1)
@@ -269,6 +312,31 @@ describe('authSlice — thunk integration', () => {
 		const store = configureStore({ reducer: { auth: authReducer } })
 		const result = await store.dispatch(fetchUserPreferences(1))
 		expect(result.payload).toBe('Failed to fetch user preferences')
+	})
+
+	it('steamLoginUser fetches canonical user data after setting the token', async () => {
+		mockGetUserById.mockResolvedValueOnce({
+			id: 7,
+			username: 'steam-user',
+			role: 'Standard',
+			isDefault: false,
+			hasPassword: false,
+			useScoreColors: false,
+			scoreProvider: 'Metacritic',
+			showPriceComparisonIcon: false,
+			steamId: '76561198000000000',
+			steamNickname: 'Steam Persona',
+			steamAvatarUrl: 'https://example.com/avatar.jpg',
+			createdAt: '2026-05-09T00:00:00Z',
+			updatedAt: '2026-05-09T00:00:00Z',
+		})
+		const store = configureStore({ reducer: { auth: authReducer } })
+		const result = await store.dispatch(steamLoginUser({ token: 'steam-token', userId: 7 }))
+
+		expect(result.type).toBe('auth/steamLogin/fulfilled')
+		expect(mockGetUserById).toHaveBeenCalledWith(7)
+		expect(store.getState().auth.token).toBe('steam-token')
+		expect(store.getState().auth.user?.steamId).toBe('76561198000000000')
 	})
 
 	it('updateUserPreferences thunk builds updates with all fields defined', async () => {
