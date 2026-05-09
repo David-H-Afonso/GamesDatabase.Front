@@ -806,6 +806,7 @@
 			"grade": "Nota (0–100)",
 			"notes": "Notas",
 			"released": "Fecha de salida"
+		},
 		"history": {
 			"loading": "Cargando historial...",
 			"count_one": "{{count}} entrada",
