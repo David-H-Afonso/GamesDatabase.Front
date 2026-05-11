@@ -662,7 +662,8 @@
 		},
 		"steam": {
 			"tabs": {
-				"storeSuggestions": "Sugerencias de tienda"
+				"storeSuggestions": "Sugerencias de tienda",
+				"dateSuggestions": "Fechas desde Steam"
 			},
 			"common": {
 				"steam": "Steam",
@@ -683,6 +684,29 @@
 				"empty": "No se encontraron coincidencias nuevas en la tienda para juegos sin AppID.",
 				"hint": "Se han encontrado {{count}} posibles coincidencias buscando en la tienda para juegos de GDB sin AppID.",
 				"refresh": "Buscar de nuevo"
+			},
+			"dateSuggestions": {
+				"loading": "Calculando fechas desde Steam...",
+				"loadError": "Error cargando sugerencias de fecha",
+				"applyError": "Error aplicando fechas",
+				"empty": "No hay juegos vinculados pendientes de inicio o fin.",
+				"hint": "Se han encontrado {{count}} juegos vinculados pendientes de inicio o fin. Revisa la vista previa y aplica solo las fechas disponibles.",
+				"refresh": "Recalcular",
+				"applySelected": "Aplicar seleccionadas",
+				"applying": "Aplicando...",
+				"applyDone": "Fechas actualizadas",
+				"currentDates": "Fechas actuales",
+				"proposedDates": "Vista previa",
+				"sources": "Origen",
+				"started": "Inicio",
+				"finished": "Fin",
+				"playtime": "Horas",
+				"sourceLastPlayed": "Última vez jugado",
+				"sourceFirstAchievement": "Primer logro",
+				"sourceNone": "Sin dato",
+				"noteNoLastPlayed": "Steam no reporta última vez jugado",
+				"noteNoFirstAchievement": "No hay primer logro disponible",
+				"noteKeptStarted": "Ya tenía inicio; se mantiene"
 			}
 		}
 	},

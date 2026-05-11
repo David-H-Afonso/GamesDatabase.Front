@@ -662,7 +662,8 @@
 		},
 		"steam": {
 			"tabs": {
-				"storeSuggestions": "Store suggestions"
+				"storeSuggestions": "Store suggestions",
+				"dateSuggestions": "Dates from Steam"
 			},
 			"common": {
 				"steam": "Steam",
@@ -683,6 +684,29 @@
 				"empty": "No new store matches were found for games without an AppID.",
 				"hint": "Found {{count}} possible matches by searching the store for GDB games without an AppID.",
 				"refresh": "Search again"
+			},
+			"dateSuggestions": {
+				"loading": "Calculating dates from Steam...",
+				"loadError": "Error loading date suggestions",
+				"applyError": "Error applying dates",
+				"empty": "No linked games are missing a start or finish date.",
+				"hint": "Found {{count}} linked games missing a start or finish date. Review the preview and apply only available dates.",
+				"refresh": "Recalculate",
+				"applySelected": "Apply selected",
+				"applying": "Applying...",
+				"applyDone": "Dates updated",
+				"currentDates": "Current dates",
+				"proposedDates": "Preview",
+				"sources": "Source",
+				"started": "Started",
+				"finished": "Finished",
+				"playtime": "Hours",
+				"sourceLastPlayed": "Last played",
+				"sourceFirstAchievement": "First achievement",
+				"sourceNone": "No data",
+				"noteNoLastPlayed": "Steam did not report last played",
+				"noteNoFirstAchievement": "No first achievement is available",
+				"noteKeptStarted": "Start already exists; keeping it"
 			}
 		}
 	},

@@ -3,14 +3,14 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { useTranslation } from 'react-i18next'
 import { fetchSteamLibrary, importSteamGames, clearLastImportResult, fetchSteamProfile, unlinkSteam, syncAllSteam, clearSteamError } from '@/store/features/steam/steamSlice'
 import { setSteamProfile } from '@/store/features/auth/authSlice'
-import { steamService, type SteamMatchSuggestion, type SteamStoreSearchResult } from '@/services/SteamService/SteamService'
+import { steamService, type SteamDateSuggestion, type SteamMatchSuggestion, type SteamStoreSearchResult } from '@/services/SteamService/SteamService'
 import { getGames } from '@/services/GamesService/GamesService'
 import type { Game } from '@/models/api/Game'
 import './AdminSteam.scss'
 import './AdminSteamImport.scss'
 
 type ImportAction = 'create' | 'skip' | 'link'
-type ActiveTab = 'account' | 'library' | 'suggestions' | 'store' | 'storeSuggestions'
+type ActiveTab = 'account' | 'library' | 'suggestions' | 'store' | 'storeSuggestions' | 'dateSuggestions'
 type LibrarySortKey = 'appId' | 'name' | 'playtime' | 'status' | 'action'
 type SortDirection = 'asc' | 'desc'
 
@@ -44,6 +44,13 @@ export const AdminSteamImport = () => {
 	const [storeSuggestionsError, setStoreSuggestionsError] = useState<string | null>(null)
 	const [storeSuggestionSearch, setStoreSuggestionSearch] = useState('')
 	const [selectedStoreSuggestionIds, setSelectedStoreSuggestionIds] = useState<Set<string>>(new Set())
+	const [dateSuggestions, setDateSuggestions] = useState<SteamDateSuggestion[]>([])
+	const [dateSuggestionsLoading, setDateSuggestionsLoading] = useState(false)
+	const [dateSuggestionsApplying, setDateSuggestionsApplying] = useState(false)
+	const [dateSuggestionsError, setDateSuggestionsError] = useState<string | null>(null)
+	const [dateSuggestionSearch, setDateSuggestionSearch] = useState('')
+	const [selectedDateSuggestionIds, setSelectedDateSuggestionIds] = useState<Set<number>>(new Set())
+	const [dateApplyResult, setDateApplyResult] = useState<{ updated: number; errors: string[] } | null>(null)
 	const [librarySort, setLibrarySort] = useState<{ key: LibrarySortKey; direction: SortDirection }>({ key: 'appId', direction: 'asc' })
 	const [message, setMessage] = useState<string | null>(null)
 	const [isSuccess, setIsSuccess] = useState(true)
@@ -77,6 +84,9 @@ export const AdminSteamImport = () => {
 		}
 		if (isSteamLinked && activeTab === 'storeSuggestions') {
 			loadStoreSuggestions()
+		}
+		if (isSteamLinked && activeTab === 'dateSuggestions') {
+			loadDateSuggestions()
 		}
 	}, [isSteamLinked, activeTab])
 
@@ -194,6 +204,21 @@ export const AdminSteamImport = () => {
 		})
 	}
 
+	const loadDateSuggestions = async () => {
+		setDateSuggestionsLoading(true)
+		setDateSuggestionsError(null)
+		setDateApplyResult(null)
+		setSelectedDateSuggestionIds(new Set())
+		try {
+			const data = await steamService.getDateSuggestions()
+			setDateSuggestions(data)
+		} catch (e) {
+			setDateSuggestionsError(e instanceof Error ? e.message : t('admin.steam.dateSuggestions.loadError'))
+		} finally {
+			setDateSuggestionsLoading(false)
+		}
+	}
+
 	const handleLinkSuggestion = async (suggestion: SteamMatchSuggestion) => {
 		try {
 			await steamService.linkGame(suggestion.steamAppId, suggestion.gdbGameId)
@@ -278,6 +303,52 @@ export const AdminSteamImport = () => {
 			setStoreSuggestionsError(e instanceof Error ? e.message : t('admin.steam.storeSuggestions.dismissError'))
 		} finally {
 			setStoreSuggestionsDismissing(false)
+		}
+	}
+
+	const toggleDateSuggestionSelection = (gameId: number) => {
+		setSelectedDateSuggestionIds((prev) => {
+			const next = new Set(prev)
+			if (next.has(gameId)) next.delete(gameId)
+			else next.add(gameId)
+			return next
+		})
+	}
+
+	const toggleAllVisibleDateSuggestions = () => {
+		const visibleIds = filteredDateSuggestions.map((s) => s.gameId)
+		const allSelected = visibleIds.every((id) => selectedDateSuggestionIds.has(id))
+		setSelectedDateSuggestionIds((prev) => {
+			const next = new Set(prev)
+			visibleIds.forEach((id) => {
+				if (allSelected) next.delete(id)
+				else next.add(id)
+			})
+			return next
+		})
+	}
+
+	const handleApplyDateSuggestions = async () => {
+		const toApply = filteredDateSuggestions.filter((s) => selectedDateSuggestionIds.has(s.gameId) && (s.proposedStarted || s.proposedFinished))
+		if (toApply.length === 0) return
+
+		setDateSuggestionsApplying(true)
+		setDateSuggestionsError(null)
+		try {
+			const result = await steamService.applyDateSuggestions(
+				toApply.map((s) => ({
+					gameId: s.gameId,
+					started: s.proposedStarted,
+					finished: s.proposedFinished,
+				}))
+			)
+			setDateApplyResult(result)
+			setSelectedDateSuggestionIds(new Set())
+			await loadDateSuggestions()
+		} catch (e) {
+			setDateSuggestionsError(e instanceof Error ? e.message : t('admin.steam.dateSuggestions.applyError'))
+		} finally {
+			setDateSuggestionsApplying(false)
 		}
 	}
 
@@ -518,6 +589,42 @@ export const AdminSteamImport = () => {
 			s.steamName.toLowerCase().includes(storeSuggestionSearch.toLowerCase()) ||
 			s.gdbGameName.toLowerCase().includes(storeSuggestionSearch.toLowerCase())
 	)
+	const filteredDateSuggestions = dateSuggestions.filter(
+		(s) =>
+			!dateSuggestionSearch.trim() ||
+			s.steamName.toLowerCase().includes(dateSuggestionSearch.toLowerCase()) ||
+			s.gameName.toLowerCase().includes(dateSuggestionSearch.toLowerCase())
+	)
+
+	const dateSourceLabel = (source: string) => {
+		switch (source) {
+			case 'lastPlayed':
+				return t('admin.steam.dateSuggestions.sourceLastPlayed')
+			case 'firstAchievement':
+				return t('admin.steam.dateSuggestions.sourceFirstAchievement')
+			default:
+				return t('admin.steam.dateSuggestions.sourceNone')
+		}
+	}
+
+	const dateNoteLabel = (note: string) => {
+		switch (note) {
+			case 'noLastPlayed':
+				return t('admin.steam.dateSuggestions.noteNoLastPlayed')
+			case 'noFirstAchievement':
+				return t('admin.steam.dateSuggestions.noteNoFirstAchievement')
+			case 'keptStarted':
+				return t('admin.steam.dateSuggestions.noteKeptStarted')
+			default:
+				return note
+		}
+	}
+
+	const formatSteamMinutes = (minutes?: number) => {
+		if (minutes == null) return '—'
+		if (minutes <= 0) return '0h'
+		return `${Math.round(minutes / 60)}h`
+	}
 
 	const toCreateCount = library.filter((g) => getAction(g.appId) === 'create').length
 	const toLinkCount = library.filter((g) => getAction(g.appId) === 'link' && linkTargets.has(g.appId)).length
@@ -615,6 +722,9 @@ export const AdminSteamImport = () => {
 				</button>
 				<button className={`tab-btn${activeTab === 'storeSuggestions' ? ' tab-btn--active' : ''}`} onClick={() => setActiveTab('storeSuggestions')} disabled={!isSteamLinked}>
 					{t('admin.steam.tabs.storeSuggestions')}
+				</button>
+				<button className={`tab-btn${activeTab === 'dateSuggestions' ? ' tab-btn--active' : ''}`} onClick={() => setActiveTab('dateSuggestions')} disabled={!isSteamLinked}>
+					{t('admin.steam.tabs.dateSuggestions')}
 				</button>
 			</div>
 
@@ -786,6 +896,123 @@ export const AdminSteamImport = () => {
 												</tr>
 											)
 										})}
+									</tbody>
+								</table>
+							</div>
+						</>
+					)}
+				</div>
+			) : activeTab === 'dateSuggestions' ? (
+				<div className='suggestions-view'>
+					{dateSuggestionsLoading ? (
+						<p>{t('admin.steam.dateSuggestions.loading')}</p>
+					) : dateSuggestionsError ? (
+						<div className='alert alert--error'>{dateSuggestionsError}</div>
+					) : dateSuggestions.length === 0 ? (
+						<div className='no-suggestions'>
+							<p>{t('admin.steam.dateSuggestions.empty')}</p>
+							<button className='btn btn-secondary btn-sm' onClick={loadDateSuggestions}>
+								{t('admin.steam.dateSuggestions.refresh')}
+							</button>
+						</div>
+					) : (
+						<>
+							<p className='suggestions-hint'>{t('admin.steam.dateSuggestions.hint', { count: dateSuggestions.length })}</p>
+							{dateApplyResult && (
+								<div className='import-result alert alert--success'>
+									<strong>{t('admin.steam.dateSuggestions.applyDone')}:</strong> {dateApplyResult.updated}
+									{dateApplyResult.errors.length > 0 && (
+										<ul>
+											{dateApplyResult.errors.map((e, i) => (
+												<li key={i}>{e}</li>
+											))}
+										</ul>
+									)}
+								</div>
+							)}
+							<div className='suggestions-toolbar'>
+								<input
+									className='search-input'
+									type='text'
+									placeholder={t('admin.steam.common.searchByName')}
+									value={dateSuggestionSearch}
+									onChange={(e) => setDateSuggestionSearch(e.target.value)}
+								/>
+								<button className='btn btn-secondary btn-sm' onClick={loadDateSuggestions} disabled={dateSuggestionsLoading}>
+									{t('admin.steam.dateSuggestions.refresh')}
+								</button>
+								{selectedDateSuggestionIds.size > 0 && (
+									<div className='bulk-actions'>
+										<span className='bulk-count'>{t('admin.steam.common.selectedCount', { count: selectedDateSuggestionIds.size })}</span>
+										<button className='btn btn-primary btn-sm' onClick={handleApplyDateSuggestions} disabled={dateSuggestionsApplying}>
+											{dateSuggestionsApplying ? t('admin.steam.dateSuggestions.applying') : t('admin.steam.dateSuggestions.applySelected')}
+										</button>
+									</div>
+								)}
+							</div>
+							<div className='library-table-wrapper'>
+								<table className='library-table'>
+									<thead>
+										<tr>
+											<th className='check-cell'>
+												<input
+													type='checkbox'
+													checked={filteredDateSuggestions.length > 0 && filteredDateSuggestions.every((s) => selectedDateSuggestionIds.has(s.gameId))}
+													onChange={toggleAllVisibleDateSuggestions}
+												/>
+											</th>
+											<th>{t('admin.steam.common.gdb')}</th>
+											<th>{t('admin.steam.common.steam')}</th>
+											<th>{t('admin.steam.dateSuggestions.currentDates')}</th>
+											<th>{t('admin.steam.dateSuggestions.proposedDates')}</th>
+											<th>{t('admin.steam.dateSuggestions.sources')}</th>
+										</tr>
+									</thead>
+									<tbody>
+										{filteredDateSuggestions.map((s) => (
+											<tr
+												key={s.gameId}
+												className={selectedDateSuggestionIds.has(s.gameId) ? 'row--selected row--selectable' : 'row--selectable'}
+												onClick={() => toggleDateSuggestionSelection(s.gameId)}>
+												<td className='check-cell'>
+													<input
+														type='checkbox'
+														checked={selectedDateSuggestionIds.has(s.gameId)}
+														onClick={(event) => event.stopPropagation()}
+														onChange={() => toggleDateSuggestionSelection(s.gameId)}
+													/>
+												</td>
+												<td>
+													<span className='game-name'>{s.gameName}</span>
+													<span className='game-appid'>GDB #{s.gameId}</span>
+												</td>
+												<td>
+													<div className='suggestion-game'>
+														{s.steamIconUrl && <img src={s.steamIconUrl} alt='' width={32} height={32} style={{ borderRadius: 2 }} />}
+														<div>
+															<span className='game-name'>{s.steamName}</span>
+															<span className='game-appid'>App {s.steamAppId}</span>
+															<span className='game-appid'>{t('admin.steam.dateSuggestions.playtime')}: {formatSteamMinutes(s.steamPlaytimeForever)}</span>
+														</div>
+													</div>
+												</td>
+												<td>
+													<span className='game-appid'>{t('admin.steam.dateSuggestions.started')}: {s.currentStarted || '—'}</span>
+													<span className='game-appid'>{t('admin.steam.dateSuggestions.finished')}: {s.currentFinished || '—'}</span>
+												</td>
+												<td>
+													<span className='game-appid'>{t('admin.steam.dateSuggestions.started')}: {s.proposedStarted || '—'}</span>
+													<span className='game-appid'>{t('admin.steam.dateSuggestions.finished')}: {s.proposedFinished || '—'}</span>
+												</td>
+												<td>
+													<span className='game-appid'>{dateSourceLabel(s.startedSource)}</span>
+													<span className='game-appid'>{dateSourceLabel(s.finishedSource)}</span>
+													{s.notes.map((note) => (
+														<span className='game-appid' key={note}>{dateNoteLabel(note)}</span>
+													))}
+												</td>
+											</tr>
+										))}
 									</tbody>
 								</table>
 							</div>

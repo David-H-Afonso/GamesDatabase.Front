@@ -101,6 +101,27 @@ export interface SteamStoreSearchResult {
 	metascore?: number
 }
 
+export interface SteamDateSuggestion {
+	gameId: number
+	gameName: string
+	steamAppId: number
+	steamName: string
+	steamIconUrl?: string
+	steamPlaytimeForever?: number
+	currentStarted?: string
+	currentFinished?: string
+	proposedStarted?: string
+	proposedFinished?: string
+	startedSource: 'firstAchievement' | 'none' | string
+	finishedSource: 'lastPlayed' | 'none' | string
+	notes: string[]
+}
+
+export interface SteamApplyDateSuggestionsResult {
+	updated: number
+	errors: string[]
+}
+
 class SteamService {
 	async getProfile(): Promise<SteamProfile> {
 		return customFetch<SteamProfile>(base.profile)
@@ -153,6 +174,17 @@ class SteamService {
 
 	async getStoreMatchSuggestions(): Promise<SteamMatchSuggestion[]> {
 		return customFetch<SteamMatchSuggestion[]>(base.storeMatchSuggestions)
+	}
+
+	async getDateSuggestions(): Promise<SteamDateSuggestion[]> {
+		return customFetch<SteamDateSuggestion[]>(base.dateSuggestions)
+	}
+
+	async applyDateSuggestions(suggestions: Array<{ gameId: number; started?: string; finished?: string }>): Promise<SteamApplyDateSuggestionsResult> {
+		return customFetch<SteamApplyDateSuggestionsResult>(base.applyDateSuggestions, {
+			method: 'POST',
+			body: { suggestions },
+		})
 	}
 
 	async dismissMatchSuggestions(suggestions: Array<{ steamAppId: number; gdbGameId: number }>): Promise<void> {

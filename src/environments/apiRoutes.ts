@@ -143,6 +143,8 @@ export const apiRoutes = {
 		linkGame: '/steam/link-game',
 		matchSuggestions: '/steam/match-suggestions',
 		storeMatchSuggestions: '/steam/store-match-suggestions',
+		dateSuggestions: '/steam/date-suggestions',
+		applyDateSuggestions: '/steam/date-suggestions/apply',
 		dismissMatchSuggestions: '/steam/match-suggestions/dismiss',
 		storeSearch: '/steam/store/search',
 		storeAdd: '/steam/store/add',
