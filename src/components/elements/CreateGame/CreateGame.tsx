@@ -167,6 +167,7 @@ const CreateGame: FC = () => {
 	const [createdGameFallback, setCreatedGameFallback] = useState<Game | null>(null)
 	const [isDetailsOpen, setIsDetailsOpen] = useState(false)
 	const [lastAddedRowId, setLastAddedRowId] = useState<string | null>(null)
+	const [lastSteamSearchEnabled, setLastSteamSearchEnabled] = useState(false)
 	const [touchedRows, setTouchedRows] = useState<Set<string>>(new Set())
 	const [steamSearchByRowId, setSteamSearchByRowId] = useState<Record<string, SteamSearchState>>({})
 	const searchSequenceByRowId = useRef<Record<string, number>>({})
@@ -196,7 +197,8 @@ const CreateGame: FC = () => {
 			setStatusOptions(options)
 
 			const notFulfilled = specialStatusList?.find((status) => status.statusType === 'NotFulfilled')
-			const fallbackStatusId = notFulfilled?.id ?? (options.find((option) => option.value === 8)?.value || (options.length > 0 ? Math.min(...options.map((option) => option.value)) : undefined))
+			const fallbackStatusId =
+				notFulfilled?.id ?? (options.find((option) => option.value === 8)?.value || (options.length > 0 ? Math.min(...options.map((option) => option.value)) : undefined))
 			setDefaultStatusId(fallbackStatusId)
 			return options
 		} catch (err) {
@@ -296,7 +298,7 @@ const CreateGame: FC = () => {
 	}, [isModalOpen, isSteamLinked, library, rowsSearchKey, t])
 
 	const resetRows = () => {
-		const row = createManualRow(defaultStatusId ?? '')
+		const row = createManualRow(defaultStatusId ?? '', lastSteamSearchEnabled)
 		setRows([row])
 		setLastAddedRowId(row.id)
 		setTouchedRows(new Set())
@@ -316,7 +318,7 @@ const CreateGame: FC = () => {
 	}
 
 	const addRow = () => {
-		const newRow = createManualRow(defaultStatusId ?? '')
+		const newRow = createManualRow(defaultStatusId ?? '', lastSteamSearchEnabled)
 		setRows((currentRows) => [...currentRows, newRow])
 		setLastAddedRowId(newRow.id)
 	}
@@ -324,7 +326,7 @@ const CreateGame: FC = () => {
 	const removeRow = (rowId: string) => {
 		setRows((currentRows) => {
 			const nextRows = currentRows.filter((row) => row.id !== rowId)
-			return nextRows.length > 0 ? nextRows : [createManualRow(defaultStatusId ?? '')]
+			return nextRows.length > 0 ? nextRows : [createManualRow(defaultStatusId ?? '', lastSteamSearchEnabled)]
 		})
 		setTouchedRows((current) => {
 			const next = new Set(current)
@@ -351,6 +353,7 @@ const CreateGame: FC = () => {
 
 	const toggleSteamSearch = (row: ManualGameRow) => {
 		const nextEnabled = !row.steamSearchEnabled
+		setLastSteamSearchEnabled(nextEnabled)
 		updateManualRow(row.id, { steamSearchEnabled: nextEnabled })
 
 		if (!nextEnabled) {
@@ -621,7 +624,11 @@ const CreateGame: FC = () => {
 
 					{renderStatusSelect(row)}
 
-					<button type='button' className='add-game-row__extra-toggle' onClick={() => toggleExtraFields(row.id)} title={row.showExtraFields ? t('game.createModal.hideExtra') : t('game.createModal.showExtra')}>
+					<button
+						type='button'
+						className='add-game-row__extra-toggle'
+						onClick={() => toggleExtraFields(row.id)}
+						title={row.showExtraFields ? t('game.createModal.hideExtra') : t('game.createModal.showExtra')}>
 						{row.showExtraFields ? '-' : '+'}
 					</button>
 
@@ -646,14 +653,18 @@ const CreateGame: FC = () => {
 
 	const renderSteamRow = (row: SteamGameRow) => (
 		<div key={row.id} className='add-game-row add-game-row--steam'>
-			<div className='add-game-row__steam-art'>{row.coverUrl || row.iconUrl ? <img src={row.coverUrl ?? row.iconUrl} alt='' loading='lazy' /> : <img src={STEAM_ICON_URL} alt='' />}</div>
+			<div className='add-game-row__steam-art'>
+				{row.coverUrl || row.iconUrl ? <img src={row.coverUrl ?? row.iconUrl} alt='' loading='lazy' /> : <img src={STEAM_ICON_URL} alt='' />}
+			</div>
 			<div className='add-game-row__steam-info'>
 				<div className='add-game-row__steam-title'>
 					<img src={STEAM_ICON_URL} alt='' />
 					<span>{row.name}</span>
 				</div>
 				<div className='add-game-row__steam-meta'>
-					<span className={`steam-source-badge steam-source-badge--${row.source}`}>{row.source === 'library' ? t('game.createModal.steamLibrary') : t('game.createModal.steamStore')}</span>
+					<span className={`steam-source-badge steam-source-badge--${row.source}`}>
+						{row.source === 'library' ? t('game.createModal.steamLibrary') : t('game.createModal.steamStore')}
+					</span>
 					<span>App {row.appId}</span>
 					{row.playtimeForever != null && row.playtimeForever > 0 && <span>{Math.round(row.playtimeForever / 60)}h</span>}
 					{row.metascore != null && <span>{row.metascore}</span>}
@@ -661,7 +672,11 @@ const CreateGame: FC = () => {
 				</div>
 			</div>
 			{renderStatusSelect(row)}
-			<button type='button' className='add-game-row__extra-toggle' onClick={() => toggleExtraFields(row.id)} title={row.showExtraFields ? t('game.createModal.hideExtra') : t('game.createModal.showExtra')}>
+			<button
+				type='button'
+				className='add-game-row__extra-toggle'
+				onClick={() => toggleExtraFields(row.id)}
+				title={row.showExtraFields ? t('game.createModal.hideExtra') : t('game.createModal.showExtra')}>
 				{row.showExtraFields ? '-' : '+'}
 			</button>
 			<button type='button' className='add-game-row__delete' onClick={() => removeRow(row.id)} title={t('game.deleteRow')}>
