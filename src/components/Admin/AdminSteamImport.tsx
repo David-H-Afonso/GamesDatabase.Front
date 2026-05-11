@@ -162,7 +162,10 @@ export const AdminSteamImport = () => {
 	const handleAddStoreGame = async (appId: number) => {
 		setStoreAdding((prev) => new Set(prev).add(appId))
 		try {
-			const result = await steamService.addStoreGame(appId)
+			const storeGame = storeResults.find((game) => game.appId === appId)
+			const result = await steamService.addStoreGame(appId, {
+				coverUrl: storeGame?.coverUrl,
+			})
 			setStoreAdded((prev) => new Map(prev).set(appId, result.action === 'created' ? 'created' : result.action === 'linked' ? 'exists' : 'error'))
 			if (result.action === 'created') await dispatch(fetchSteamLibrary())
 		} catch {
@@ -425,7 +428,7 @@ export const AdminSteamImport = () => {
 				<>
 					{lastImportResult && (
 						<div className='import-result alert alert--success'>
-							<strong>Importación completada:</strong> {lastImportResult.importedCount} creados, {lastImportResult.linkedCount} vinculados, {lastImportResult.skippedCount} omitidos
+							<strong>Importación completada:</strong> {lastImportResult.created} creados, {lastImportResult.linked} vinculados, {lastImportResult.skipped} omitidos
 						</div>
 					)}
 

@@ -8,6 +8,7 @@ import gameViewsReducer from '@/store/features/gameViews/gameViewSlice'
 import themeReducer from '@/store/features/theme/themeSlice'
 import authReducer from '@/store/features/auth/authSlice'
 import recentUsersReducer from '@/store/features/recentUsers/recentUsersSlice'
+import steamReducer from '@/store/features/steam/steamSlice'
 import type { RootState } from '@/store'
 
 const rootReducer = combineReducers({
@@ -20,6 +21,7 @@ const rootReducer = combineReducers({
 	theme: themeReducer,
 	auth: authReducer,
 	recentUsers: recentUsersReducer,
+	steam: steamReducer,
 })
 
 /**

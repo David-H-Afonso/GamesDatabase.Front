@@ -22,17 +22,19 @@ export interface SteamLibraryGame {
 }
 
 export interface SteamImportResult {
-	importedCount: number
-	linkedCount: number
-	skippedCount: number
-	games: SteamImportedGame[]
+	success: boolean
+	error?: string
+	created: number
+	linked: number
+	skipped: number
+	importedGames: SteamImportedGame[]
 }
 
 export interface SteamImportedGame {
 	appId: number
-	gameId?: number
+	gdbGameId?: number
 	name: string
-	action: 'created' | 'linked' | 'skipped'
+	action: 'created' | 'linked' | 'skipped' | 'exists' | 'error'
 	error?: string
 }
 
@@ -69,7 +71,14 @@ export interface SteamAppMetadata {
 
 export interface SteamImportRequest {
 	appIds?: number[]
+	games?: SteamImportGameRequest[]
 	createMissing: boolean
+}
+
+export interface SteamImportGameRequest {
+	appId: number
+	logoUrl?: string
+	coverUrl?: string
 }
 
 export interface SteamMatchSuggestion {
@@ -85,6 +94,7 @@ export interface SteamStoreSearchResult {
 	appId: number
 	name: string
 	coverUrl?: string
+	logoUrl?: string
 	price?: string
 	discountPercent?: number
 	originalPrice?: string
@@ -138,10 +148,10 @@ class SteamService {
 		return customFetch<SteamStoreSearchResult[]>(`${base.storeSearch}?q=${encodeURIComponent(query)}`)
 	}
 
-	async addStoreGame(appId: number): Promise<SteamImportedGame> {
+	async addStoreGame(appId: number, assets?: { logoUrl?: string; coverUrl?: string }): Promise<SteamImportedGame> {
 		return customFetch<SteamImportedGame>(base.storeAdd, {
 			method: 'POST',
-			body: { appId },
+			body: { appId, ...assets },
 		})
 	}
 

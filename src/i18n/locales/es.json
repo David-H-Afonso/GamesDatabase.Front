@@ -688,7 +688,20 @@
 			"adding": "Añadiendo...",
 			"addOne": "Añadir juego",
 			"addMultiple": "Añadir {{count}} juegos",
-			"confirmDelete": "¿Estás seguro de que quieres eliminar este juego?"
+			"confirmDelete": "¿Estás seguro de que quieres eliminar este juego?",
+			"steamSearchEnabled": "Steam activado: busca en tu biblioteca y en la tienda",
+			"steamSearchDisabled": "Activar búsqueda de Steam para esta fila",
+			"steamResults": "Resultados de Steam",
+			"searchingSteam": "Buscando...",
+			"noSteamResults": "Sin resultados de Steam",
+			"steamLibrary": "Biblioteca",
+			"steamStore": "Tienda",
+			"alreadyInGdb": "{{name}} ya está en tu base de datos",
+			"inGdb": "Ya añadido",
+			"statusRequired": "Selecciona un estado para todos los juegos",
+			"createError": "Error al crear el juego",
+			"steamImportError": "Error al importar desde Steam",
+			"steamSearchError": "Error al buscar en Steam"
 		},
 		"dataActions": {
 			"export": "Exportar",
