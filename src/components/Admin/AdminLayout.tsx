@@ -54,10 +54,7 @@ export const AdminLayout = () => {
 							{t('admin.nav.preferences')}
 						</NavLink>
 						<NavLink to='/admin/steam' className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
-							Steam Integration
-						</NavLink>
-						<NavLink to='/admin/steam-import' className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
-							Steam Import
+							Steam
 						</NavLink>
 					</nav>
 					<div className='admin-build-info'>
