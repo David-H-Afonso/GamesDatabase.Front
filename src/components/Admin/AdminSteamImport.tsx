@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from 'react'
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { fetchSteamLibrary, importSteamGames, clearLastImportResult } from '@/store/features/steam/steamSlice'
 import { steamService, type SteamMatchSuggestion, type SteamStoreSearchResult } from '@/services/SteamService/SteamService'
@@ -8,6 +8,8 @@ import './AdminSteamImport.scss'
 
 type ImportAction = 'create' | 'skip' | 'link'
 type ActiveTab = 'library' | 'suggestions' | 'store'
+type LibrarySortKey = 'appId' | 'name' | 'playtime' | 'status' | 'action'
+type SortDirection = 'asc' | 'desc'
 
 interface LinkTarget {
 	gameId: number
@@ -31,6 +33,7 @@ export const AdminSteamImport = () => {
 	const [librarySearch, setLibrarySearch] = useState('')
 	const [suggestionSearch, setSuggestionSearch] = useState('')
 	const [selectedSuggestionIds, setSelectedSuggestionIds] = useState<Set<number>>(new Set())
+	const [librarySort, setLibrarySort] = useState<{ key: LibrarySortKey; direction: SortDirection }>({ key: 'appId', direction: 'asc' })
 
 	// Store search state
 	const [storeQuery, setStoreQuery] = useState('')
@@ -250,7 +253,66 @@ export const AdminSteamImport = () => {
 		setRowActions(newMap)
 	}
 
-	const filteredLibrary = library.filter((g) => !filterUnmatched || !g.gdbGameId).filter((g) => !librarySearch.trim() || g.name.toLowerCase().includes(librarySearch.toLowerCase()))
+	const getStatusSortValue = (game: (typeof library)[number]) => (game.gdbGameId ? 1 : 0)
+
+	const getActionSortValue = (appId: number) => {
+		const action = getAction(appId)
+		switch (action) {
+			case 'create':
+				return 2
+			case 'link':
+				return 1
+			case 'skip':
+			default:
+				return 0
+		}
+	}
+
+	const handleLibrarySort = (key: LibrarySortKey) => {
+		setLibrarySort((current) => {
+			if (current.key === key) {
+				return { key, direction: current.direction === 'asc' ? 'desc' : 'asc' }
+			}
+
+			return { key, direction: key === 'playtime' ? 'desc' : 'asc' }
+		})
+	}
+
+	const filteredLibrary = useMemo(() => {
+		const normalizedSearch = librarySearch.trim().toLowerCase()
+		const filtered = library.filter((g) => !filterUnmatched || !g.gdbGameId).filter((g) => !normalizedSearch || g.name.toLowerCase().includes(normalizedSearch))
+
+		const sorted = [...filtered].sort((left, right) => {
+			let comparison = 0
+
+			switch (librarySort.key) {
+				case 'name':
+					comparison = left.name.localeCompare(right.name, undefined, { sensitivity: 'base' })
+					break
+				case 'playtime':
+					comparison = (left.playtimeForever ?? 0) - (right.playtimeForever ?? 0)
+					break
+				case 'status':
+					comparison = getStatusSortValue(left) - getStatusSortValue(right)
+					break
+				case 'action':
+					comparison = getActionSortValue(left.appId) - getActionSortValue(right.appId)
+					break
+				case 'appId':
+				default:
+					comparison = left.appId - right.appId
+					break
+			}
+
+			if (comparison === 0 && librarySort.key !== 'appId') {
+				comparison = left.appId - right.appId
+			}
+
+			return librarySort.direction === 'asc' ? comparison : -comparison
+		})
+
+		return sorted
+	}, [filterUnmatched, getAction, library, librarySearch, librarySort])
 
 	const filteredSuggestions = suggestions.filter(
 		(s) => !suggestionSearch.trim() || s.steamName.toLowerCase().includes(suggestionSearch.toLowerCase()) || s.gdbGameName.toLowerCase().includes(suggestionSearch.toLowerCase())
@@ -259,6 +321,11 @@ export const AdminSteamImport = () => {
 	const toCreateCount = library.filter((g) => getAction(g.appId) === 'create').length
 	const toLinkCount = library.filter((g) => getAction(g.appId) === 'link' && linkTargets.has(g.appId)).length
 	const totalActionCount = toCreateCount + toLinkCount
+
+	const renderSortIndicator = (key: LibrarySortKey) => {
+		if (librarySort.key !== key) return null
+		return librarySort.direction === 'asc' ? ' ▲' : ' ▼'
+	}
 
 	if (!isSteamLinked) {
 		return (
@@ -476,10 +543,26 @@ export const AdminSteamImport = () => {
 								<thead>
 									<tr>
 										<th>Portada</th>
-										<th>Nombre</th>
-										<th>Tiempo de juego</th>
-										<th>Estado en GDB</th>
-										<th>Acción</th>
+										<th>
+											<button type='button' className='btn btn-secondary btn-sm' onClick={() => handleLibrarySort('name')}>
+												Nombre{renderSortIndicator('name')}
+											</button>
+										</th>
+										<th>
+											<button type='button' className='btn btn-secondary btn-sm' onClick={() => handleLibrarySort('playtime')}>
+												Tiempo de juego{renderSortIndicator('playtime')}
+											</button>
+										</th>
+										<th>
+											<button type='button' className='btn btn-secondary btn-sm' onClick={() => handleLibrarySort('status')}>
+												Estado en GDB{renderSortIndicator('status')}
+											</button>
+										</th>
+										<th>
+											<button type='button' className='btn btn-secondary btn-sm' onClick={() => handleLibrarySort('action')}>
+												Acción{renderSortIndicator('action')}
+											</button>
+										</th>
 									</tr>
 								</thead>
 								<tbody>
