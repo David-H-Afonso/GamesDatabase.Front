@@ -23,6 +23,7 @@ export interface Env {
 
 declare global {
 	interface Window {
+		API_BASE_URL?: string
 		electronAPI?: ElectronAPI
 		env?: Env
 	}

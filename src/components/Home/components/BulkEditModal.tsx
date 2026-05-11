@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { useGameStatus, useGamePlatform, useGamePlayWith, useGamePlayedStatus } from '@/hooks'
+import { useGamePlatform, useGamePlayWith, useGamePlayedStatus } from '@/hooks'
+import { useGameStatus } from '@/hooks/useGameStatus/useGameStatus'
 import './BulkEditModal.scss'
 
 interface Props {

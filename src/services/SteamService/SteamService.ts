@@ -110,6 +110,13 @@ class SteamService {
 		await customFetch(base.unlink, { method: 'DELETE' })
 	}
 
+	async linkManually(steamId: string): Promise<SteamProfile> {
+		return customFetch<SteamProfile>(base.manualLink, {
+			method: 'POST',
+			body: { steamId },
+		})
+	}
+
 	async getLibrary(): Promise<SteamLibraryGame[]> {
 		return customFetch<SteamLibraryGame[]>(base.library)
 	}

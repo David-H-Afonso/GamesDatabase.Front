@@ -96,13 +96,14 @@ export const importFullDatabase = async (
 export const exportToZip = async (fullExport: boolean = true): Promise<Blob> => {
 	const endpoint = `${environment.apiRoutes.dataExport.zip}?fullExport=${fullExport}`
 
-	const response = await customFetch<ArrayBuffer>(endpoint, {
+	const response = await customFetch<Blob | ArrayBuffer>(endpoint, {
 		method: 'GET',
 		headers: { Accept: 'application/zip' },
 		baseURL: environment.baseUrl,
 		// No timeout - let it take as long as needed
 	})
 
+	if (response instanceof Blob) return response
 	return new Blob([response], { type: 'application/zip' })
 }
 

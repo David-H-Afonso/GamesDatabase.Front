@@ -127,7 +127,7 @@ const parseResponseData = async (httpResponse: Response): Promise<any> => {
 		return await httpResponse.text()
 	}
 
-	if (responseContentType.includes('application/octet-stream') || responseContentType.includes('image/')) {
+	if (responseContentType.includes('application/zip') || responseContentType.includes('application/octet-stream') || responseContentType.includes('image/')) {
 		return await httpResponse.blob()
 	}
 

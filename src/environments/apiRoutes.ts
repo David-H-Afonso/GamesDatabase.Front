@@ -133,6 +133,7 @@ export const apiRoutes = {
 		linkUrl: '/auth/steam/link-url',
 		profile: '/steam/profile',
 		unlink: '/steam/link',
+		manualLink: '/steam/link/manual',
 		library: '/steam/library',
 		import: '/steam/import',
 		syncAll: '/steam/sync',

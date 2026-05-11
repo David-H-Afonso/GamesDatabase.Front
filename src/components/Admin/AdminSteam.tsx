@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { fetchSteamProfile, unlinkSteam, syncAllSteam, clearSteamError } from '@/store/features/steam/steamSlice'
 import { setSteamProfile } from '@/store/features/auth/authSlice'
-import { steamService } from '@/services'
+import { steamService } from '@/services/SteamService/SteamService'
 import './AdminSteam.scss'
 
 export const AdminSteam = () => {
@@ -11,6 +11,8 @@ export const AdminSteam = () => {
 	const { profile, profileLoading, syncLoading, lastSyncResult, error } = useAppSelector((state) => state.steam)
 	const [message, setMessage] = useState<string | null>(null)
 	const [isSuccess, setIsSuccess] = useState(true)
+	const [manualSteamId, setManualSteamId] = useState('')
+	const [manualLinkLoading, setManualLinkLoading] = useState(false)
 
 	const isSteamLinked = !!authUser?.steamId
 
@@ -23,10 +25,45 @@ export const AdminSteam = () => {
 	const handleConnectSteam = async () => {
 		try {
 			const { url } = await steamService.getLinkUrl()
-			window.location.href = url
+			if (window.electronAPI?.isElectron) {
+				await window.electronAPI.openExternal(url)
+			} else {
+				window.location.href = url
+			}
 		} catch {
 			setMessage('Error al iniciar la conexión con Steam')
 			setIsSuccess(false)
+		}
+	}
+
+	const handleManualLink = async (event: FormEvent<HTMLFormElement>) => {
+		event.preventDefault()
+		const steamId = manualSteamId.trim()
+		if (!steamId) {
+			setMessage('Introduce un SteamID64')
+			setIsSuccess(false)
+			return
+		}
+
+		setManualLinkLoading(true)
+		try {
+			const linkedProfile = await steamService.linkManually(steamId)
+			dispatch(
+				setSteamProfile({
+					steamId: linkedProfile.steamId,
+					steamNickname: linkedProfile.steamNickname,
+					steamAvatarUrl: linkedProfile.steamAvatarUrl,
+				})
+			)
+			setManualSteamId('')
+			setMessage('Cuenta de Steam vinculada')
+			setIsSuccess(true)
+		} catch {
+			setMessage('No se pudo vincular ese SteamID')
+			setIsSuccess(false)
+		} finally {
+			setManualLinkLoading(false)
+			setTimeout(() => setMessage(null), 4000)
 		}
 	}
 
@@ -70,11 +107,33 @@ export const AdminSteam = () => {
 
 			{!isSteamLinked ? (
 				<div className='steam-connect-section'>
-					<p>Conecta tu cuenta de Steam para importar tu biblioteca, sincronizar tiempo de juego y logros.</p>
-					<button className='btn btn-steam' onClick={handleConnectSteam}>
-						<img src='https://store.steampowered.com/favicon.ico' alt='' width={16} height={16} />
-						Conectar cuenta de Steam
-					</button>
+					<div className='steam-connect-card'>
+						<h2>Conectar con Steam</h2>
+						<p>Vincula la cuenta con Steam OpenID cuando la app se use desde navegador.</p>
+						<button className='btn btn-steam' onClick={handleConnectSteam}>
+							<img src='https://store.steampowered.com/favicon.ico' alt='' width={16} height={16} />
+							Conectar cuenta de Steam
+						</button>
+					</div>
+
+					<form className='steam-connect-card steam-manual-form' onSubmit={handleManualLink}>
+						<h2>SteamID64 manual</h2>
+						<label htmlFor='manual-steam-id'>SteamID64 o URL de perfil</label>
+						<div className='steam-manual-row'>
+							<input
+								id='manual-steam-id'
+								type='text'
+								value={manualSteamId}
+								onChange={(event) => setManualSteamId(event.target.value)}
+								placeholder='7656119...'
+								autoComplete='off'
+							/>
+							<button className='btn btn-primary' type='submit' disabled={manualLinkLoading}>
+								{manualLinkLoading ? 'Guardando...' : 'Guardar'}
+							</button>
+						</div>
+						<p>Úsalo en la app desktop si el navegador no puede volver automáticamente al ejecutable.</p>
+					</form>
 				</div>
 			) : (
 				<div className='steam-linked-section'>

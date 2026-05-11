@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useGameViews, useGameStatus, useGamePlatform, useGamePlayedStatus, useGamePlayWith } from '@/hooks'
+import { useGameViews, useGamePlatform, useGamePlayedStatus, useGamePlayWith } from '@/hooks'
+import { useGameStatus } from '@/hooks/useGameStatus/useGameStatus'
 import type { GameView, GameViewCreateDto, ViewFilter, ViewSort, FilterGroup } from '@/models/api/GameView'
 import { FilterField, FilterOperator, SortField, SortDirection, CombineWith } from '@/models/api/GameView'
 import { getActiveGameReplayTypes } from '@/services/GameReplayTypeService'

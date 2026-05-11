@@ -26,15 +26,71 @@
 	}
 
 	.steam-connect-section {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 1rem;
+
+		@media (max-width: 760px) {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	.steam-connect-card {
 		background: var(--bg-secondary);
 		border: 1px solid var(--border-color);
 		border-radius: 8px;
-		padding: 2rem;
-		text-align: center;
+		padding: 1.25rem;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.85rem;
+
+		h2 {
+			margin: 0;
+			font-size: 1.05rem;
+			color: var(--text-primary);
+		}
 
 		p {
-			margin-bottom: 1.5rem;
+			margin: 0;
 			color: var(--text-secondary);
+			line-height: 1.5;
+		}
+	}
+
+	.steam-manual-form {
+		label {
+			font-size: 0.85rem;
+			font-weight: 600;
+			color: var(--text-secondary);
+		}
+	}
+
+	.steam-manual-row {
+		width: 100%;
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		gap: 0.75rem;
+
+		input {
+			width: 100%;
+			min-width: 0;
+			padding: 0.65rem 0.75rem;
+			border: 1px solid var(--border-color);
+			border-radius: 6px;
+			background: var(--bg-primary);
+			color: var(--text-primary);
+			font: inherit;
+
+			&:focus {
+				outline: none;
+				border-color: var(--primary);
+				box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+			}
+		}
+
+		@media (max-width: 520px) {
+			grid-template-columns: 1fr;
 		}
 	}
 
