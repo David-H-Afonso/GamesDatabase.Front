@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, useCallback, useMemo, type FormEvent } from 'react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { useTranslation } from 'react-i18next'
 import { fetchSteamLibrary, importSteamGames, clearLastImportResult, fetchSteamProfile, unlinkSteam, syncAllSteam, clearSteamError } from '@/store/features/steam/steamSlice'
 import { setSteamProfile } from '@/store/features/auth/authSlice'
 import { steamService, type SteamMatchSuggestion, type SteamStoreSearchResult } from '@/services/SteamService/SteamService'
@@ -9,7 +10,7 @@ import './AdminSteam.scss'
 import './AdminSteamImport.scss'
 
 type ImportAction = 'create' | 'skip' | 'link'
-type ActiveTab = 'account' | 'library' | 'suggestions' | 'store'
+type ActiveTab = 'account' | 'library' | 'suggestions' | 'store' | 'storeSuggestions'
 type LibrarySortKey = 'appId' | 'name' | 'playtime' | 'status' | 'action'
 type SortDirection = 'asc' | 'desc'
 
@@ -20,6 +21,7 @@ interface LinkTarget {
 
 export const AdminSteamImport = () => {
 	const dispatch = useAppDispatch()
+	const { t } = useTranslation()
 	const authUser = useAppSelector((state) => state.auth.user)
 	const { profile, library, libraryLoading, profileLoading, syncLoading, importLoading, lastSyncResult, lastImportResult, error } = useAppSelector((state) => state.steam)
 
@@ -36,6 +38,12 @@ export const AdminSteamImport = () => {
 	const [librarySearch, setLibrarySearch] = useState('')
 	const [suggestionSearch, setSuggestionSearch] = useState('')
 	const [selectedSuggestionIds, setSelectedSuggestionIds] = useState<Set<number>>(new Set())
+	const [storeSuggestions, setStoreSuggestions] = useState<SteamMatchSuggestion[]>([])
+	const [storeSuggestionsLoading, setStoreSuggestionsLoading] = useState(false)
+	const [storeSuggestionsDismissing, setStoreSuggestionsDismissing] = useState(false)
+	const [storeSuggestionsError, setStoreSuggestionsError] = useState<string | null>(null)
+	const [storeSuggestionSearch, setStoreSuggestionSearch] = useState('')
+	const [selectedStoreSuggestionIds, setSelectedStoreSuggestionIds] = useState<Set<string>>(new Set())
 	const [librarySort, setLibrarySort] = useState<{ key: LibrarySortKey; direction: SortDirection }>({ key: 'appId', direction: 'asc' })
 	const [message, setMessage] = useState<string | null>(null)
 	const [isSuccess, setIsSuccess] = useState(true)
@@ -66,6 +74,9 @@ export const AdminSteamImport = () => {
 	useEffect(() => {
 		if (isSteamLinked && activeTab === 'suggestions') {
 			loadSuggestions()
+		}
+		if (isSteamLinked && activeTab === 'storeSuggestions') {
+			loadStoreSuggestions()
 		}
 	}, [isSteamLinked, activeTab])
 
@@ -157,6 +168,32 @@ export const AdminSteamImport = () => {
 		}
 	}
 
+	const getSuggestionKey = (suggestion: SteamMatchSuggestion) => `${suggestion.steamAppId}:${suggestion.gdbGameId}`
+
+	const loadStoreSuggestions = async () => {
+		setStoreSuggestionsLoading(true)
+		setStoreSuggestionsError(null)
+		setSelectedStoreSuggestionIds(new Set())
+		try {
+			const data = await steamService.getStoreMatchSuggestions()
+			setStoreSuggestions(data)
+		} catch (e) {
+			setStoreSuggestionsError(e instanceof Error ? e.message : t('admin.steam.storeSuggestions.loadError'))
+		} finally {
+			setStoreSuggestionsLoading(false)
+		}
+	}
+
+	const removeStoreSuggestion = (suggestion: SteamMatchSuggestion) => {
+		const key = getSuggestionKey(suggestion)
+		setStoreSuggestions((prev) => prev.filter((s) => getSuggestionKey(s) !== key))
+		setSelectedStoreSuggestionIds((prev) => {
+			const next = new Set(prev)
+			next.delete(key)
+			return next
+		})
+	}
+
 	const handleLinkSuggestion = async (suggestion: SteamMatchSuggestion) => {
 		try {
 			await steamService.linkGame(suggestion.steamAppId, suggestion.gdbGameId)
@@ -203,6 +240,47 @@ export const AdminSteamImport = () => {
 		}
 	}
 
+	const handleLinkStoreSuggestion = async (suggestion: SteamMatchSuggestion) => {
+		try {
+			await steamService.linkGame(suggestion.steamAppId, suggestion.gdbGameId)
+			removeStoreSuggestion(suggestion)
+			await dispatch(fetchSteamLibrary())
+		} catch {
+			// ignore
+		}
+	}
+
+	const handleBulkLinkStoreSuggestions = async () => {
+		const toLink = filteredStoreSuggestions.filter((s) => selectedStoreSuggestionIds.has(getSuggestionKey(s)))
+		for (const suggestion of toLink) {
+			try {
+				await steamService.linkGame(suggestion.steamAppId, suggestion.gdbGameId)
+				removeStoreSuggestion(suggestion)
+			} catch {
+				/* ignore individual errors */
+			}
+		}
+		setSelectedStoreSuggestionIds(new Set())
+		await dispatch(fetchSteamLibrary())
+	}
+
+	const handleBulkDismissStoreSuggestions = async () => {
+		const toDismiss = filteredStoreSuggestions.filter((s) => selectedStoreSuggestionIds.has(getSuggestionKey(s)))
+		if (toDismiss.length === 0) return
+
+		setStoreSuggestionsDismissing(true)
+		setStoreSuggestionsError(null)
+		try {
+			await steamService.dismissMatchSuggestions(toDismiss.map((s) => ({ steamAppId: s.steamAppId, gdbGameId: s.gdbGameId })))
+			setSelectedStoreSuggestionIds(new Set())
+			await loadStoreSuggestions()
+		} catch (e) {
+			setStoreSuggestionsError(e instanceof Error ? e.message : t('admin.steam.storeSuggestions.dismissError'))
+		} finally {
+			setStoreSuggestionsDismissing(false)
+		}
+	}
+
 	const toggleSuggestionSelection = (appId: number) => {
 		setSelectedSuggestionIds((prev) => {
 			const s = new Set(prev)
@@ -228,6 +306,29 @@ export const AdminSteamImport = () => {
 				return s
 			})
 		}
+	}
+
+	const toggleStoreSuggestionSelection = (suggestion: SteamMatchSuggestion) => {
+		const key = getSuggestionKey(suggestion)
+		setSelectedStoreSuggestionIds((prev) => {
+			const next = new Set(prev)
+			if (next.has(key)) next.delete(key)
+			else next.add(key)
+			return next
+		})
+	}
+
+	const toggleAllVisibleStoreSuggestions = () => {
+		const visibleIds = filteredStoreSuggestions.map(getSuggestionKey)
+		const allSelected = visibleIds.every((id) => selectedStoreSuggestionIds.has(id))
+		setSelectedStoreSuggestionIds((prev) => {
+			const next = new Set(prev)
+			visibleIds.forEach((id) => {
+				if (allSelected) next.delete(id)
+				else next.add(id)
+			})
+			return next
+		})
 	}
 
 	const handleStoreSearch = useCallback(async (q: string) => {
@@ -411,6 +512,12 @@ export const AdminSteamImport = () => {
 	const filteredSuggestions = suggestions.filter(
 		(s) => !suggestionSearch.trim() || s.steamName.toLowerCase().includes(suggestionSearch.toLowerCase()) || s.gdbGameName.toLowerCase().includes(suggestionSearch.toLowerCase())
 	)
+	const filteredStoreSuggestions = storeSuggestions.filter(
+		(s) =>
+			!storeSuggestionSearch.trim() ||
+			s.steamName.toLowerCase().includes(storeSuggestionSearch.toLowerCase()) ||
+			s.gdbGameName.toLowerCase().includes(storeSuggestionSearch.toLowerCase())
+	)
 
 	const toCreateCount = library.filter((g) => getAction(g.appId) === 'create').length
 	const toLinkCount = library.filter((g) => getAction(g.appId) === 'link' && linkTargets.has(g.appId)).length
@@ -506,6 +613,9 @@ export const AdminSteamImport = () => {
 				<button className={`tab-btn${activeTab === 'store' ? ' tab-btn--active' : ''}`} onClick={() => setActiveTab('store')} disabled={!isSteamLinked}>
 					Buscar en Steam
 				</button>
+				<button className={`tab-btn${activeTab === 'storeSuggestions' ? ' tab-btn--active' : ''}`} onClick={() => setActiveTab('storeSuggestions')} disabled={!isSteamLinked}>
+					{t('admin.steam.tabs.storeSuggestions')}
+				</button>
 			</div>
 
 			{(activeTab === 'account' || !isSteamLinked) && (error || message) && (
@@ -573,6 +683,113 @@ export const AdminSteamImport = () => {
 								)
 							})}
 						</div>
+					)}
+				</div>
+			) : activeTab === 'storeSuggestions' ? (
+				<div className='suggestions-view'>
+					{storeSuggestionsLoading ? (
+						<p>{t('admin.steam.storeSuggestions.loading')}</p>
+					) : storeSuggestionsError ? (
+						<div className='alert alert--error'>{storeSuggestionsError}</div>
+					) : storeSuggestions.length === 0 ? (
+						<div className='no-suggestions'>
+							<p>{t('admin.steam.storeSuggestions.empty')}</p>
+							<button className='btn btn-secondary btn-sm' onClick={loadStoreSuggestions}>
+								{t('admin.steam.storeSuggestions.refresh')}
+							</button>
+						</div>
+					) : (
+						<>
+							<p className='suggestions-hint'>{t('admin.steam.storeSuggestions.hint', { count: storeSuggestions.length })}</p>
+							<div className='suggestions-toolbar'>
+								<input
+									className='search-input'
+									type='text'
+									placeholder={t('admin.steam.common.searchByName')}
+									value={storeSuggestionSearch}
+									onChange={(e) => setStoreSuggestionSearch(e.target.value)}
+								/>
+								<button className='btn btn-secondary btn-sm' onClick={loadStoreSuggestions} disabled={storeSuggestionsLoading}>
+									{t('admin.steam.storeSuggestions.refresh')}
+								</button>
+								{selectedStoreSuggestionIds.size > 0 && (
+									<div className='bulk-actions'>
+										<span className='bulk-count'>{t('admin.steam.common.selectedCount', { count: selectedStoreSuggestionIds.size })}</span>
+										<button className='btn btn-primary btn-sm' onClick={handleBulkLinkStoreSuggestions}>
+											{t('admin.steam.common.linkSelected')}
+										</button>
+										<button className='btn btn-secondary btn-sm' onClick={handleBulkDismissStoreSuggestions} disabled={storeSuggestionsDismissing}>
+											{storeSuggestionsDismissing ? t('admin.steam.common.dismissing') : t('admin.steam.common.dismissSelected')}
+										</button>
+									</div>
+								)}
+							</div>
+							<div className='library-table-wrapper'>
+								<table className='library-table'>
+									<thead>
+										<tr>
+											<th className='check-cell'>
+												<input
+													type='checkbox'
+													checked={filteredStoreSuggestions.length > 0 && filteredStoreSuggestions.every((s) => selectedStoreSuggestionIds.has(getSuggestionKey(s)))}
+													onChange={toggleAllVisibleStoreSuggestions}
+												/>
+											</th>
+											<th>{t('admin.steam.common.steam')}</th>
+											<th>{t('admin.steam.common.gdb')}</th>
+											<th>{t('admin.steam.common.confidence')}</th>
+											<th>{t('admin.steam.common.action')}</th>
+										</tr>
+									</thead>
+									<tbody>
+										{filteredStoreSuggestions.map((s) => {
+											const key = getSuggestionKey(s)
+											return (
+												<tr
+													key={key}
+													className={selectedStoreSuggestionIds.has(key) ? 'row--selected row--selectable' : 'row--selectable'}
+													onClick={() => toggleStoreSuggestionSelection(s)}>
+													<td className='check-cell'>
+														<input
+															type='checkbox'
+															checked={selectedStoreSuggestionIds.has(key)}
+															onClick={(event) => event.stopPropagation()}
+															onChange={() => toggleStoreSuggestionSelection(s)}
+														/>
+													</td>
+													<td>
+														<div className='suggestion-game'>
+															{s.steamIconUrl && <img src={s.steamIconUrl} alt='' width={32} height={32} style={{ borderRadius: 2 }} />}
+															<div>
+																<span className='game-name'>{s.steamName}</span>
+																<span className='game-appid'>App {s.steamAppId}</span>
+															</div>
+														</div>
+													</td>
+													<td>
+														<span className='game-name'>{s.gdbGameName}</span>
+														<span className='game-appid'>GDB #{s.gdbGameId}</span>
+													</td>
+													<td>
+														<span className={`confidence-badge confidence--${s.confidence === 100 ? 'high' : s.confidence >= 75 ? 'mid' : 'low'}`}>{s.confidence}%</span>
+													</td>
+													<td>
+														<button
+															className='btn btn-primary btn-sm'
+															onClick={(event) => {
+																event.stopPropagation()
+																handleLinkStoreSuggestion(s)
+															}}>
+															{t('admin.steam.common.link')}
+														</button>
+													</td>
+												</tr>
+											)
+										})}
+									</tbody>
+								</table>
+							</div>
+						</>
 					)}
 				</div>
 			) : activeTab === 'suggestions' ? (

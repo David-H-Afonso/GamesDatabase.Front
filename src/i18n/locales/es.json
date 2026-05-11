@@ -110,6 +110,7 @@
 			"audit": "Auditoría",
 			"backupSchedule": "Copia de Seguridad",
 			"backupScheduleUsers": "Copias por Usuario",
+			"steam": "Steam",
 			"preferences": "Preferencias"
 		},
 		"table": {
@@ -658,6 +659,31 @@
 			"subtitle": "Gestiona las copias de seguridad programadas para todos los usuarios. Expande un usuario para ver y editar su configuración.",
 			"enabled": "Activado",
 			"disabled": "Desactivado"
+		},
+		"steam": {
+			"tabs": {
+				"storeSuggestions": "Sugerencias de tienda"
+			},
+			"common": {
+				"steam": "Steam",
+				"gdb": "En GDB",
+				"confidence": "Confianza",
+				"action": "Acción",
+				"link": "Vincular",
+				"linkSelected": "Vincular seleccionadas",
+				"dismissSelected": "Descartar seleccionadas",
+				"dismissing": "Descartando...",
+				"searchByName": "Buscar por nombre...",
+				"selectedCount": "{{count}} seleccionadas"
+			},
+			"storeSuggestions": {
+				"loading": "Buscando coincidencias en la tienda de Steam...",
+				"loadError": "Error cargando sugerencias de tienda",
+				"dismissError": "Error descartando sugerencias de tienda",
+				"empty": "No se encontraron coincidencias nuevas en la tienda para juegos sin AppID.",
+				"hint": "Se han encontrado {{count}} posibles coincidencias buscando en la tienda para juegos de GDB sin AppID.",
+				"refresh": "Buscar de nuevo"
+			}
 		}
 	},
 	"game": {
@@ -950,6 +976,13 @@
 			"allPrices": "Todos los precios",
 			"cheaperByKey": "Más barato con Key",
 			"cheaperInStore": "Más barato en tienda",
+			"withSteam": "Con Steam vinculado",
+			"withoutSteam": "Sin Steam vinculado",
+			"duration": "Duración",
+			"missingStory": "Sin historia",
+			"missingCompletion": "Sin 100%",
+			"missingAnyDuration": "Sin historia o 100%",
+			"missingBothDurations": "Sin ambas duraciones",
 			"excludeStatus": "Excluir estado:",
 			"showIncomplete": "Mostrar juegos incompletos",
 			"incompleteDesc": "(Sin cumplir, sin portada, sin logo o sin plataforma)",
@@ -1211,6 +1244,13 @@
 			"grade": "Nota",
 			"years": "Años",
 			"price": "Precio",
+			"withSteam": "Con Steam vinculado",
+			"withoutSteam": "Sin Steam vinculado",
+			"duration": "Duración",
+			"missingStory": "Sin historia",
+			"missingCompletion": "Sin 100%",
+			"missingAnyDuration": "Sin historia o 100%",
+			"missingBothDurations": "Sin ambas duraciones",
 			"provider": "Proveedor",
 			"exclusions": "Exclusiones",
 			"page": "Página",
@@ -1235,6 +1275,8 @@
 			"fieldReplay": "Rejugada",
 			"fieldCreatedAt": "Fecha de creación",
 			"fieldUpdatedAt": "Última modificación",
+			"fieldSteamAppId": "Steam AppID",
+			"fieldSteamPlaytime": "Horas de Steam",
 			"opEquals": "Igual a",
 			"opNotEquals": "No igual a",
 			"opContains": "Contiene",

@@ -73,7 +73,7 @@ export interface BulkUpdateResult {
 }
 
 // Query parameters for API requests
-export type SortByKey = 'name' | 'grade' | 'critic' | 'released' | 'started' | 'score' | 'storyDuration' | 'completionDuration' | 'status' | 'createdat' | 'updatedat' | string
+export type SortByKey = 'name' | 'grade' | 'critic' | 'released' | 'started' | 'score' | 'storyDuration' | 'completionDuration' | 'status' | 'createdat' | 'updatedat' | 'steamPlaytimeForever' | string
 
 export interface QueryParameters {
 	page?: number
@@ -118,6 +118,8 @@ export interface GameQueryParameters extends QueryParameters {
 	replayGradeMin?: number
 	replayGradeMax?: number
 	hasReplays?: boolean
+	hasSteamApp?: boolean
+	missingDuration?: 'story' | 'completion' | 'any' | 'both'
 	replayMatchMode?: 'any' | 'all'
 }
 

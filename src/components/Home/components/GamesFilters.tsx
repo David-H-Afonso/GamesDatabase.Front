@@ -227,6 +227,31 @@ const GamesFilters: React.FC<Props> = ({ value, onChange, isOpen = true, onClear
 				<option value='false'>Cheaper in Store</option>
 			</select>
 
+			<select
+				aria-label='Duration filter'
+				value={value.missingDuration ?? ''}
+				onChange={(e) => update({ missingDuration: (e.target.value || undefined) as any })}
+				className='gf-select'>
+				<option value=''>All durations</option>
+				<option value='story'>Missing story</option>
+				<option value='completion'>Missing 100%</option>
+				<option value='any'>Missing story or 100%</option>
+				<option value='both'>Missing both durations</option>
+			</select>
+
+			<select
+				aria-label='Steam filter'
+				value={value.hasSteamApp === true ? 'true' : value.hasSteamApp === false ? 'false' : ''}
+				onChange={(e) => {
+					const val = e.target.value
+					update({ hasSteamApp: val === '' ? undefined : val === 'true' })
+				}}
+				className='gf-select'>
+				<option value=''>All Steam links</option>
+				<option value='true'>Linked to Steam</option>
+				<option value='false'>Not linked to Steam</option>
+			</select>
+
 			<div className='gf-checkbox-row' style={{ marginTop: '8px', marginBottom: '8px' }}>
 				<label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
 					<input

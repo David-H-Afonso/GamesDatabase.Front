@@ -110,6 +110,7 @@
 			"audit": "Audit",
 			"backupSchedule": "Backup Schedule",
 			"backupScheduleUsers": "User Backups",
+			"steam": "Steam",
 			"preferences": "Preferences"
 		},
 		"table": {
@@ -658,6 +659,31 @@
 			"subtitle": "Manage backup schedules for all users. Expand a user to view and edit their settings.",
 			"enabled": "Enabled",
 			"disabled": "Disabled"
+		},
+		"steam": {
+			"tabs": {
+				"storeSuggestions": "Store suggestions"
+			},
+			"common": {
+				"steam": "Steam",
+				"gdb": "In GDB",
+				"confidence": "Confidence",
+				"action": "Action",
+				"link": "Link",
+				"linkSelected": "Link selected",
+				"dismissSelected": "Dismiss selected",
+				"dismissing": "Dismissing...",
+				"searchByName": "Search by name...",
+				"selectedCount": "{{count}} selected"
+			},
+			"storeSuggestions": {
+				"loading": "Searching for matches in the Steam store...",
+				"loadError": "Error loading store suggestions",
+				"dismissError": "Error dismissing store suggestions",
+				"empty": "No new store matches were found for games without an AppID.",
+				"hint": "Found {{count}} possible matches by searching the store for GDB games without an AppID.",
+				"refresh": "Search again"
+			}
 		}
 	},
 	"game": {
@@ -950,6 +976,13 @@
 			"allPrices": "All Prices",
 			"cheaperByKey": "Cheaper by Key",
 			"cheaperInStore": "Cheaper in Store",
+			"withSteam": "Linked to Steam",
+			"withoutSteam": "Not linked to Steam",
+			"duration": "Duration",
+			"missingStory": "Missing story",
+			"missingCompletion": "Missing 100%",
+			"missingAnyDuration": "Missing story or 100%",
+			"missingBothDurations": "Missing both durations",
 			"excludeStatus": "Exclude Status:",
 			"showIncomplete": "Show Incomplete Games",
 			"incompleteDesc": "(Not Fulfilled, no cover, no logo, or no platform)",
@@ -1211,6 +1244,13 @@
 			"grade": "Grade",
 			"years": "Years",
 			"price": "Price",
+			"withSteam": "Linked to Steam",
+			"withoutSteam": "Not linked to Steam",
+			"duration": "Duration",
+			"missingStory": "Missing story",
+			"missingCompletion": "Missing 100%",
+			"missingAnyDuration": "Missing story or 100%",
+			"missingBothDurations": "Missing both durations",
 			"provider": "Provider",
 			"exclusions": "Exclusions",
 			"page": "Page",
@@ -1235,6 +1275,8 @@
 			"fieldReplay": "Replay",
 			"fieldCreatedAt": "Created Date",
 			"fieldUpdatedAt": "Last Modified",
+			"fieldSteamAppId": "Steam AppID",
+			"fieldSteamPlaytime": "Steam hours",
 			"opEquals": "Equals",
 			"opNotEquals": "Not equals",
 			"opContains": "Contains",

@@ -29,6 +29,10 @@ export type ConfigurableGameProperty =
 	| 'cover'
 	| 'isCheaperByKey'
 	| 'keyStoreUrl'
+	| 'steamAppId'
+	| 'steamPlaytimeForever'
+	| 'steamPlaytime2Weeks'
+	| 'steamLastSynced'
 
 // ─── Per-property overrides ───────────────────────────────────────────────────
 
@@ -125,4 +129,8 @@ export const GAME_PROPERTY_FIELDS: PropertyFieldMeta[] = [
 	{ key: 'cover', label: 'Cover URL', inputType: 'none', canCleanOnImport: true, canCustomOnImport: false, canCleanOnExport: true },
 	{ key: 'isCheaperByKey', label: 'Cheaper by Key', inputType: 'boolean', canCleanOnImport: true, canCustomOnImport: true, canCleanOnExport: true },
 	{ key: 'keyStoreUrl', label: 'Key Store URL', inputType: 'text', canCleanOnImport: true, canCustomOnImport: true, canCleanOnExport: true },
+	{ key: 'steamAppId', label: 'Steam AppID', inputType: 'number', canCleanOnImport: true, canCustomOnImport: true, canCleanOnExport: true },
+	{ key: 'steamPlaytimeForever', label: 'Steam Playtime (total minutes)', inputType: 'number', canCleanOnImport: true, canCustomOnImport: true, canCleanOnExport: true },
+	{ key: 'steamPlaytime2Weeks', label: 'Steam Playtime (2 weeks)', inputType: 'number', canCleanOnImport: true, canCustomOnImport: true, canCleanOnExport: true },
+	{ key: 'steamLastSynced', label: 'Steam Last Sync', inputType: 'date', canCleanOnImport: true, canCustomOnImport: true, canCleanOnExport: true },
 ]

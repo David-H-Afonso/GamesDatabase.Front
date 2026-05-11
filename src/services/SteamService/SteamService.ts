@@ -151,6 +151,10 @@ class SteamService {
 		return customFetch<SteamMatchSuggestion[]>(base.matchSuggestions)
 	}
 
+	async getStoreMatchSuggestions(): Promise<SteamMatchSuggestion[]> {
+		return customFetch<SteamMatchSuggestion[]>(base.storeMatchSuggestions)
+	}
+
 	async dismissMatchSuggestions(suggestions: Array<{ steamAppId: number; gdbGameId: number }>): Promise<void> {
 		await customFetch(base.dismissMatchSuggestions, {
 			method: 'POST',

@@ -45,6 +45,8 @@ export const FilterField = {
 	Comment: 'Comment',
 	CreatedAt: 'CreatedAt',
 	UpdatedAt: 'UpdatedAt',
+	SteamAppId: 'SteamAppId',
+	SteamPlaytimeForever: 'SteamPlaytimeForever',
 	// Nuevos campos del backend
 	ReleaseDate: 'ReleaseDate',
 	Description: 'Description',
@@ -87,6 +89,7 @@ export const SortField = {
 	EffectiveFinished: 'EffectiveFinished',
 	CreatedAt: 'CreatedAt',
 	UpdatedAt: 'UpdatedAt',
+	SteamPlaytimeForever: 'SteamPlaytimeForever',
 	Id: 'Id',
 } as const
 

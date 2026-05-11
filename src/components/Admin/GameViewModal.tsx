@@ -372,6 +372,8 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 		{ value: FilterField.Score, label: t('game.filters.fieldScore') },
 		{ value: FilterField.Grade, label: t('game.filters.fieldGrade') },
 		{ value: FilterField.Critic, label: t('game.filters.fieldCritic') },
+		{ value: FilterField.SteamAppId, label: t('game.filters.fieldSteamAppId') },
+		{ value: FilterField.SteamPlaytimeForever, label: t('game.filters.fieldSteamPlaytime') },
 		{ value: FilterField.Description, label: t('game.filters.fieldDescription') },
 		{ value: FilterField.Comment, label: t('game.filters.fieldComment') },
 		{ value: 'ReplayGroup', label: t('game.filters.fieldReplay') },
@@ -403,9 +405,9 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 	const getOperatorsForField = (field: string) => {
 		const TEXT_FIELDS = [FilterField.Name, FilterField.Comment, FilterField.Description]
 		// Numeric fields (StatusId, PlatformId, etc.) - ONLY Equals/NotEquals supported
-		const NUMERIC_ID_FIELDS = [FilterField.StatusId, FilterField.PlatformId, FilterField.PlayWithId, FilterField.PlayedStatusId, FilterField.ReplayTypeId]
+		const NUMERIC_ID_FIELDS = [FilterField.StatusId, FilterField.PlatformId, FilterField.PlayWithId, FilterField.PlayedStatusId, FilterField.SteamAppId, FilterField.ReplayTypeId]
 		// Numeric score fields - may support more operators
-		const NUMERIC_SCORE_FIELDS = [FilterField.Score, FilterField.Grade, FilterField.Critic, FilterField.Story, FilterField.Completion, FilterField.ReplayGrade]
+		const NUMERIC_SCORE_FIELDS = [FilterField.Score, FilterField.Grade, FilterField.Critic, FilterField.Story, FilterField.Completion, FilterField.SteamPlaytimeForever, FilterField.ReplayGrade]
 		// Date fields - ONLY Equals/GreaterThanOrEqual/LessThanOrEqual supported
 		const DATE_FIELDS = [
 			FilterField.Released,
@@ -484,6 +486,7 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 		{ value: SortField.Critic, label: t('game.filters.fieldCritic') },
 		{ value: SortField.CreatedAt, label: t('game.filters.fieldCreatedAt') },
 		{ value: SortField.UpdatedAt, label: t('game.filters.fieldUpdatedAt') },
+		{ value: SortField.SteamPlaytimeForever, label: t('game.filters.fieldSteamPlaytime') },
 	]
 
 	const REPLAY_FIELDS = [FilterField.ReplayStarted, FilterField.ReplayFinished, FilterField.ReplayReleased, FilterField.ReplayGrade, FilterField.ReplayTypeId]

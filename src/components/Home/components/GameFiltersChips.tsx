@@ -27,7 +27,7 @@ interface Props {
 	onBulkExport?: () => void
 }
 
-type PopoverKey = 'platform' | 'playWith' | 'status' | 'playedStatus' | 'grades' | 'years' | 'replay' | 'price' | 'criticProvider' | 'excluded' | 'pageSize'
+type PopoverKey = 'platform' | 'playWith' | 'status' | 'playedStatus' | 'grades' | 'years' | 'replay' | 'duration' | 'steam' | 'price' | 'criticProvider' | 'excluded' | 'pageSize'
 
 const GameFiltersChips: React.FC<Props> = ({
 	filters,
@@ -204,6 +204,26 @@ const GameFiltersChips: React.FC<Props> = ({
 		return filters.isCheaperByKey ? t('home.filters.cheaperByKey') : t('home.filters.cheaperByStore')
 	}
 
+	const steamLabel = () => {
+		if (filters.hasSteamApp === undefined || filters.hasSteamApp === null) return t('common.all')
+		return filters.hasSteamApp ? t('home.filters.withSteam') : t('home.filters.withoutSteam')
+	}
+
+	const durationLabel = () => {
+		switch (filters.missingDuration) {
+			case 'story':
+				return t('home.filters.missingStory')
+			case 'completion':
+				return t('home.filters.missingCompletion')
+			case 'both':
+				return t('home.filters.missingBothDurations')
+			case 'any':
+				return t('home.filters.missingAnyDuration')
+			default:
+				return t('common.all')
+		}
+	}
+
 	const criticProviderLabel = () => {
 		if (!filters.criticProvider) return t('common.all')
 		return filters.criticProvider
@@ -232,6 +252,8 @@ const GameFiltersChips: React.FC<Props> = ({
 			finishedYear: undefined,
 			includeReplayDates: undefined,
 			isCheaperByKey: undefined,
+			hasSteamApp: undefined,
+			missingDuration: undefined,
 			criticProvider: undefined,
 			excludeStatusIds: undefined,
 			pageSize: undefined,
@@ -260,6 +282,8 @@ const GameFiltersChips: React.FC<Props> = ({
 			!!filters.finishedYear ||
 			filters.includeReplayDates === false ||
 			(filters.isCheaperByKey !== undefined && filters.isCheaperByKey !== null) ||
+			(filters.hasSteamApp !== undefined && filters.hasSteamApp !== null) ||
+			!!filters.missingDuration ||
 			!!filters.criticProvider ||
 			!!filters.excludeStatusIds?.length ||
 			filters.hasReplays !== undefined ||
@@ -301,6 +325,10 @@ const GameFiltersChips: React.FC<Props> = ({
 				)
 			case 'price':
 				return filters.isCheaperByKey !== undefined && filters.isCheaperByKey !== null
+			case 'steam':
+				return filters.hasSteamApp !== undefined && filters.hasSteamApp !== null
+			case 'duration':
+				return !!filters.missingDuration
 			case 'criticProvider':
 				return !!filters.criticProvider
 			case 'excluded':
@@ -403,6 +431,7 @@ const GameFiltersChips: React.FC<Props> = ({
 							<option value='status'>{t('home.filters.fieldStatus')}</option>
 							<option value='createdat'>{t('home.filters.fieldCreatedAt')}</option>
 							<option value='updatedat'>{t('home.filters.fieldUpdatedAt')}</option>
+							<option value='steamPlaytimeForever'>{t('home.filters.fieldSteamPlaytime')}</option>
 						</select>
 						<button
 							type='button'
@@ -510,6 +539,7 @@ const GameFiltersChips: React.FC<Props> = ({
 								<option value='status'>{t('home.filters.fieldStatus')}</option>
 								<option value='createdat'>{t('home.filters.fieldCreatedAt')}</option>
 								<option value='updatedat'>{t('home.filters.fieldUpdatedAt')}</option>
+								<option value='steamPlaytimeForever'>{t('home.filters.fieldSteamPlaytime')}</option>
 							</select>
 							<button
 								type='button'
@@ -551,8 +581,16 @@ const GameFiltersChips: React.FC<Props> = ({
 							{t('home.filters.replay')}: <span>{replayLabel()}</span>
 						</button>
 
+						<button type='button' className={'game-filters-chips__chip' + (hasActiveFilter('duration') ? ' is-active' : '')} onClick={() => togglePopover('duration')}>
+							{t('home.filters.duration')}: <span>{durationLabel()}</span>
+						</button>
+
 						<button type='button' className={'game-filters-chips__chip' + (hasActiveFilter('price') ? ' is-active' : '')} onClick={() => togglePopover('price')}>
 							{t('home.filters.price')}: <span>{priceLabel()}</span>
+						</button>
+
+						<button type='button' className={'game-filters-chips__chip' + (hasActiveFilter('steam') ? ' is-active' : '')} onClick={() => togglePopover('steam')}>
+							Steam: <span>{steamLabel()}</span>
 						</button>
 
 						<button type='button' className={'game-filters-chips__chip' + (hasActiveFilter('criticProvider') ? ' is-active' : '')} onClick={() => togglePopover('criticProvider')}>
@@ -919,6 +957,55 @@ const GameFiltersChips: React.FC<Props> = ({
 											className={'game-filters-chips__option' + (filters.isCheaperByKey === false ? ' is-active' : '')}
 											onClick={() => setFilters({ isCheaperByKey: false })}>
 											{t('home.filters.cheaperByStore')}
+										</button>
+									</div>
+								</>
+							)}
+
+							{openPopover === 'duration' && (
+								<>
+									<strong className='game-filters-chips__popover-title'>{t('home.filters.duration')}</strong>
+									<div className='game-filters-chips__popover-options'>
+										<button type='button' className={'game-filters-chips__option' + (!filters.missingDuration ? ' is-active' : '')} onClick={() => setFilters({ missingDuration: undefined })}>
+											{t('common.all')}
+										</button>
+										<button type='button' className={'game-filters-chips__option' + (filters.missingDuration === 'story' ? ' is-active' : '')} onClick={() => setFilters({ missingDuration: 'story' })}>
+											{t('home.filters.missingStory')}
+										</button>
+										<button type='button' className={'game-filters-chips__option' + (filters.missingDuration === 'completion' ? ' is-active' : '')} onClick={() => setFilters({ missingDuration: 'completion' })}>
+											{t('home.filters.missingCompletion')}
+										</button>
+										<button type='button' className={'game-filters-chips__option' + (filters.missingDuration === 'any' ? ' is-active' : '')} onClick={() => setFilters({ missingDuration: 'any' })}>
+											{t('home.filters.missingAnyDuration')}
+										</button>
+										<button type='button' className={'game-filters-chips__option' + (filters.missingDuration === 'both' ? ' is-active' : '')} onClick={() => setFilters({ missingDuration: 'both' })}>
+											{t('home.filters.missingBothDurations')}
+										</button>
+									</div>
+								</>
+							)}
+
+							{openPopover === 'steam' && (
+								<>
+									<strong className='game-filters-chips__popover-title'>Steam</strong>
+									<div className='game-filters-chips__popover-options'>
+										<button
+											type='button'
+											className={'game-filters-chips__option' + (filters.hasSteamApp === undefined || filters.hasSteamApp === null ? ' is-active' : '')}
+											onClick={() => setFilters({ hasSteamApp: undefined })}>
+											{t('common.all')}
+										</button>
+										<button
+											type='button'
+											className={'game-filters-chips__option' + (filters.hasSteamApp === true ? ' is-active' : '')}
+											onClick={() => setFilters({ hasSteamApp: true })}>
+											{t('home.filters.withSteam')}
+										</button>
+										<button
+											type='button'
+											className={'game-filters-chips__option' + (filters.hasSteamApp === false ? ' is-active' : '')}
+											onClick={() => setFilters({ hasSteamApp: false })}>
+											{t('home.filters.withoutSteam')}
 										</button>
 									</div>
 								</>
