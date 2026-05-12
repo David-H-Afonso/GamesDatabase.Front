@@ -1219,8 +1219,10 @@
 			"tableCustomValue": "Valor personalizado",
 			"modeAsImported": "Como importado (todo)",
 			"modeAsStored": "Como guardado (todo)",
+			"modePriceOnly": "Solo key/tienda",
 			"modeCustomCleared": "Limpieza personalizada",
 			"modeCustom": "Personalizado (por propiedad)",
+			"priceOnlyImportDesc": "Actualiza solo si es más barato con key o en tienda y la URL de tienda de keys. Mantiene intactos Steam, fechas, estados, notas, imágenes y el resto de campos.",
 			"perModeAsImported": "Como importado",
 			"perModeClean": "Limpiar",
 			"perModeCustom": "Valor personalizado",
@@ -1261,7 +1263,11 @@
 				"logo": "URL del logo",
 				"cover": "URL de portada",
 				"isCheaperByKey": "Más barato con key",
-				"keyStoreUrl": "URL de tienda de keys"
+				"keyStoreUrl": "URL de tienda de keys",
+				"steamAppId": "Steam App ID",
+				"steamPlaytimeForever": "Tiempo jugado en Steam (total, minutos)",
+				"steamPlaytime2Weeks": "Tiempo jugado en Steam (2 semanas, minutos)",
+				"steamLastSynced": "Última sincronización de Steam"
 			}
 		},
 		"view": "Vista",

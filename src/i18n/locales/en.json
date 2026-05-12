@@ -1216,8 +1216,10 @@
 			"tableCustomValue": "Custom Value",
 			"modeAsImported": "As Imported (all)",
 			"modeAsStored": "As Stored (all)",
+			"modePriceOnly": "Price only",
 			"modeCustomCleared": "Custom Cleared",
 			"modeCustom": "Custom (per property)",
+			"priceOnlyImportDesc": "Updates only cheaper-by-key/store and the key-store URL. Keeps Steam, dates, statuses, notes, images, and every other field untouched.",
 			"perModeAsImported": "As Imported",
 			"perModeClean": "Clean",
 			"perModeCustom": "Custom Value",
@@ -1258,7 +1260,11 @@
 				"logo": "Logo URL",
 				"cover": "Cover URL",
 				"isCheaperByKey": "Cheaper by Key",
-				"keyStoreUrl": "Key Store URL"
+				"keyStoreUrl": "Key Store URL",
+				"steamAppId": "Steam App ID",
+				"steamPlaytimeForever": "Steam Playtime (total minutes)",
+				"steamPlaytime2Weeks": "Steam Playtime (2 weeks, minutes)",
+				"steamLastSynced": "Steam Last Sync"
 			}
 		},
 		"view": "View",

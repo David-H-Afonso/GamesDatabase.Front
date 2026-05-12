@@ -51,10 +51,10 @@ export interface ExportPropertyOverride {
 export type ImportPropertyConfig = Partial<Record<ConfigurableGameProperty, ImportPropertyOverride>>
 export type ExportPropertyConfig = Partial<Record<ConfigurableGameProperty, ExportPropertyOverride>>
 
-/** Config for a single game during import. If mode is 'simple', properties are ignored. */
+/** Config for a single game during import. If mode is 'simple' or 'priceOnly', properties are ignored. */
 export interface GameImportConfig {
-	/** simple = all asImported; custom = use properties; customCleared = clean personal fields, keep rest asImported */
-	mode: 'simple' | 'custom' | 'customCleared'
+	/** simple = all asImported; priceOnly = update only isCheaperByKey/keyStoreUrl; custom = use properties; customCleared = clean personal fields, keep rest asImported */
+	mode: 'simple' | 'priceOnly' | 'custom' | 'customCleared'
 	properties?: ImportPropertyConfig
 }
 

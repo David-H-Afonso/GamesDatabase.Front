@@ -62,7 +62,7 @@ const PropertyConfigPanel: React.FC<PropertyConfigPanelProps> = ({ panelMode, co
 
 	// ── Mode toggle (Simple / Custom Cleared / Custom) ─────────────────────────────────
 
-	const handleModeToggle = (newMode: 'simple' | 'custom' | 'customCleared') => {
+	const handleModeToggle = (newMode: 'simple' | 'priceOnly' | 'custom' | 'customCleared') => {
 		if (panelMode === 'import') {
 			onChange({ ...config, mode: newMode } as GameImportConfig)
 		} else {
@@ -239,6 +239,12 @@ const PropertyConfigPanel: React.FC<PropertyConfigPanelProps> = ({ panelMode, co
 					<input type='radio' name={radioGroupId} checked={config.mode === 'simple'} onChange={() => handleModeToggle('simple')} />
 					{panelMode === 'import' ? t('home.propertyConfig.modeAsImported') : t('home.propertyConfig.modeAsStored')}
 				</label>
+				{panelMode === 'import' && (
+					<label className={`pcp__mode-btn ${config.mode === 'priceOnly' ? 'is-active' : ''}`}>
+						<input type='radio' name={radioGroupId} checked={config.mode === 'priceOnly'} onChange={() => handleModeToggle('priceOnly')} />
+						{t('home.propertyConfig.modePriceOnly')}
+					</label>
+				)}
 				<label className={`pcp__mode-btn ${config.mode === 'customCleared' ? 'is-active' : ''}`}>
 					<input type='radio' name={radioGroupId} checked={config.mode === 'customCleared'} onChange={() => handleModeToggle('customCleared')} />
 					{t('home.propertyConfig.modeCustomCleared')}
@@ -248,6 +254,8 @@ const PropertyConfigPanel: React.FC<PropertyConfigPanelProps> = ({ panelMode, co
 					{t('home.propertyConfig.modeCustom')}
 				</label>
 			</div>
+
+			{panelMode === 'import' && config.mode === 'priceOnly' && <p className='pcp__mode-desc'>{t('home.propertyConfig.priceOnlyImportDesc')}</p>}
 
 			{/* Explanation for Custom Cleared */}
 			{config.mode === 'customCleared' && (
