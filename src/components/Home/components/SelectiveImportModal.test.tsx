@@ -45,38 +45,38 @@ describe('SelectiveImportModal', () => {
 	it('renders modal with title when open', async () => {
 		const C = await loadComponent()
 		render(<C isOpen={true} onClose={mockOnClose} />)
-		expect(screen.getByText('Import Games')).toBeInTheDocument()
+		expect(screen.getByText('Importar Juegos')).toBeInTheDocument()
 	})
 
 	it('renders CSV source section', async () => {
 		const C = await loadComponent()
 		render(<C isOpen={true} onClose={mockOnClose} />)
-		expect(screen.getByText('1. CSV Source')).toBeInTheDocument()
+		expect(screen.getByText('1. Fuente CSV')).toBeInTheDocument()
 	})
 
 	it('shows upload file radio selected by default', async () => {
 		const C = await loadComponent()
 		render(<C isOpen={true} onClose={mockOnClose} />)
-		expect(screen.getByLabelText('Upload File')).toBeChecked()
+		expect(screen.getByLabelText('Subir Archivo')).toBeChecked()
 	})
 
 	it('switches to paste text mode', async () => {
 		const C = await loadComponent()
 		const user = userEvent.setup()
 		render(<C isOpen={true} onClose={mockOnClose} />)
-		await user.click(screen.getByLabelText('Paste Text'))
-		expect(screen.getByPlaceholderText('Paste CSV content here…')).toBeInTheDocument()
+		await user.click(screen.getByLabelText('Pegar Texto'))
+		expect(screen.getByPlaceholderText('Pega el contenido CSV aquí…')).toBeInTheDocument()
 	})
 
 	it('shows import button', async () => {
 		const C = await loadComponent()
 		render(<C isOpen={true} onClose={mockOnClose} />)
-		expect(screen.getByText('Import')).toBeInTheDocument()
+		expect(screen.getByText('Importar')).toBeInTheDocument()
 	})
 
 	it('shows cancel button', async () => {
 		const C = await loadComponent()
 		render(<C isOpen={true} onClose={mockOnClose} />)
-		expect(screen.getByText('Cancel')).toBeInTheDocument()
+		expect(screen.getByText('Cancelar')).toBeInTheDocument()
 	})
 })
