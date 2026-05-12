@@ -79,13 +79,13 @@ export const AdminSteamImport = () => {
 	}, [dispatch, isSteamLinked])
 
 	useEffect(() => {
-		if (isSteamLinked && activeTab === 'suggestions') {
+		if (isSteamLinked && activeTab === 'suggestions' && suggestions.length === 0 && !suggestionsLoading && !suggestionsError) {
 			loadSuggestions()
 		}
-		if (isSteamLinked && activeTab === 'storeSuggestions') {
+		if (isSteamLinked && activeTab === 'storeSuggestions' && storeSuggestions.length === 0 && !storeSuggestionsLoading && !storeSuggestionsError) {
 			loadStoreSuggestions()
 		}
-		if (isSteamLinked && activeTab === 'dateSuggestions') {
+		if (isSteamLinked && activeTab === 'dateSuggestions' && dateSuggestions.length === 0 && !dateSuggestionsLoading && !dateSuggestionsError) {
 			loadDateSuggestions()
 		}
 	}, [isSteamLinked, activeTab])
@@ -153,7 +153,9 @@ export const AdminSteamImport = () => {
 	const handleSyncAll = async () => {
 		try {
 			const result = await dispatch(syncAllSteam()).unwrap()
-			setMessage(`Sync completado: ${result.syncedGames} juegos, ${result.syncedAchievements} logros`)
+			const syncedGames = result.gamesUpdated ?? result.syncedGames ?? 0
+			const syncedAchievements = result.achievementsUpdated ?? result.syncedAchievements ?? 0
+			setMessage(`Sync completado: ${syncedGames} juegos, ${syncedAchievements} logros`)
 			setIsSuccess(true)
 		} catch {
 			setMessage('Error durante la sincronización')
@@ -689,9 +691,9 @@ export const AdminSteamImport = () => {
 					<div className='steam-sync-result'>
 						<h4>Último resultado de sincronización</h4>
 						<ul>
-							<li>Juegos sincronizados: {lastSyncResult.syncedGames}</li>
-							<li>Logros sincronizados: {lastSyncResult.syncedAchievements}</li>
-							{lastSyncResult.errors?.length > 0 && <li className='sync-errors'>Errores: {lastSyncResult.errors.join(', ')}</li>}
+							<li>Juegos sincronizados: {lastSyncResult.gamesUpdated ?? lastSyncResult.syncedGames ?? 0}</li>
+							<li>Logros sincronizados: {lastSyncResult.achievementsUpdated ?? lastSyncResult.syncedAchievements ?? 0}</li>
+							{(lastSyncResult.errors?.length ?? 0) > 0 && <li className='sync-errors'>Errores: {lastSyncResult.errors?.join(', ')}</li>}
 						</ul>
 					</div>
 				)}

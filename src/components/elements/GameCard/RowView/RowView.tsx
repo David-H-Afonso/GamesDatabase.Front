@@ -140,6 +140,8 @@ const RowView: FC<RowViewProps> = (props) => {
 	const startedText = formatToLocaleDate(game.started) || dash
 	const finishedText = formatToLocaleDate(game.finished) || dash
 	const hasLogo = Boolean(game.logo)
+	const hasCompletedSteamAchievements = Boolean(game.steamAchievementsTotal && game.steamAchievementsTotal > 0 && game.steamAchievementsUnlocked === game.steamAchievementsTotal)
+	const isPerfectCompletion = hasCompletedSteamAchievements || Boolean(game.isManuallyCompleted)
 
 	// Helper para formatear múltiples nombres
 	const formatMultipleNames = (names: string[] | undefined): string => {
@@ -151,7 +153,8 @@ const RowView: FC<RowViewProps> = (props) => {
 	return (
 		<div
 			key={game.id}
-			className={`game-row ${activeSelector ? 'game-row--menu-open' : ''} ${isSelected ? 'game-row--selected' : ''}`}
+			className={`game-row ${activeSelector ? 'game-row--menu-open' : ''} ${isSelected ? 'game-row--selected' : ''} ${isPerfectCompletion ? 'game-row--steam-complete' : ''}`}
+			title={isPerfectCompletion ? t('game.card.fullCompletionTitle') : undefined}
 			onClick={() => closeActionMenu(() => openDetails(game))}
 			ref={rowRef}
 			onMouseEnter={(e) => {
@@ -222,6 +225,7 @@ const RowView: FC<RowViewProps> = (props) => {
 					/>
 				)}
 				<h3 title={game.name}>{game.name}</h3>
+				{isPerfectCompletion && <span className='game-row-perfect-badge'>{t('game.card.full')}</span>}
 			</div>
 
 			{/* Grade */}

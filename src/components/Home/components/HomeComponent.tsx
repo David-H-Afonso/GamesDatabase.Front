@@ -39,7 +39,7 @@ const HomeComponent = () => {
 	useEffect(() => {
 		if (!needsRefresh) return
 		dispatch(clearGamesRefresh())
-		void refreshGames({ ...filtersRef.current, viewName: viewMode })
+		void refreshGames(viewMode === 'default' ? { ...filtersRef.current } : { ...filtersRef.current, viewName: viewMode })
 	}, [needsRefresh, dispatch, refreshGames, viewMode])
 	const [viewError, setViewError] = useState<string | null>(null)
 

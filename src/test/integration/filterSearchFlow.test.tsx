@@ -128,6 +128,7 @@ vi.mock('@/environments', () => ({
 }))
 
 const BASE = 'https://localhost:7245/api'
+const EMPTY_GAMES_TEXT = 'No se encontraron juegos.'
 const mockPersistor = { purge: vi.fn().mockResolvedValue(undefined) }
 const mockForceLogout = vi.fn().mockReturnValue({ type: 'auth/forceLogout' })
 
@@ -149,14 +150,15 @@ describe('Filter & Search Flow — Integration', () => {
 		initCustomFetch(store, mockPersistor, mockForceLogout)
 		// getPublicGameViews expects GameView[] directly (not paged result)
 		server.use(http.get(`${BASE}/gameviews`, () => HttpResponse.json([])))
+		server.use(http.get(`${BASE}/users/1`, () => HttpResponse.json(authenticatedState.auth.user)))
 	})
 
 	// ── 5.3 Empty state ───────────────────────────────────────────────────────
 
-	it('shows "No games found." when the API returns an empty list', async () => {
+	it('shows the empty-state text when the API returns an empty list', async () => {
 		renderWithProviders(<HomeComponent />, { store })
 
-		await screen.findByText('No games found.')
+		await screen.findByText(EMPTY_GAMES_TEXT)
 	})
 
 	// ── 5.1 Game list renders from API ────────────────────────────────────────
@@ -191,7 +193,7 @@ describe('Filter & Search Flow — Integration', () => {
 		renderWithProviders(<HomeComponent />, { store })
 
 		// Wait for the component to fully mount
-		await screen.findByText('No games found.')
+		await screen.findByText(EMPTY_GAMES_TEXT)
 
 		const searchInput = screen.getByPlaceholderText(/buscar juegos/i)
 		await userEvent.type(searchInput, 'zelda')
@@ -203,7 +205,7 @@ describe('Filter & Search Flow — Integration', () => {
 
 	it('changing the sort select updates filters.sortBy in the Redux store', async () => {
 		renderWithProviders(<HomeComponent />, { store })
-		await screen.findByText('No games found.')
+		await screen.findByText(EMPTY_GAMES_TEXT)
 
 		const sortSelect = screen.getByRole('combobox', { name: /ordenar por/i })
 		fireEvent.change(sortSelect, { target: { value: 'grade' } })
@@ -245,7 +247,7 @@ describe('Filter & Search Flow — Integration', () => {
 
 	it('clicking the sort direction button toggles sortDescending in the Redux store', async () => {
 		renderWithProviders(<HomeComponent />, { store })
-		await screen.findByText('No games found.')
+		await screen.findByText(EMPTY_GAMES_TEXT)
 
 		// Initially ascending
 		expect(store.getState().games.filters.sortDescending).toBe(false)

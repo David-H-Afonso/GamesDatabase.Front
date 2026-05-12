@@ -76,6 +76,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 			comment: game.comment ?? '',
 			isCheaperByKey: game.isCheaperByKey ?? undefined,
 			keyStoreUrl: game.keyStoreUrl ?? '',
+			isManuallyCompleted: game.isManuallyCompleted ?? false,
 		},
 		enableReinitialize: true,
 		validate: (values) => {
@@ -169,6 +170,11 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 				payloadValue = value
 			}
 			formik.setFieldValue(field as any, value)
+		}
+		// Handle required boolean fields
+		else if (field === 'isManuallyCompleted') {
+			payloadValue = Boolean(value)
+			formik.setFieldValue(field as any, payloadValue)
 		}
 		// Handle other fields (playWithIds, etc.)
 		else {
@@ -518,6 +524,13 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 										onSave={(value) => saveField('steamAppId', value ? parseInt(value as string, 10) : null)}
 										placeholder='Ej: 570'
 									/>
+								</div>
+								<div className='game-details-content-infoList-item game-details-content-infoList-item--checkbox'>
+									<h3>{t('game.details.manuallyCompleted')}</h3>
+									<label className='game-details-toggle' title={t('game.details.manuallyCompletedTitle')}>
+										<input type='checkbox' checked={formik.values.isManuallyCompleted ?? false} onChange={(e) => saveField('isManuallyCompleted', e.target.checked)} />
+										<span className='game-details-toggle__label'>{t('game.details.manuallyCompletedLabel')}</span>
+									</label>
 								</div>
 							</div>
 						</>

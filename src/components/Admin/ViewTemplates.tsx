@@ -17,8 +17,9 @@ interface ViewTemplate {
 interface TemplateParam {
 	key: string
 	label: string
-	type: 'year'
+	type: 'year' | 'select'
 	defaultValue?: string
+	options?: Array<{ value: string; label: string }>
 }
 
 const currentYear = new Date().getFullYear()
@@ -68,11 +69,38 @@ const VIEW_TEMPLATES: ViewTemplate[] = [
 		name: 'Jugados en año',
 		description: 'Todos los juegos que empezaste o terminaste en el año seleccionado, incluyendo rejugadas.',
 		icon: '🎮',
-		params: [{ key: 'year', label: 'Año', type: 'year', defaultValue: String(currentYear) }],
-		generate: ({ year }) => {
+		params: [
+			{ key: 'year', label: 'Año', type: 'year', defaultValue: String(currentYear) },
+			{
+				key: 'sortMode',
+				label: 'Ordenar por',
+				type: 'select',
+				defaultValue: 'date',
+				options: [
+					{ value: 'date', label: 'Fecha relevante' },
+					{ value: 'grade', label: 'Nota relevante' },
+				],
+			},
+		],
+		generate: ({ year, sortMode }) => {
 			const y = year || String(currentYear)
+			const byGrade = sortMode === 'grade'
+			const sorting = byGrade
+				? [
+						{ field: SortField.EffectiveGrade, direction: SortDirection.Descending, order: 1 },
+						{ field: SortField.EffectiveFinished, direction: SortDirection.Descending, order: 2 },
+						{ field: SortField.EffectiveStarted, direction: SortDirection.Descending, order: 3 },
+						{ field: SortField.Name, direction: SortDirection.Ascending, order: 4 },
+					]
+				: [
+						{ field: SortField.EffectiveFinished, direction: SortDirection.Descending, order: 1 },
+						{ field: SortField.EffectiveStarted, direction: SortDirection.Descending, order: 2 },
+						{ field: SortField.EffectiveGrade, direction: SortDirection.Descending, order: 3 },
+						{ field: SortField.Name, direction: SortDirection.Ascending, order: 4 },
+					]
+
 			return {
-				name: `Jugados en ${y}`,
+				name: `Jugados en ${y} (${byGrade ? 'nota' : 'fecha'})`,
 				isPublic: true,
 				configuration: {
 					filterGroups: [
@@ -87,11 +115,7 @@ const VIEW_TEMPLATES: ViewTemplate[] = [
 						},
 					],
 					groupCombineWith: CombineWith.And,
-					sorting: [
-						{ field: SortField.EffectiveFinished, direction: SortDirection.Descending, order: 1 },
-						{ field: SortField.EffectiveStarted, direction: SortDirection.Descending, order: 2 },
-						{ field: SortField.Name, direction: SortDirection.Ascending, order: 3 },
-					],
+					sorting,
 				},
 			}
 		},
@@ -261,6 +285,11 @@ const ViewTemplateSelector: React.FC<ViewTemplateSelectorProps> = ({ onCreateFro
 		description: t(`admin.viewTemplates.templates.${id}.desc`, { defaultValue: '' }),
 	})
 
+	const getParamLabel = (param: TemplateParam) => t(`admin.viewTemplates.param.${param.key}`, { defaultValue: param.label })
+
+	const getOptionLabel = (param: TemplateParam, option: { value: string; label: string }) =>
+		t(`admin.viewTemplates.paramOptions.${param.key}.${option.value}`, { defaultValue: option.label })
+
 	return (
 		<div className='view-templates'>
 			<div className='view-templates__header'>
@@ -304,7 +333,7 @@ const ViewTemplateSelector: React.FC<ViewTemplateSelectorProps> = ({ onCreateFro
 						<div className='template-params'>
 							{selectedTemplate.params.map((p) => (
 								<div key={p.key} className='template-param'>
-									<label>{t(`admin.viewTemplates.param.${p.key}`, { defaultValue: p.label })}</label>
+									<label>{getParamLabel(p)}</label>
 									{p.type === 'year' && (
 										<input
 											type='number'
@@ -314,6 +343,15 @@ const ViewTemplateSelector: React.FC<ViewTemplateSelectorProps> = ({ onCreateFro
 											onChange={(e) => setParamValues((prev) => ({ ...prev, [p.key]: e.target.value }))}
 											autoFocus
 										/>
+									)}
+									{p.type === 'select' && (
+										<select value={paramValues[p.key] ?? p.defaultValue ?? ''} onChange={(e) => setParamValues((prev) => ({ ...prev, [p.key]: e.target.value }))}>
+											{(p.options ?? []).map((option) => (
+												<option key={option.value} value={option.value}>
+													{getOptionLabel(p, option)}
+												</option>
+											))}
+										</select>
 									)}
 								</div>
 							))}

@@ -39,6 +39,27 @@ describe('ViewTemplates', () => {
 		expect(screen.getByText('Año')).toBeInTheDocument()
 	})
 
+	it('lets played-year sort by relevant grade', async () => {
+		const C = await loadComponent()
+		const user = userEvent.setup()
+		render(<C onCreateFromTemplate={mockOnCreate} onClose={mockOnClose} />)
+		await user.click(screen.getByText('Jugados en Año'))
+		await user.selectOptions(screen.getByDisplayValue('Fecha relevante'), 'grade')
+		await user.click(screen.getByText('Crear Vista'))
+		expect(mockOnCreate).toHaveBeenLastCalledWith(
+			expect.objectContaining({
+				name: expect.stringContaining('(nota)'),
+				configuration: expect.objectContaining({
+					sorting: expect.arrayContaining([
+						expect.objectContaining({ field: SortField.EffectiveGrade, order: 1 }),
+						expect.objectContaining({ field: SortField.EffectiveFinished, order: 2 }),
+						expect.objectContaining({ field: SortField.EffectiveStarted, order: 3 }),
+					]),
+				}),
+			})
+		)
+	})
+
 	it('back button returns to template grid', async () => {
 		const C = await loadComponent()
 		const user = userEvent.setup()

@@ -333,11 +333,18 @@
 			"back": "Back",
 			"previewName": "View name preview:",
 			"param": {
-				"year": "Year"
+				"year": "Year",
+				"sortMode": "Sort by"
+			},
+			"paramOptions": {
+				"sortMode": {
+					"date": "Relevant date",
+					"grade": "Relevant grade"
+				}
 			},
 			"templates": {
 				"goty": { "name": "GOTY", "desc": "Games released in the selected year that you played or replayed that year. Sorted by relevant grade." },
-				"played-year": { "name": "Played Year", "desc": "All games you started or finished in the selected year, including replays." },
+				"played-year": { "name": "Played Year", "desc": "All games you started or finished in the selected year, including replays. Sort by relevant date or relevant grade." },
 				"best-score": { "name": "Best Score", "desc": "Games ranked by auto-generated score, highest first." },
 				"best-grade": { "name": "Best Grade", "desc": "Games ranked by your personal grade, highest first." },
 				"released-year": { "name": "Released Year", "desc": "Games or replays released in the selected year, regardless of whether you played them." },
@@ -777,7 +784,9 @@
 			"selectRow": "Select row",
 			"coverAlt": "{{name}} cover",
 			"logoAlt": "{{name}} logo",
-			"providerIcon": "{{provider}} icon"
+			"providerIcon": "{{provider}} icon",
+			"steamPerfect": "All Steam achievements completed",
+			"fullCompletionTitle": "Game 100% completed"
 		},
 		"details": {
 			"title": "Game details: {{name}}",
@@ -802,6 +811,9 @@
 			"fieldCheaper": "Cheaper",
 			"fieldKeyUrl": "Key URL",
 			"fieldComment": "Comment",
+			"manuallyCompleted": "Achievements",
+			"manuallyCompletedTitle": "Manually mark game as 100% completed",
+			"manuallyCompletedLabel": "100% Completed",
 			"placeholderName": "No name",
 			"placeholderReleased": "No release date",
 			"placeholderCritic": "No score",
@@ -1009,6 +1021,7 @@
 			"missingBothDurations": "Missing both durations",
 			"excludeStatus": "Exclude Status:",
 			"showIncomplete": "Show Incomplete Games",
+			"fullCompletion": "100% completed",
 			"incompleteDesc": "(Not Fulfilled, no cover, no logo, or no platform)",
 			"clearFilters": "Clear filters",
 			"ariaPlatform": "Platform filter",
@@ -1366,6 +1379,7 @@
 			"noFiltersInGroup": "No filters in this group",
 			"addFilter": "Add Filter",
 			"showIncomplete": "Show Incomplete Games",
+			"fullCompletion": "100% completed",
 			"clearFilters": "Clear filters"
 		}
 	}

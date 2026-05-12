@@ -133,6 +133,10 @@ const gamesSlice = createSlice({
 			.addCase(fetchGameById.fulfilled, (state, action) => {
 				state.loading = false
 				state.currentGame = action.payload
+				const index = state.games.findIndex((game) => game.id === action.payload.id)
+				if (index !== -1) {
+					state.games[index] = action.payload
+				}
 			})
 			.addCase(fetchGameById.rejected, (state, action) => {
 				state.loading = false

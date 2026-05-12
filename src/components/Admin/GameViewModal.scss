@@ -93,23 +93,6 @@
 			overflow-y: auto;
 			flex: 1;
 
-			// Custom scrollbar
-			&::-webkit-scrollbar {
-				width: 8px;
-			}
-
-			&::-webkit-scrollbar-track {
-				background: transparent;
-			}
-
-			&::-webkit-scrollbar-thumb {
-				background: var(--gray-400);
-				border-radius: 4px;
-
-				&:hover {
-					background: var(--gray-500);
-				}
-			}
 		}
 
 		.form-group {

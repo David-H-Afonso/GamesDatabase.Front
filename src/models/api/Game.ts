@@ -30,6 +30,13 @@ export interface Game {
 	steamPlaytimeForever?: number // minutes
 	steamPlaytime2Weeks?: number // minutes
 	steamLastSynced?: string // ISO date string
+	steamAchievementsUnlocked?: number
+	steamAchievementsTotal?: number
+	steamFinishedSource?: 'steam' | 'manual' | string
+	steamFinishedLastValue?: string
+	steamFinishedSyncedAt?: string
+	steamFinishedRejectedValue?: string
+	isManuallyCompleted?: boolean
 }
 
 // DTOs for create and update operations
@@ -52,6 +59,7 @@ export interface GameCreateDto {
 	isCheaperByKey?: boolean
 	keyStoreUrl?: string
 	steamAppId?: number
+	isManuallyCompleted?: boolean
 }
 
 export interface GameUpdateDto extends GameCreateDto {
@@ -73,7 +81,20 @@ export interface BulkUpdateResult {
 }
 
 // Query parameters for API requests
-export type SortByKey = 'name' | 'grade' | 'critic' | 'released' | 'started' | 'score' | 'storyDuration' | 'completionDuration' | 'status' | 'createdat' | 'updatedat' | 'steamPlaytimeForever' | string
+export type SortByKey =
+	| 'name'
+	| 'grade'
+	| 'critic'
+	| 'released'
+	| 'started'
+	| 'score'
+	| 'storyDuration'
+	| 'completionDuration'
+	| 'status'
+	| 'createdat'
+	| 'updatedat'
+	| 'steamPlaytimeForever'
+	| string
 
 export interface QueryParameters {
 	page?: number
@@ -119,6 +140,7 @@ export interface GameQueryParameters extends QueryParameters {
 	replayGradeMax?: number
 	hasReplays?: boolean
 	hasSteamApp?: boolean
+	fullCompletion?: boolean
 	missingDuration?: 'story' | 'completion' | 'any' | 'both'
 	replayMatchMode?: 'any' | 'all'
 }

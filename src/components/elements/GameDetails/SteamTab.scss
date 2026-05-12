@@ -1,31 +1,43 @@
 .steam-tab {
-	padding: 0.5rem 1rem;
+	padding: 0.75rem 1rem 1rem;
 
 	.steam-tab-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: flex-start;
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		gap: 0.75rem;
+		align-items: start;
 		margin-bottom: 1rem;
 	}
 
 	.steam-tab-stats {
-		display: flex;
-		gap: 1.5rem;
-		flex-wrap: wrap;
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+		gap: 0.6rem;
+		min-width: 0;
 	}
 
 	.stat {
 		display: flex;
 		flex-direction: column;
+		gap: 0.15rem;
+		min-width: 0;
+		border: 1px solid var(--border-color-light);
+		border-radius: 8px;
+		padding: 0.55rem 0.65rem;
+		background: var(--surface);
 
 		.stat-label {
 			font-size: 0.75rem;
 			color: var(--text-tertiary);
+			line-height: 1.2;
 		}
 
 		.stat-value {
-			font-size: 1rem;
+			font-size: 0.98rem;
 			font-weight: 600;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
 		}
 	}
 
@@ -35,39 +47,131 @@
 		margin-bottom: 0.75rem;
 	}
 
+	.steam-date-suggestion {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		gap: 0.75rem;
+		align-items: center;
+		margin-bottom: 1rem;
+		padding: 0.75rem;
+		border: 1px solid rgba(74, 144, 217, 0.35);
+		border-radius: 8px;
+		background: color-mix(in srgb, var(--surface) 88%, #4a90d9 12%);
+
+		&--conflict {
+			border-color: rgba(216, 165, 54, 0.55);
+			background: color-mix(in srgb, var(--surface) 88%, #f8d46a 12%);
+		}
+	}
+
+	.steam-date-suggestion__copy {
+		display: flex;
+		flex-direction: column;
+		gap: 0.18rem;
+		min-width: 0;
+
+		strong {
+			font-size: 1.05rem;
+			color: var(--text-primary);
+		}
+
+		span {
+			font-size: 0.8rem;
+			color: var(--text-secondary);
+			line-height: 1.3;
+		}
+	}
+
+	.steam-date-suggestion__eyebrow {
+		font-size: 0.74rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		color: var(--text-tertiary);
+	}
+
+	.steam-date-suggestion__actions {
+		display: flex;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+		justify-content: flex-end;
+	}
+
 	.achievement-summary {
 		margin-bottom: 1rem;
+		border: 1px solid var(--border-color-light);
+		border-radius: 8px;
+		padding: 0.75rem;
+		background: var(--surface);
+	}
+
+	.achievement-summary__topline {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+		margin-bottom: 0.5rem;
 	}
 
 	.achievement-progress-bar {
-		height: 8px;
+		height: 10px;
 		background: var(--border-color);
-		border-radius: 4px;
+		border-radius: 999px;
 		overflow: hidden;
-		margin-bottom: 0.35rem;
 	}
 
 	.achievement-progress-fill {
 		height: 100%;
 		background: linear-gradient(90deg, #4a90d9, #70b5f9);
-		border-radius: 4px;
+		border-radius: inherit;
 		transition: width 0.4s ease;
 	}
 
 	.achievement-progress-label {
-		font-size: 0.82rem;
-		color: var(--text-secondary);
+		font-size: 0.86rem;
+		font-weight: 600;
+		color: var(--text-primary);
 		margin: 0;
+	}
+
+	.achievement-progress-percent {
+		font-family: monospace;
+		font-size: 0.86rem;
+		color: var(--text-secondary);
+	}
+
+	.achievement-perfect-message {
+		margin: 0.55rem 0 0;
+		font-size: 0.82rem;
+		font-weight: 700;
+		color: #b7791f;
+	}
+
+	&--complete {
+		.achievement-summary {
+			border-color: rgba(216, 165, 54, 0.72);
+			box-shadow: 0 8px 22px rgba(216, 165, 54, 0.14);
+		}
+
+		.achievement-progress-fill {
+			background: linear-gradient(90deg, #b7791f, #f8d46a);
+		}
 	}
 
 	.achievement-filter-tabs {
 		display: flex;
 		gap: 0.5rem;
 		margin-bottom: 0.75rem;
+		overflow-x: auto;
+		padding-bottom: 0.15rem;
 
 		button {
-			padding: 0.25rem 0.75rem;
-			border-radius: 12px;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 0.4rem;
+			flex: 0 0 auto;
+			padding: 0.38rem 0.75rem;
+			border-radius: 999px;
 			border: 1px solid var(--border-color);
 			background: transparent;
 			color: var(--text-secondary);
@@ -75,32 +179,53 @@
 			font-size: 0.82rem;
 			transition: all 0.15s;
 
+			small {
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				min-width: 1.35rem;
+				border-radius: 999px;
+				padding: 0.05rem 0.35rem;
+				background: var(--bg-secondary);
+				color: inherit;
+				font-size: 0.72rem;
+				font-weight: 700;
+			}
+
 			&.active,
 			&:hover {
 				background: var(--primary, #4a90d9);
 				color: white;
 				border-color: var(--primary, #4a90d9);
+
+				small {
+					background: rgba(255, 255, 255, 0.2);
+				}
 			}
 		}
 	}
 
 	.achievement-grid {
-		display: flex;
-		flex-direction: column;
-		gap: 0.4rem;
-		max-height: 340px;
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+		gap: 0.55rem;
+		max-height: min(48vh, 420px);
 		overflow-y: auto;
+		padding-right: 0.15rem;
 	}
 
 	.achievement-item {
 		display: flex;
-		align-items: center;
+		align-items: flex-start;
 		gap: 0.75rem;
-		padding: 0.4rem 0.5rem;
-		border-radius: 6px;
+		min-width: 0;
+		padding: 0.55rem;
+		border: 1px solid var(--border-color-light);
+		border-radius: 8px;
+		background: var(--surface);
 
 		&.achieved {
-			background: var(--bg-secondary);
+			border-color: rgba(74, 144, 217, 0.45);
 		}
 
 		&.locked {
@@ -109,27 +234,29 @@
 
 		img {
 			flex-shrink: 0;
-			border-radius: 2px;
+			border-radius: 3px;
 		}
 	}
 
 	.achievement-info {
 		display: flex;
 		flex-direction: column;
+		gap: 0.18rem;
+		min-width: 0;
 		overflow: hidden;
 	}
 
 	.achievement-name {
 		font-size: 0.85rem;
 		font-weight: 500;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
+		line-height: 1.25;
 	}
 
+	.achievement-description,
 	.achievement-date {
 		font-size: 0.75rem;
 		color: var(--text-tertiary);
+		line-height: 1.25;
 	}
 
 	.no-achievements {
@@ -143,4 +270,42 @@
 .btn-sm {
 	padding: 0.3rem 0.75rem;
 	font-size: 0.82rem;
+}
+
+@media (max-width: 520px) {
+	.steam-tab {
+		padding: 0.75rem 0.75rem 1rem;
+
+		.steam-tab-header {
+			grid-template-columns: 1fr;
+		}
+
+		.steam-tab-header .btn-sm {
+			width: 100%;
+			justify-content: center;
+		}
+
+		.steam-date-suggestion {
+			grid-template-columns: 1fr;
+		}
+
+		.steam-date-suggestion__actions {
+			justify-content: stretch;
+
+			.btn {
+				flex: 1 1 130px;
+			}
+		}
+
+		.steam-tab-stats {
+			grid-template-columns: 1fr;
+		}
+
+		.achievement-grid {
+			grid-template-columns: 1fr;
+			max-height: none;
+			overflow: visible;
+			padding-right: 0;
+		}
+	}
 }

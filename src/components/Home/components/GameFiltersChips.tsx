@@ -252,7 +252,9 @@ const GameFiltersChips: React.FC<Props> = ({
 			finishedYear: undefined,
 			includeReplayDates: undefined,
 			isCheaperByKey: undefined,
+			showIncomplete: undefined,
 			hasSteamApp: undefined,
+			fullCompletion: undefined,
 			missingDuration: undefined,
 			criticProvider: undefined,
 			excludeStatusIds: undefined,
@@ -282,7 +284,9 @@ const GameFiltersChips: React.FC<Props> = ({
 			!!filters.finishedYear ||
 			filters.includeReplayDates === false ||
 			(filters.isCheaperByKey !== undefined && filters.isCheaperByKey !== null) ||
+			filters.showIncomplete === true ||
 			(filters.hasSteamApp !== undefined && filters.hasSteamApp !== null) ||
+			filters.fullCompletion === true ||
 			!!filters.missingDuration ||
 			!!filters.criticProvider ||
 			!!filters.excludeStatusIds?.length ||
@@ -308,12 +312,7 @@ const GameFiltersChips: React.FC<Props> = ({
 			case 'grades':
 				return !!filters.minGrade || !!filters.maxGrade
 			case 'years':
-				return (
-					!!filters.releasedYear ||
-					!!filters.startedYear ||
-					!!filters.finishedYear ||
-					filters.includeReplayDates === false
-				)
+				return !!filters.releasedYear || !!filters.startedYear || !!filters.finishedYear || filters.includeReplayDates === false
 			case 'replay':
 				return (
 					filters.hasReplays !== undefined ||
@@ -604,6 +603,13 @@ const GameFiltersChips: React.FC<Props> = ({
 						<button type='button' className={'game-filters-chips__chip' + (hasActiveFilter('pageSize') ? ' is-active' : '')} onClick={() => togglePopover('pageSize')}>
 							{t('home.filters.page')}: <span>{pageSizeLabel()}</span>
 						</button>
+
+						<button
+							type='button'
+							className={'game-filters-chips__chip' + (filters.fullCompletion === true ? ' is-active' : '')}
+							onClick={() => setFilters({ fullCompletion: filters.fullCompletion === true ? undefined : true })}>
+							{t('home.filters.fullCompletion')}
+						</button>
 					</div>
 					{openPopover && (
 						<div className='game-filters-chips__popover' ref={popoverRef}>
@@ -795,7 +801,11 @@ const GameFiltersChips: React.FC<Props> = ({
 										</div>
 									</div>
 									<label className='game-filters-chips__checkbox'>
-										<input type='checkbox' checked={filters.includeReplayDates !== false} onChange={(e) => setFilters({ includeReplayDates: e.target.checked ? undefined : false })} />
+										<input
+											type='checkbox'
+											checked={filters.includeReplayDates !== false}
+											onChange={(e) => setFilters({ includeReplayDates: e.target.checked ? undefined : false })}
+										/>
 										<span>{t('home.filters.includeReplayDates')}</span>
 									</label>
 									<button
@@ -846,7 +856,11 @@ const GameFiltersChips: React.FC<Props> = ({
 										<>
 											<div className='game-filters-chips__field'>
 												<label>{t('home.filters.replayType')}</label>
-												<select value={filters.replayTypeId ?? ''} onChange={(e) => setFilters({ replayTypeId: e.target.value ? Number(e.target.value) : undefined, hasReplays: e.target.value ? true : filters.hasReplays })}>
+												<select
+													value={filters.replayTypeId ?? ''}
+													onChange={(e) =>
+														setFilters({ replayTypeId: e.target.value ? Number(e.target.value) : undefined, hasReplays: e.target.value ? true : filters.hasReplays })
+													}>
 													<option value=''>— {t('home.filters.noType')} —</option>
 													{replayTypeOptions.map((t) => (
 														<option key={t.value} value={t.value}>
@@ -898,7 +912,9 @@ const GameFiltersChips: React.FC<Props> = ({
 														max='100'
 														placeholder='0'
 														value={filters.replayGradeMin ?? ''}
-														onChange={(e) => setFilters({ replayGradeMin: e.target.value ? Number(e.target.value) : undefined, hasReplays: e.target.value ? true : filters.hasReplays })}
+														onChange={(e) =>
+															setFilters({ replayGradeMin: e.target.value ? Number(e.target.value) : undefined, hasReplays: e.target.value ? true : filters.hasReplays })
+														}
 													/>
 												</div>
 												<div className='game-filters-chips__field'>
@@ -909,7 +925,9 @@ const GameFiltersChips: React.FC<Props> = ({
 														max='100'
 														placeholder='100'
 														value={filters.replayGradeMax ?? ''}
-														onChange={(e) => setFilters({ replayGradeMax: e.target.value ? Number(e.target.value) : undefined, hasReplays: e.target.value ? true : filters.hasReplays })}
+														onChange={(e) =>
+															setFilters({ replayGradeMax: e.target.value ? Number(e.target.value) : undefined, hasReplays: e.target.value ? true : filters.hasReplays })
+														}
 													/>
 												</div>
 											</div>
@@ -966,19 +984,34 @@ const GameFiltersChips: React.FC<Props> = ({
 								<>
 									<strong className='game-filters-chips__popover-title'>{t('home.filters.duration')}</strong>
 									<div className='game-filters-chips__popover-options'>
-										<button type='button' className={'game-filters-chips__option' + (!filters.missingDuration ? ' is-active' : '')} onClick={() => setFilters({ missingDuration: undefined })}>
+										<button
+											type='button'
+											className={'game-filters-chips__option' + (!filters.missingDuration ? ' is-active' : '')}
+											onClick={() => setFilters({ missingDuration: undefined })}>
 											{t('common.all')}
 										</button>
-										<button type='button' className={'game-filters-chips__option' + (filters.missingDuration === 'story' ? ' is-active' : '')} onClick={() => setFilters({ missingDuration: 'story' })}>
+										<button
+											type='button'
+											className={'game-filters-chips__option' + (filters.missingDuration === 'story' ? ' is-active' : '')}
+											onClick={() => setFilters({ missingDuration: 'story' })}>
 											{t('home.filters.missingStory')}
 										</button>
-										<button type='button' className={'game-filters-chips__option' + (filters.missingDuration === 'completion' ? ' is-active' : '')} onClick={() => setFilters({ missingDuration: 'completion' })}>
+										<button
+											type='button'
+											className={'game-filters-chips__option' + (filters.missingDuration === 'completion' ? ' is-active' : '')}
+											onClick={() => setFilters({ missingDuration: 'completion' })}>
 											{t('home.filters.missingCompletion')}
 										</button>
-										<button type='button' className={'game-filters-chips__option' + (filters.missingDuration === 'any' ? ' is-active' : '')} onClick={() => setFilters({ missingDuration: 'any' })}>
+										<button
+											type='button'
+											className={'game-filters-chips__option' + (filters.missingDuration === 'any' ? ' is-active' : '')}
+											onClick={() => setFilters({ missingDuration: 'any' })}>
 											{t('home.filters.missingAnyDuration')}
 										</button>
-										<button type='button' className={'game-filters-chips__option' + (filters.missingDuration === 'both' ? ' is-active' : '')} onClick={() => setFilters({ missingDuration: 'both' })}>
+										<button
+											type='button'
+											className={'game-filters-chips__option' + (filters.missingDuration === 'both' ? ' is-active' : '')}
+											onClick={() => setFilters({ missingDuration: 'both' })}>
 											{t('home.filters.missingBothDurations')}
 										</button>
 									</div>

@@ -36,6 +36,9 @@ const FILTER_KEYS: (keyof GameQueryParameters)[] = [
 	'replayGradeMin',
 	'replayGradeMax',
 	'hasReplays',
+	'hasSteamApp',
+	'fullCompletion',
+	'missingDuration',
 	'replayMatchMode',
 ]
 

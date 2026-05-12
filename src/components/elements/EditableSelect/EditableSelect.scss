@@ -68,24 +68,6 @@
 		max-width: 1000px;
 		width: fit-content;
 
-		/* Custom scrollbar */
-		&::-webkit-scrollbar {
-			width: 6px;
-		}
-
-		&::-webkit-scrollbar-track {
-			background: var(--bg-secondary);
-			border-radius: 3px;
-		}
-
-		&::-webkit-scrollbar-thumb {
-			background: var(--border-color-light);
-			border-radius: 3px;
-
-			&:hover {
-				background: var(--text-tertiary);
-			}
-		}
 	}
 
 	&__option {

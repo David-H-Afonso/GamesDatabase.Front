@@ -83,4 +83,14 @@ export { getReplaysByGameId, createGameReplay, updateGameReplay, deleteGameRepla
 export { getHistoryByGameId, deleteHistoryEntry, clearGameHistory, getGlobalHistory, getAdminHistory } from './GameHistoryService'
 
 export { steamService } from './SteamService'
-export type { SteamProfile, SteamLibraryGame, SteamImportResult, SteamImportGameRequest, SteamSyncResult, SteamAchievement, SteamAppMetadata, SteamImportRequest } from './SteamService'
+export type {
+	SteamProfile,
+	SteamLibraryGame,
+	SteamImportResult,
+	SteamImportGameRequest,
+	SteamSyncResult,
+	SteamAchievement,
+	SteamAppMetadata,
+	SteamImportRequest,
+	SteamDateSuggestion,
+} from './SteamService'

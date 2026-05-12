@@ -428,19 +428,27 @@
 				font-size: 0.875rem;
 			}
 
-			input {
+			input,
+			select {
 				background-color: var(--input-bg);
 				border: 1px solid var(--input-border);
 				border-radius: 6px;
 				color: var(--text-primary);
 				padding: 6px 10px;
-				width: 100px;
 				font-size: 0.9rem;
 
 				&:focus {
 					outline: none;
 					border-color: var(--primary);
 				}
+			}
+
+			input {
+				width: 100px;
+			}
+
+			select {
+				min-width: 160px;
 			}
 		}
 

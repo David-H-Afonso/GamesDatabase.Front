@@ -112,11 +112,14 @@ const CardView: FC<CardViewProps> = (props) => {
 
 	const hasPriceComparison = showPriceComparisonIcon && game.isCheaperByKey !== undefined && game.isCheaperByKey !== null
 	const PriceComparisonIcon = game.isCheaperByKey ? KeyIcon : StoreIcon
+	const hasCompletedSteamAchievements = Boolean(game.steamAchievementsTotal && game.steamAchievementsTotal > 0 && game.steamAchievementsUnlocked === game.steamAchievementsTotal)
+	const isPerfectCompletion = hasCompletedSteamAchievements || Boolean(game.isManuallyCompleted)
 
 	return (
 		<div
 			key={game.id}
-			className={`game-card-view-container ${activeSelector ? 'is-open' : ''}`}
+			className={`game-card-view-container ${activeSelector ? 'is-open' : ''} ${isPerfectCompletion ? 'game-card-view-container--steam-complete' : ''}`}
+			title={isPerfectCompletion ? t('game.card.fullCompletionTitle') : undefined}
 			onClick={() => closeActionMenu(() => openDetails(game))}
 			ref={menuRef}
 			onMouseEnter={(e) => {
@@ -189,6 +192,7 @@ const CardView: FC<CardViewProps> = (props) => {
 							)}
 						</div>
 					</div>
+					{isPerfectCompletion && <div className='game-card-perfect-badge'>{t('game.card.full')}</div>}
 					<div className='game-card-header-info'>
 						<div className='game-card-header-info-logo'>
 							{game.logo && (

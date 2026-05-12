@@ -30,6 +30,12 @@ export function createGame(overrides: Partial<Game> = {}): Game {
 		statusName: 'Playing',
 		playWithIds: [],
 		playWithNames: [],
+		steamAchievementsUnlocked: 0,
+		steamAchievementsTotal: 0,
+		steamFinishedSource: undefined,
+		steamFinishedLastValue: undefined,
+		steamFinishedSyncedAt: undefined,
+		steamFinishedRejectedValue: undefined,
 		...overrides,
 	}
 }

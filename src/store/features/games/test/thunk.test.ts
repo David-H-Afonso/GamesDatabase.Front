@@ -157,6 +157,20 @@ describe('games thunks — fetchGames', () => {
 		expect(pg.page).toBe(2)
 		expect(pg.totalCount).toBe(100)
 	})
+
+	it('does not send default as a custom view name', async () => {
+		let requestedUrl = ''
+		server.use(
+			http.get(`${BASE}/games`, ({ request }) => {
+				requestedUrl = request.url
+				return HttpResponse.json(makePagedResult())
+			})
+		)
+
+		await store.dispatch(fetchGames({ viewName: 'default', page: 1 }))
+
+		expect(new URL(requestedUrl).searchParams.has('viewName')).toBe(false)
+	})
 })
 
 describe('games thunks — fetchGameById', () => {

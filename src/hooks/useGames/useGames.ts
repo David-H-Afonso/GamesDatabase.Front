@@ -41,12 +41,12 @@ export const useGames = () => {
 	const fetchGamesList = useCallback(
 		async (params: GameQueryParameters = {}) => {
 			// If data is fresh for the same filters, avoid network call
-			if (!loadError && dataIsFresh && areFiltersEqual(params, previousFilters)) {
+			if (dataIsFresh && areFiltersEqual(params, previousFilters)) {
 				return Promise.resolve()
 			}
 			return dispatchAndUnwrapAsync(dispatch, fetchGames(params))
 		},
-		[dispatch, dataIsFresh, previousFilters, loadError]
+		[dispatch, dataIsFresh, previousFilters]
 	)
 
 	// Force a fresh fetch ignoring cache

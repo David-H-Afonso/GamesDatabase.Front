@@ -14,6 +14,7 @@ import { DEFAULT_PAGE_SIZE } from '@/utils'
 export const fetchGames = createAsyncThunk('games/fetchGames', async (params: GameQueryParameters = {}, { rejectWithValue }) => {
 	try {
 		const query = { pageSize: DEFAULT_PAGE_SIZE, ...(params || {}) }
+		if (query.viewName === 'default') delete query.viewName
 		const response = await getGames(query)
 		return response
 	} catch (error: any) {

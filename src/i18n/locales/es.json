@@ -333,11 +333,21 @@
 			"back": "Volver",
 			"previewName": "Vista previa del nombre:",
 			"param": {
-				"year": "Año"
+				"year": "Año",
+				"sortMode": "Ordenar por"
+			},
+			"paramOptions": {
+				"sortMode": {
+					"date": "Fecha relevante",
+					"grade": "Nota relevante"
+				}
 			},
 			"templates": {
 				"goty": { "name": "GOTY", "desc": "Juegos lanzados en el año seleccionado que hayas jugado o rejugado ese año. Ordenados por nota relevante." },
-				"played-year": { "name": "Jugados en Año", "desc": "Todos los juegos que empezaste o terminaste en el año seleccionado, incluyendo rejugadas." },
+				"played-year": {
+					"name": "Jugados en Año",
+					"desc": "Todos los juegos que empezaste o terminaste en el año seleccionado, incluyendo rejugadas. Puedes ordenar por fecha relevante o nota relevante."
+				},
 				"best-score": { "name": "Mejores por Score", "desc": "Ranking de juegos ordenados por la puntuación auto-generada (Score), de mayor a menor." },
 				"best-grade": { "name": "Mejores por Nota", "desc": "Ranking de juegos ordenados por tu nota personal, de mayor a menor." },
 				"released-year": { "name": "Lanzados en Año", "desc": "Juegos o rejugadas lanzados en el año seleccionado, sin importar si los jugaste o no." },
@@ -777,7 +787,9 @@
 			"selectRow": "Seleccionar fila",
 			"coverAlt": "Portada de {{name}}",
 			"logoAlt": "Logo de {{name}}",
-			"providerIcon": "Ícono de {{provider}}"
+			"providerIcon": "Ícono de {{provider}}",
+			"steamPerfect": "Todos los logros de Steam completados",
+			"fullCompletionTitle": "Juego completado al 100%"
 		},
 		"details": {
 			"title": "Detalles del juego: {{name}}",
@@ -802,6 +814,9 @@
 			"fieldCheaper": "Más barato",
 			"fieldKeyUrl": "URL de Key",
 			"fieldComment": "Comentario",
+			"manuallyCompleted": "Logros",
+			"manuallyCompletedTitle": "Marcar juego como completado al 100% manualmente",
+			"manuallyCompletedLabel": "Completado al 100%",
 			"placeholderName": "Sin nombre",
 			"placeholderReleased": "Sin fecha de lanzamiento",
 			"placeholderCritic": "Sin puntuación",
@@ -1009,6 +1024,7 @@
 			"missingBothDurations": "Sin ambas duraciones",
 			"excludeStatus": "Excluir estado:",
 			"showIncomplete": "Mostrar juegos incompletos",
+			"fullCompletion": "100% completados",
 			"incompleteDesc": "(Sin cumplir, sin portada, sin logo o sin plataforma)",
 			"clearFilters": "Limpiar filtros",
 			"ariaPlatform": "Filtro de plataforma",
@@ -1366,6 +1382,7 @@
 			"noFiltersInGroup": "Sin filtros en este grupo",
 			"addFilter": "Añadir filtro",
 			"showIncomplete": "Mostrar juegos incompletos",
+			"fullCompletion": "100% completados",
 			"clearFilters": "Resetear filtros"
 		}
 	}

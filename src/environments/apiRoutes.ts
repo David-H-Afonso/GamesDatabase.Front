@@ -145,6 +145,7 @@ export const apiRoutes = {
 		storeMatchSuggestions: '/steam/store-match-suggestions',
 		dateSuggestions: '/steam/date-suggestions',
 		applyDateSuggestions: '/steam/date-suggestions/apply',
+		dismissDateSuggestions: '/steam/date-suggestions/dismiss',
 		dismissMatchSuggestions: '/steam/match-suggestions/dismiss',
 		storeSearch: '/steam/store/search',
 		storeAdd: '/steam/store/add',

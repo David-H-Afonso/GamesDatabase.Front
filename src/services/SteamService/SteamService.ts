@@ -39,9 +39,11 @@ export interface SteamImportedGame {
 }
 
 export interface SteamSyncResult {
-	syncedGames: number
-	syncedAchievements: number
-	errors: string[]
+	gamesUpdated?: number
+	achievementsUpdated?: number
+	syncedGames?: number
+	syncedAchievements?: number
+	errors?: string[]
 }
 
 export interface SteamAchievement {
@@ -114,6 +116,8 @@ export interface SteamDateSuggestion {
 	proposedFinished?: string
 	startedSource: 'firstAchievement' | 'none' | string
 	finishedSource: 'lastPlayed' | 'none' | string
+	isFinishedConflict: boolean
+	isFinishedSteamManaged: boolean
 	notes: string[]
 }
 
@@ -176,12 +180,23 @@ class SteamService {
 		return customFetch<SteamMatchSuggestion[]>(base.storeMatchSuggestions)
 	}
 
-	async getDateSuggestions(): Promise<SteamDateSuggestion[]> {
-		return customFetch<SteamDateSuggestion[]>(base.dateSuggestions)
+	async getDateSuggestions(options: { gameId?: number; includeStarted?: boolean; signal?: AbortSignal } = {}): Promise<SteamDateSuggestion[]> {
+		const { signal, ...params } = options
+		return customFetch<SteamDateSuggestion[]>(base.dateSuggestions, {
+			params,
+			signal,
+		})
 	}
 
 	async applyDateSuggestions(suggestions: Array<{ gameId: number; started?: string; finished?: string }>): Promise<SteamApplyDateSuggestionsResult> {
 		return customFetch<SteamApplyDateSuggestionsResult>(base.applyDateSuggestions, {
+			method: 'POST',
+			body: { suggestions },
+		})
+	}
+
+	async dismissDateSuggestions(suggestions: Array<{ gameId: number; finished?: string }>): Promise<{ dismissed: number }> {
+		return customFetch<{ dismissed: number }>(base.dismissDateSuggestions, {
 			method: 'POST',
 			body: { suggestions },
 		})
