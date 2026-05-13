@@ -9,6 +9,7 @@ import { EditableSelect } from '../EditableSelect/EditableSelect'
 import { EditableMultiSelect } from '../EditableMultiSelect/EditableMultiSelect'
 import { useGames } from '@/hooks'
 import { useAppSelector } from '@/store/hooks'
+import { steamService } from '@/services'
 import { useFormik } from 'formik'
 import { getCriticScoreUrl, getCriticProviderIdFromName, getCriticProviderNameFromId, resolveEffectiveProvider, type CriticProvider } from '@/helpers/criticScoreHelper'
 import { GameReplaysTab } from './GameReplaysTab'
@@ -16,6 +17,8 @@ import { GameHistoryTab } from './GameHistoryTab'
 import { SteamTab } from './SteamTab'
 
 type DetailTab = 'info' | 'replays' | 'history' | 'steam'
+
+const getSteamCoverUrl = (appId: number) => `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/header.jpg`
 
 interface GameDetailsProps {
 	game: Game
@@ -28,7 +31,8 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 	const { game, closeDetails, onDelete } = props
 	const [isClosing, setIsClosing] = useState(false)
 	const [activeTab, setActiveTab] = useState<DetailTab>('info')
-	const { updateGameById } = useGames()
+	const [steamImgLoading, setSteamImgLoading] = useState<'logo' | 'cover' | 'both' | null>(null)
+	const { updateGameById, fetchGameDetails } = useGames()
 
 	// Get options for selectable fields
 	const { activeStatuses: statusOptions } = useAppSelector((state) => state.gameStatus)
@@ -52,6 +56,40 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 		setTimeout(() => {
 			closeDetails()
 		}, 300) // Match the duration of the slideOut animation
+	}
+
+	const refreshSteamLogo = async () => {
+		if (!game.steamAppId || steamImgLoading !== null) return
+		setSteamImgLoading('logo')
+		try {
+			// Clear current icon so backend re-resolves it (community icon → API hash → fallback)
+			await saveField('logo', null)
+			await steamService.syncGame(game.id)
+			await fetchGameDetails(game.id)
+		} finally {
+			setSteamImgLoading(null)
+		}
+	}
+
+	const refreshSteamCover = async () => {
+		if (!game.steamAppId || steamImgLoading !== null) return
+		setSteamImgLoading('cover')
+		await saveField('cover', getSteamCoverUrl(game.steamAppId))
+		setSteamImgLoading(null)
+	}
+
+	const refreshSteamImages = async () => {
+		if (!game.steamAppId || steamImgLoading !== null) return
+		setSteamImgLoading('both')
+		try {
+			// Cover is a deterministic CDN URL; logo needs backend resolution
+			await saveField('cover', getSteamCoverUrl(game.steamAppId))
+			await saveField('logo', null)
+			await steamService.syncGame(game.id)
+			await fetchGameDetails(game.id)
+		} finally {
+			setSteamImgLoading(null)
+		}
 	}
 
 	// Formik to manage fields locally and validate critic/grade
@@ -197,6 +235,16 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 			<h2 className='sr-only'>{t('game.details.title', { name: game.name })}</h2>
 			<div className='game-details-header'>
 				<div className='game-details-header-actions'>
+					{game.steamAppId && (
+						<button
+							className='game-details-header-actions-steam'
+							onClick={() => void refreshSteamImages()}
+							disabled={steamImgLoading !== null}
+							aria-label={t('game.details.refreshSteamImages')}
+							title={t('game.details.refreshSteamImages')}>
+							↺
+						</button>
+					)}
 					<button className='game-details-header-actions-delete' onClick={() => onDelete?.(game)} aria-label={t('game.details.deleteGame')}>
 						<DeleteIcon width={20} height={20} color='#ef4444' />
 					</button>
@@ -231,7 +279,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 			<div className='game-details-content'>
 				<div
 					className='game-details-content-cover'
-					style={{ cursor: game.cover ? 'default' : 'pointer' }}
+					style={{ cursor: game.cover ? 'default' : 'pointer', position: 'relative' }}
 					onClick={() => {
 						searchGoogleImage(game.name, 'cover')
 					}}>
@@ -248,6 +296,19 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 								imageUnavailableText={t('game.details.fieldCover')}
 							/>
 						</div>
+					)}
+					{game.steamAppId && (
+						<button
+							className='game-details-cover-steam-refresh'
+							onClick={(e) => {
+								e.stopPropagation()
+								void refreshSteamCover()
+							}}
+							disabled={steamImgLoading !== null}
+							aria-label={t('game.details.refreshSteamCover')}
+							title={t('game.details.refreshSteamCover')}>
+							↺
+						</button>
 					)}
 				</div>
 			</div>
@@ -453,6 +514,19 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 											searchGoogleImage(game.name, 'logo')
 										}}>
 										{t('game.details.fieldLogo')}
+										{game.steamAppId && (
+											<button
+												className='steam-img-refresh'
+												onClick={(e) => {
+													e.stopPropagation()
+													void refreshSteamLogo()
+												}}
+												disabled={steamImgLoading !== null}
+												aria-label={t('game.details.refreshSteamLogo')}
+												title={t('game.details.refreshSteamLogo')}>
+												↺
+											</button>
+										)}
 									</h3>
 									<EditableField value={formik.values.logo} type='text' onSave={(value) => saveField('logo', value)} placeholder={t('game.details.placeholderLogo')} />
 								</div>
@@ -464,6 +538,19 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 											searchGoogleImage(game.name, 'cover')
 										}}>
 										{t('game.details.fieldCover')}
+										{game.steamAppId && (
+											<button
+												className='steam-img-refresh'
+												onClick={(e) => {
+													e.stopPropagation()
+													void refreshSteamCover()
+												}}
+												disabled={steamImgLoading !== null}
+												aria-label={t('game.details.refreshSteamCover')}
+												title={t('game.details.refreshSteamCover')}>
+												↺
+											</button>
+										)}
 									</h3>
 									<EditableField value={formik.values.cover} type='text' onSave={(value) => saveField('cover', value)} placeholder={t('game.details.placeholderCover')} />
 								</div>
