@@ -713,7 +713,12 @@
 				"sourceNone": "No data",
 				"noteNoLastPlayed": "Steam did not report last played",
 				"noteNoFirstAchievement": "No first achievement is available",
-				"noteKeptStarted": "Start already exists; keeping it"
+				"noteKeptStarted": "Start already exists; keeping it",
+				"dismissSelected": "Blacklist selected",
+				"dismissing": "Blacklisting...",
+				"dismissDone": "Blacklisted — won't show again unless the date changes",
+				"dismissError": "Error blacklisting suggestions",
+				"dismiss": "Blacklist"
 			}
 		}
 	},
@@ -761,6 +766,7 @@
 			"steamSearchError": "Error searching Steam"
 		},
 		"dataActions": {
+			"title": "Import / Export",
 			"export": "Export",
 			"import": "Import",
 			"exportTitle": "Export games to CSV",

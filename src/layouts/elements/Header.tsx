@@ -13,6 +13,14 @@ import UserIcon from '@/assets/svgs/user.svg?react'
 import logoImage from '@/assets/pngs/logo.png'
 import './Header.scss'
 
+const LogoutIcon = () => (
+	<svg width='17' height='17' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2.2' strokeLinecap='round' strokeLinejoin='round' aria-hidden='true'>
+		<path d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4' />
+		<polyline points='16 17 21 12 16 7' />
+		<line x1='21' y1='12' x2='9' y2='12' />
+	</svg>
+)
+
 export const Header: React.FC = () => {
 	const { t } = useTranslation()
 	const location = useLocation()
@@ -67,8 +75,8 @@ export const Header: React.FC = () => {
 							<div className='header-user-menu'>
 								<UserIcon width={20} height={20} color='#9ca3af' />
 								<span className='header-username'>{currentUser.username}</span>
-								<button className='btn btn-logout' onClick={handleLogout} title={t('nav.logout')}>
-									{t('nav.logout')}
+								<button className='btn-logout-icon' onClick={handleLogout} title={t('nav.logout')} aria-label={t('nav.logout')}>
+									<LogoutIcon />
 								</button>
 							</div>
 						)}

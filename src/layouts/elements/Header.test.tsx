@@ -47,13 +47,13 @@ describe('Header', () => {
 
 	it('renders navigation links', () => {
 		renderWithProviders(<Header />, { preloadedState: adminState as any })
-		expect(screen.getAllByText('Home').length).toBeGreaterThanOrEqual(1)
+		expect(screen.getAllByText('Inicio').length).toBeGreaterThanOrEqual(1)
 		expect(screen.getAllByText('Admin').length).toBeGreaterThanOrEqual(1)
 	})
 
 	it('shows Users link for admin role', () => {
 		renderWithProviders(<Header />, { preloadedState: adminState as any })
-		expect(screen.getAllByText('Users').length).toBeGreaterThanOrEqual(1)
+		expect(screen.getAllByText('Usuarios').length).toBeGreaterThanOrEqual(1)
 	})
 
 	it('hides Users link for standard role', () => {
@@ -75,7 +75,7 @@ describe('Header', () => {
 	it('dispatches logoutUser and navigates to /login on logout click', async () => {
 		const user = userEvent.setup()
 		const { store } = renderWithProviders(<Header />, { preloadedState: adminState as any })
-		await user.click(screen.getByTitle('Logout'))
+		await user.click(screen.getByTitle('Cerrar sesión'))
 		expect(store.getState().auth.isAuthenticated).toBe(false)
 	})
 
@@ -83,6 +83,6 @@ describe('Header', () => {
 		const user = userEvent.setup()
 		renderWithProviders(<Header />, { preloadedState: adminState as any })
 		await user.click(screen.getByLabelText('Abrir menú'))
-		expect(screen.getByText('Menu')).toBeInTheDocument()
+		expect(screen.getByText('Menú')).toBeInTheDocument()
 	})
 })

@@ -1,34 +1,33 @@
 @use '@/assets/styles' as *;
 
 .theme-selector {
-	display: flex;
+	display: inline-flex;
 	align-items: center;
+	justify-content: center;
+	width: 36px;
+	height: 36px;
+	padding: 0;
+	background: $color-bg-secondary;
+	border: 1px solid $color-border-primary;
+	border-radius: 8px;
+	color: $color-text-secondary;
+	cursor: pointer;
+	transition: all 0.2s;
 
-	&__select {
-		padding: 0.5rem 0.75rem;
-		border: 1px solid $color-border-primary;
-		border-radius: 8px;
-		background-color: $color-bg-secondary;
-		color: $color-text-primary;
-		font-size: 0.875rem;
-		font-weight: 500;
-		cursor: pointer;
-		transition: all 0.2s;
+	[data-theme='dark'] & {
+		background: rgba(255, 255, 255, 0.05);
+		border-color: rgba(255, 255, 255, 0.12);
+		color: #f8d46a;
+	}
 
-		&:hover {
-			background: $color-bg-tertiary;
-			border-color: $color-border-hover;
-		}
+	&:hover {
+		background: $color-bg-tertiary;
+		border-color: $color-primary;
+		color: $color-primary;
 
-		&:focus {
-			outline: none;
-			border-color: $color-primary;
-			box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
-		}
-
-		option {
-			background-color: $color-bg-secondary;
-			color: $color-text-primary;
+		[data-theme='dark'] & {
+			color: #f8d46a;
+			border-color: #f8d46a;
 		}
 	}
 }

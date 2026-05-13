@@ -716,7 +716,12 @@
 				"sourceNone": "Sin dato",
 				"noteNoLastPlayed": "Steam no reporta última vez jugado",
 				"noteNoFirstAchievement": "No hay primer logro disponible",
-				"noteKeptStarted": "Ya tenía inicio; se mantiene"
+				"noteKeptStarted": "Ya tenía inicio; se mantiene",
+				"dismissSelected": "Descartar seleccionadas",
+				"dismissing": "Descartando...",
+				"dismissDone": "Descartado — no volverá a aparecer hasta que cambie la fecha",
+				"dismissError": "Error descartando sugerencias",
+				"dismiss": "Descartar"
 			}
 		}
 	},
@@ -764,6 +769,7 @@
 			"steamSearchError": "Error al buscar en Steam"
 		},
 		"dataActions": {
+			"title": "Importar / Exportar",
 			"export": "Exportar",
 			"import": "Importar",
 			"exportTitle": "Exportar juegos a CSV",

@@ -127,26 +127,24 @@
 					color: $color-text-secondary;
 				}
 
-				.btn-logout {
-					padding: 0.5rem 1rem;
-					background: $color-bg-secondary;
-					border: 1px solid $color-border-primary;
+				.btn-logout-icon {
+					display: inline-flex;
+					align-items: center;
+					justify-content: center;
+					width: 34px;
+					height: 34px;
+					padding: 0;
+					background: transparent;
+					border: 1.5px solid transparent;
 					border-radius: 8px;
-					color: $color-text-primary;
+					color: #ef4444;
 					cursor: pointer;
-					font-size: 0.875rem;
-					font-weight: 500;
 					transition: all 0.2s;
-
-					[data-theme='dark'] & {
-						background: rgba(255, 255, 255, 0.05);
-						border-color: rgba(255, 255, 255, 0.12);
-					}
+					flex-shrink: 0;
 
 					&:hover {
-						background: $color-bg-tertiary;
-						border-color: $color-error;
-						color: $color-error;
+						background: rgba(239, 68, 68, 0.1);
+						border-color: #ef4444;
 					}
 				}
 			}
