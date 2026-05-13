@@ -3,19 +3,23 @@
 
 [data-theme='dark'] {
 	--border-color-light: #444;
-	--surface: #27272a;
-	--surface-light: #222222;
-	--surface-hover: #333;
-	--box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+	--surface: #1a1d26;
+	--surface-light: #111319;
+	--surface-hover: #1e2335;
+	--surface-elevated: #111827; // restored: original $color-bg-quaternary
+	--box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
 
-	// Background & Surface
-	--bg-primary: var(--gray-50);
-	--bg-secondary: var(--gray-100);
+	// Background & Surface — original dark blue-black tones
+	--bg-primary: #111319;
+	--bg-secondary: #0d0f17;
+	--bg-tertiary: #1a1d26;
 
 	// Text Colors
 	--text-primary: var(--gray-900);
 	--text-secondary: var(--gray-600);
 	--text-tertiary: var(--gray-500);
+	--text-muted: #9ca3af; // fixed: readable medium-gray on dark backgrounds
+	--text-disabled: #6b7280; // fixed: was too dark (var gray-300 = #52525b)
 	--text-inverse: var(--gray-50);
 
 	// Brand Colors
@@ -47,13 +51,11 @@
 	--info: #06b6d4;
 	--info-light: #164e63;
 
-	--bg-tertiary: var(--gray-200);
-	--surface-elevated: var(--gray-200);
-
 	// Border & Divider
-	--border: var(--gray-300);
-	--border-light: var(--gray-200);
-	--divider: var(--gray-300);
+	--border: #2a2d3a;
+	--border-light: #1f2232;
+	--border-hover: #4b5563;
+	--divider: #2a2d3a;
 
 	// Interactive Elements
 	--interactive: var(--primary);
@@ -62,8 +64,8 @@
 	--interactive-disabled: var(--gray-400);
 
 	// Input & Form Elements
-	--input-bg: var(--gray-100);
-	--input-border: var(--gray-300);
+	--input-bg: #1a1d26;
+	--input-border: #2a2d3a;
 	--input-border-focus: var(--primary);
 	--input-text: var(--text-primary);
 	--input-placeholder: var(--gray-500);
@@ -75,7 +77,7 @@
 	--card-shadow-hover: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
 
 	// Header specific
-	--header-background: var(--gray-100);
+	--header-background: #111319;
 	--header-text: var(--text-primary);
 	--primary-color: var(--primary);
 	--primary-color-alpha: rgba(59, 130, 246, 0.2);

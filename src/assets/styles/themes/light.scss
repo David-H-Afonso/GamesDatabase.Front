@@ -2,20 +2,25 @@
 // CSS Custom Properties for light theme
 
 [data-theme='light'] {
-	--border-color-light: #ccc;
-	--surface: var(--white);
-	--surface-hover: #f3f4f6;
-	--box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+	--border-color-light: #d0d7e8;
+	--surface: #ffffff;
+	--surface-hover: #f0f4ff;
+	--surface-elevated: #ffffff;
+	--box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
 
 	// Background & Surface
-	--bg-primary: var(--white);
-	--bg-secondary: var(--gray-50);
+	// bg-primary: slightly cool-gray page background so surfaces (white) pop
+	--bg-primary: #f1f5f9;
+	--bg-secondary: #e9edf5;
+	--bg-tertiary: #e0e6f0;
 
-	// Text Colors
-	--text-primary: var(--gray-900);
-	--text-secondary: var(--gray-600);
-	--text-tertiary: var(--gray-400);
-	--text-inverse: var(--white);
+	// Text Colors — higher contrast for readability
+	--text-primary: #0f172a;
+	--text-secondary: #1e293b;
+	--text-tertiary: #475569;
+	--text-muted: #475569; // readable on light backgrounds at small sizes
+	--text-disabled: #94a3b8;
+	--text-inverse: #ffffff;
 
 	// Brand Colors
 	--primary: #2563eb;
@@ -25,16 +30,16 @@
 	// Neutrals
 	--white: #ffffff;
 	--black: #000000;
-	--gray-50: #f9fafb;
-	--gray-100: #f3f4f6;
-	--gray-200: #e5e7eb;
-	--gray-300: #d1d5db;
-	--gray-400: #9ca3af;
-	--gray-500: #6b7280;
-	--gray-600: #4b5563;
-	--gray-700: #374151;
-	--gray-800: #1f2937;
-	--gray-900: #111827;
+	--gray-50: #f8fafc;
+	--gray-100: #f1f5f9;
+	--gray-200: #e2e8f0;
+	--gray-300: #cbd5e1;
+	--gray-400: #94a3b8;
+	--gray-500: #64748b;
+	--gray-600: #475569;
+	--gray-700: #334155;
+	--gray-800: #1e293b;
+	--gray-900: #0f172a;
 
 	// Semantic Colors
 	--success: #059669;
@@ -46,13 +51,11 @@
 	--info: #0891b2;
 	--info-light: #cffafe;
 
-	--bg-tertiary: var(--gray-100);
-	--surface-elevated: var(--white);
-
-	// Border & Divider
-	--border: var(--gray-200);
-	--border-light: var(--gray-100);
-	--divider: var(--gray-200);
+	// Border & Divider — more visible than before
+	--border: #cbd5e1;
+	--border-light: #e2e8f0;
+	--border-hover: #94a3b8;
+	--divider: #e2e8f0;
 
 	// Interactive Elements
 	--interactive: var(--primary);
@@ -61,23 +64,23 @@
 	--interactive-disabled: var(--gray-300);
 
 	// Input & Form Elements
-	--input-bg: var(--white);
-	--input-border: var(--gray-300);
+	--input-bg: #ffffff;
+	--input-border: #cbd5e1;
 	--input-border-focus: var(--primary);
 	--input-text: var(--text-primary);
 	--input-placeholder: var(--gray-400);
 
-	// Cards & Components
-	--card-bg: var(--surface);
+	// Cards & Components — white cards over gray page background
+	--card-bg: #ffffff;
 	--card-border: var(--border-light);
-	--card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-	--card-shadow-hover: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+	--card-shadow: 0 1px 4px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.05);
+	--card-shadow-hover: 0 4px 10px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
 
-	// Header specific
-	--header-background: var(--white);
+	// Header — stays white to visually separate from page background
+	--header-background: #ffffff;
 	--header-text: var(--text-primary);
 	--primary-color: var(--primary);
-	--primary-color-alpha: rgba(37, 99, 235, 0.2);
+	--primary-color-alpha: rgba(37, 99, 235, 0.15);
 	--primary-color-dark: var(--primary-hover);
 	--text-color: var(--text-primary);
 }

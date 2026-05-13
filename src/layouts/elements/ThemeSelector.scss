@@ -10,24 +10,25 @@
 	background: $color-bg-secondary;
 	border: 1px solid $color-border-primary;
 	border-radius: 8px;
-	color: $color-text-secondary;
+	color: #f8c400; // light mode: sun yellow
 	cursor: pointer;
 	transition: all 0.2s;
 
 	[data-theme='dark'] & {
 		background: rgba(255, 255, 255, 0.05);
 		border-color: rgba(255, 255, 255, 0.12);
-		color: #f8d46a;
+		// dark mode: moon is blue
+		color: #7bb8f5;
 	}
 
 	&:hover {
 		background: $color-bg-tertiary;
 		border-color: $color-primary;
-		color: $color-primary;
+		color: darken(#f8c400, 10%);
 
 		[data-theme='dark'] & {
-			color: #f8d46a;
-			border-color: #f8d46a;
+			color: #a8d4ff;
+			border-color: #7bb8f5;
 		}
 	}
 }

@@ -99,29 +99,30 @@ $transition-slow: 0.3s ease;
 // COLOR SYSTEM - Shared colors across components
 // =============================================================================
 
-// Background Colors
-$color-bg-primary: #111319;
-$color-bg-secondary: #05060b;
-$color-bg-tertiary: #0d0f17;
-$color-bg-quaternary: #111827;
-$color-bg-surface: #050814;
+// Background Colors - theme-aware via CSS custom properties
+$color-bg-primary: var(--bg-primary);
+$color-bg-secondary: var(--bg-secondary);
+$color-bg-tertiary: var(--bg-tertiary);
+$color-bg-quaternary: var(--surface-elevated);
+$color-bg-surface: var(--surface);
 
 // Border Colors
-$color-border-primary: #2a2d3a;
-$color-border-secondary: #374151;
-$color-border-tertiary: #1f2937;
-$color-border-hover: #4b5563;
+$color-border-primary: var(--border);
+$color-border-secondary: var(--divider);
+$color-border-tertiary: var(--border-light);
+$color-border-hover: var(--border-hover);
 
 // Text Colors
-$color-text-primary: #f9fafb;
-$color-text-secondary: #e5e7eb;
-$color-text-tertiary: #d1d5db;
-$color-text-muted: #9ca3af;
-$color-text-disabled: #6b7280;
+$color-text-primary: var(--text-primary);
+$color-text-secondary: var(--text-secondary);
+$color-text-tertiary: var(--text-tertiary);
+$color-text-muted: var(--text-muted);
+$color-text-disabled: var(--text-disabled);
 
 // Accent/Interactive Colors
-$color-primary: #3b82f6;
-$color-primary-hover: #2563eb;
+$color-primary: var(--primary);
+$color-primary-hover: var(--primary-hover);
+// NOTE: kept as hardcoded light-blue — used as text accent color, must always be light
 $color-primary-light: #bfdbfe;
 
 // Error/Danger Colors

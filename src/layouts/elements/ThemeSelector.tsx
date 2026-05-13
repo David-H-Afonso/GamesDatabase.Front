@@ -43,7 +43,7 @@ export const ThemeSelector: React.FC = () => {
 			title={isDark ? t('nav.themeLight') : t('nav.themeDark')}
 			aria-label={isDark ? t('nav.themeLight') : t('nav.themeDark')}
 			aria-pressed={isDark}>
-			{isDark ? <SunIcon /> : <MoonIcon />}
+			{isDark ? <MoonIcon /> : <SunIcon />}
 		</button>
 	)
 }

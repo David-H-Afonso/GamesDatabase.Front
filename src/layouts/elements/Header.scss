@@ -1,9 +1,9 @@
 @use '@/assets/styles' as *;
 
 .app-header {
-	background: $color-bg-primary;
-	border-bottom: 1px solid $color-border-primary;
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+	background: var(--header-background);
+	border-bottom: 1px solid var(--border);
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
 
 	[data-theme='dark'] & {
 		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
