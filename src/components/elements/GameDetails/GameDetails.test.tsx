@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test/utils/renderWithProviders'
 import type { Game } from '@/models/api/Game'
 import type { RootState } from '@/store'
+import i18n from '@/i18n'
 
 const mockUpdateGameById = vi.fn().mockResolvedValue(undefined)
 
@@ -13,7 +14,7 @@ vi.mock('@/hooks', () => ({
 }))
 
 vi.mock('@/components/elements', () => ({
-	EditableField: ({ value, placeholder }: any) => <span data-testid='editable-field'>{value || placeholder}</span>,
+	EditableField: ({ value, placeholder, formatter }: any) => <span data-testid='editable-field'>{formatter ? formatter(value) : value || placeholder}</span>,
 	OptimizedImage: ({ alt }: any) => <img alt={alt} />,
 }))
 
@@ -42,7 +43,15 @@ vi.mock('@/assets/svgs/trashbin.svg?react', () => ({
 vi.mock('./GameDetails.scss', () => ({}))
 
 vi.mock('@/utils', () => ({
+	formatPlaytime: (minutes?: number | null) => {
+		if (!minutes) return ''
+		const hours = Math.round((minutes / 60) * 10) / 10
+		return `${Number.isInteger(hours) ? hours.toFixed(0) : hours.toFixed(1)}h`
+	},
 	formatToLocaleDate: (val: string) => val,
+	hoursToMinutesValue: (value: string | number) => (value === '' ? null : Math.round(Number(value) * 60)),
+	minutesToHoursValue: (minutes?: number | null) => (minutes == null ? undefined : minutes / 60),
+	searchGoogleImage: vi.fn(),
 	useClickOutside: () => ({ current: null }),
 	DEFAULT_PAGE_SIZE: 50,
 }))
@@ -78,6 +87,7 @@ const mockGame: Game = {
 	comment: 'Excellent game',
 	isCheaperByKey: true,
 	keyStoreUrl: 'https://example.com/key',
+	manualPlaytimeMinutes: 150,
 } as any
 
 const defaultState: Partial<RootState> = {
@@ -91,7 +101,8 @@ const defaultState: Partial<RootState> = {
 describe('GameDetails', () => {
 	const user = userEvent.setup()
 
-	beforeEach(() => {
+	beforeEach(async () => {
+		await i18n.changeLanguage('en')
 		vi.clearAllMocks()
 		vi.useFakeTimers({ shouldAdvanceTime: true })
 	})
@@ -123,7 +134,7 @@ describe('GameDetails', () => {
 		const { GameDetails } = await import('./GameDetails')
 		renderWithProviders(<GameDetails game={mockGame} closeDetails={vi.fn()} />, { preloadedState: defaultState })
 
-		await user.click(screen.getByText('Rejugadas'))
+		await user.click(screen.getByText('Replays'))
 
 		expect(screen.getByTestId('replays-tab')).toBeInTheDocument()
 		expect(screen.queryByText('Status')).not.toBeInTheDocument()
@@ -133,7 +144,7 @@ describe('GameDetails', () => {
 		const { GameDetails } = await import('./GameDetails')
 		renderWithProviders(<GameDetails game={mockGame} closeDetails={vi.fn()} />, { preloadedState: defaultState })
 
-		await user.click(screen.getByText('Historial'))
+		await user.click(screen.getByText('History'))
 
 		expect(screen.getByTestId('history-tab')).toBeInTheDocument()
 	})
@@ -177,13 +188,21 @@ describe('GameDetails', () => {
 		expect(screen.getByText('Key URL')).toBeInTheDocument()
 	})
 
+	it('renders manual played hours below the completion checkbox', async () => {
+		const { GameDetails } = await import('./GameDetails')
+		renderWithProviders(<GameDetails game={mockGame} closeDetails={vi.fn()} />, { preloadedState: defaultState })
+
+		expect(screen.getByText('Played hours')).toBeInTheDocument()
+		expect(screen.getByText('2.5h')).toBeInTheDocument()
+	})
+
 	it('shows tab navigation buttons', async () => {
 		const { GameDetails } = await import('./GameDetails')
 		renderWithProviders(<GameDetails game={mockGame} closeDetails={vi.fn()} />, { preloadedState: defaultState })
 
 		expect(screen.getByText('Info')).toBeInTheDocument()
-		expect(screen.getByText('Rejugadas')).toBeInTheDocument()
-		expect(screen.getByText('Historial')).toBeInTheDocument()
+		expect(screen.getByText('Replays')).toBeInTheDocument()
+		expect(screen.getByText('History')).toBeInTheDocument()
 	})
 
 	it('does not render logo when game.logo is empty', async () => {

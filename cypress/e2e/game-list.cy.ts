@@ -115,19 +115,19 @@ describe('Game List Journeys', () => {
 		cy.visit('/')
 		cy.wait('@getGamesPage')
 		cy.contains('Dark Souls').should('be.visible')
-		cy.contains('Página 1 de 2').should('be.visible')
+		cy.contains(/Page 1 of 2/).should('be.visible')
 
 		// Go to next page
 		cy.get('.pagination-btn').last().click()
 		cy.wait('@getGamesPage')
 		cy.contains('Hollow Knight').should('be.visible')
-		cy.contains('Página 2 de 2').should('be.visible')
+		cy.contains(/Page 2 of 2/).should('be.visible')
 
 		// Go back to previous page
 		cy.get('.pagination-btn').first().click()
 		cy.wait('@getGamesPage')
 		cy.contains('Dark Souls').should('be.visible')
-		cy.contains('Página 1 de 2').should('be.visible')
+		cy.contains(/Page 1 of 2/).should('be.visible')
 	})
 
 	// ── 6.2 Búsqueda filtra en tiempo real ────────────────────────────────────
@@ -158,6 +158,10 @@ describe('Game List Journeys', () => {
 	it('changing sort triggers a new API request with sortBy parameter', () => {
 		cy.intercept('GET', `${API}/games*`, (req) => {
 			req.alias = 'getGamesSort'
+			const url = new URL(req.url)
+			if (url.searchParams.get('sortBy') === 'grade') {
+				req.alias = 'getGamesGradeSort'
+			}
 			req.reply(PAGED_ONE_PAGE)
 		})
 
@@ -165,7 +169,7 @@ describe('Game List Journeys', () => {
 		cy.wait('@getGamesSort')
 
 		cy.get('#sort-select').select('grade')
-		cy.wait('@getGamesSort').then((interception) => {
+		cy.wait('@getGamesGradeSort').then((interception) => {
 			expect(interception.request.url).to.include('sortBy=grade')
 		})
 	})
@@ -176,16 +180,25 @@ describe('Game List Journeys', () => {
 		cy.visit('/')
 		cy.wait('@getGames')
 
-		// Default should be row view
-		cy.get('.home-component-games-row').should('exist')
-
-		// Click card view button ("Tarjetas")
-		cy.contains('button', 'Tarjetas').first().click()
+		// Default should be card view
 		cy.get('.home-component-games-card').should('exist')
 
-		// Click back to row view ("Fila")
-		cy.contains('button', 'Fila').first().click()
+		cy.contains('button', 'Row').first().click()
 		cy.get('.home-component-games-row').should('exist')
+
+		cy.contains('button', 'Cards').first().click()
+		cy.get('.home-component-games-card').should('exist')
+	})
+
+	it('card view shows manual platform playtime before Steam playtime', () => {
+		cy.visit('/')
+		cy.wait('@getGames')
+
+		cy.contains('.game-card-view-container', 'Dark Souls').within(() => {
+			cy.get('.game-card-steam-playtime').should('contain.text', '3h')
+			cy.get('.game-card-steam-playtime').should('not.contain.text', '10h')
+			cy.get('.game-card-playtime-icon').should('have.attr', 'alt', 'PC')
+		})
 	})
 
 	// ── 6.2 Empty state cuando no hay resultados ──────────────────────────────

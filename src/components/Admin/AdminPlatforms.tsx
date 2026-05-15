@@ -7,6 +7,7 @@ import { useAppDispatch } from '@/store/hooks'
 import type { GamePlatform, GamePlatformCreateDto, GamePlatformUpdateDto } from '@/models/api/GamePlatform'
 import type { QueryParameters } from '@/models/api/Game'
 import { ReorderButtons } from '@/components/elements/ReorderButtons/ReorderButtons'
+import { DEFAULT_PLATFORM_ICON, PLATFORM_LOGO_ACCEPT, PLATFORM_ICON_PRESETS, processPlatformLogoFile } from '@/utils'
 import './AdminPlatforms.scss'
 
 export const AdminPlatforms: React.FC = () => {
@@ -20,7 +21,9 @@ export const AdminPlatforms: React.FC = () => {
 		name: '',
 		isActive: true,
 		color: '#000000',
+		logo: undefined,
 	})
+	const [logoError, setLogoError] = useState<string | null>(null)
 
 	// Pagination and sorting state
 	const [queryParams, setQueryParams] = useState<QueryParameters>({
@@ -90,6 +93,7 @@ export const AdminPlatforms: React.FC = () => {
 				name: option.name,
 				isActive: option.isActive,
 				color: option.color || '#000000',
+				logo: option.logo,
 			})
 		} else {
 			setEditingOption(null)
@@ -97,8 +101,10 @@ export const AdminPlatforms: React.FC = () => {
 				name: '',
 				isActive: true,
 				color: '#000000',
+				logo: undefined,
 			})
 		}
+		setLogoError(null)
 		setIsModalOpen(true)
 	}
 
@@ -109,7 +115,24 @@ export const AdminPlatforms: React.FC = () => {
 			name: '',
 			isActive: true,
 			color: '#000000',
+			logo: undefined,
 		})
+		setLogoError(null)
+	}
+
+	const handleLogoFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+		const file = event.target.files?.[0]
+		event.target.value = ''
+		if (!file) return
+
+		try {
+			setLogoError(null)
+			const logo = await processPlatformLogoFile(file)
+			setFormData((current) => ({ ...current, logo }))
+		} catch (error) {
+			const key = error instanceof Error ? error.message : 'invalidImage'
+			setLogoError(t(`admin.platforms.logoErrors.${key}`, { defaultValue: t('admin.platforms.logoErrors.invalidImage') }))
+		}
 	}
 
 	const handleSubmit = async (e: React.FormEvent) => {
@@ -171,6 +194,7 @@ export const AdminPlatforms: React.FC = () => {
 							<thead>
 								<tr>
 									<th style={{ width: '60px' }}>{t('common.order')}</th>
+									<th>{t('admin.platforms.logo')}</th>
 									<th>{t('common.name')}</th>
 									<th>{t('common.color')}</th>
 									<th>{t('common.status')}</th>
@@ -194,6 +218,16 @@ export const AdminPlatforms: React.FC = () => {
 													onMoveDown={() => movePlatform(option.id, 'down')}
 													isProcessing={isReordering}
 													size='small'
+												/>
+											</td>
+											<td>
+												<img
+													className='platform-logo-preview platform-logo-preview--table'
+													src={option.logo || DEFAULT_PLATFORM_ICON}
+													alt={t('admin.platforms.logoAlt', { name: option.name })}
+													onError={(event) => {
+														event.currentTarget.src = DEFAULT_PLATFORM_ICON
+													}}
 												/>
 											</td>
 											<td>{option.name}</td>
@@ -280,6 +314,51 @@ export const AdminPlatforms: React.FC = () => {
 										style={{ flex: 1 }}
 									/>
 								</div>
+							</div>
+							<div className='form-group'>
+								<label>{t('admin.platforms.logo')}</label>
+								<div className='platform-logo-editor'>
+									<img
+										className='platform-logo-preview'
+										src={formData.logo || DEFAULT_PLATFORM_ICON}
+										alt={t('admin.platforms.logoPreview')}
+										onError={(event) => {
+											event.currentTarget.src = DEFAULT_PLATFORM_ICON
+										}}
+									/>
+									<div className='platform-logo-editor__controls'>
+										<input
+											type='file'
+											accept={PLATFORM_LOGO_ACCEPT}
+											aria-label={t('admin.platforms.uploadLogo')}
+											onChange={(event) => void handleLogoFileChange(event)}
+										/>
+										<input
+											type='url'
+											value={formData.logo?.startsWith('data:') ? '' : formData.logo || ''}
+											onChange={(e) => setFormData({ ...formData, logo: e.target.value || undefined })}
+											placeholder={t('admin.platforms.logoUrlPlaceholder')}
+										/>
+										<button type='button' className='btn btn-secondary btn-sm' onClick={() => setFormData({ ...formData, logo: undefined })}>
+											{t('common.clear')}
+										</button>
+									</div>
+								</div>
+								<div className='platform-logo-presets' aria-label={t('admin.platforms.logoPresets')}>
+									{PLATFORM_ICON_PRESETS.map((preset) => (
+										<button
+											key={preset.id}
+											type='button'
+											className={`platform-logo-preset ${formData.logo === preset.logo ? 'active' : ''}`}
+											onClick={() => setFormData({ ...formData, logo: preset.logo })}
+											title={preset.label}
+											aria-label={preset.label}>
+											<img src={preset.logo} alt='' aria-hidden='true' />
+											<span>{preset.label}</span>
+										</button>
+									))}
+								</div>
+								{logoError && <p className='platform-logo-error'>{logoError}</p>}
 							</div>
 							<div className='form-group'>
 								<label className='checkbox-label'>

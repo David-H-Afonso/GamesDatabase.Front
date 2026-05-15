@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Game } from '@/models/api/Game'
 import './GameDetails.scss'
-import { formatToLocaleDate, searchGoogleImage, useClickOutside } from '@/utils'
+import { formatPlaytime, formatToLocaleDate, hoursToMinutesValue, minutesToHoursValue, searchGoogleImage, useClickOutside } from '@/utils'
 import DeleteIcon from '@/assets/svgs/trashbin.svg?react'
 import { EditableField, OptimizedImage } from '@/components/elements'
 import { EditableSelect } from '../EditableSelect/EditableSelect'
@@ -114,6 +114,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 			comment: game.comment ?? '',
 			isCheaperByKey: game.isCheaperByKey ?? undefined,
 			keyStoreUrl: game.keyStoreUrl ?? '',
+			manualPlaytimeMinutes: game.manualPlaytimeMinutes ?? undefined,
 			isManuallyCompleted: game.isManuallyCompleted ?? false,
 		},
 		enableReinitialize: true,
@@ -141,7 +142,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 		let payloadValue: any = value
 
 		// Handle numeric fields (all optional)
-		if (field === 'critic' || field === 'grade' || field === 'story' || field === 'completion' || field === 'score' || field === 'steamAppId') {
+		if (field === 'critic' || field === 'grade' || field === 'story' || field === 'completion' || field === 'score' || field === 'steamAppId' || field === 'manualPlaytimeMinutes') {
 			if (value === '' || value === null || typeof value === 'undefined') {
 				payloadValue = null
 				formik.setFieldValue(field as any, undefined)
@@ -157,8 +158,9 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 					payloadValue = clamped
 					formik.setFieldValue(field as any, clamped)
 				} else {
-					payloadValue = n
-					formik.setFieldValue(field as any, n)
+					const normalized = Math.max(0, Math.round(n))
+					payloadValue = normalized
+					formik.setFieldValue(field as any, normalized)
 				}
 			}
 		}
@@ -618,6 +620,16 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 										<input type='checkbox' checked={formik.values.isManuallyCompleted ?? false} onChange={(e) => saveField('isManuallyCompleted', e.target.checked)} />
 										<span className='game-details-toggle__label'>{t('game.details.manuallyCompletedLabel')}</span>
 									</label>
+								</div>
+								<div className='game-details-content-infoList-item'>
+									<h3 title={t('game.details.manualPlaytimeTitle')}>{t('game.details.manualPlaytime')}</h3>
+									<EditableField
+										value={minutesToHoursValue(formik.values.manualPlaytimeMinutes)}
+										type='number'
+										onSave={(value) => saveField('manualPlaytimeMinutes', hoursToMinutesValue(value))}
+										placeholder={t('game.details.manualPlaytimePlaceholder')}
+										formatter={(value) => formatPlaytime(hoursToMinutesValue(value ?? '')) || t('game.details.manualPlaytimePlaceholder')}
+									/>
 								</div>
 							</div>
 						</>

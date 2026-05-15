@@ -2,7 +2,7 @@ import type { Game } from '@/models/api/Game'
 import { useState, memo, type FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import './CardView.scss'
-import { formatToLocaleDate, useClickOutside, getMetacriticColor } from '@/utils'
+import { DEFAULT_PLATFORM_ICON, STEAM_PLATFORM_ICON, formatPlaytime, formatToLocaleDate, useClickOutside, getMetacriticColor } from '@/utils'
 import { EditableSelect } from '../../EditableSelect/EditableSelect'
 import { EditableMultiSelect } from '../../EditableMultiSelect/EditableMultiSelect'
 import { OptimizedImage } from '@/components/elements'
@@ -37,7 +37,8 @@ const CardView: FC<CardViewProps> = (props) => {
 
 	// Get options for selectable fields
 	const { activeStatuses: statusOptions } = useAppSelector((state) => state.gameStatus)
-	const { platforms: platformOptions } = useAppSelector((state) => state.gamePlatform)
+	const { platforms, activePlatforms } = useAppSelector((state) => state.gamePlatform)
+	const platformOptions = platforms.length > 0 ? platforms : activePlatforms
 	const { playWithOptions } = useAppSelector((state) => state.gamePlayWith)
 
 	// Get user preferences
@@ -114,6 +115,15 @@ const CardView: FC<CardViewProps> = (props) => {
 	const PriceComparisonIcon = game.isCheaperByKey ? KeyIcon : StoreIcon
 	const hasCompletedSteamAchievements = Boolean(game.steamAchievementsTotal && game.steamAchievementsTotal > 0 && game.steamAchievementsUnlocked === game.steamAchievementsTotal)
 	const isPerfectCompletion = hasCompletedSteamAchievements || Boolean(game.isManuallyCompleted)
+	const platformLogo = game.platformLogo || platformOptions.find((platform) => platform.id === game.platformId)?.logo
+	const hasManualPlaytime = game.manualPlaytimeMinutes !== null && typeof game.manualPlaytimeMinutes !== 'undefined'
+	const effectivePlaytime = hasManualPlaytime ? game.manualPlaytimeMinutes : game.steamPlaytimeForever
+	const hasPlaytime = effectivePlaytime != null && effectivePlaytime > 0
+	const playtimeIcon = hasManualPlaytime ? platformLogo || DEFAULT_PLATFORM_ICON : STEAM_PLATFORM_ICON
+	const playtimeIconAlt = hasManualPlaytime ? game.platformName || t('game.details.fieldPlatform') : 'Steam'
+	const playtimeTitle = hasManualPlaytime
+		? t('game.details.platformPlaytimeTooltip', { platform: game.platformName || t('game.details.fieldPlatform') })
+		: t('game.details.steamPlaytimeTooltip')
 
 	return (
 		<div
@@ -305,11 +315,20 @@ const CardView: FC<CardViewProps> = (props) => {
 						</div>
 						<div className='game-card-release-date' role='group' aria-label={t('game.card.releasedAria', { date: released })}>
 							<CalendarIcon width={20} height={20} color='#9ca3af' title={t('game.card.releasedIcon')} focusable={false} />
-							<p style={game.steamAppId && game.steamPlaytimeForever != null && game.steamPlaytimeForever > 0 ? { fontSize: '0.8rem' } : {}}>{released}</p>
-							{game.steamAppId && game.steamPlaytimeForever != null && game.steamPlaytimeForever > 0 && (
-								<div className='game-card-steam-playtime' title='Tiempo en Steam'>
-									<img src='https://store.steampowered.com/favicon.ico' alt='Steam' width={14} height={14} />
-									<p>{Math.round(game.steamPlaytimeForever / 60)}h</p>
+							<p style={hasPlaytime ? { fontSize: '0.8rem' } : {}}>{released}</p>
+							{hasPlaytime && (
+								<div className='game-card-steam-playtime' title={playtimeTitle}>
+									<img
+										className='game-card-playtime-icon'
+										src={playtimeIcon}
+										alt={playtimeIconAlt}
+										width={14}
+										height={14}
+										onError={(event) => {
+											event.currentTarget.src = DEFAULT_PLATFORM_ICON
+										}}
+									/>
+								<p>{hasManualPlaytime ? formatPlaytime(effectivePlaytime) : `${Math.round(effectivePlaytime! / 60)}h`}</p>
 								</div>
 							)}
 						</div>

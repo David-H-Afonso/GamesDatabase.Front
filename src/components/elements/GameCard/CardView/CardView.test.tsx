@@ -2,6 +2,7 @@ import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test/utils/renderWithProviders'
 import { createGame, resetIdCounter } from '@/test/factories'
+import i18n from '@/i18n'
 
 vi.mock('@/environments', () => ({
 	environment: {
@@ -104,7 +105,8 @@ const preloadedState = {
 		pagination: { page: 1, totalPages: 1, totalCount: 1 },
 	},
 	gamePlatform: {
-		platforms: [{ id: 1, name: 'PC', color: '#2196F3', isActive: true, sortOrder: 1 }],
+		platforms: [{ id: 1, name: 'PC', color: '#2196F3', logo: 'https://example.com/platform.png', isActive: true, sortOrder: 1 }],
+		activePlatforms: [{ id: 1, name: 'PC', color: '#2196F3', logo: 'https://example.com/platform.png', isActive: true, sortOrder: 1 }],
 		loading: false,
 		error: null,
 		pagination: { page: 1, totalPages: 1, totalCount: 1 },
@@ -132,7 +134,8 @@ async function loadComponent() {
 describe('CardView', () => {
 	const mockOpenDetails = vi.fn()
 
-	beforeEach(() => {
+	beforeEach(async () => {
+		await i18n.changeLanguage('en')
 		vi.clearAllMocks()
 		resetIdCounter()
 	})
@@ -228,5 +231,29 @@ describe('CardView', () => {
 			preloadedState: preloadedState as any,
 		})
 		expect(screen.getByText('92')).toBeInTheDocument()
+	})
+
+	it('uses manual playtime before Steam playtime and shows the platform icon', async () => {
+		const CardView = await loadComponent()
+		const game = createGame({ platformId: 1, platformName: 'PC', manualPlaytimeMinutes: 120, steamPlaytimeForever: 600 })
+		renderWithProviders(<CardView game={game} openDetails={mockOpenDetails} playWithColors={[]} gameStatusColor='#4CAF50' platformColor='#2196F3' />, {
+			preloadedState: preloadedState as any,
+		})
+
+		expect(screen.getByText('2h')).toBeInTheDocument()
+		expect(screen.queryByText('10h')).not.toBeInTheDocument()
+		expect(screen.getByAltText('PC')).toHaveAttribute('src', 'https://example.com/platform.png')
+	})
+
+	it('falls back to the default platform icon for manual playtime without a logo', async () => {
+		const CardView = await loadComponent()
+		const game = createGame({ platformId: 99, platformName: 'Unknown', manualPlaytimeMinutes: 60, steamPlaytimeForever: 600 })
+		renderWithProviders(<CardView game={game} openDetails={mockOpenDetails} playWithColors={[]} gameStatusColor='#4CAF50' platformColor='#2196F3' />, {
+			preloadedState: preloadedState as any,
+		})
+
+		const icon = screen.getByAltText('Unknown') as HTMLImageElement
+		expect(icon.src).toContain('data:image/png;base64')
+		expect(screen.getByText('1h')).toBeInTheDocument()
 	})
 })

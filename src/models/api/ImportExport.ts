@@ -33,6 +33,7 @@ export type ConfigurableGameProperty =
 	| 'steamPlaytimeForever'
 	| 'steamPlaytime2Weeks'
 	| 'steamLastSynced'
+	| 'manualPlaytimeMinutes'
 
 // ─── Per-property overrides ───────────────────────────────────────────────────
 
@@ -133,4 +134,5 @@ export const GAME_PROPERTY_FIELDS: PropertyFieldMeta[] = [
 	{ key: 'steamPlaytimeForever', label: 'Steam Playtime (total minutes)', inputType: 'number', canCleanOnImport: true, canCustomOnImport: true, canCleanOnExport: true },
 	{ key: 'steamPlaytime2Weeks', label: 'Steam Playtime (2 weeks)', inputType: 'number', canCleanOnImport: true, canCustomOnImport: true, canCleanOnExport: true },
 	{ key: 'steamLastSynced', label: 'Steam Last Sync', inputType: 'date', canCleanOnImport: true, canCustomOnImport: true, canCleanOnExport: true },
+	{ key: 'manualPlaytimeMinutes', label: 'Manual Playtime (minutes)', inputType: 'number', canCleanOnImport: true, canCustomOnImport: true, canCleanOnExport: true, numberMin: 0 },
 ]

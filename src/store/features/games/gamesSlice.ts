@@ -179,9 +179,9 @@ const gamesSlice = createSlice({
 				// Invalidar caché porque un juego cambió
 				state.isDataFresh = false
 			})
-			.addCase(updateGame.rejected, (state, action) => {
+			.addCase(updateGame.rejected, (state) => {
 				state.loading = false
-				state.error = (action.payload as string) || 'Failed to update game'
+				// Update errors are handled in-component; do not set global error state
 			})
 
 		// Delete game

@@ -192,6 +192,87 @@
 	gap: 8px;
 }
 
+.platform-logo-preview {
+	width: 48px;
+	height: 48px;
+	border-radius: 8px;
+	object-fit: contain;
+	background: var(--bg-secondary);
+	border: 1px solid var(--border-light);
+	padding: 6px;
+	flex: 0 0 auto;
+
+	&--table {
+		width: 34px;
+		height: 34px;
+		border-radius: 7px;
+		padding: 5px;
+	}
+}
+
+.platform-logo-editor {
+	display: flex;
+	gap: 12px;
+	align-items: flex-start;
+}
+
+.platform-logo-editor__controls {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	gap: 8px;
+	min-width: 0;
+}
+
+.platform-logo-presets {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
+	gap: 8px;
+	margin-top: 12px;
+}
+
+.platform-logo-preset {
+	align-items: center;
+	background: var(--bg-secondary);
+	border: 1px solid var(--border-light);
+	border-radius: 8px;
+	color: var(--text-primary);
+	cursor: pointer;
+	display: flex;
+	gap: 8px;
+	min-height: 40px;
+	padding: 6px 8px;
+	text-align: left;
+	transition:
+		border-color 0.2s ease,
+		background-color 0.2s ease;
+
+	img {
+		width: 22px;
+		height: 22px;
+		object-fit: contain;
+		flex: 0 0 auto;
+	}
+
+	span {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	&:hover,
+	&.active {
+		background: var(--surface-hover);
+		border-color: var(--primary);
+	}
+}
+
+.platform-logo-error {
+	color: var(--error);
+	font-size: 0.85rem;
+	margin: 8px 0 0;
+}
+
 .btn {
 	padding: 8px 16px;
 	border: none;

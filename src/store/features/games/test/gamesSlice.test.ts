@@ -335,9 +335,9 @@ describe('gamesSlice — extraReducers', () => {
 		expect(next.loading).toBe(true)
 	})
 
-	it('updateGameThunk.rejected sets error', () => {
+	it('updateGameThunk.rejected does not set global error', () => {
 		const next = gamesReducer(state, updateGameThunk.rejected(null, '', { id: 1, gameData: {} as any }, 'update err'))
-		expect(next.error).toBe('update err')
+		expect(next.error).toBeNull()
 	})
 
 	it('deleteGame.pending sets loading=true', () => {
@@ -428,10 +428,10 @@ describe('gamesSlice — uncovered branches', () => {
 		expect(next.error).toBe('Failed to create game')
 	})
 
-	it('updateGame.rejected with null payload uses fallback message', () => {
+	it('updateGame.rejected with null payload does not set global error', () => {
 		const action = updateGameThunk.rejected(null, '', {} as any)
 		const next = gamesReducer(undefined, action)
-		expect(next.error).toBe('Failed to update game')
+		expect(next.error).toBeNull()
 	})
 
 	it('deleteGame.rejected with null payload uses fallback message', () => {

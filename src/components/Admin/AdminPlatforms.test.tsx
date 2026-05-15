@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test/utils/renderWithProviders'
 
 const mockPlatforms = [
-	{ id: 1, name: 'PC', isActive: true, color: '#FF0000', sortOrder: 1 },
+	{ id: 1, name: 'PC', isActive: true, color: '#FF0000', logo: 'https://example.com/pc.png', sortOrder: 1 },
 	{ id: 2, name: 'PS5', isActive: false, color: '#0000FF', sortOrder: 2 },
 ]
 
@@ -52,6 +52,7 @@ describe('AdminPlatforms', () => {
 		const AdminPlatforms = await loadComponent()
 		renderWithProviders(<AdminPlatforms />)
 		expect(screen.getByText('Nombre')).toBeInTheDocument()
+		expect(screen.getByText('Logo')).toBeInTheDocument()
 		expect(screen.getByText('Color')).toBeInTheDocument()
 		expect(screen.getByText('Estado')).toBeInTheDocument()
 		expect(screen.getByText('Acciones')).toBeInTheDocument()
@@ -87,8 +88,8 @@ describe('AdminPlatforms', () => {
 		const AdminPlatforms = await loadComponent()
 		const user = userEvent.setup()
 		renderWithProviders(<AdminPlatforms />)
-		await user.click(screen.getByText('Nueva Opción'))
-		expect(screen.getByText('Nueva Opción', { selector: 'h2' })).toBeInTheDocument()
+		await user.click(screen.getByText('Nueva Plataforma'))
+		expect(screen.getByText('Nueva Plataforma', { selector: 'h2' })).toBeInTheDocument()
 	})
 
 	it('opens edit modal when clicking Editar', async () => {
@@ -97,7 +98,7 @@ describe('AdminPlatforms', () => {
 		renderWithProviders(<AdminPlatforms />)
 		const editButtons = screen.getAllByText('Editar')
 		await user.click(editButtons[0])
-		expect(screen.getByText('Editar Opción')).toBeInTheDocument()
+		expect(screen.getByText('Editar Plataforma')).toBeInTheDocument()
 		expect(screen.getByDisplayValue('PC')).toBeInTheDocument()
 	})
 
@@ -105,9 +106,9 @@ describe('AdminPlatforms', () => {
 		const AdminPlatforms = await loadComponent()
 		const user = userEvent.setup()
 		renderWithProviders(<AdminPlatforms />)
-		await user.click(screen.getByText('Nueva Opción'))
+		await user.click(screen.getByText('Nueva Plataforma'))
 		await user.click(screen.getByText('×'))
-		expect(screen.queryByText('Nueva Opción', { selector: 'h2' })).not.toBeInTheDocument()
+		expect(screen.queryByText('Nueva Plataforma', { selector: 'h2' })).not.toBeInTheDocument()
 	})
 
 	it('calls deletePlatform on confirm', async () => {
@@ -136,10 +137,21 @@ describe('AdminPlatforms', () => {
 		const AdminPlatforms = await loadComponent()
 		const user = userEvent.setup()
 		renderWithProviders(<AdminPlatforms />)
-		await user.click(screen.getByText('Nueva Opción'))
+		await user.click(screen.getByText('Nueva Plataforma'))
 		await user.type(screen.getByLabelText('Nombre'), 'Xbox')
 		await user.click(screen.getByText('Crear'))
 		expect(mockCreatePlatform).toHaveBeenCalledWith(expect.objectContaining({ name: 'Xbox', isActive: true }))
+	})
+
+	it('selects a default logo preset when creating a platform', async () => {
+		const AdminPlatforms = await loadComponent()
+		const user = userEvent.setup()
+		renderWithProviders(<AdminPlatforms />)
+		await user.click(screen.getByText('Nueva Plataforma'))
+		await user.type(screen.getByLabelText('Nombre'), 'Switch')
+		await user.click(screen.getByRole('button', { name: 'Switch' }))
+		await user.click(screen.getByText('Crear'))
+		expect(mockCreatePlatform).toHaveBeenCalledWith(expect.objectContaining({ name: 'Switch', logo: expect.stringContaining('data:image/png;base64') }))
 	})
 
 	it('submits update form with edited data', async () => {

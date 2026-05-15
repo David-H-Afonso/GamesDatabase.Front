@@ -36,7 +36,9 @@ export interface Game {
 	steamFinishedLastValue?: string
 	steamFinishedSyncedAt?: string
 	steamFinishedRejectedValue?: string
+	manualPlaytimeMinutes?: number
 	isManuallyCompleted?: boolean
+	platformLogo?: string
 }
 
 // DTOs for create and update operations
@@ -59,6 +61,7 @@ export interface GameCreateDto {
 	isCheaperByKey?: boolean
 	keyStoreUrl?: string
 	steamAppId?: number
+	manualPlaytimeMinutes?: number
 	isManuallyCompleted?: boolean
 }
 

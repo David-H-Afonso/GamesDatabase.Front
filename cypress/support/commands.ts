@@ -66,8 +66,10 @@ Cypress.Commands.add('login', (username: string, role: 'Admin' | 'Standard' = 'A
  */
 Cypress.Commands.add('mockApiRoutes', () => {
 	// Users / preferences
-	cy.intercept('POST', `${API}/users/login`, { fixture: 'auth.json#admin' }).as('loginRequest')
-	cy.intercept('GET', `${API}/users/*`, { fixture: 'auth.json#preferences' }).as('getUserPreferences')
+	cy.fixture('auth.json').then((auth) => {
+		cy.intercept('POST', `${API}/users/login`, auth.admin).as('loginRequest')
+		cy.intercept('GET', `${API}/users/*`, auth.preferences).as('getUserPreferences')
+	})
 
 	// Games list (paged result)
 	cy.intercept('GET', `${API}/games*`, { fixture: 'games.json' }).as('getGames')
@@ -95,9 +97,11 @@ Cypress.Commands.add('mockApiRoutes', () => {
 	cy.intercept('DELETE', `${API}/games/*`, { statusCode: 204, body: null }).as('deleteGame')
 
 	// Catalog (active lists)
-	cy.intercept('GET', `${API}/gamestatus/active`, { fixture: 'catalog.json#statuses' }).as('getStatuses')
-	cy.intercept('GET', `${API}/gamestatus/special`, { fixture: 'catalog.json#specialStatuses' }).as('getSpecialStatuses')
-	cy.intercept('GET', `${API}/gameplatforms/active`, { fixture: 'catalog.json#platforms' }).as('getPlatforms')
+	cy.fixture('catalog.json').then((catalog) => {
+		cy.intercept('GET', `${API}/gamestatus/active`, catalog.statuses).as('getStatuses')
+		cy.intercept('GET', `${API}/gamestatus/special`, catalog.specialStatuses).as('getSpecialStatuses')
+		cy.intercept('GET', `${API}/gameplatforms/active`, catalog.platforms).as('getPlatforms')
+	})
 	cy.intercept('GET', `${API}/gameplaywith/active`, []).as('getPlayWith')
 	cy.intercept('GET', `${API}/gameplayedstatus/active`, []).as('getPlayedStatus')
 	cy.intercept('GET', `${API}/gamereplaytypes/active`, []).as('getReplayTypes')

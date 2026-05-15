@@ -166,7 +166,20 @@
 			"newPlatform": "Nueva Plataforma",
 			"editPlatform": "Editar Plataforma",
 			"confirmDelete": "¿Estás seguro de que quieres eliminar esta plataforma?",
-			"reorderError": "Error al reordenar. Por favor, intenta de nuevo."
+			"reorderError": "Error al reordenar. Por favor, intenta de nuevo.",
+			"logo": "Logo",
+			"logoAlt": "Logo de {{name}}",
+			"logoPreview": "Vista previa del logo",
+			"uploadLogo": "Subir logo de plataforma",
+			"logoUrlPlaceholder": "URL del logo (opcional)",
+			"logoPresets": "Iconos predefinidos",
+			"logoErrors": {
+				"unsupportedType": "Usa PNG, JPG o WebP.",
+				"tooLarge": "La imagen no puede superar 2 MB.",
+				"encodedTooLarge": "La imagen sigue siendo demasiado grande tras optimizarla.",
+				"canvasUnavailable": "No se pudo optimizar la imagen en este navegador.",
+				"invalidImage": "No se pudo procesar la imagen."
+			}
 		},
 		"playedStatus": {
 			"title": "Gestión de Estado Jugado",
@@ -823,6 +836,12 @@
 			"manuallyCompleted": "Logros",
 			"manuallyCompletedTitle": "Marcar juego como completado al 100% manualmente",
 			"manuallyCompletedLabel": "Completado al 100%",
+			"manualPlaytime": "Horas jugadas",
+			"manualPlaytimeTitle": "Estas horas manuales tienen prioridad sobre Steam",
+			"manualPlaytimePlaceholder": "Sin horas manuales",
+			"manualPlaytimeTooltip": "Tiempo añadido manualmente",
+			"steamPlaytimeTooltip": "Tiempo en Steam",
+			"platformPlaytimeTooltip": "Tiempo jugado en {{platform}}",
 			"placeholderName": "Sin nombre",
 			"placeholderReleased": "Sin fecha de lanzamiento",
 			"placeholderCritic": "Sin puntuación",
@@ -1276,7 +1295,8 @@
 				"steamAppId": "Steam App ID",
 				"steamPlaytimeForever": "Tiempo jugado en Steam (total, minutos)",
 				"steamPlaytime2Weeks": "Tiempo jugado en Steam (2 semanas, minutos)",
-				"steamLastSynced": "Última sincronización de Steam"
+				"steamLastSynced": "Última sincronización de Steam",
+				"manualPlaytimeMinutes": "Tiempo jugado manual (minutos)"
 			}
 		},
 		"view": "Vista",
@@ -1331,7 +1351,7 @@
 			"fieldCreatedAt": "Fecha de creación",
 			"fieldUpdatedAt": "Última modificación",
 			"fieldSteamAppId": "Steam AppID",
-			"fieldSteamPlaytime": "Horas de Steam",
+			"fieldSteamPlaytime": "Horas jugadas",
 			"opEquals": "Igual a",
 			"opNotEquals": "No igual a",
 			"opContains": "Contiene",
