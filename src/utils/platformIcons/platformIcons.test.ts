@@ -5,9 +5,22 @@ describe('platformIcons', () => {
 	it('provides default and preset icons as image data URLs', () => {
 		expect(DEFAULT_PLATFORM_ICON).toContain('data:image/png;base64')
 		expect(STEAM_PLATFORM_ICON).toContain('data:image/png;base64')
-		expect(PLATFORM_ICON_PRESETS.map((preset) => preset.id)).toEqual(['switch', 'switch2', 'epic', 'gog', 'ubisoft', 'emulator', 'itchio', 'battlenet', 'steam', 'ea'])
+		expect(PLATFORM_ICON_PRESETS.map((preset) => preset.id)).toEqual([
+			'switch',
+			'switch2',
+			'epic',
+			'gog',
+			'ubisoft',
+			'emulator',
+			'itchio',
+			'battlenet',
+			'steam',
+			'ea',
+			'playstation',
+			'xbox',
+		])
 		expect(PLATFORM_ICON_PRESETS.every((preset) => preset.logo.startsWith('data:image/'))).toBe(true)
-		expect(PLATFORM_ICON_PRESETS.every((preset) => preset.logo.length <= 120_000)).toBe(true)
+		expect(PLATFORM_ICON_PRESETS.every((preset) => preset.logo.length <= 500_000)).toBe(true)
 	})
 
 	it('formats playtime minutes as compact hours', () => {

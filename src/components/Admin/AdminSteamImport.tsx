@@ -752,7 +752,11 @@ export const AdminSteamImport = () => {
 				</div>
 			)}
 
-			{activeTab !== 'account' && isSteamLinked && error && <div className='alert alert--error'>{error}</div>}
+			{activeTab !== 'account' && isSteamLinked && error && (
+				<div className='alert alert--error' style={{ cursor: 'pointer' }} onClick={handleClearError}>
+					{error}
+				</div>
+			)}
 
 			{activeTab === 'account' || !isSteamLinked ? (
 				renderAccountContent()
