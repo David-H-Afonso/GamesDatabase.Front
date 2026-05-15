@@ -328,7 +328,7 @@ const CardView: FC<CardViewProps> = (props) => {
 											event.currentTarget.src = DEFAULT_PLATFORM_ICON
 										}}
 									/>
-								<p>{hasManualPlaytime ? formatPlaytime(effectivePlaytime) : `${Math.round(effectivePlaytime! / 60)}h`}</p>
+									<p>{hasManualPlaytime ? formatPlaytime(effectivePlaytime) : `${Math.round(effectivePlaytime! / 60)}h`}</p>
 								</div>
 							)}
 						</div>
