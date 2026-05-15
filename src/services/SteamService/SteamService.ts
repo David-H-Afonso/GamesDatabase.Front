@@ -162,7 +162,8 @@ class SteamService {
 	}
 
 	async getLinkUrl(): Promise<{ url: string }> {
-		return customFetch<{ url: string }>(base.linkUrl)
+		const frontendUrl = encodeURIComponent(window.location.origin)
+		return customFetch<{ url: string }>(`${base.linkUrl}?frontend_url=${frontendUrl}`)
 	}
 
 	async linkGame(appId: number, gameId: number): Promise<void> {

@@ -89,7 +89,8 @@ export const Login = () => {
 	}
 
 	const handleSteamLogin = () => {
-		const steamLoginUrl = `${environment.baseUrl}${environment.apiRoutes.steam.authLogin}?mode=login`
+		const frontendUrl = window.location.origin
+		const steamLoginUrl = `${environment.baseUrl}${environment.apiRoutes.steam.authLogin}?mode=login&frontend_url=${encodeURIComponent(frontendUrl)}`
 		window.location.href = steamLoginUrl
 	}
 
