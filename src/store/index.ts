@@ -100,7 +100,10 @@ const rootReducer = combineReducers({
 const persistedReducer = persistReducer(persistConfig, rootReducer)
 
 export const store = configureStore({
-	reducer: persistedReducer,
+	// Cast required: persistedReducer state includes PersistPartial (_persist) which
+	// is incompatible with RTK's replaceReducer typing. This is a known redux-persist
+	// + RTK TypeScript issue — the cast is safe because user code never accesses _persist.
+	reducer: persistedReducer as unknown as typeof rootReducer,
 	middleware: (getDefaultMiddleware) =>
 		getDefaultMiddleware({
 			serializableCheck: {
