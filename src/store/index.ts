@@ -1,5 +1,5 @@
 import { configureStore, combineReducers } from '@reduxjs/toolkit'
-import { persistStore, persistReducer } from 'redux-persist'
+import { persistStore, persistReducer, createTransform } from 'redux-persist'
 import storage from 'redux-persist/lib/storage'
 import gamesReducer from './features/games/gamesSlice'
 import gameStatusReducer from './features/gameStatus/gameStatusSlice'
@@ -19,6 +19,51 @@ import steamReducer from './features/steam/steamSlice'
  * It is minimal and can be expanded as needed for any project.
  */
 
+// Strip the games array and all transient runtime state from the games slice
+// when saving/loading. Only user preferences (filters, pageSize) survive a reload.
+// This prevents a flash of stale/wrong-filter game data on page load:
+// without this, rehydrated games from a previous session would briefly render
+// before the new fetch (with the current persisted filters) completes.
+const gamesTransform = createTransform(
+	// inbound: what gets written to storage
+	(state: any) => ({
+		...state,
+		games: [],
+		loading: false,
+		error: null,
+		isDataFresh: false,
+		lastAppliedFilters: null,
+		needsRefresh: false,
+		pagination: {
+			page: 1,
+			pageSize: state.pagination?.pageSize ?? 20,
+			totalCount: 0,
+			totalPages: 0,
+			hasNextPage: false,
+			hasPreviousPage: false,
+		},
+	}),
+	// outbound: what gets read back from storage (same shape)
+	(state: any) => ({
+		...state,
+		games: [],
+		loading: false,
+		error: null,
+		isDataFresh: false,
+		lastAppliedFilters: null,
+		needsRefresh: false,
+		pagination: {
+			page: 1,
+			pageSize: state.pagination?.pageSize ?? 20,
+			totalCount: 0,
+			totalPages: 0,
+			hasNextPage: false,
+			hasPreviousPage: false,
+		},
+	}),
+	{ whitelist: ['games'] }
+)
+
 // Root persist config - Centralized persistence for the entire store
 const persistConfig = {
 	key: 'root',
@@ -33,7 +78,8 @@ const persistConfig = {
 		'theme',
 		'auth', // Persist authentication state
 		'recentUsers', // Persist recent users for quick login
-	], // Add reducers here to persist
+	],
+	transforms: [gamesTransform],
 }
 
 // Combine reducers - Add your reducers here
