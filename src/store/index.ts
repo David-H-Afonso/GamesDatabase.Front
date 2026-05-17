@@ -99,11 +99,13 @@ const rootReducer = combineReducers({
 // Create persisted reducer - Single point of persistence configuration
 const persistedReducer = persistReducer(persistConfig, rootReducer)
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const store = configureStore({
-	// Cast required: persistedReducer state includes PersistPartial (_persist) which
-	// is incompatible with RTK's replaceReducer typing. This is a known redux-persist
-	// + RTK TypeScript issue — the cast is safe because user code never accesses _persist.
-	reducer: persistedReducer as unknown as typeof rootReducer,
+	// redux-persist's state type (S & PersistPartial) is incompatible with the
+	// Reducer overload expected by configureStore in this version of RTK.
+	// Casting to `any` is the standard workaround — RootState below is still
+	// fully typed by deriving from rootReducer rather than store.getState().
+	reducer: persistedReducer as any,
 	middleware: (getDefaultMiddleware) =>
 		getDefaultMiddleware({
 			serializableCheck: {
@@ -115,6 +117,8 @@ export const store = configureStore({
 
 export const persistor = persistStore(store)
 
-export type RootState = ReturnType<typeof store.getState>
+// Derived from rootReducer (not store.getState) so the type is exactly
+// { games: GamesState; ... } without the _persist noise from redux-persist.
+export type RootState = ReturnType<typeof rootReducer>
 export type AppDispatch = typeof store.dispatch
 export type AppStore = typeof store
