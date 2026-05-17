@@ -66,6 +66,13 @@ const GameFiltersChips: React.FC<Props> = ({
 	const [playedStatusOptions, setPlayedStatusOptions] = useState<{ value: number; label: string }[]>([])
 	const [replayTypeOptions, setReplayTypeOptions] = useState<{ value: number; label: string }[]>([])
 
+	// ── Search debounce: local state prevents list re-renders on every keystroke ──
+	const [localSearch, setLocalSearch] = useState(() => filters.search || '')
+	const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+	// Tracks whether the next filters.search change was initiated by us (debounce)
+	// so we don't echo it back and reset the input to a stale value.
+	const skipSearchSyncRef = useRef(false)
+
 	// Load filter options
 	useEffect(() => {
 		const normalize = (res: any) => {
@@ -134,6 +141,28 @@ const GameFiltersChips: React.FC<Props> = ({
 		if (openPopover) document.addEventListener('keydown', handler)
 		return () => document.removeEventListener('keydown', handler)
 	}, [openPopover])
+
+	// Sync local search state when filters.search changes from outside
+	// (e.g. "reset all filters" resets it to undefined).
+	// When we are the ones who updated it (via debounce), skip the sync
+	// to avoid a race that would revert localSearch to a stale value.
+	useEffect(() => {
+		if (skipSearchSyncRef.current) {
+			skipSearchSyncRef.current = false
+			return
+		}
+		if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
+		setLocalSearch(filters.search || '')
+	}, [filters.search])
+
+	const handleLocalSearchChange = (value: string) => {
+		setLocalSearch(value)
+		if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
+		searchDebounceRef.current = setTimeout(() => {
+			skipSearchSyncRef.current = true
+			onSearchChange(value)
+		}, 300)
+	}
 
 	const setFilters = (partial: Partial<GameQueryParameters>) => {
 		onFiltersChange({ ...partial, page: 1 })
@@ -405,8 +434,8 @@ const GameFiltersChips: React.FC<Props> = ({
 							id='search-input'
 							className='game-filters-chips__input-search'
 							placeholder={t('home.searchPlaceholder')}
-							value={filters.search || ''}
-							onChange={(e) => onSearchChange(e.target.value)}
+							value={localSearch}
+							onChange={(e) => handleLocalSearchChange(e.target.value)}
 						/>
 					</div>
 

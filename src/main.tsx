@@ -25,6 +25,18 @@ setTimeout(() => {
 // Restore authentication state from localStorage on app startup
 store.dispatch(restoreAuth())
 
+// Flush redux-persist immediately when the app is hidden/closed.
+// Android PWAs and mobile browsers don't reliably fire beforeunload, so the
+// 1-second write throttle can drop state changes made just before closing.
+// visibilitychange(hidden) + pagehide cover all browsers / PWA scenarios.
+const flushPersistor = () => {
+	void persistor.flush()
+}
+document.addEventListener('visibilitychange', () => {
+	if (document.visibilityState === 'hidden') flushPersistor()
+})
+window.addEventListener('pagehide', flushPersistor)
+
 createRoot(document.getElementById('root')!).render(
 	<StrictMode>
 		<Provider store={store}>

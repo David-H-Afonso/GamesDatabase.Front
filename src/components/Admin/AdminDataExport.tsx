@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
 	exportFullDatabase,
@@ -58,12 +58,6 @@ export const AdminDataExport: React.FC = () => {
 
 	// Hook para manejar los juegos
 	const { refreshGames, filters } = useGames()
-
-	// Detectar si estamos en localhost o IP local específica
-	const isLocalEnvironment = useMemo(() => {
-		const hostname = window.location.hostname.toLowerCase()
-		return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '192.168.0.32'
-	}, [])
 
 	const showMessage = (text: string, type: 'success' | 'error') => {
 		setMessage(text)
@@ -338,34 +332,31 @@ Statistics:
 					</div>
 				</div> */}
 
-				{/* Network Sync Section - Only show on local environments */}
-				{isLocalEnvironment && (
-					<div className='section network-sync-section'>
-						<h2>🌐 {t('admin.dataExport.networkSyncTitle')}</h2>
-						<p className='section-description'>{t('admin.dataExport.networkSyncDesc')}</p>
+				{/* Network Sync Section */}
+				<div className='section network-sync-section'>
+					<h2>🌐 {t('admin.dataExport.networkSyncTitle')}</h2>
+					<p className='section-description'>{t('admin.dataExport.networkSyncDesc')}</p>
 
-						<div className='action-group'>
-							<div className='action-item'>
-								<h3>{t('admin.dataExport.syncFullTitle')}</h3>
-								<p>{t('admin.dataExport.syncFullDesc')}</p>
-								<button className='btn btn-success btn-large' onClick={() => handleSyncToNetwork(true)} disabled={loading}>
-									{loading ? `⏳ ${t('admin.dataExport.syncing')}` : `🌐 ${t('admin.dataExport.syncFullBtn')}`}
-								</button>
-							</div>
+					<div className='action-group'>
+						<div className='action-item'>
+							<h3>{t('admin.dataExport.syncFullTitle')}</h3>
+							<p>{t('admin.dataExport.syncFullDesc')}</p>
+							<button className='btn btn-success btn-large' onClick={() => handleSyncToNetwork(true)} disabled={loading}>
+								{loading ? `⏳ ${t('admin.dataExport.syncing')}` : `🌐 ${t('admin.dataExport.syncFullBtn')}`}
+							</button>
+						</div>
 
-							<div className='action-item'>
-								<h3>{t('admin.dataExport.syncPartialTitle')}</h3>
-								<p>{t('admin.dataExport.syncPartialDesc')}</p>
-								<button className='btn btn-secondary btn-large' onClick={() => handleSyncToNetwork(false)} disabled={loading}>
-									{loading ? `⏳ ${t('admin.dataExport.syncing')}` : `🌐 ${t('admin.dataExport.syncPartialBtn')}`}
-								</button>
-							</div>
+						<div className='action-item'>
+							<h3>{t('admin.dataExport.syncPartialTitle')}</h3>
+							<p>{t('admin.dataExport.syncPartialDesc')}</p>
+							<button className='btn btn-secondary btn-large' onClick={() => handleSyncToNetwork(false)} disabled={loading}>
+								{loading ? `⏳ ${t('admin.dataExport.syncing')}` : `🌐 ${t('admin.dataExport.syncPartialBtn')}`}
+							</button>
 						</div>
 					</div>
-				)}
+				</div>
 
-				{isLocalEnvironment && (
-					<div className='section folder-analysis-section'>
+				<div className='section folder-analysis-section'>
 						<h2>📁 {t('admin.dataExport.folderAnalysisTitle')}</h2>
 						<p className='section-description'>{t('admin.dataExport.folderAnalysisDesc')}</p>
 

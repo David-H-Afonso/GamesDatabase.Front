@@ -28,6 +28,14 @@ const OptimizedImage: React.FC<OptimizedImageProps> = (props) => {
 	const getOptimizedSrc = (originalSrc: string): string => {
 		if (!originalSrc) return ''
 
+		// Normalize absolute game-image URLs to relative paths.
+		// DB entries created before the HTTPS migration contain full URLs like
+		// "http://192.168.0.32:8082/game-images/..." which are mixed-content on HTTPS.
+		// Stripping the origin makes them resolve through the nginx same-origin proxy.
+		if (originalSrc.startsWith('http') && originalSrc.includes('/game-images/')) {
+			originalSrc = originalSrc.slice(originalSrc.indexOf('/game-images/'))
+		}
+
 		// Validate URL before processing
 		try {
 			// Check if it's a valid URL
