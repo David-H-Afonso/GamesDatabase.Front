@@ -465,7 +465,6 @@ Statistics:
 							</div>
 						)}
 					</div>
-				)}
 
 				{/* Database Duplicates Section - visible to all authenticated users */}
 				<div className='section folder-analysis-section'>
