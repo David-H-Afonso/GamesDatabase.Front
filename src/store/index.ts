@@ -97,7 +97,10 @@ const rootReducer = combineReducers({
 })
 
 // Create persisted reducer - Single point of persistence configuration
-const persistedReducer = persistReducer(persistConfig, rootReducer)
+// rootReducer has a 3-generic Reducer<S, A, PreloadedState> type from combineReducers
+// but persistReducer only accepts Reducer<S, A> — cast needed to satisfy the overload.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const persistedReducer = persistReducer(persistConfig, rootReducer as any)
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const store = configureStore({
