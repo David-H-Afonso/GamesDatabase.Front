@@ -439,6 +439,116 @@
 
 // Folder Analysis Section
 .folder-analysis-section {
+	.image-url-picker {
+		margin-top: 16px;
+		padding: 20px;
+		background: var(--background);
+		border: 1px solid var(--border);
+		border-radius: 10px;
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+
+		&__desc {
+			color: var(--text-secondary);
+			font-size: 0.9rem;
+			margin: 0;
+		}
+
+		&__presets {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+		}
+
+		&__preset-btn {
+			display: flex;
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 4px;
+			padding: 12px 16px;
+			border: 2px solid var(--border);
+			border-radius: 8px;
+			background: var(--surface);
+			cursor: pointer;
+			transition:
+				border-color 0.15s,
+				background 0.15s;
+			min-width: 180px;
+
+			&:hover {
+				border-color: var(--primary);
+			}
+
+			&.selected {
+				border-color: var(--primary);
+				background: color-mix(in srgb, var(--primary) 10%, var(--surface));
+			}
+		}
+
+		&__preset-label {
+			font-weight: 600;
+			font-size: 0.9rem;
+			color: var(--text-primary);
+		}
+
+		&__preset-url {
+			font-size: 0.75rem;
+			color: var(--text-secondary);
+			font-family: monospace;
+			word-break: break-all;
+		}
+
+		&__custom {
+			display: flex;
+			flex-direction: column;
+			gap: 6px;
+		}
+
+		&__custom-label {
+			font-size: 0.875rem;
+			font-weight: 500;
+			color: var(--text-secondary);
+		}
+
+		&__custom-input {
+			padding: 10px 14px;
+			border: 1px solid var(--border);
+			border-radius: 8px;
+			background: var(--surface);
+			color: var(--text-primary);
+			font-size: 0.9rem;
+			font-family: monospace;
+			width: 100%;
+			box-sizing: border-box;
+
+			&:focus {
+				outline: none;
+				border-color: var(--primary);
+			}
+		}
+
+		&__selected {
+			font-size: 0.85rem;
+			color: var(--text-secondary);
+			margin: 0;
+
+			code {
+				color: var(--primary);
+				font-size: 0.85rem;
+			}
+		}
+
+		&__apply-btn {
+			align-self: flex-start;
+
+			&:disabled {
+				opacity: 0.5;
+				cursor: not-allowed;
+			}
+		}
+	}
+
 	.analysis-results {
 		margin-top: 20px;
 		display: flex;

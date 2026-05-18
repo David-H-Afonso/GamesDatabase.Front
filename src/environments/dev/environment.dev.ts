@@ -7,17 +7,18 @@ function getApiBaseUrl(): string {
 		return (window as any).API_BASE_URL
 	}
 
-	// Si tenemos configuración en runtime (Docker)
-	if (typeof window !== 'undefined' && (window as any).ENV && (window as any).ENV.VITE_API_URL) {
-		return (window as any).ENV.VITE_API_URL
-	}
-
-	// Si estamos en desarrollo web normal - usando las URLs de la documentación
+	// En modo dev de Vite (npm run dev) siempre usar localhost.
+	// Debe ir ANTES del check de window.ENV porque public/env-config.js
+	// puede tener la URL de producción y este fichero solo se usa en dev.
 	if (import.meta.env.DEV) {
 		return 'https://localhost:7245/api'
 	}
 
-	// Fallback para producción web
+	// Configuración de runtime (Docker dev)
+	if (typeof window !== 'undefined' && (window as any).ENV && (window as any).ENV.VITE_API_URL) {
+		return (window as any).ENV.VITE_API_URL
+	}
+
 	return 'https://localhost:7245/api'
 }
 

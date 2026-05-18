@@ -1,0 +1,125 @@
+@use '@/assets/styles' as *;
+
+// Shared pulse animation — identical cadence to AdminFallback for consistency
+@keyframes gc-skeleton-pulse {
+	0%,
+	100% {
+		opacity: 0.7;
+	}
+	50% {
+		opacity: 0.25;
+	}
+}
+
+// ── Base skeleton ──────────────────────────────────────────────────────────────
+.gc-skeleton {
+	animation: gc-skeleton-pulse 1.5s ease-in-out infinite;
+
+	// ── Reusable bone ────────────────────────────────────────────────────────
+	&__bone {
+		background: var(--border);
+		border-radius: 6px;
+
+		&--title {
+			height: 14px;
+			width: 75%;
+		}
+
+		&--subtitle {
+			height: 12px;
+			width: 45%;
+		}
+
+		&--chip {
+			height: 22px;
+			width: 62px;
+			border-radius: 11px;
+		}
+
+		// Row variant bones
+		&--checkbox {
+			width: 16px;
+			height: 16px;
+			border-radius: 4px;
+			flex-shrink: 0;
+		}
+
+		&--status {
+			width: 44px;
+			height: 22px;
+			border-radius: 11px;
+			flex-shrink: 0;
+		}
+
+		&--name {
+			flex: 1;
+			height: 16px;
+			max-width: 380px;
+		}
+
+		&--score {
+			width: 38px;
+			height: 16px;
+			flex-shrink: 0;
+		}
+
+		&--hide-mobile {
+			@media (max-width: 767px) {
+				display: none;
+			}
+		}
+	}
+
+	// ── Card / Tile variant ──────────────────────────────────────────────────
+	&--card {
+		background: var(--surface);
+		border-radius: 18px;
+		border: 1px solid var(--border);
+		height: 300px;
+		width: 350px;
+		overflow: hidden;
+		flex-shrink: 0;
+
+		// Match CardView responsive rules
+		@media (max-width: 767px) {
+			width: 100%;
+			max-width: 100%;
+		}
+	}
+
+	&__cover {
+		background: var(--border);
+		height: 200px;
+		width: 100%;
+		border-radius: 18px 18px 0 0;
+	}
+
+	&__body {
+		padding: 10px 12px;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	&__chips {
+		display: flex;
+		gap: 6px;
+		margin-top: 2px;
+	}
+
+	// ── Row variant ──────────────────────────────────────────────────────────
+	&--row {
+		background: var(--surface);
+		border-bottom: 1px solid var(--border-color-light);
+		padding: 10px 14px;
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		width: 100%;
+		min-width: fit-content;
+
+		[data-theme='dark'] & {
+			border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+		}
+	}
+}

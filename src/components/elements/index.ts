@@ -1,5 +1,6 @@
 export { Button } from './Button/Button'
 export { GameCard } from './GameCard/GameCard'
+export { GameCardSkeleton } from './GameCard/GameCardSkeleton/GameCardSkeleton'
 export { Modal } from './Modal/Modal'
 export { GameDetails } from './GameDetails/GameDetails'
 export { EditableField } from './EditableField/EditableField'

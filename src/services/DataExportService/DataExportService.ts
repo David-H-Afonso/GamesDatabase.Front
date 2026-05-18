@@ -200,20 +200,26 @@ export const analyzeDatabaseDuplicates = async (): Promise<{
 }
 
 /**
- * Updates image URLs in the database to match the filesystem structure
- * @returns Result with statistics about updated games
+ * Updates image URLs in the database to match the filesystem structure.
+ * @param imageBaseUrl Optional base URL override (e.g. "http://192.168.0.32:8082").
+ *                     Falls back to the server-configured ImageSettings:BaseUrl when omitted.
  */
-export const updateImageUrls = async (): Promise<{
+export const updateImageUrls = async (
+	imageBaseUrl?: string
+): Promise<{
 	totalGames: number
 	updatedGames: number
 	skippedGames: number
 	alreadyCorrect: number
 	noImagesFound: number
+	nasAccessible: boolean
+	nasWarning?: string
 }> => {
 	const endpoint = environment.apiRoutes.dataExport.updateImageUrls
 
 	return await customFetch(endpoint, {
 		method: 'POST',
+		params: imageBaseUrl ? { imageBaseUrl } : undefined,
 		baseURL: environment.baseUrl,
 		timeout: environment.api?.timeout,
 	})

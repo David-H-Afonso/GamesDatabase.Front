@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, lazy, Suspense } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Button, GameCard } from '@/components/elements'
+import { Button, GameCard, GameCardSkeleton } from '@/components/elements'
 import { useGames, useGameViews } from '@/hooks'
 import { useAppSelector, useAppDispatch } from '@/store/hooks'
 import { setCardStyle, setViewMode } from '@/store/features/theme/themeSlice'
@@ -15,7 +15,7 @@ import './HomeComponent.scss'
 const BulkEditModal = lazy(() => import('./BulkEditModal'))
 
 const HomeComponent = () => {
-	const { games, error, pagination, fetchGamesList, refreshGames, deleteGameById, bulkUpdateGamesById } = useGames()
+	const { games, error, loading, pagination, fetchGamesList, refreshGames, deleteGameById, bulkUpdateGamesById } = useGames()
 	const { publicGameViews, loadPublicGameViews } = useGameViews()
 
 	const { t } = useTranslation()
@@ -263,6 +263,12 @@ const HomeComponent = () => {
 
 					{(() => {
 						const list = games
+						if (loading && list.length === 0) {
+							const skeletonCount = Math.min(pagination.pageSize || 12, 12)
+							return Array.from({ length: skeletonCount }, (_, i) => (
+								<GameCardSkeleton key={i} variant={cardStyle} index={i} />
+							))
+						}
 						if (!list || list.length === 0) return <p className='home-component__no-games'>{t('home.noGames')}</p>
 						return list.map((game: any, index: number) => (
 							<GameCard

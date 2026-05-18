@@ -90,6 +90,18 @@ export default defineConfig({
 	},
 	server: {
 		port: 5173,
+		strictPort: false, // Vite increments to 5174, 5175… when 5173 is busy — keep in sync with API CORS
 		host: true,
+		proxy: {
+			// Forward /game-images requests to the local API in dev.
+			// OptimizedImage strips the origin from all game-image URLs so they
+			// become relative paths — Vite must proxy them to the API which serves
+			// ImageProxyController at /game-images.
+			'/game-images': {
+				target: 'https://localhost:7245',
+				changeOrigin: true,
+				secure: false, // allow self-signed cert in dev
+			},
+		},
 	},
 })

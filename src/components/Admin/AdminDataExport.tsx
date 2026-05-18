@@ -55,6 +55,10 @@ export const AdminDataExport: React.FC = () => {
 	const [dbDuplicatesResult, setDbDuplicatesResult] = useState<DatabaseDuplicatesResult | null>(null)
 	const [analyzingDbDuplicates, setAnalyzingDbDuplicates] = useState(false)
 	const [clearingCache, setClearingCache] = useState(false)
+	const [showImageUrlPicker, setShowImageUrlPicker] = useState(false)
+	const [selectedPreset, setSelectedPreset] = useState<string>('')
+	const [customImageBaseUrl, setCustomImageBaseUrl] = useState('')
+	const [applyingImageUrls, setApplyingImageUrls] = useState(false)
 
 	// Hook para manejar los juegos
 	const { refreshGames, filters } = useGames()
@@ -234,23 +238,36 @@ Statistics:
 		}
 	}
 
+	const IMAGE_URL_PRESETS = [
+		{ key: 'nas', label: t('admin.dataExport.imageUrlPresetNas'), url: 'http://192.168.0.32:8082' },
+		{ key: 'dev', label: t('admin.dataExport.imageUrlPresetDev'), url: 'https://localhost:7245' },
+		{ key: 'prod', label: t('admin.dataExport.imageUrlPresetProd'), url: 'https://gdb.davidhormigafonso.work' },
+	]
+
+	const effectiveImageBaseUrl = selectedPreset ? (IMAGE_URL_PRESETS.find((p) => p.key === selectedPreset)?.url ?? '') : customImageBaseUrl.trim()
+
 	const handleUpdateImageUrls = async () => {
 		try {
-			setLoading(true)
-			const result = await updateImageUrls()
-			const message = t('admin.dataExport.imageUrlsResult', {
+			setApplyingImageUrls(true)
+			const result = await updateImageUrls(effectiveImageBaseUrl || undefined)
+			let message = t('admin.dataExport.imageUrlsResult', {
 				total: result.totalGames,
 				updated: result.updatedGames,
 				skipped: result.skippedGames,
 				correct: result.alreadyCorrect,
 				noImages: result.noImagesFound,
 			})
+			if (!result.nasAccessible) {
+				message += `\n\n⚠️ ${t('admin.dataExport.imageUrlNasWarning')}`
+				if (result.nasWarning) message += `\n${result.nasWarning}`
+			}
 			showMessage(message, 'success')
+			setShowImageUrlPicker(false)
 		} catch (error) {
 			console.error('Update image URLs error:', error)
 			showMessage(error instanceof Error ? error.message : 'Error updating image URLs', 'error')
 		} finally {
-			setLoading(false)
+			setApplyingImageUrls(false)
 		}
 	}
 
@@ -357,114 +374,159 @@ Statistics:
 				</div>
 
 				<div className='section folder-analysis-section'>
-						<h2>📁 {t('admin.dataExport.folderAnalysisTitle')}</h2>
-						<p className='section-description'>{t('admin.dataExport.folderAnalysisDesc')}</p>
+					<h2>📁 {t('admin.dataExport.folderAnalysisTitle')}</h2>
+					<p className='section-description'>{t('admin.dataExport.folderAnalysisDesc')}</p>
 
-						<div className='action-group'>
-							<button className='btn btn-primary btn-large' onClick={handleAnalyzeFolders} disabled={analyzingFolders}>
-								{analyzingFolders ? `⏳ ${t('common.analyzing')}` : `🔍 ${t('admin.dataExport.analyzeFolders')}`}
+					<div className='action-group'>
+						<button className='btn btn-primary btn-large' onClick={handleAnalyzeFolders} disabled={analyzingFolders}>
+							{analyzingFolders ? `⏳ ${t('common.analyzing')}` : `🔍 ${t('admin.dataExport.analyzeFolders')}`}
+						</button>
+						<button className={`btn btn-warning btn-large${showImageUrlPicker ? ' active' : ''}`} onClick={() => setShowImageUrlPicker((v) => !v)} disabled={applyingImageUrls}>
+							{`🔄 ${t('admin.dataExport.updateImageUrls')} ${showImageUrlPicker ? '▲' : '▼'}`}
+						</button>
+						<button className='btn btn-danger btn-large' onClick={handleClearImageCache} disabled={clearingCache}>
+							{clearingCache ? `⏳ ${t('common.clearing')}` : `🗑️ ${t('admin.dataExport.clearImageCache')}`}
+						</button>
+					</div>
+
+					{showImageUrlPicker && (
+						<div className='image-url-picker'>
+							<p className='image-url-picker__desc'>{t('admin.dataExport.imageUrlPickerDesc')}</p>
+
+							<div className='image-url-picker__presets'>
+								{IMAGE_URL_PRESETS.map((preset) => (
+									<button
+										key={preset.key}
+										className={`image-url-picker__preset-btn${selectedPreset === preset.key ? ' selected' : ''}`}
+										onClick={() => {
+											setSelectedPreset(preset.key)
+											setCustomImageBaseUrl('')
+										}}>
+										<span className='image-url-picker__preset-label'>{preset.label}</span>
+										<span className='image-url-picker__preset-url'>{preset.url}</span>
+									</button>
+								))}
+							</div>
+
+							<div className='image-url-picker__custom'>
+								<label className='image-url-picker__custom-label'>{t('admin.dataExport.imageUrlCustomLabel')}</label>
+								<input
+									type='url'
+									className='image-url-picker__custom-input'
+									placeholder={t('admin.dataExport.imageUrlCustomPlaceholder')}
+									value={customImageBaseUrl}
+									onChange={(e) => {
+										setCustomImageBaseUrl(e.target.value)
+										setSelectedPreset('')
+									}}
+								/>
+							</div>
+
+							{effectiveImageBaseUrl && (
+								<p className='image-url-picker__selected'>
+									{t('admin.dataExport.imageUrlSelected')} <code>{effectiveImageBaseUrl}</code>
+								</p>
+							)}
+
+							<button className='btn btn-warning btn-large image-url-picker__apply-btn' onClick={handleUpdateImageUrls} disabled={applyingImageUrls || !effectiveImageBaseUrl}>
+								{applyingImageUrls ? `⏳ ${t('admin.dataExport.imageUrlApplying')}` : `✅ ${t('admin.dataExport.imageUrlApplyBtn')}`}
 							</button>
-							<button className='btn btn-warning btn-large' onClick={handleUpdateImageUrls} disabled={loading}>
-								{loading ? `⏳ ${t('common.updating')}` : `🔄 ${t('admin.dataExport.updateImageUrls')}`}
-							</button>
-							<button className='btn btn-danger btn-large' onClick={handleClearImageCache} disabled={clearingCache}>
-								{clearingCache ? `⏳ ${t('common.clearing')}` : `🗑️ ${t('admin.dataExport.clearImageCache')}`}
-							</button>{' '}
 						</div>
+					)}
 
-						{analysisResult && (
-							<div className='analysis-results'>
-								<div className='analysis-summary'>
-									<h3>📊 {t('admin.dataExport.summary')}</h3>
-									<div className='summary-grid'>
-										<div className='summary-item'>
-											<span className='summary-label'>{t('admin.dataExport.gamesInDb')}:</span>
-											<span className='summary-value'>{analysisResult.totalGamesInDatabase}</span>
-										</div>
-										<div className='summary-item'>
-											<span className='summary-label'>{t('admin.dataExport.foldersOnDisk')}:</span>
-											<span className='summary-value'>{analysisResult.totalFoldersInFilesystem}</span>
-										</div>
-										<div className='summary-item'>
-											<span className='summary-label'>{t('admin.dataExport.difference')}:</span>
-											<span className={`summary-value ${analysisResult.difference > 0 ? 'warning' : analysisResult.difference < 0 ? 'error' : 'success'}`}>
-												{analysisResult.difference > 0 && '+'}
-												{analysisResult.difference}
-											</span>
-										</div>
+					{analysisResult && (
+						<div className='analysis-results'>
+							<div className='analysis-summary'>
+								<h3>📊 {t('admin.dataExport.summary')}</h3>
+								<div className='summary-grid'>
+									<div className='summary-item'>
+										<span className='summary-label'>{t('admin.dataExport.gamesInDb')}:</span>
+										<span className='summary-value'>{analysisResult.totalGamesInDatabase}</span>
+									</div>
+									<div className='summary-item'>
+										<span className='summary-label'>{t('admin.dataExport.foldersOnDisk')}:</span>
+										<span className='summary-value'>{analysisResult.totalFoldersInFilesystem}</span>
+									</div>
+									<div className='summary-item'>
+										<span className='summary-label'>{t('admin.dataExport.difference')}:</span>
+										<span className={`summary-value ${analysisResult.difference > 0 ? 'warning' : analysisResult.difference < 0 ? 'error' : 'success'}`}>
+											{analysisResult.difference > 0 && '+'}
+											{analysisResult.difference}
+										</span>
 									</div>
 								</div>
-
-								{analysisResult.potentialDuplicates.length > 0 && (
-									<div className='duplicates-section'>
-										<h3>🔍 {t('admin.dataExport.potentialDuplicates', { count: analysisResult.potentialDuplicates.length })}</h3>
-										{analysisResult.potentialDuplicates.map((dup, idx) => (
-											<div key={idx} className='duplicate-item'>
-												<div className='duplicate-header'>
-													<strong>{dup.gameName}</strong>
-													<span className='duplicate-reason'>{dup.reason}</span>
-												</div>
-												<ul className='folder-list'>
-													{dup.folderNames.map((folder, fIdx) => (
-														<li key={fIdx}>
-															<code>{folder}</code>
-														</li>
-													))}
-												</ul>
-											</div>
-										))}
-									</div>
-								)}
-
-								{analysisResult.orphanFolders.length > 0 && (
-									<div className='orphans-section'>
-										<h3>👻 {t('admin.dataExport.orphanFolders', { count: analysisResult.orphanFolders.length })}</h3>
-										<p className='section-note'>{t('admin.dataExport.orphanFoldersNote')}</p>
-										<ul className='folder-list'>
-											{analysisResult.orphanFolders.map((orphan, idx) => (
-												<li key={idx}>
-													<code>{orphan.folderName}</code>
-												</li>
-											))}
-										</ul>
-									</div>
-								)}
-
-								{(analysisResult.databaseDuplicates?.duplicateGroups.length ?? 0) > 0 && (
-									<div className='duplicates-section'>
-										<h3>🔁 {t('admin.dataExport.dbDuplicates', { count: analysisResult.databaseDuplicates!.duplicateGroups.length })}</h3>
-										{analysisResult.databaseDuplicates!.duplicateGroups.map((group, idx) => (
-											<div key={idx} className='duplicate-item'>
-												<div className='duplicate-header'>
-													<strong>{group.games.map((g) => g.name).join(' / ')}</strong>
-													<span className='duplicate-reason'>{group.reason}</span>
-												</div>
-												<ul className='folder-list'>
-													{group.games.map((g, gIdx) => (
-														<li key={gIdx}>
-															<code>
-																#{g.id} {g.name}
-															</code>
-														</li>
-													))}
-												</ul>
-											</div>
-										))}
-									</div>
-								)}
-
-								{analysisResult.potentialDuplicates.length === 0 &&
-									analysisResult.orphanFolders.length === 0 &&
-									analysisResult.difference === 0 &&
-									(analysisResult.databaseDuplicates?.duplicateGroups.length ?? 0) === 0 && (
-										<div className='analysis-success'>
-											<h3>✅ {t('admin.dataExport.allCorrect')}</h3>
-											<p>{t('admin.dataExport.allCorrectDesc')}</p>
-										</div>
-									)}
 							</div>
-						)}
-					</div>
+
+							{analysisResult.potentialDuplicates.length > 0 && (
+								<div className='duplicates-section'>
+									<h3>🔍 {t('admin.dataExport.potentialDuplicates', { count: analysisResult.potentialDuplicates.length })}</h3>
+									{analysisResult.potentialDuplicates.map((dup, idx) => (
+										<div key={idx} className='duplicate-item'>
+											<div className='duplicate-header'>
+												<strong>{dup.gameName}</strong>
+												<span className='duplicate-reason'>{dup.reason}</span>
+											</div>
+											<ul className='folder-list'>
+												{dup.folderNames.map((folder, fIdx) => (
+													<li key={fIdx}>
+														<code>{folder}</code>
+													</li>
+												))}
+											</ul>
+										</div>
+									))}
+								</div>
+							)}
+
+							{analysisResult.orphanFolders.length > 0 && (
+								<div className='orphans-section'>
+									<h3>👻 {t('admin.dataExport.orphanFolders', { count: analysisResult.orphanFolders.length })}</h3>
+									<p className='section-note'>{t('admin.dataExport.orphanFoldersNote')}</p>
+									<ul className='folder-list'>
+										{analysisResult.orphanFolders.map((orphan, idx) => (
+											<li key={idx}>
+												<code>{orphan.folderName}</code>
+											</li>
+										))}
+									</ul>
+								</div>
+							)}
+
+							{(analysisResult.databaseDuplicates?.duplicateGroups.length ?? 0) > 0 && (
+								<div className='duplicates-section'>
+									<h3>🔁 {t('admin.dataExport.dbDuplicates', { count: analysisResult.databaseDuplicates!.duplicateGroups.length })}</h3>
+									{analysisResult.databaseDuplicates!.duplicateGroups.map((group, idx) => (
+										<div key={idx} className='duplicate-item'>
+											<div className='duplicate-header'>
+												<strong>{group.games.map((g) => g.name).join(' / ')}</strong>
+												<span className='duplicate-reason'>{group.reason}</span>
+											</div>
+											<ul className='folder-list'>
+												{group.games.map((g, gIdx) => (
+													<li key={gIdx}>
+														<code>
+															#{g.id} {g.name}
+														</code>
+													</li>
+												))}
+											</ul>
+										</div>
+									))}
+								</div>
+							)}
+
+							{analysisResult.potentialDuplicates.length === 0 &&
+								analysisResult.orphanFolders.length === 0 &&
+								analysisResult.difference === 0 &&
+								(analysisResult.databaseDuplicates?.duplicateGroups.length ?? 0) === 0 && (
+									<div className='analysis-success'>
+										<h3>✅ {t('admin.dataExport.allCorrect')}</h3>
+										<p>{t('admin.dataExport.allCorrectDesc')}</p>
+									</div>
+								)}
+						</div>
+					)}
+				</div>
 
 				{/* Database Duplicates Section - visible to all authenticated users */}
 				<div className='section folder-analysis-section'>

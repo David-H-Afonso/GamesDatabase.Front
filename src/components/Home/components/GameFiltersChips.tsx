@@ -172,25 +172,25 @@ const GameFiltersChips: React.FC<Props> = ({
 	const platformLabel = () => {
 		if (!filters.platformId) return t('common.all')
 		const platform = platformOptions.find((p) => p.value === filters.platformId)
-		return platform?.label || t('common.all')
+		return platform?.label || (platformOptions.length === 0 ? '…' : t('common.all'))
 	}
 
 	const playWithLabel = () => {
 		if (!filters.playWithId) return t('common.all')
 		const playWith = playWithOptions.find((p) => p.value === filters.playWithId)
-		return playWith?.label || t('common.all')
+		return playWith?.label || (playWithOptions.length === 0 ? '…' : t('common.all'))
 	}
 
 	const statusLabel = () => {
 		if (!filters.statusId) return t('common.all')
 		const status = statusOptions.find((s) => s.value === filters.statusId)
-		return status?.label || t('common.all')
+		return status?.label || (statusOptions.length === 0 ? '…' : t('common.all'))
 	}
 
 	const playedStatusLabel = () => {
 		if (!filters.playedStatusId) return t('common.all')
 		const playedStatus = playedStatusOptions.find((s) => s.value === filters.playedStatusId)
-		return playedStatus?.label || t('common.all')
+		return playedStatus?.label || (playedStatusOptions.length === 0 ? '…' : t('common.all'))
 	}
 
 	const gradesLabel = () => {

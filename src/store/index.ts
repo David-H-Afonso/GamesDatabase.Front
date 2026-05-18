@@ -44,10 +44,12 @@ const gamesTransform = createTransform(
 		},
 	}),
 	// outbound: what gets read back from storage (same shape)
+	// loading:true so the first render after rehydration shows skeletons
+	// instead of the "no games" message while the initial fetch is in-flight.
 	(state: any) => ({
 		...state,
 		games: [],
-		loading: false,
+		loading: true,
 		error: null,
 		isDataFresh: false,
 		lastAppliedFilters: null,
@@ -63,6 +65,19 @@ const gamesTransform = createTransform(
 	}),
 	{ whitelist: ['games'] }
 )
+
+// Middleware that immediately flushes persisted state after every filter
+// change so pressing F5 right after a filter update never loses the state.
+// (_persistorFlush is assigned after persistor is created below.)
+let _persistorFlush: (() => void) | null = null
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const filterFlushMiddleware = (_storeApi: any) => (next: any) => (action: any) => {
+	const result = next(action)
+	if (action.type === 'games/setFilters' || action.type === 'games/resetFilters') {
+		_persistorFlush?.()
+	}
+	return result
+}
 
 // Root persist config - Centralized persistence for the entire store
 const persistConfig = {
@@ -114,11 +129,12 @@ export const store = configureStore({
 			serializableCheck: {
 				ignoredActions: ['persist/FLUSH', 'persist/REHYDRATE', 'persist/PAUSE', 'persist/PERSIST', 'persist/PURGE', 'persist/REGISTER'],
 			},
-		}),
+		}).concat(filterFlushMiddleware),
 	devTools: import.meta.env.DEV,
 })
 
 export const persistor = persistStore(store)
+_persistorFlush = () => void persistor.flush()
 
 // Derived from rootReducer (not store.getState) so the type is exactly
 // { games: GamesState; ... } without the _persist noise from redux-persist.
