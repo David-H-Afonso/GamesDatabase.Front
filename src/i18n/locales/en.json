@@ -627,6 +627,7 @@
 			"filterUpdated": "Updated",
 			"filterDeleted": "Deleted",
 			"filterFieldPlaceholder": "Filter by field...",
+			"filterSearchPlaceholder": "Search by game, field or description...",
 			"dateFrom": "From",
 			"dateTo": "To",
 			"tableDate": "Date",

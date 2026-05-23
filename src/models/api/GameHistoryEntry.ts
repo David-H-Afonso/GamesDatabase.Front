@@ -20,4 +20,5 @@ export interface GameHistoryQueryParameters {
 	from?: string
 	to?: string
 	userId?: number
+	search?: string
 }

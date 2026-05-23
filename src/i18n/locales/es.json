@@ -630,6 +630,7 @@
 			"filterUpdated": "Actualizado",
 			"filterDeleted": "Eliminado",
 			"filterFieldPlaceholder": "Filtrar por campo...",
+			"filterSearchPlaceholder": "Buscar por juego, campo o descripción...",
 			"dateFrom": "Desde",
 			"dateTo": "Hasta",
 			"tableDate": "Fecha",

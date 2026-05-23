@@ -25,7 +25,7 @@ export const AdminAuditLog: React.FC = () => {
 
 	const [filters, setFilters] = useState<GameHistoryQueryParameters>({
 		actionType: '',
-		field: '',
+		search: '',
 		from: '',
 		to: '',
 	})
@@ -38,7 +38,7 @@ export const AdminAuditLog: React.FC = () => {
 					page: currentPage,
 					pageSize,
 					...(currentFilters.actionType ? { actionType: currentFilters.actionType } : {}),
-					...(currentFilters.field ? { field: currentFilters.field } : {}),
+					...(currentFilters.search ? { search: currentFilters.search } : {}),
 					...(currentFilters.from ? { from: currentFilters.from } : {}),
 					...(currentFilters.to ? { to: currentFilters.to } : {}),
 				}
@@ -83,7 +83,7 @@ export const AdminAuditLog: React.FC = () => {
 					<option value='Updated'>{t('admin.audit.filterUpdated')}</option>
 					<option value='Deleted'>{t('admin.audit.filterDeleted')}</option>
 				</select>
-				<input type='text' placeholder={t('admin.audit.filterFieldPlaceholder')} value={filters.field ?? ''} onChange={(e) => handleFilterChange('field', e.target.value)} />
+				<input type='text' placeholder={t('admin.audit.filterSearchPlaceholder')} value={filters.search ?? ''} onChange={(e) => handleFilterChange('search', e.target.value)} />
 				<input type='date' value={filters.from ?? ''} onChange={(e) => handleFilterChange('from', e.target.value)} title={t('admin.audit.dateFrom')} />
 				<input type='date' value={filters.to ?? ''} onChange={(e) => handleFilterChange('to', e.target.value)} title={t('admin.audit.dateTo')} />
 			</div>
