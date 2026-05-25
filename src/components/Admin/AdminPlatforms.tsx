@@ -28,7 +28,7 @@ export const AdminPlatforms: React.FC = () => {
 	// Pagination and sorting state
 	const [queryParams, setQueryParams] = useState<QueryParameters>({
 		page: 1,
-		pageSize: 10,
+		pageSize: 50,
 		sortBy: undefined,
 		sortDescending: false,
 	})
@@ -176,7 +176,7 @@ export const AdminPlatforms: React.FC = () => {
 			<div className='admin-controls'>
 				<div className='page-size-control'>
 					<label>{t('admin.pagination.perPage')}</label>
-					<select value={queryParams.pageSize || 10} onChange={(e) => handlePageSizeChange(Number(e.target.value))}>
+					<select value={queryParams.pageSize || 50} onChange={(e) => handlePageSizeChange(Number(e.target.value))}>
 						<option value={5}>5</option>
 						<option value={10}>10</option>
 						<option value={25}>25</option>

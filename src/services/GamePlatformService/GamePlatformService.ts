@@ -11,9 +11,14 @@ const BASE = environment.apiRoutes.gamePlatform.base
  */
 export const getGamePlatforms = async (params?: QueryParameters): Promise<PagedResult<GamePlatform>> => {
 	const endpoint = BASE
+	const query: QueryParameters = {
+		page: 1,
+		pageSize: environment.pagination.maxPageSize,
+		...(params ?? {}),
+	}
 	return await customFetch<PagedResult<GamePlatform>>(endpoint, {
 		method: 'GET',
-		params: params as Record<string, string | number | boolean> | undefined,
+		params: query as Record<string, string | number | boolean>,
 		baseURL: environment.baseUrl,
 	})
 }

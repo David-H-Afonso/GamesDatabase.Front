@@ -32,7 +32,8 @@ const RowView: FC<RowViewProps> = (props) => {
 
 	// opciones de selects
 	const { activeStatuses: statusOptions } = useAppSelector((state) => state.gameStatus)
-	const { platforms: platformOptions } = useAppSelector((state) => state.gamePlatform)
+	const { platforms, activePlatforms } = useAppSelector((state) => state.gamePlatform)
+	const platformOptions = platforms.length > 0 ? platforms : activePlatforms
 	const { playWithOptions } = useAppSelector((state) => state.gamePlayWith)
 	const { playedStatuses: playedStatusOptions } = useAppSelector((state) => state.gamePlayedStatus)
 

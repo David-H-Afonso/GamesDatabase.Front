@@ -28,13 +28,14 @@ const GameCardComponent: FC<Props> = (props) => {
 
 	// Get entities from Redux store to access colors
 	const { activeStatuses } = useGameStatus()
-	const { platforms: activePlatforms } = useGamePlatform()
+	const { platforms, activePlatforms } = useGamePlatform()
 	const { activePlayWiths } = useGamePlayWith()
 	const { playedStatuses: activePlayedStatuses } = useGamePlayedStatus()
+	const platformOptions = platforms.length > 0 ? platforms : activePlatforms
 
 	// Find the entities to get their colors
 	const gameStatus = activeStatuses.find((status) => status.id === game.statusId)
-	const gamePlatform = activePlatforms.find((platform) => platform.id === game.platformId)
+	const gamePlatform = platformOptions.find((platform) => platform.id === game.platformId)
 	const gamePlayWiths = activePlayWiths.filter((option) => game.playWithIds?.includes(option.id))
 	const gamePlayedStatus = activePlayedStatuses.find((status) => status.id === game.playedStatusId)
 

@@ -36,7 +36,8 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 
 	// Get options for selectable fields
 	const { activeStatuses: statusOptions } = useAppSelector((state) => state.gameStatus)
-	const { platforms: platformOptions } = useAppSelector((state) => state.gamePlatform)
+	const { platforms, activePlatforms } = useAppSelector((state) => state.gamePlatform)
+	const platformOptions = platforms.length > 0 ? platforms : activePlatforms
 	const { playedStatuses: playedStatusOptions } = useAppSelector((state) => state.gamePlayedStatus)
 	const { playWithOptions } = useAppSelector((state) => state.gamePlayWith)
 	const scoreProvider = useAppSelector((state) => state.auth.user?.scoreProvider ?? 'Metacritic') as CriticProvider
