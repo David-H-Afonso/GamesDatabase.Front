@@ -1,4 +1,5 @@
-import { screen } from '@testing-library/react'
+import { fireEvent, screen } from '@testing-library/react'
+import React from 'react'
 import { renderWithProviders } from '@/test/utils/renderWithProviders'
 
 const mockEntries = vi.hoisted(() => [
@@ -24,12 +25,52 @@ const mockEntries = vi.hoisted(() => [
 		changedAt: '2025-01-14T09:00:00Z',
 		changedBy: 'Admin',
 	},
+	{
+		id: 3,
+		gameId: 12,
+		gameName: 'The Alters',
+		field: 'Comment',
+		oldValue: 'De la librería de Kayko',
+		newValue: 'De la librería de Kayko The Alters is great',
+		actionType: 'Updated',
+		changedAt: '2025-01-13T09:00:00Z',
+		changedBy: 'Admin',
+	},
 ])
 
+const mockFetchGameDetails = vi.hoisted(() => vi.fn().mockResolvedValue({ id: 12, name: 'The Alters', statusId: 1 }))
+const mockUpdateGame = vi.hoisted(() => vi.fn().mockResolvedValue(undefined))
+
 vi.mock('@/services/GameHistoryService', () => ({
-	getGlobalHistory: vi.fn().mockResolvedValue({ data: mockEntries, totalPages: 1, totalCount: 2 }),
-	getAdminHistory: vi.fn().mockResolvedValue({ data: mockEntries, totalPages: 1, totalCount: 2 }),
+	getGlobalHistory: vi.fn().mockResolvedValue({ data: mockEntries, totalPages: 1, totalCount: 3 }),
+	getAdminHistory: vi.fn().mockResolvedValue({ data: mockEntries, totalPages: 1, totalCount: 3 }),
 }))
+
+vi.mock('@/services/GamesService', async () => {
+	const actual = await vi.importActual<typeof import('@/services/GamesService')>('@/services/GamesService')
+	return {
+		...actual,
+		updateGame: mockUpdateGame,
+	}
+})
+
+vi.mock('@/hooks/useGames/useGames', async () => {
+	const actual = await vi.importActual<typeof import('@/hooks/useGames/useGames')>('@/hooks/useGames/useGames')
+	return {
+		...actual,
+		useGames: () => ({
+			fetchGameDetails: mockFetchGameDetails,
+		}),
+	}
+})
+
+vi.mock('@/components/elements/GameDetails/GameDetails', async () => {
+	const actual = await vi.importActual<typeof import('@/components/elements/GameDetails/GameDetails')>('@/components/elements/GameDetails/GameDetails')
+	return {
+		...actual,
+		GameDetails: ({ game }: { game: { name: string } }) => React.createElement('div', { 'data-testid': 'game-details' }, game.name),
+	}
+})
 
 vi.mock('./AdminAuditLog.scss', () => ({}))
 
@@ -44,7 +85,10 @@ const adminState = {
 }
 
 describe('AdminAuditLog', () => {
-	beforeEach(() => vi.clearAllMocks())
+	beforeEach(() => {
+		vi.clearAllMocks()
+		window.confirm = vi.fn().mockReturnValue(true)
+	})
 
 	async function loadComponent() {
 		const mod = await import('./AdminAuditLog')
@@ -94,6 +138,35 @@ describe('AdminAuditLog', () => {
 	it('has filter controls', async () => {
 		const C = await loadComponent()
 		renderWithProviders(<C />, { preloadedState: adminState as any })
-		expect(screen.getByPlaceholderText('Filtrar por campo...')).toBeInTheDocument()
+		expect(screen.getByRole('combobox', { name: 'Filtrar por campo' })).toBeInTheDocument()
+		expect(screen.getByPlaceholderText('Buscar por juego, campo, acción, descripción o valores...')).toBeInTheDocument()
+	})
+
+	it('can filter by Comment field', async () => {
+		const { getAdminHistory } = await import('@/services/GameHistoryService')
+		const C = await loadComponent()
+		renderWithProviders(<C />, { preloadedState: adminState as any })
+
+		fireEvent.change(screen.getByRole('combobox', { name: 'Filtrar por campo' }), { target: { value: 'Comment' } })
+
+		await vi.waitFor(() => {
+			expect(getAdminHistory).toHaveBeenLastCalledWith(expect.objectContaining({ field: 'Comment' }))
+		})
+	})
+
+	it('reverts safe Comment changes to the previous value', async () => {
+		const C = await loadComponent()
+		renderWithProviders(<C />, { preloadedState: adminState as any })
+
+		await vi.waitFor(() => {
+			expect(screen.getByText('The Alters')).toBeInTheDocument()
+		})
+
+		const row = screen.getByText('The Alters').closest('tr')!
+		fireEvent.click(row.querySelector('.aal-action-btn--revert')!)
+
+		await vi.waitFor(() => {
+			expect(mockUpdateGame).toHaveBeenCalledWith(12, { comment: 'De la librería de Kayko' })
+		})
 	})
 })

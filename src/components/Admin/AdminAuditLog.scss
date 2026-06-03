@@ -49,6 +49,15 @@
 			color: var(--text-secondary);
 			padding: 24px;
 		}
+
+		.aal-row--clickable {
+			cursor: pointer;
+			transition: background-color 0.15s ease;
+
+			&:hover {
+				background: color-mix(in srgb, var(--primary) 8%, transparent);
+			}
+		}
 	}
 
 	.aal-date {
@@ -107,5 +116,43 @@
 
 	.aal-new {
 		color: var(--success);
+	}
+
+	.aal-actions {
+		display: flex;
+		gap: 6px;
+		white-space: nowrap;
+	}
+
+	.aal-action-btn {
+		border: 1px solid var(--border-color-light);
+		border-radius: 6px;
+		background: var(--bg-secondary);
+		color: var(--text-primary);
+		cursor: pointer;
+		font-size: 0.78rem;
+		font-weight: 600;
+		padding: 4px 8px;
+		transition:
+			background-color 0.15s ease,
+			border-color 0.15s ease,
+			color 0.15s ease;
+
+		&:hover:not(:disabled) {
+			background: color-mix(in srgb, var(--primary) 14%, var(--bg-secondary));
+			border-color: var(--primary);
+			color: var(--primary);
+		}
+
+		&:disabled {
+			cursor: not-allowed;
+			opacity: 0.45;
+		}
+
+		&--revert:hover:not(:disabled) {
+			background: color-mix(in srgb, var(--warning, #f59e0b) 16%, var(--bg-secondary));
+			border-color: var(--warning, #f59e0b);
+			color: var(--warning, #f59e0b);
+		}
 	}
 }
