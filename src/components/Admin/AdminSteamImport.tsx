@@ -1,7 +1,16 @@
 import { useEffect, useState, useRef, useCallback, useMemo, type FormEvent } from 'react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { useTranslation } from 'react-i18next'
-import { fetchSteamLibrary, importSteamGames, clearLastImportResult, fetchSteamProfile, unlinkSteam, syncAllSteam, clearSteamError } from '@/store/features/steam/steamSlice'
+import {
+	fetchSteamLibrary,
+	importSteamGames,
+	clearLastImportResult,
+	fetchSteamProfile,
+	unlinkSteam,
+	syncAllSteam,
+	clearSteamError,
+	markSteamGameLinked,
+} from '@/store/features/steam/steamSlice'
 import { setSteamProfile } from '@/store/features/auth/authSlice'
 import { steamService, type SteamDateSuggestion, type SteamMatchSuggestion, type SteamStoreSearchResult } from '@/services/SteamService/SteamService'
 import { getGames } from '@/services/GamesService/GamesService'
@@ -208,6 +217,67 @@ export const AdminSteamImport = () => {
 		})
 	}
 
+	const removeSuggestions = (toRemove: SteamMatchSuggestion[]) => {
+		const keys = new Set(toRemove.map(getSuggestionKey))
+		setSuggestions((prev) => prev.filter((suggestion) => !keys.has(getSuggestionKey(suggestion))))
+		setSelectedSuggestionIds((prev) => {
+			const next = new Set(prev)
+			toRemove.forEach((suggestion) => next.delete(suggestion.steamAppId))
+			return next
+		})
+	}
+
+	const removeStoreSuggestions = (toRemove: SteamMatchSuggestion[]) => {
+		const keys = new Set(toRemove.map(getSuggestionKey))
+		setStoreSuggestions((prev) => prev.filter((suggestion) => !keys.has(getSuggestionKey(suggestion))))
+		setSelectedStoreSuggestionIds((prev) => {
+			const next = new Set(prev)
+			keys.forEach((key) => next.delete(key))
+			return next
+		})
+	}
+
+	const settleAppliedDateSuggestions = (applied: SteamDateSuggestion[]) => {
+		const appliedByGameId = new Map(applied.map((suggestion) => [suggestion.gameId, suggestion]))
+		setDateSuggestions((prev) =>
+			prev
+				.map((suggestion) => {
+					const appliedSuggestion = appliedByGameId.get(suggestion.gameId)
+					if (!appliedSuggestion) return suggestion
+
+					const startedApplied = !suggestion.currentStarted && !!suggestion.proposedStarted
+					const finishedApplied = !!suggestion.proposedFinished && (!suggestion.currentFinished || suggestion.isFinishedSteamManaged)
+					return {
+						...suggestion,
+						currentStarted: startedApplied ? suggestion.proposedStarted : suggestion.currentStarted,
+						currentFinished: finishedApplied ? suggestion.proposedFinished : suggestion.currentFinished,
+						proposedStarted: startedApplied ? undefined : suggestion.proposedStarted,
+						proposedFinished: finishedApplied ? undefined : suggestion.proposedFinished,
+					}
+				})
+				.filter((suggestion) => suggestion.proposedStarted || suggestion.proposedFinished)
+		)
+		setSelectedDateSuggestionIds((prev) => {
+			const next = new Set(prev)
+			appliedByGameId.forEach((_, id) => next.delete(id))
+			return next
+		})
+	}
+
+	const settleDismissedDateSuggestions = (dismissed: SteamDateSuggestion[]) => {
+		const dismissedIds = new Set(dismissed.map((suggestion) => suggestion.gameId))
+		setDateSuggestions((prev) =>
+			prev
+				.map((suggestion) => (dismissedIds.has(suggestion.gameId) ? { ...suggestion, proposedFinished: undefined } : suggestion))
+				.filter((suggestion) => suggestion.proposedStarted || suggestion.proposedFinished)
+		)
+		setSelectedDateSuggestionIds((prev) => {
+			const next = new Set(prev)
+			dismissedIds.forEach((id) => next.delete(id))
+			return next
+		})
+	}
+
 	const loadDateSuggestions = async () => {
 		setDateSuggestionsLoading(true)
 		setDateSuggestionsError(null)
@@ -226,13 +296,8 @@ export const AdminSteamImport = () => {
 	const handleLinkSuggestion = async (suggestion: SteamMatchSuggestion) => {
 		try {
 			await steamService.linkGame(suggestion.steamAppId, suggestion.gdbGameId)
-			setSuggestions((prev) => prev.filter((s) => s.steamAppId !== suggestion.steamAppId))
-			setSelectedSuggestionIds((prev) => {
-				const s = new Set(prev)
-				s.delete(suggestion.steamAppId)
-				return s
-			})
-			await dispatch(fetchSteamLibrary())
+			removeSuggestions([suggestion])
+			dispatch(markSteamGameLinked({ appId: suggestion.steamAppId, gameId: suggestion.gdbGameId, gameName: suggestion.gdbGameName }))
 		} catch {
 			// ignore
 		}
@@ -243,13 +308,13 @@ export const AdminSteamImport = () => {
 		for (const s of toLink) {
 			try {
 				await steamService.linkGame(s.steamAppId, s.gdbGameId)
-				setSuggestions((prev) => prev.filter((x) => x.steamAppId !== s.steamAppId))
+				removeSuggestions([s])
+				dispatch(markSteamGameLinked({ appId: s.steamAppId, gameId: s.gdbGameId, gameName: s.gdbGameName }))
 			} catch {
 				/* ignore individual errors */
 			}
 		}
 		setSelectedSuggestionIds(new Set())
-		await dispatch(fetchSteamLibrary())
 	}
 
 	const handleBulkDismissSuggestions = async () => {
@@ -260,8 +325,7 @@ export const AdminSteamImport = () => {
 		setSuggestionsError(null)
 		try {
 			await steamService.dismissMatchSuggestions(toDismiss.map((s) => ({ steamAppId: s.steamAppId, gdbGameId: s.gdbGameId })))
-			setSelectedSuggestionIds(new Set())
-			await loadSuggestions()
+			removeSuggestions(toDismiss)
 		} catch (e) {
 			setSuggestionsError(e instanceof Error ? e.message : 'Error descartando sugerencias')
 		} finally {
@@ -273,7 +337,7 @@ export const AdminSteamImport = () => {
 		try {
 			await steamService.linkGame(suggestion.steamAppId, suggestion.gdbGameId)
 			removeStoreSuggestion(suggestion)
-			await dispatch(fetchSteamLibrary())
+			dispatch(markSteamGameLinked({ appId: suggestion.steamAppId, gameId: suggestion.gdbGameId, gameName: suggestion.gdbGameName }))
 		} catch {
 			// ignore
 		}
@@ -285,12 +349,12 @@ export const AdminSteamImport = () => {
 			try {
 				await steamService.linkGame(suggestion.steamAppId, suggestion.gdbGameId)
 				removeStoreSuggestion(suggestion)
+				dispatch(markSteamGameLinked({ appId: suggestion.steamAppId, gameId: suggestion.gdbGameId, gameName: suggestion.gdbGameName }))
 			} catch {
 				/* ignore individual errors */
 			}
 		}
 		setSelectedStoreSuggestionIds(new Set())
-		await dispatch(fetchSteamLibrary())
 	}
 
 	const handleBulkDismissStoreSuggestions = async () => {
@@ -301,8 +365,7 @@ export const AdminSteamImport = () => {
 		setStoreSuggestionsError(null)
 		try {
 			await steamService.dismissMatchSuggestions(toDismiss.map((s) => ({ steamAppId: s.steamAppId, gdbGameId: s.gdbGameId })))
-			setSelectedStoreSuggestionIds(new Set())
-			await loadStoreSuggestions()
+			removeStoreSuggestions(toDismiss)
 		} catch (e) {
 			setStoreSuggestionsError(e instanceof Error ? e.message : t('admin.steam.storeSuggestions.dismissError'))
 		} finally {
@@ -348,8 +411,7 @@ export const AdminSteamImport = () => {
 			)
 			setDateApplyResult(result)
 			setDateDismissResult(null)
-			setSelectedDateSuggestionIds(new Set())
-			await loadDateSuggestions()
+			settleAppliedDateSuggestions(toApply)
 		} catch (e) {
 			setDateSuggestionsError(e instanceof Error ? e.message : t('admin.steam.dateSuggestions.applyError'))
 		} finally {
@@ -368,8 +430,7 @@ export const AdminSteamImport = () => {
 			const result = await steamService.dismissDateSuggestions(toDismiss.map((s) => ({ gameId: s.gameId, finished: s.proposedFinished })))
 			setDateDismissResult(result.dismissed)
 			setDateApplyResult(null)
-			setSelectedDateSuggestionIds(new Set())
-			await loadDateSuggestions()
+			settleDismissedDateSuggestions(toDismiss)
 		} catch (e) {
 			setDateSuggestionsError(e instanceof Error ? e.message : t('admin.steam.dateSuggestions.dismissError'))
 		} finally {

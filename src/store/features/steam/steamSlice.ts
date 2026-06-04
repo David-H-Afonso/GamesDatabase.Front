@@ -87,6 +87,13 @@ const steamSlice = createSlice({
 		clearLastSyncResult: (state) => {
 			state.lastSyncResult = null
 		},
+		markSteamGameLinked: (state, action: { payload: { appId: number; gameId: number; gameName: string } }) => {
+			const libraryGame = state.library.find((game) => game.appId === action.payload.appId)
+			if (libraryGame) {
+				libraryGame.gdbGameId = action.payload.gameId
+				libraryGame.gdbGameName = action.payload.gameName
+			}
+		},
 	},
 	extraReducers: (builder) => {
 		// fetchSteamProfile
@@ -176,5 +183,5 @@ const steamSlice = createSlice({
 	},
 })
 
-export const { clearSteamError, clearLastImportResult, clearLastSyncResult } = steamSlice.actions
+export const { clearSteamError, clearLastImportResult, clearLastSyncResult, markSteamGameLinked } = steamSlice.actions
 export default steamSlice.reducer
