@@ -12,6 +12,7 @@ vi.mock('@/services/DataExportService', () => ({
 		difference: 0,
 		potentialDuplicates: [],
 		orphanFolders: [],
+		missingGameFolders: [],
 		databaseDuplicates: { totalGamesInDatabase: 5, duplicateGroups: [] },
 	}),
 	analyzeDatabaseDuplicates: vi.fn().mockResolvedValue({ totalGamesInDatabase: 5, duplicateGroups: [] }),

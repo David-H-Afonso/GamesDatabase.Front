@@ -423,6 +423,16 @@
 			}
 		}
 
+		&.btn-info {
+			background: #2563eb;
+			color: white;
+
+			&:hover:not(:disabled) {
+				background: #1d4ed8;
+				box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+			}
+		}
+
 		&.btn-danger {
 			background: #d64545;
 			color: white;
@@ -641,7 +651,8 @@
 		}
 
 		.duplicates-section,
-		.orphans-section {
+		.orphans-section,
+		.missing-folders-section {
 			padding: 20px;
 			background: var(--background);
 			border-radius: 8px;
@@ -733,6 +744,46 @@
 						border: 1px solid var(--border);
 					}
 				}
+			}
+		}
+
+		.missing-folder-list {
+			list-style: none;
+			padding: 0;
+			margin: 0;
+			display: flex;
+			flex-direction: column;
+			gap: 10px;
+
+			li {
+				padding: 12px;
+				background: var(--surface);
+				border: 1px solid var(--border-light);
+				border-radius: 8px;
+			}
+
+			div {
+				display: flex;
+				flex-direction: column;
+				gap: 5px;
+				min-width: 0;
+			}
+
+			strong {
+				color: var(--text-primary);
+				overflow-wrap: anywhere;
+			}
+
+			span {
+				color: var(--text-secondary);
+				font-size: 0.9rem;
+				overflow-wrap: anywhere;
+			}
+
+			code {
+				color: var(--text-secondary);
+				font-size: 0.78rem;
+				overflow-wrap: anywhere;
 			}
 		}
 

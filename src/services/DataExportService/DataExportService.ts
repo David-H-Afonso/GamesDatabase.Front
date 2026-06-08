@@ -192,6 +192,12 @@ export const analyzeFolders = async (): Promise<{
 		folderName: string
 		fullPath: string
 	}>
+	missingGameFolders: Array<{
+		gameId: number
+		gameName: string
+		expectedFolderName: string
+		expectedFullPath: string
+	}>
 	databaseDuplicates?: {
 		totalGamesInDatabase: number
 		duplicateGroups: DatabaseDuplicateGroup[]

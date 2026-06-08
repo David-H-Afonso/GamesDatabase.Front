@@ -23,6 +23,7 @@ interface FolderAnalysisResult {
 	difference: number
 	potentialDuplicates: PotentialDuplicate[]
 	orphanFolders: OrphanFolder[]
+	missingGameFolders: MissingGameFolder[]
 	databaseDuplicates?: DatabaseDuplicatesResult
 }
 
@@ -35,6 +36,13 @@ interface PotentialDuplicate {
 interface OrphanFolder {
 	folderName: string
 	fullPath: string
+}
+
+interface MissingGameFolder {
+	gameId: number
+	gameName: string
+	expectedFolderName: string
+	expectedFullPath: string
 }
 
 interface DatabaseDuplicatesResult {
@@ -605,7 +613,7 @@ Statistics:
 						<button className='btn btn-primary btn-large' onClick={handleAnalyzeFolders} disabled={analyzingFolders}>
 							{analyzingFolders ? `⏳ ${t('common.analyzing')}` : `🔍 ${t('admin.dataExport.analyzeFolders')}`}
 						</button>
-						<button className={`btn btn-warning btn-large${showImageUrlPicker ? ' active' : ''}`} onClick={() => setShowImageUrlPicker((v) => !v)} disabled={applyingImageUrls}>
+						<button className={`btn btn-info btn-large${showImageUrlPicker ? ' active' : ''}`} onClick={() => setShowImageUrlPicker((v) => !v)} disabled={applyingImageUrls}>
 							{`🔄 ${t('admin.dataExport.updateImageUrls')} ${showImageUrlPicker ? '▲' : '▼'}`}
 						</button>
 						<button className='btn btn-danger btn-large' onClick={handleClearImageCache} disabled={clearingCache}>
@@ -652,7 +660,7 @@ Statistics:
 								</p>
 							)}
 
-							<button className='btn btn-warning btn-large image-url-picker__apply-btn' onClick={handleUpdateImageUrls} disabled={applyingImageUrls || !effectiveImageBaseUrl}>
+							<button className='btn btn-info btn-large image-url-picker__apply-btn' onClick={handleUpdateImageUrls} disabled={applyingImageUrls || !effectiveImageBaseUrl}>
 								{applyingImageUrls ? `⏳ ${t('admin.dataExport.imageUrlApplying')}` : `✅ ${t('admin.dataExport.imageUrlApplyBtn')}`}
 							</button>
 						</div>
@@ -738,6 +746,26 @@ Statistics:
 								</div>
 							)}
 
+							{(analysisResult.missingGameFolders?.length ?? 0) > 0 && (
+								<div className='missing-folders-section'>
+									<h3>🧩 Juegos sin carpeta ({analysisResult.missingGameFolders.length})</h3>
+									<p className='section-note'>Estos juegos existen en la base de datos, pero no tienen la carpeta esperada en disco.</p>
+									<ul className='missing-folder-list'>
+										{analysisResult.missingGameFolders.map((missing) => (
+											<li key={missing.gameId}>
+												<div>
+													<strong>
+														#{missing.gameId} {missing.gameName}
+													</strong>
+													<span>Carpeta esperada: {missing.expectedFolderName}</span>
+													<code>{missing.expectedFullPath}</code>
+												</div>
+											</li>
+										))}
+									</ul>
+								</div>
+							)}
+
 							{(analysisResult.databaseDuplicates?.duplicateGroups.length ?? 0) > 0 && (
 								<div className='duplicates-section'>
 									<h3>🔁 {t('admin.dataExport.dbDuplicates', { count: analysisResult.databaseDuplicates!.duplicateGroups.length })}</h3>
@@ -747,6 +775,7 @@ Statistics:
 
 							{analysisResult.potentialDuplicates.length === 0 &&
 								analysisResult.orphanFolders.length === 0 &&
+								(analysisResult.missingGameFolders?.length ?? 0) === 0 &&
 								analysisResult.difference === 0 &&
 								(analysisResult.databaseDuplicates?.duplicateGroups.length ?? 0) === 0 && (
 									<div className='analysis-success'>
