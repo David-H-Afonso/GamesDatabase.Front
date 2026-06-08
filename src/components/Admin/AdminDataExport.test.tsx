@@ -18,6 +18,7 @@ vi.mock('@/services/DataExportService', () => ({
 	analyzeDatabaseDuplicates: vi.fn().mockResolvedValue({ totalGamesInDatabase: 5, duplicateGroups: [] }),
 	deleteOrphanFolder: vi.fn().mockResolvedValue({ folderName: 'Old Game', deleted: true, message: 'Deleted' }),
 	deleteDuplicateGame: vi.fn().mockResolvedValue({ gameId: 1, deleted: true, message: 'Deleted' }),
+	dismissDuplicateGames: vi.fn().mockResolvedValue({ dismissed: 1, message: 'Dismissed' }),
 	updateImageUrls: vi.fn().mockResolvedValue({ updated: 3 }),
 	clearImageCache: vi.fn().mockResolvedValue({ message: 'Cache cleared' }),
 }))

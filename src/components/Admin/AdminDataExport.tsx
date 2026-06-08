@@ -10,6 +10,7 @@ import {
 	analyzeDatabaseDuplicates,
 	deleteOrphanFolder,
 	deleteDuplicateGame,
+	dismissDuplicateGames,
 	type DatabaseDuplicateGameDetails,
 	updateImageUrls,
 	clearImageCache,
@@ -54,6 +55,8 @@ interface DatabaseDuplicateGroup {
 	normalizedKey: string
 	games: DatabaseDuplicateGameDetails[]
 	reason: string
+	matchType?: string
+	confidence?: number
 }
 
 export const AdminDataExport: React.FC = () => {
@@ -74,6 +77,7 @@ export const AdminDataExport: React.FC = () => {
 	const [deletingFolders, setDeletingFolders] = useState<string[]>([])
 	const [expandedDuplicateGroups, setExpandedDuplicateGroups] = useState<string[]>([])
 	const [deletingGameIds, setDeletingGameIds] = useState<number[]>([])
+	const [dismissingDuplicateGroups, setDismissingDuplicateGroups] = useState<string[]>([])
 
 	// Hook para manejar los juegos
 	const { refreshGames, filters } = useGames()
@@ -258,6 +262,13 @@ Statistics:
 		return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`
 	}
 
+	const getDuplicateGroupKey = (group: DatabaseDuplicateGroup) =>
+		group.normalizedKey ||
+		group.games
+			.map((game) => game.id)
+			.sort((a, b) => a - b)
+			.join('|')
+
 	const updateDuplicateResultsAfterDelete = (gameId: number) => {
 		const removeGame = (groups: DatabaseDuplicateGroup[]) =>
 			groups.map((group) => ({ ...group, games: group.games.filter((game) => game.id !== gameId) })).filter((group) => group.games.length > 1)
@@ -274,6 +285,24 @@ Statistics:
 					}
 				: current
 		)
+	}
+
+	const removeDuplicateGroupFromResults = (groupKey: string) => {
+		const removeGroup = (groups: DatabaseDuplicateGroup[]) => groups.filter((group) => getDuplicateGroupKey(group) !== groupKey)
+
+		setDbDuplicatesResult((current) => (current ? { ...current, duplicateGroups: removeGroup(current.duplicateGroups) } : current))
+		setAnalysisResult((current) =>
+			current?.databaseDuplicates
+				? {
+						...current,
+						databaseDuplicates: {
+							...current.databaseDuplicates,
+							duplicateGroups: removeGroup(current.databaseDuplicates.duplicateGroups),
+						},
+					}
+				: current
+		)
+		setExpandedDuplicateGroups((current) => current.filter((key) => key !== groupKey))
 	}
 
 	const toggleOrphanSelection = (folderName: string) => {
@@ -361,6 +390,24 @@ Statistics:
 		}
 	}
 
+	const handleDismissDuplicateGroup = async (group: DatabaseDuplicateGroup) => {
+		const groupKey = getDuplicateGroupKey(group)
+		const confirmed = window.confirm(`Se descartará este grupo como falso positivo. No volverá a aparecer en el análisis de duplicados.`)
+		if (!confirmed) return
+
+		try {
+			setDismissingDuplicateGroups((current) => [...current, groupKey])
+			const result = await dismissDuplicateGames(group.games.map((game) => game.id))
+			removeDuplicateGroupFromResults(groupKey)
+			showMessage(result.message, 'success')
+		} catch (error) {
+			console.error('Dismiss duplicate group error:', error)
+			showMessage(error instanceof Error ? error.message : 'Error dismissing duplicate group', 'error')
+		} finally {
+			setDismissingDuplicateGroups((current) => current.filter((key) => key !== groupKey))
+		}
+	}
+
 	const handleClearImageCache = async () => {
 		try {
 			setClearingCache(true)
@@ -408,20 +455,27 @@ Statistics:
 	}
 
 	const renderDuplicateGroup = (group: DatabaseDuplicateGroup, idx: number) => {
-		const groupKey = group.normalizedKey || `group-${idx}`
+		const groupKey = getDuplicateGroupKey(group) || `group-${idx}`
 		const expanded = expandedDuplicateGroups.includes(groupKey)
+		const matchLabel = group.matchType === 'fuzzy' ? `Parecido · ${group.confidence ?? 0}%` : 'Exacto'
+		const dismissing = dismissingDuplicateGroups.includes(groupKey)
 
 		return (
 			<div key={groupKey} className='duplicate-group-card'>
 				<button className='duplicate-group-card__header' type='button' onClick={() => toggleDuplicateGroup(groupKey)}>
 					<span className='duplicate-group-card__title'>{group.games.map((game) => game.name).join(' / ')}</span>
 					<span className='duplicate-group-card__meta'>
-						{group.games.length} juegos · {expanded ? 'Ocultar detalles' : 'Ver detalles'}
+						{matchLabel} · {group.games.length} juegos · {expanded ? 'Ocultar detalles' : 'Ver detalles'}
 					</span>
 				</button>
 				{expanded && (
 					<div className='duplicate-group-card__body'>
-						<p className='duplicate-group-card__reason'>{group.reason}</p>
+						<div className='duplicate-group-card__actions'>
+							<p className='duplicate-group-card__reason'>{group.reason}</p>
+							<button className='btn btn-secondary btn-small' onClick={() => handleDismissDuplicateGroup(group)} disabled={dismissing}>
+								{dismissing ? 'Descartando...' : 'Descartar falso positivo'}
+							</button>
+						</div>
 						<div className='duplicate-game-grid'>
 							{group.games.map((game) => (
 								<article key={game.id} className='duplicate-game-card'>

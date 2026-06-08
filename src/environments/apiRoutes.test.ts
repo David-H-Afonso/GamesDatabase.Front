@@ -25,6 +25,8 @@ describe('apiRoutes — static endpoints', () => {
 	it('users.login is /users/login', () => expect(apiRoutes.users.login).toBe('/users/login'))
 	it('users.base is /users', () => expect(apiRoutes.users.base).toBe('/users'))
 	it('dataExport.deleteOrphanFolder is /DataExport/orphan-folder', () => expect(apiRoutes.dataExport.deleteOrphanFolder).toBe('/DataExport/orphan-folder'))
+	it('dataExport.dismissDuplicateGames is /DataExport/duplicate-games/dismiss', () =>
+		expect(apiRoutes.dataExport.dismissDuplicateGames).toBe('/DataExport/duplicate-games/dismiss'))
 })
 
 describe('apiRoutes — dynamic builders', () => {

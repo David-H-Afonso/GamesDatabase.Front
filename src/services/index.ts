@@ -54,6 +54,7 @@ export {
 	analyzeDatabaseDuplicates,
 	deleteOrphanFolder,
 	deleteDuplicateGame,
+	dismissDuplicateGames,
 	updateImageUrls,
 	selectiveExportGames,
 	selectiveImportGames,

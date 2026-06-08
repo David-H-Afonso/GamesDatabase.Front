@@ -28,6 +28,8 @@ export interface DatabaseDuplicateGroup {
 	normalizedKey: string
 	games: DatabaseDuplicateGameDetails[]
 	reason: string
+	matchType?: 'exact' | 'fuzzy' | string
+	confidence?: number
 }
 
 export interface DatabaseDuplicatesResult {
@@ -247,6 +249,17 @@ export const deleteDuplicateGame = async (gameId: number): Promise<{ gameId: num
 
 	return await customFetch(endpoint, {
 		method: 'DELETE',
+		baseURL: environment.baseUrl,
+		timeout: environment.api?.timeout,
+	})
+}
+
+export const dismissDuplicateGames = async (gameIds: number[]): Promise<{ dismissed: number; message: string }> => {
+	const endpoint = environment.apiRoutes.dataExport.dismissDuplicateGames
+
+	return await customFetch(endpoint, {
+		method: 'POST',
+		body: { gameIds },
 		baseURL: environment.baseUrl,
 		timeout: environment.api?.timeout,
 	})

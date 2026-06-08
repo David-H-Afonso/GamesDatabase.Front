@@ -11,6 +11,7 @@ import {
 	analyzeDatabaseDuplicates,
 	deleteOrphanFolder,
 	deleteDuplicateGame,
+	dismissDuplicateGames,
 	updateImageUrls,
 	clearImageCache,
 	selectiveExportGames,
@@ -173,6 +174,13 @@ describe('DataExportService', () => {
 			const result = await deleteDuplicateGame(12)
 			expect(result.gameId).toBe(12)
 			expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('/12'), expect.objectContaining({ method: 'DELETE' }))
+		})
+
+		it('dismissDuplicateGames calls POST with game ids', async () => {
+			mockFetch.mockResolvedValue({ dismissed: 1, message: 'Dismissed' })
+			const result = await dismissDuplicateGames([1, 2])
+			expect(result.dismissed).toBe(1)
+			expect(mockFetch).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({ method: 'POST', body: { gameIds: [1, 2] } }))
 		})
 
 		it('updateImageUrls calls POST', async () => {

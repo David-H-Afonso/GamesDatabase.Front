@@ -71,6 +71,7 @@ export const apiRoutes = {
 		analyzeDuplicateGames: '/DataExport/analyze-duplicate-games',
 		deleteOrphanFolder: '/DataExport/orphan-folder',
 		deleteDuplicateGame: (id: number) => `/DataExport/duplicate-games/${id}`,
+		dismissDuplicateGames: '/DataExport/duplicate-games/dismiss',
 		updateImageUrls: '/DataExport/update-image-urls',
 		clearImageCache: '/DataExport/clear-image-cache',
 	},
