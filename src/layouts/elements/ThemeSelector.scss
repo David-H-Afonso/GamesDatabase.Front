@@ -1,3 +1,4 @@
+@use 'sass:color';
 @use '@/assets/styles' as *;
 
 .theme-selector {
@@ -24,7 +25,7 @@
 	&:hover {
 		background: $color-bg-tertiary;
 		border-color: $color-primary;
-		color: darken(#f8c400, 10%);
+		color: color.adjust(#f8c400, $lightness: -10%);
 
 		[data-theme='dark'] & {
 			color: #a8d4ff;

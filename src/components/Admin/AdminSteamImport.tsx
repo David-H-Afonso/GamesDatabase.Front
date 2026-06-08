@@ -266,11 +266,7 @@ export const AdminSteamImport = () => {
 
 	const settleDismissedDateSuggestions = (dismissed: SteamDateSuggestion[]) => {
 		const dismissedIds = new Set(dismissed.map((suggestion) => suggestion.gameId))
-		setDateSuggestions((prev) =>
-			prev
-				.map((suggestion) => (dismissedIds.has(suggestion.gameId) ? { ...suggestion, proposedFinished: undefined } : suggestion))
-				.filter((suggestion) => suggestion.proposedStarted || suggestion.proposedFinished)
-		)
+		setDateSuggestions((prev) => prev.filter((suggestion) => !dismissedIds.has(suggestion.gameId)))
 		setSelectedDateSuggestionIds((prev) => {
 			const next = new Set(prev)
 			dismissedIds.forEach((id) => next.delete(id))
@@ -421,13 +417,15 @@ export const AdminSteamImport = () => {
 
 	const handleDismissDateSuggestions = async (gameIds?: number[]) => {
 		const ids = gameIds ?? [...selectedDateSuggestionIds]
-		const toDismiss = dateSuggestions.filter((s) => ids.includes(s.gameId) && s.proposedFinished)
+		const toDismiss = dateSuggestions.filter((s) => ids.includes(s.gameId) && (s.proposedStarted || s.proposedFinished))
 		if (toDismiss.length === 0) return
 
 		setDateSuggestionsDismissing(true)
 		setDateSuggestionsError(null)
 		try {
-			const result = await steamService.dismissDateSuggestions(toDismiss.map((s) => ({ gameId: s.gameId, finished: s.proposedFinished })))
+			const result = await steamService.dismissDateSuggestions(
+				toDismiss.map((s) => ({ gameId: s.gameId, started: s.proposedStarted, finished: s.proposedFinished }))
+			)
 			setDateDismissResult(result.dismissed)
 			setDateApplyResult(null)
 			settleDismissedDateSuggestions(toDismiss)

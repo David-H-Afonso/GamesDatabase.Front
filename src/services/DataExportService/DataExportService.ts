@@ -2,6 +2,39 @@ import { environment } from '@/environments'
 import { customFetch } from '@/utils/customFetch'
 import type { SelectiveExportRequest, SelectiveImportRequest, SelectiveImportResult } from '@/models/api/ImportExport'
 
+export interface DatabaseDuplicateGameDetails {
+	id: number
+	name: string
+	statusName?: string
+	platformName?: string
+	playedStatusName?: string
+	released?: string
+	started?: string
+	finished?: string
+	grade?: number
+	critic?: number
+	score?: number
+	story?: number
+	completion?: number
+	logo?: string
+	cover?: string
+	steamAppId?: number
+	steamPlaytimeForever?: number
+	createdAt?: string
+	updatedAt?: string
+}
+
+export interface DatabaseDuplicateGroup {
+	normalizedKey: string
+	games: DatabaseDuplicateGameDetails[]
+	reason: string
+}
+
+export interface DatabaseDuplicatesResult {
+	totalGamesInDatabase: number
+	duplicateGroups: DatabaseDuplicateGroup[]
+}
+
 /**
  * Fetches games CSV from the API and returns it as a Blob.
  * @returns Blob containing CSV data
@@ -161,11 +194,7 @@ export const analyzeFolders = async (): Promise<{
 	}>
 	databaseDuplicates?: {
 		totalGamesInDatabase: number
-		duplicateGroups: Array<{
-			normalizedKey: string
-			games: Array<{ id: number; name: string }>
-			reason: string
-		}>
+		duplicateGroups: DatabaseDuplicateGroup[]
 	}
 }> => {
 	const endpoint = environment.apiRoutes.dataExport.analyzeFolders
@@ -184,16 +213,34 @@ export const analyzeFolders = async (): Promise<{
  */
 export const analyzeDatabaseDuplicates = async (): Promise<{
 	totalGamesInDatabase: number
-	duplicateGroups: Array<{
-		normalizedKey: string
-		games: Array<{ id: number; name: string }>
-		reason: string
-	}>
+	duplicateGroups: DatabaseDuplicateGroup[]
 }> => {
 	const endpoint = environment.apiRoutes.dataExport.analyzeDuplicateGames
 
 	return await customFetch(endpoint, {
 		method: 'GET',
+		baseURL: environment.baseUrl,
+		timeout: environment.api?.timeout,
+	})
+}
+
+export const deleteOrphanFolder = async (folderName: string): Promise<{ folderName: string; deleted: boolean; message: string }> => {
+	const endpoint = environment.apiRoutes.dataExport.deleteOrphanFolder
+
+	return await customFetch(endpoint, {
+		method: 'DELETE',
+		headers: { 'Content-Type': 'application/json' },
+		body: { folderName },
+		baseURL: environment.baseUrl,
+		timeout: environment.api?.timeout,
+	})
+}
+
+export const deleteDuplicateGame = async (gameId: number): Promise<{ gameId: number; deleted: boolean; message: string }> => {
+	const endpoint = environment.apiRoutes.dataExport.deleteDuplicateGame(gameId)
+
+	return await customFetch(endpoint, {
+		method: 'DELETE',
 		baseURL: environment.baseUrl,
 		timeout: environment.api?.timeout,
 	})

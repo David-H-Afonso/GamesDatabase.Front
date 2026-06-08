@@ -9,6 +9,8 @@ import {
 	syncToNetwork,
 	analyzeFolders,
 	analyzeDatabaseDuplicates,
+	deleteOrphanFolder,
+	deleteDuplicateGame,
 	updateImageUrls,
 	clearImageCache,
 	selectiveExportGames,
@@ -157,6 +159,20 @@ describe('DataExportService', () => {
 			mockFetch.mockResolvedValue({ totalGamesInDatabase: 50, duplicateGroups: [] })
 			const result = await analyzeDatabaseDuplicates()
 			expect(result.duplicateGroups).toEqual([])
+		})
+
+		it('deleteOrphanFolder calls DELETE with folder name', async () => {
+			mockFetch.mockResolvedValue({ folderName: 'Old Game', deleted: true, message: 'Deleted' })
+			const result = await deleteOrphanFolder('Old Game')
+			expect(result.deleted).toBe(true)
+			expect(mockFetch).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({ method: 'DELETE', body: { folderName: 'Old Game' } }))
+		})
+
+		it('deleteDuplicateGame calls DELETE with game id', async () => {
+			mockFetch.mockResolvedValue({ gameId: 12, deleted: true, message: 'Deleted' })
+			const result = await deleteDuplicateGame(12)
+			expect(result.gameId).toBe(12)
+			expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('/12'), expect.objectContaining({ method: 'DELETE' }))
 		})
 
 		it('updateImageUrls calls POST', async () => {

@@ -8,6 +8,9 @@ import {
 	syncToNetwork,
 	analyzeFolders,
 	analyzeDatabaseDuplicates,
+	deleteOrphanFolder,
+	deleteDuplicateGame,
+	type DatabaseDuplicateGameDetails,
 	updateImageUrls,
 	clearImageCache,
 } from '@/services/DataExportService'
@@ -41,7 +44,7 @@ interface DatabaseDuplicatesResult {
 
 interface DatabaseDuplicateGroup {
 	normalizedKey: string
-	games: Array<{ id: number; name: string }>
+	games: DatabaseDuplicateGameDetails[]
 	reason: string
 }
 
@@ -59,6 +62,10 @@ export const AdminDataExport: React.FC = () => {
 	const [selectedPreset, setSelectedPreset] = useState<string>('')
 	const [customImageBaseUrl, setCustomImageBaseUrl] = useState('')
 	const [applyingImageUrls, setApplyingImageUrls] = useState(false)
+	const [selectedOrphanFolders, setSelectedOrphanFolders] = useState<string[]>([])
+	const [deletingFolders, setDeletingFolders] = useState<string[]>([])
+	const [expandedDuplicateGroups, setExpandedDuplicateGroups] = useState<string[]>([])
+	const [deletingGameIds, setDeletingGameIds] = useState<number[]>([])
 
 	// Hook para manejar los juegos
 	const { refreshGames, filters } = useGames()
@@ -196,6 +203,7 @@ Statistics:
 			setAnalyzingFolders(true)
 			const result = await analyzeFolders()
 			setAnalysisResult(result)
+			setSelectedOrphanFolders([])
 			const dbDups = result.databaseDuplicates?.duplicateGroups.length ?? 0
 			const msg = dbDups > 0 ? t('admin.dataExport.analysisDuplicates', { count: dbDups }) : t('admin.dataExport.analysisComplete')
 			showMessage(msg, 'success')
@@ -212,6 +220,7 @@ Statistics:
 			setAnalyzingDbDuplicates(true)
 			const result = await analyzeDatabaseDuplicates()
 			setDbDuplicatesResult(result)
+			setExpandedDuplicateGroups(result.duplicateGroups.map((group) => group.normalizedKey))
 			if (result.duplicateGroups.length === 0) {
 				showMessage('No se encontraron duplicados en la base de datos.', 'success')
 			} else {
@@ -222,6 +231,125 @@ Statistics:
 			showMessage(error instanceof Error ? error.message : t('admin.dataExport.errorAnalyze'), 'error')
 		} finally {
 			setAnalyzingDbDuplicates(false)
+		}
+	}
+
+	const formatOptionalDate = (date?: string) => {
+		if (!date) return 'Sin fecha'
+		const parsed = new Date(date)
+		if (Number.isNaN(parsed.getTime())) return date
+		return parsed.toLocaleDateString()
+	}
+
+	const formatMetric = (value?: number, suffix = '') => (value === null || value === undefined ? '—' : `${value}${suffix}`)
+
+	const formatPlaytime = (minutes?: number) => {
+		if (!minutes) return 'Sin tiempo'
+		const hours = Math.floor(minutes / 60)
+		const mins = minutes % 60
+		return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`
+	}
+
+	const updateDuplicateResultsAfterDelete = (gameId: number) => {
+		const removeGame = (groups: DatabaseDuplicateGroup[]) =>
+			groups.map((group) => ({ ...group, games: group.games.filter((game) => game.id !== gameId) })).filter((group) => group.games.length > 1)
+
+		setDbDuplicatesResult((current) => (current ? { ...current, duplicateGroups: removeGame(current.duplicateGroups) } : current))
+		setAnalysisResult((current) =>
+			current?.databaseDuplicates
+				? {
+						...current,
+						databaseDuplicates: {
+							...current.databaseDuplicates,
+							duplicateGroups: removeGame(current.databaseDuplicates.duplicateGroups),
+						},
+					}
+				: current
+		)
+	}
+
+	const toggleOrphanSelection = (folderName: string) => {
+		setSelectedOrphanFolders((current) => (current.includes(folderName) ? current.filter((name) => name !== folderName) : [...current, folderName]))
+	}
+
+	const handleDeleteOrphanFolder = async (folderName: string) => {
+		const confirmed = window.confirm(`Se borrará la carpeta huérfana "${folderName}" y todo su contenido. Esta acción no se puede deshacer.`)
+		if (!confirmed) return
+
+		try {
+			setDeletingFolders((current) => [...current, folderName])
+			const result = await deleteOrphanFolder(folderName)
+			setAnalysisResult((current) =>
+				current
+					? {
+							...current,
+							totalFoldersInFilesystem: Math.max(0, current.totalFoldersInFilesystem - 1),
+							difference: current.difference - 1,
+							orphanFolders: current.orphanFolders.filter((folder) => folder.folderName !== folderName),
+						}
+					: current
+			)
+			setSelectedOrphanFolders((current) => current.filter((name) => name !== folderName))
+			showMessage(result.message, 'success')
+		} catch (error) {
+			console.error('Delete orphan folder error:', error)
+			showMessage(error instanceof Error ? error.message : 'Error deleting orphan folder', 'error')
+		} finally {
+			setDeletingFolders((current) => current.filter((name) => name !== folderName))
+		}
+	}
+
+	const handleDeleteSelectedOrphanFolders = async () => {
+		if (selectedOrphanFolders.length === 0) return
+		const confirmed = window.confirm(`Se borrarán ${selectedOrphanFolders.length} carpeta(s) huérfana(s) y todo su contenido. Esta acción no se puede deshacer.`)
+		if (!confirmed) return
+
+		for (const folderName of selectedOrphanFolders) {
+			try {
+				setDeletingFolders((current) => [...current, folderName])
+				await deleteOrphanFolder(folderName)
+				setAnalysisResult((current) =>
+					current
+						? {
+								...current,
+								totalFoldersInFilesystem: Math.max(0, current.totalFoldersInFilesystem - 1),
+								difference: current.difference - 1,
+								orphanFolders: current.orphanFolders.filter((folder) => folder.folderName !== folderName),
+							}
+						: current
+				)
+			} catch (error) {
+				console.error('Delete orphan folder error:', error)
+				showMessage(error instanceof Error ? error.message : `Error borrando ${folderName}`, 'error')
+				break
+			} finally {
+				setDeletingFolders((current) => current.filter((name) => name !== folderName))
+			}
+		}
+
+		setSelectedOrphanFolders([])
+		showMessage('Carpetas seleccionadas procesadas.', 'success')
+	}
+
+	const toggleDuplicateGroup = (key: string) => {
+		setExpandedDuplicateGroups((current) => (current.includes(key) ? current.filter((item) => item !== key) : [...current, key]))
+	}
+
+	const handleDeleteDuplicateGame = async (game: DatabaseDuplicateGameDetails) => {
+		const confirmed = window.confirm(`Se borrará "${game.name}" (#${game.id}) de la base de datos. Esta acción no se puede deshacer.`)
+		if (!confirmed) return
+
+		try {
+			setDeletingGameIds((current) => [...current, game.id])
+			const result = await deleteDuplicateGame(game.id)
+			updateDuplicateResultsAfterDelete(game.id)
+			await refreshGames(filters)
+			showMessage(result.message, 'success')
+		} catch (error) {
+			console.error('Delete duplicate game error:', error)
+			showMessage(error instanceof Error ? error.message : 'Error deleting duplicate game', 'error')
+		} finally {
+			setDeletingGameIds((current) => current.filter((id) => id !== game.id))
 		}
 	}
 
@@ -269,6 +397,102 @@ Statistics:
 		} finally {
 			setApplyingImageUrls(false)
 		}
+	}
+
+	const renderDuplicateGroup = (group: DatabaseDuplicateGroup, idx: number) => {
+		const groupKey = group.normalizedKey || `group-${idx}`
+		const expanded = expandedDuplicateGroups.includes(groupKey)
+
+		return (
+			<div key={groupKey} className='duplicate-group-card'>
+				<button className='duplicate-group-card__header' type='button' onClick={() => toggleDuplicateGroup(groupKey)}>
+					<span className='duplicate-group-card__title'>{group.games.map((game) => game.name).join(' / ')}</span>
+					<span className='duplicate-group-card__meta'>
+						{group.games.length} juegos · {expanded ? 'Ocultar detalles' : 'Ver detalles'}
+					</span>
+				</button>
+				{expanded && (
+					<div className='duplicate-group-card__body'>
+						<p className='duplicate-group-card__reason'>{group.reason}</p>
+						<div className='duplicate-game-grid'>
+							{group.games.map((game) => (
+								<article key={game.id} className='duplicate-game-card'>
+									<div className='duplicate-game-card__media'>
+										{game.cover || game.logo ? <img src={game.cover || game.logo} alt='' loading='lazy' /> : <span>{game.name.slice(0, 2).toUpperCase()}</span>}
+									</div>
+									<div className='duplicate-game-card__content'>
+										<div className='duplicate-game-card__top'>
+											<div>
+												<strong>{game.name}</strong>
+												<span>#{game.id}</span>
+											</div>
+											<button className='btn btn-danger btn-small' onClick={() => handleDeleteDuplicateGame(game)} disabled={deletingGameIds.includes(game.id)}>
+												{deletingGameIds.includes(game.id) ? 'Borrando...' : 'Borrar este'}
+											</button>
+										</div>
+										<div className='duplicate-game-card__chips'>
+											<span>{game.statusName || 'Sin estado'}</span>
+											<span>{game.platformName || 'Sin plataforma'}</span>
+											<span>{game.playedStatusName || 'Sin jugado'}</span>
+										</div>
+										<dl className='duplicate-game-card__details'>
+											<div>
+												<dt>Released</dt>
+												<dd>{formatOptionalDate(game.released)}</dd>
+											</div>
+											<div>
+												<dt>Started</dt>
+												<dd>{formatOptionalDate(game.started)}</dd>
+											</div>
+											<div>
+												<dt>Finished</dt>
+												<dd>{formatOptionalDate(game.finished)}</dd>
+											</div>
+											<div>
+												<dt>Grade</dt>
+												<dd>{formatMetric(game.grade, '%')}</dd>
+											</div>
+											<div>
+												<dt>Critic</dt>
+												<dd>{formatMetric(game.critic, '%')}</dd>
+											</div>
+											<div>
+												<dt>Score</dt>
+												<dd>{formatMetric(game.score)}</dd>
+											</div>
+											<div>
+												<dt>Story</dt>
+												<dd>{formatMetric(game.story, 'h')}</dd>
+											</div>
+											<div>
+												<dt>Completion</dt>
+												<dd>{formatMetric(game.completion, 'h')}</dd>
+											</div>
+											<div>
+												<dt>Steam</dt>
+												<dd>{game.steamAppId ? `App ${game.steamAppId}` : 'Sin app'}</dd>
+											</div>
+											<div>
+												<dt>Playtime</dt>
+												<dd>{formatPlaytime(game.steamPlaytimeForever)}</dd>
+											</div>
+											<div>
+												<dt>Creado</dt>
+												<dd>{formatOptionalDate(game.createdAt)}</dd>
+											</div>
+											<div>
+												<dt>Actualizado</dt>
+												<dd>{formatOptionalDate(game.updatedAt)}</dd>
+											</div>
+										</dl>
+									</div>
+								</article>
+							))}
+						</div>
+					</div>
+				)}
+			</div>
+		)
 	}
 
 	return (
@@ -480,12 +704,34 @@ Statistics:
 
 							{analysisResult.orphanFolders.length > 0 && (
 								<div className='orphans-section'>
-									<h3>👻 {t('admin.dataExport.orphanFolders', { count: analysisResult.orphanFolders.length })}</h3>
-									<p className='section-note'>{t('admin.dataExport.orphanFoldersNote')}</p>
-									<ul className='folder-list'>
+									<div className='section-toolbar'>
+										<div>
+											<h3>📂 {t('admin.dataExport.orphanFolders', { count: analysisResult.orphanFolders.length })}</h3>
+											<p className='section-note'>{t('admin.dataExport.orphanFoldersNote')}</p>
+										</div>
+										<button
+											className='btn btn-danger btn-compact'
+											onClick={handleDeleteSelectedOrphanFolders}
+											disabled={selectedOrphanFolders.length === 0 || deletingFolders.length > 0}>
+											Borrar seleccionadas ({selectedOrphanFolders.length})
+										</button>
+									</div>
+									<ul className='orphan-folder-list'>
 										{analysisResult.orphanFolders.map((orphan, idx) => (
-											<li key={idx}>
-												<code>{orphan.folderName}</code>
+											<li key={idx} className={selectedOrphanFolders.includes(orphan.folderName) ? 'selected' : ''}>
+												<label className='orphan-folder-list__info'>
+													<input type='checkbox' checked={selectedOrphanFolders.includes(orphan.folderName)} onChange={() => toggleOrphanSelection(orphan.folderName)} />
+													<span>
+														<strong>{orphan.folderName}</strong>
+														<code>{orphan.fullPath}</code>
+													</span>
+												</label>
+												<button
+													className='btn btn-danger btn-small'
+													onClick={() => handleDeleteOrphanFolder(orphan.folderName)}
+													disabled={deletingFolders.includes(orphan.folderName)}>
+													{deletingFolders.includes(orphan.folderName) ? 'Borrando...' : 'Borrar'}
+												</button>
 											</li>
 										))}
 									</ul>
@@ -495,23 +741,7 @@ Statistics:
 							{(analysisResult.databaseDuplicates?.duplicateGroups.length ?? 0) > 0 && (
 								<div className='duplicates-section'>
 									<h3>🔁 {t('admin.dataExport.dbDuplicates', { count: analysisResult.databaseDuplicates!.duplicateGroups.length })}</h3>
-									{analysisResult.databaseDuplicates!.duplicateGroups.map((group, idx) => (
-										<div key={idx} className='duplicate-item'>
-											<div className='duplicate-header'>
-												<strong>{group.games.map((g) => g.name).join(' / ')}</strong>
-												<span className='duplicate-reason'>{group.reason}</span>
-											</div>
-											<ul className='folder-list'>
-												{group.games.map((g, gIdx) => (
-													<li key={gIdx}>
-														<code>
-															#{g.id} {g.name}
-														</code>
-													</li>
-												))}
-											</ul>
-										</div>
-									))}
+									{analysisResult.databaseDuplicates!.duplicateGroups.map(renderDuplicateGroup)}
 								</div>
 							)}
 
@@ -558,20 +788,7 @@ Statistics:
 							{dbDuplicatesResult.duplicateGroups.length > 0 && (
 								<div className='duplicates-section'>
 									<h3>🔍 {t('admin.dataExport.duplicatesFound', { count: dbDuplicatesResult.duplicateGroups.length })}</h3>
-									{dbDuplicatesResult.duplicateGroups.map((group, idx) => (
-										<div key={idx} className='duplicate-item'>
-											<div className='duplicate-header'>
-												<span className='duplicate-reason'>{group.reason}</span>
-											</div>
-											<ul className='folder-list'>
-												{group.games.map((game) => (
-													<li key={game.id}>
-														<code>#{game.id}</code> {game.name}
-													</li>
-												))}
-											</ul>
-										</div>
-									))}
+									{dbDuplicatesResult.duplicateGroups.map(renderDuplicateGroup)}
 								</div>
 							)}
 

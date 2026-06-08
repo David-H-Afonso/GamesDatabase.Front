@@ -196,7 +196,7 @@ class SteamService {
 		})
 	}
 
-	async dismissDateSuggestions(suggestions: Array<{ gameId: number; finished?: string }>): Promise<{ dismissed: number }> {
+	async dismissDateSuggestions(suggestions: Array<{ gameId: number; started?: string; finished?: string }>): Promise<{ dismissed: number }> {
 		return customFetch<{ dismissed: number }>(base.dismissDateSuggestions, {
 			method: 'POST',
 			body: { suggestions },

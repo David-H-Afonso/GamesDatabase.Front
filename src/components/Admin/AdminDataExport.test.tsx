@@ -6,8 +6,17 @@ vi.mock('@/services/DataExportService', () => ({
 	downloadBlob: vi.fn(),
 	importFullDatabase: vi.fn().mockResolvedValue({ message: 'Import successful', details: { gamesImported: 10 } }),
 	syncToNetwork: vi.fn().mockResolvedValue({ message: 'Sync done' }),
-	analyzeFolders: vi.fn().mockResolvedValue({ summary: { totalFolders: 5 }, duplicates: [], orphans: [] }),
-	analyzeDatabaseDuplicates: vi.fn().mockResolvedValue({ duplicateGroups: [] }),
+	analyzeFolders: vi.fn().mockResolvedValue({
+		totalGamesInDatabase: 5,
+		totalFoldersInFilesystem: 5,
+		difference: 0,
+		potentialDuplicates: [],
+		orphanFolders: [],
+		databaseDuplicates: { totalGamesInDatabase: 5, duplicateGroups: [] },
+	}),
+	analyzeDatabaseDuplicates: vi.fn().mockResolvedValue({ totalGamesInDatabase: 5, duplicateGroups: [] }),
+	deleteOrphanFolder: vi.fn().mockResolvedValue({ folderName: 'Old Game', deleted: true, message: 'Deleted' }),
+	deleteDuplicateGame: vi.fn().mockResolvedValue({ gameId: 1, deleted: true, message: 'Deleted' }),
 	updateImageUrls: vi.fn().mockResolvedValue({ updated: 3 }),
 	clearImageCache: vi.fn().mockResolvedValue({ message: 'Cache cleared' }),
 }))
@@ -32,7 +41,7 @@ describe('AdminDataExport', () => {
 	it('renders main heading', async () => {
 		const C = await loadComponent()
 		render(<C />)
-		expect(screen.getByText('Importar/Exportar Datos')).toBeInTheDocument()
+		expect(screen.getByText('Importar/Exportar')).toBeInTheDocument()
 	})
 
 	it('renders export section', async () => {
@@ -88,7 +97,7 @@ describe('AdminDataExport', () => {
 		})
 		const C = await loadComponent()
 		render(<C />)
-		expect(screen.getByText(/Sincronizar a Red/)).toBeInTheDocument()
+		expect(screen.getByText(/Sincronizar con Red/)).toBeInTheDocument()
 		Object.defineProperty(globalThis, 'location', { value: originalLocation, writable: true })
 	})
 })

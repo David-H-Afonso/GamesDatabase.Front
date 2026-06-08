@@ -69,6 +69,8 @@ export const apiRoutes = {
 		syncToNetwork: '/Export/sync-to-network',
 		analyzeFolders: '/DataExport/analyze-folders',
 		analyzeDuplicateGames: '/DataExport/analyze-duplicate-games',
+		deleteOrphanFolder: '/DataExport/orphan-folder',
+		deleteDuplicateGame: (id: number) => `/DataExport/duplicate-games/${id}`,
 		updateImageUrls: '/DataExport/update-image-urls',
 		clearImageCache: '/DataExport/clear-image-cache',
 	},
