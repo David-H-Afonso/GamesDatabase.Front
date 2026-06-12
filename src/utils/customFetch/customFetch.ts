@@ -59,12 +59,6 @@ const handleUnauthorizedAccess = () => {
 	}
 
 	refs.persistor?.purge().catch(console.error)
-	sessionStorage.clear()
-	try {
-		localStorage.clear()
-	} catch {
-		/* ignore */
-	}
 
 	setTimeout(() => {
 		refs.handlingUnauthorized = false
@@ -159,6 +153,7 @@ export const customFetch = async <T = any>(endpoint: string, requestOptions: Cus
 
 	const completeUrl = baseUrl + endpoint + buildQueryString(queryParams)
 	const token = refs.store?.getState().auth.token
+	const hasAuthToken = Boolean(token)
 
 	const controller = new AbortController()
 	refs.pending.add(controller)
@@ -197,8 +192,11 @@ export const customFetch = async <T = any>(endpoint: string, requestOptions: Cus
 
 		if (!httpResponse.ok) {
 			if (httpResponse.status === 401) {
-				handleUnauthorizedAccess()
-				throw new Error('Session expired. Please login again.')
+				if (hasAuthToken) {
+					handleUnauthorizedAccess()
+					throw new Error('Session expired. Please login again.')
+				}
+				throw new Error('Authentication required. Please login.')
 			}
 			const errorMessage = typeof responseData === 'string' ? responseData : JSON.stringify(responseData)
 			throw new Error(`HTTP ${httpResponse.status} ${httpResponse.statusText}: ${errorMessage}`)

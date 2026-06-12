@@ -567,27 +567,20 @@ describe('401 unauthorized handling', () => {
 		expect(s.dispatch).toHaveBeenCalledWith({ type: 'auth/forceLogout' })
 	})
 
-	it('calls persistor.purge() to wipe persisted state', async () => {
+	it('calls persistor.purge() to wipe persisted auth state', async () => {
 		server.use(http.get(`${BASE}/protected`, () => new HttpResponse(null, { status: 401 })))
 		initCustomFetch(makeStore('tok'), persistor, forceLogout)
 		await expect(customFetch('/protected')).rejects.toThrow()
 		expect(persistor.purge).toHaveBeenCalledTimes(1)
 	})
 
-	it('clears sessionStorage', async () => {
-		sessionStorage.setItem('session-key', 'session-value')
+	it('does NOT force logout for an unauthenticated 401 response', async () => {
 		server.use(http.get(`${BASE}/protected`, () => new HttpResponse(null, { status: 401 })))
-		initCustomFetch(makeStore('tok'), persistor, forceLogout)
-		await expect(customFetch('/protected')).rejects.toThrow()
-		expect(sessionStorage.getItem('session-key')).toBeNull()
-	})
-
-	it('clears localStorage', async () => {
-		localStorage.setItem('local-key', 'local-value')
-		server.use(http.get(`${BASE}/protected`, () => new HttpResponse(null, { status: 401 })))
-		initCustomFetch(makeStore('tok'), persistor, forceLogout)
-		await expect(customFetch('/protected')).rejects.toThrow()
-		expect(localStorage.getItem('local-key')).toBeNull()
+		initCustomFetch(makeStore(null), persistor, forceLogout)
+		await expect(customFetch('/protected')).rejects.toThrow('Authentication required')
+		expect(forceLogout).not.toHaveBeenCalled()
+		expect(persistor.purge).not.toHaveBeenCalled()
+		expect(vi.mocked(router.navigate)).not.toHaveBeenCalled()
 	})
 
 	it('navigates to /login after the redirect delay', async () => {
