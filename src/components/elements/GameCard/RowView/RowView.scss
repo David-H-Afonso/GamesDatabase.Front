@@ -11,7 +11,7 @@
 	background: var(--surface);
 	color: var(--text-primary);
 	display: flex;
-	gap: 10px;
+	gap: var(--game-row-gap, 14px);
 	justify-content: flex-start;
 	max-width: 100%;
 	padding: 10px 14px;
@@ -27,7 +27,8 @@
 	min-width: fit-content;
 
 	&-select {
-		width: 24px;
+		width: var(--game-row-select-width, 24px);
+		min-width: var(--game-row-select-width, 24px);
 
 		.game-row-checkbox {
 			width: 16px;
@@ -39,7 +40,7 @@
 	&-name {
 		display: flex;
 		font-size: 1rem;
-		width: 500px;
+		width: var(--game-row-name-width, 500px);
 		min-width: 0;
 		overflow: hidden;
 		align-items: center;
@@ -72,27 +73,48 @@
 	&-grade,
 	&-critic,
 	&-score {
-		width: 45px;
-		max-width: 45px;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
 	}
 
+	&-grade {
+		width: var(--game-row-grade-width, 54px);
+		max-width: var(--game-row-grade-width, 54px);
+	}
+
+	&-critic {
+		width: var(--game-row-critic-width, 56px);
+		max-width: var(--game-row-critic-width, 56px);
+	}
+
+	&-score {
+		width: var(--game-row-score-width, 88px);
+		max-width: var(--game-row-score-width, 88px);
+	}
+
 	&-story,
 	&-completion {
-		width: 55px;
-		max-width: 55px;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
+	}
+
+	&-story {
+		width: var(--game-row-story-width, 64px);
+		max-width: var(--game-row-story-width, 64px);
+	}
+
+	&-completion {
+		width: var(--game-row-completion-width, 64px);
+		max-width: var(--game-row-completion-width, 64px);
 	}
 
 	&-released,
 	&-started,
 	&-finished {
-		width: 80px;
-		max-width: 80px;
+		width: var(--game-row-date-width, 96px);
+		max-width: var(--game-row-date-width, 96px);
 		text-overflow: ellipsis;
 		white-space: nowrap;
 	}
@@ -101,8 +123,6 @@
 	&-platform,
 	&-play-status,
 	&-play-with {
-		width: 140px;
-		max-width: 140px;
 		text-overflow: ellipsis;
 		white-space: nowrap;
 		overflow: visible;
@@ -134,9 +154,29 @@
 		}
 	}
 
+	&-status {
+		width: var(--game-row-status-width, 140px);
+		max-width: var(--game-row-status-width, 140px);
+	}
+
+	&-platform {
+		width: var(--game-row-platform-width, 150px);
+		max-width: var(--game-row-platform-width, 150px);
+	}
+
+	&-play-status {
+		width: var(--game-row-play-status-width, 150px);
+		max-width: var(--game-row-play-status-width, 150px);
+	}
+
+	&-play-with {
+		width: var(--game-row-play-with-width, 140px);
+		max-width: var(--game-row-play-with-width, 140px);
+	}
+
 	&-comment {
-		width: 500px;
-		max-width: 500px;
+		width: var(--game-row-comment-width, 500px);
+		max-width: var(--game-row-comment-width, 500px);
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;

@@ -22,6 +22,7 @@ vi.mock('react-i18next', () => ({
 				'home.columns.started': 'Started',
 				'home.columns.status': 'Status',
 				'home.columns.story': 'Story',
+				'home.filters.sortBy': 'Sort by',
 				'home.confirmDeleteGame': 'Delete game?',
 				'home.confirmDeleteSelected': 'Delete selected games?',
 				'home.noGames': 'No games found.',
@@ -274,5 +275,33 @@ describe('HomeComponent', () => {
 		expect(screen.getByText('Name')).toBeInTheDocument()
 		expect(screen.getByText('Grade')).toBeInTheDocument()
 		expect(screen.getByText('Platform')).toBeInTheDocument()
+	})
+
+	it('sorts descending when clicking the active row header column', async () => {
+		const user = userEvent.setup()
+		const HomeComponent = await loadHomeComponent()
+		const { store } = renderWithProviders(<HomeComponent />, { preloadedState: defaultState })
+
+		await user.click(screen.getByRole('button', { name: 'Sort by: Name' }))
+
+		expect(store.getState().games.filters).toEqual(expect.objectContaining({ page: 1, sortBy: 'name', sortDescending: true }))
+	})
+
+	it('sorts ascending by a different row header column', async () => {
+		const user = userEvent.setup()
+		const HomeComponent = await loadHomeComponent()
+		const { store } = renderWithProviders(<HomeComponent />, {
+			preloadedState: {
+				...defaultState,
+				games: {
+					...defaultState.games!,
+					filters: { page: 3, pageSize: 50, sortBy: 'name', sortDescending: true },
+				},
+			},
+		})
+
+		await user.click(screen.getByRole('button', { name: 'Sort by: Grade' }))
+
+		expect(store.getState().games.filters).toEqual(expect.objectContaining({ page: 1, sortBy: 'grade', sortDescending: false }))
 	})
 })

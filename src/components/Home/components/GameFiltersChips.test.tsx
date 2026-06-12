@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test/utils/renderWithProviders'
 import type { GameQueryParameters } from '@/models/api/Game'
@@ -69,6 +69,8 @@ vi.mock('react-i18next', () => ({
 				'home.filters.withReplays': 'With replays',
 				'home.filters.withoutReplays': 'Without replays',
 				'home.filters.years': 'Years',
+				'home.columns.comment': 'Comment',
+				'home.columns.finished': 'Finished',
 				'home.searchPlaceholder': 'Search games…',
 				'home.selectAll': 'Select all',
 				'home.sorting.ascending': 'Ascending',
@@ -140,7 +142,7 @@ describe('GameFiltersChips', () => {
 
 		await user.type(screen.getByPlaceholderText('Search games…'), 'dark')
 
-		expect(onSearchChange).toHaveBeenCalled()
+		await waitFor(() => expect(onSearchChange).toHaveBeenCalled())
 	})
 
 	it('renders sort select with default Nombre option', async () => {

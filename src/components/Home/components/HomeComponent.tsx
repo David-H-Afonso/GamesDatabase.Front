@@ -14,6 +14,23 @@ import './HomeComponent.scss'
 
 const BulkEditModal = lazy(() => import('./BulkEditModal'))
 
+const rowHeaderColumns = [
+	{ className: 'gr-status', labelKey: 'home.columns.status', sortBy: 'status' },
+	{ className: 'gr-name', labelKey: 'home.columns.name', sortBy: 'name' },
+	{ className: 'gr-grade', labelKey: 'home.columns.grade', sortBy: 'grade' },
+	{ className: 'gr-critic', labelKey: 'home.columns.critic', sortBy: 'critic' },
+	{ className: 'gr-story', labelKey: 'home.columns.story', sortBy: 'storyDuration' },
+	{ className: 'gr-completion', labelKey: 'home.columns.completion', sortBy: 'completionDuration' },
+	{ className: 'gr-score', labelKey: 'home.columns.score', sortBy: 'score' },
+	{ className: 'gr-platform', labelKey: 'home.columns.platform', sortBy: 'platform' },
+	{ className: 'gr-released', labelKey: 'home.columns.released', sortBy: 'released' },
+	{ className: 'gr-started', labelKey: 'home.columns.started', sortBy: 'started' },
+	{ className: 'gr-finished', labelKey: 'home.columns.finished', sortBy: 'finished' },
+	{ className: 'gr-play-status', labelKey: 'home.columns.playStatus', sortBy: 'playedStatus' },
+	{ className: 'gr-comment', labelKey: 'home.columns.comment', sortBy: 'comment' },
+	{ className: 'gr-play-with', labelKey: 'home.columns.playWith', sortBy: 'playWith' },
+] as const
+
 const HomeComponent = () => {
 	const { games, error, loading, pagination, fetchGamesList, refreshGames, deleteGameById, bulkUpdateGamesById } = useGames()
 	const { publicGameViews, loadPublicGameViews } = useGameViews()
@@ -169,6 +186,35 @@ const HomeComponent = () => {
 	const handlePageChange = (newPage: number) => setFilters({ ...filters, page: newPage })
 	const handleSearchChange = (search: string) => setFilters({ ...filters, search, page: 1 })
 	const handleSortChange = (sortBy: string, sortDescending: boolean) => setFilters({ ...filters, sortBy, sortDescending })
+	const handleRowHeaderSort = (sortBy: string) => {
+		const isCurrentSort = filters.sortBy === sortBy
+		setFilters({ ...filters, sortBy, sortDescending: isCurrentSort ? !filters.sortDescending : false, page: 1 })
+	}
+
+	const renderRowHeaderColumn = (column: (typeof rowHeaderColumns)[number]) => {
+		const label = t(column.labelKey)
+		const isCurrentSort = filters.sortBy === column.sortBy
+		const sortIndicator = filters.sortDescending ? '↓' : '↑'
+
+		return (
+			<p key={column.className} className={column.className}>
+				<button
+					type='button'
+					className={`home-component-games-row-header-sort${isCurrentSort ? ' is-active' : ''}`}
+					onClick={() => handleRowHeaderSort(column.sortBy)}
+					aria-label={`${t('home.filters.sortBy')}: ${label}`}
+					aria-pressed={isCurrentSort}
+					title={`${t('home.filters.sortBy')}: ${label}`}>
+					<span>{label}</span>
+					{isCurrentSort && (
+						<span className='home-component-games-row-header-sort__indicator' aria-hidden='true'>
+							{sortIndicator}
+						</span>
+					)}
+				</button>
+			</p>
+		)
+	}
 
 	const handleDeleteGame = async (id: number) => {
 		if (!window.confirm(t('home.confirmDeleteGame'))) return
@@ -244,20 +290,7 @@ const HomeComponent = () => {
 					{cardStyle === 'row' && (
 						<div className='home-component-games-row-header'>
 							<p className='gr-select'></p>
-							<p className='gr-status'>{t('home.columns.status')}</p>
-							<p className='gr-name'>{t('home.columns.name')}</p>
-							<p className='gr-grade'>{t('home.columns.grade')}</p>
-							<p className='gr-critic'>{t('home.columns.critic')}</p>
-							<p className='gr-story'>{t('home.columns.story')}</p>
-							<p className='gr-completion'>{t('home.columns.completion')}</p>
-							<p className='gr-score'>{t('home.columns.score')}</p>
-							<p className='gr-platform'>{t('home.columns.platform')}</p>
-							<p className='gr-released'>{t('home.columns.released')}</p>
-							<p className='gr-started'>{t('home.columns.started')}</p>
-							<p className='gr-finished'>{t('home.columns.finished')}</p>
-							<p className='gr-play-status'>{t('home.columns.playStatus')}</p>
-							<p className='gr-comment'>{t('home.columns.comment')}</p>
-							<p className='gr-play-with'>{t('home.columns.playWith')}</p>
+							{rowHeaderColumns.map((column) => renderRowHeaderColumn(column))}
 						</div>
 					)}
 

@@ -338,6 +338,23 @@
 	}
 
 	&-games-row {
+		--game-row-gap: 14px;
+		--game-row-select-width: 24px;
+		--game-row-status-width: 140px;
+		--game-row-name-width: 500px;
+		--game-row-name-min-width: 200px;
+		--game-row-grade-width: 54px;
+		--game-row-critic-width: 56px;
+		--game-row-story-width: 64px;
+		--game-row-completion-width: 64px;
+		--game-row-score-width: 88px;
+		--game-row-platform-width: 150px;
+		--game-row-date-width: 96px;
+		--game-row-play-status-width: 150px;
+		--game-row-comment-width: 500px;
+		--game-row-comment-min-width: 200px;
+		--game-row-play-with-width: 140px;
+
 		display: flex;
 		flex-direction: column;
 		max-width: 100%;
@@ -353,9 +370,9 @@
 		&-header {
 			display: flex;
 			align-items: center;
-			gap: 10px;
+			gap: var(--game-row-gap);
 			justify-content: flex-start;
-			padding: 10px;
+			padding: 10px 14px;
 			min-width: fit-content;
 			background-color: var(--bg-secondary);
 			font-weight: 600;
@@ -367,69 +384,100 @@
 				margin: 0;
 			}
 
+			&-sort {
+				display: inline-flex;
+				align-items: center;
+				gap: 4px;
+				width: 100%;
+				min-height: 28px;
+				padding: 0;
+				border: 0;
+				background: transparent;
+				color: inherit;
+				font: inherit;
+				font-weight: inherit;
+				text-align: left;
+				white-space: nowrap;
+				cursor: pointer;
+
+				&:hover,
+				&:focus-visible,
+				&.is-active {
+					color: var(--primary);
+				}
+
+				&:focus-visible {
+					outline: 2px solid var(--primary);
+					outline-offset: 2px;
+					border-radius: 4px;
+				}
+
+				&__indicator {
+					flex: 0 0 auto;
+					font-size: 12px;
+					line-height: 1;
+				}
+			}
+
 			.gr-select {
-				width: 24px;
-				min-width: 24px;
+				width: var(--game-row-select-width);
+				min-width: var(--game-row-select-width);
 			}
 			.gr-status {
-				width: 140px;
-				min-width: 140px;
-				padding-left: 10px;
+				width: var(--game-row-status-width);
+				min-width: var(--game-row-status-width);
 			}
 			.gr-name {
-				width: 500px;
-				min-width: 200px;
+				width: var(--game-row-name-width);
+				min-width: var(--game-row-name-min-width);
 			}
 			.gr-grade {
-				width: 45px;
-				min-width: 45px;
+				width: var(--game-row-grade-width);
+				min-width: var(--game-row-grade-width);
 			}
 			.gr-critic {
-				width: 45px;
-				min-width: 45px;
+				width: var(--game-row-critic-width);
+				min-width: var(--game-row-critic-width);
 			}
 			.gr-story {
-				width: 55px;
-				min-width: 55px;
+				width: var(--game-row-story-width);
+				min-width: var(--game-row-story-width);
 			}
 			.gr-completion {
-				width: 55px;
-				min-width: 55px;
+				width: var(--game-row-completion-width);
+				min-width: var(--game-row-completion-width);
 			}
 			.gr-score {
-				width: 45px;
-				min-width: 45px;
+				width: var(--game-row-score-width);
+				min-width: var(--game-row-score-width);
 			}
 			.gr-platform {
-				width: 140px;
-				min-width: 140px;
-				padding-left: 10px;
+				width: var(--game-row-platform-width);
+				min-width: var(--game-row-platform-width);
 			}
 			.gr-released {
-				width: 80px;
-				min-width: 80px;
+				width: var(--game-row-date-width);
+				min-width: var(--game-row-date-width);
 			}
 			.gr-started {
-				width: 80px;
-				min-width: 80px;
+				width: var(--game-row-date-width);
+				min-width: var(--game-row-date-width);
 			}
 			.gr-finished {
-				width: 80px;
-				min-width: 80px;
+				width: var(--game-row-date-width);
+				min-width: var(--game-row-date-width);
 			}
 			.gr-play-status {
-				width: 140px;
-				min-width: 140px;
-				padding-left: 10px;
+				width: var(--game-row-play-status-width);
+				min-width: var(--game-row-play-status-width);
 			}
 			.gr-comment {
-				width: 500px;
-				min-width: 200px;
+				width: var(--game-row-comment-width);
+				min-width: var(--game-row-comment-min-width);
 			}
 			.gr-play-with {
-				width: 140px;
-				min-width: 140px;
-				padding-left: 10px;
+				width: var(--game-row-play-with-width);
+				min-width: var(--game-row-play-with-width);
 			}
 		}
 
