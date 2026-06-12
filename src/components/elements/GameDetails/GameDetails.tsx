@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Game } from '@/models/api/Game'
 import './GameDetails.scss'
@@ -28,11 +28,16 @@ interface GameDetailsProps {
 
 export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 	const { t } = useTranslation()
-	const { game, closeDetails, onDelete } = props
+	const { game: gameProp, closeDetails, onDelete } = props
+	const [game, setGame] = useState(gameProp)
 	const [isClosing, setIsClosing] = useState(false)
 	const [activeTab, setActiveTab] = useState<DetailTab>('info')
 	const [steamImgLoading, setSteamImgLoading] = useState<'logo' | 'cover' | 'both' | null>(null)
 	const { updateGameById, fetchGameDetails } = useGames()
+
+	useEffect(() => {
+		setGame(gameProp)
+	}, [gameProp])
 
 	// Get options for selectable fields
 	const { activeStatuses: statusOptions } = useAppSelector((state) => state.gameStatus)
@@ -117,6 +122,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 			keyStoreUrl: game.keyStoreUrl ?? '',
 			manualPlaytimeMinutes: game.manualPlaytimeMinutes ?? undefined,
 			isManuallyCompleted: game.isManuallyCompleted ?? false,
+			steamAppId: game.steamAppId ?? undefined,
 		},
 		enableReinitialize: true,
 		validate: (values) => {
@@ -225,7 +231,10 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 
 		// Persist to backend
 		try {
-			await updateGameById(game.id, { [field]: payloadValue } as any)
+			const updatedGame = await updateGameById(game.id, { [field]: payloadValue } as any)
+			if (updatedGame) {
+				setGame(updatedGame)
+			}
 		} catch (err) {
 			console.error(`Error saving ${field}:`, err)
 			// restore original value from prop if needed
@@ -362,9 +371,9 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 									<h3
 										className='clickable'
 										onClick={() => {
-											if (!game.name) return
-											const provider = resolveEffectiveProvider(game.criticProvider as CriticProvider | undefined, scoreProvider)
-											const url = getCriticScoreUrl(game.name, provider)
+											if (!formik.values.name) return
+											const provider = resolveEffectiveProvider(formik.values.criticProvider as CriticProvider | undefined, scoreProvider)
+											const url = getCriticScoreUrl(formik.values.name, provider)
 											window.open(url, '_blank', 'noopener')
 										}}>
 										{t('game.details.fieldCriticScore')}
@@ -397,8 +406,8 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 									<h3
 										className='clickable'
 										onClick={() => {
-											if (!game.name) return
-											const url = `https://howlongtobeat.com/?q=${encodeURIComponent(game.name)}`
+											if (!formik.values.name) return
+											const url = `https://howlongtobeat.com/?q=${encodeURIComponent(formik.values.name)}`
 											window.open(url, '_blank', 'noopener')
 										}}>
 										{t('game.details.fieldStory')}
@@ -415,8 +424,8 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 									<h3
 										className='clickable'
 										onClick={() => {
-											if (!game.name) return
-											const url = `https://howlongtobeat.com/?q=${encodeURIComponent(game.name)}`
+											if (!formik.values.name) return
+											const url = `https://howlongtobeat.com/?q=${encodeURIComponent(formik.values.name)}`
 											window.open(url, '_blank', 'noopener')
 										}}>
 										{t('game.details.fieldCompletion')}
@@ -432,7 +441,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 								<div className='game-details-content-infoList-item'>
 									<h3>{t('game.details.fieldScore')}</h3>
 									<EditableField
-										value={game.score}
+										value={formik.values.score}
 										type='number'
 										onSave={(value) => saveField('score', value)}
 										placeholder={t('game.details.placeholderScore')}
@@ -443,16 +452,16 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 									<h3
 										className={(game.platformName || '').toLowerCase().includes('steam') || (game.platformName || '').toLowerCase().includes('epic') ? 'clickable' : undefined}
 										onClick={() => {
-											if (!game.name) return
+											if (!formik.values.name) return
 											const platform = (game.platformName || '').toLowerCase()
 											if (platform.includes('steam')) {
-												const q = encodeURIComponent(game.name).replace(/%20/g, '+')
+												const q = encodeURIComponent(formik.values.name).replace(/%20/g, '+')
 												const url = `https://store.steampowered.com/search/?term=${q}`
 												window.open(url, '_blank', 'noopener')
 												return
 											}
 											if (platform.includes('epic')) {
-												const url = `https://store.epicgames.com/es-ES/browse?q=${encodeURIComponent(game.name)}&sortBy=relevancy&sortDir=DESC&count=40`
+												const url = `https://store.epicgames.com/es-ES/browse?q=${encodeURIComponent(formik.values.name)}&sortBy=relevancy&sortDir=DESC&count=40`
 												window.open(url, '_blank', 'noopener')
 											}
 										}}>
@@ -514,7 +523,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 									<h3
 										className='clickable'
 										onClick={() => {
-											searchGoogleImage(game.name, 'logo')
+											searchGoogleImage(formik.values.name, 'logo')
 										}}>
 										{t('game.details.fieldLogo')}
 										{game.steamAppId && (
@@ -538,7 +547,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 									<h3
 										className='clickable'
 										onClick={() => {
-											searchGoogleImage(game.name, 'cover')
+											searchGoogleImage(formik.values.name, 'cover')
 										}}>
 										{t('game.details.fieldCover')}
 										{game.steamAppId && (
@@ -609,7 +618,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 								<div className='game-details-content-infoList-item'>
 									<h3>Steam App ID</h3>
 									<EditableField
-										value={game.steamAppId?.toString() ?? ''}
+										value={formik.values.steamAppId?.toString() ?? ''}
 										type='text'
 										onSave={(value) => saveField('steamAppId', value ? parseInt(value as string, 10) : null)}
 										placeholder='Ej: 570'

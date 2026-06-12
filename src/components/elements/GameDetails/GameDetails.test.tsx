@@ -19,7 +19,11 @@ vi.mock('@/components/elements', () => ({
 }))
 
 vi.mock('../EditableSelect/EditableSelect', () => ({
-	EditableSelect: ({ displayValue, placeholder }: any) => <span data-testid='editable-select'>{displayValue || placeholder}</span>,
+	EditableSelect: ({ displayValue, placeholder, onSave }: any) => (
+		<button type='button' data-testid='editable-select' onClick={() => onSave?.(1)}>
+			{displayValue || placeholder}
+		</button>
+	),
 }))
 
 vi.mock('../EditableMultiSelect/EditableMultiSelect', () => ({
@@ -248,6 +252,29 @@ describe('GameDetails', () => {
 
 		// Should not throw when clicking delete without onDelete
 		await user.click(screen.getByLabelText('Delete game'))
+	})
+
+	it('uses the just-saved critic provider when opening the critic link', async () => {
+		const updatedGame = { ...mockGame, criticProvider: 'Metacritic' }
+		mockUpdateGameById.mockResolvedValueOnce(updatedGame)
+
+		const { getCriticProviderIdFromName, getCriticProviderNameFromId, getCriticScoreUrl, resolveEffectiveProvider } = await import('@/helpers/criticScoreHelper')
+		vi.mocked(getCriticProviderIdFromName).mockImplementation((provider) => (provider === 'SteamDB' ? 3 : provider === 'Metacritic' ? 1 : undefined))
+		vi.mocked(getCriticProviderNameFromId).mockReturnValue('Metacritic')
+		vi.mocked(resolveEffectiveProvider).mockReturnValue('Metacritic')
+		vi.mocked(getCriticScoreUrl).mockReturnValue('https://www.metacritic.com/search/dark-souls/')
+		const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null)
+
+		const { GameDetails } = await import('./GameDetails')
+		renderWithProviders(<GameDetails game={{ ...mockGame, criticProvider: 'SteamDB' }} closeDetails={vi.fn()} />, { preloadedState: defaultState })
+
+		await user.click(screen.getByRole('button', { name: 'SteamDB' }))
+		await user.click(screen.getByText('Critic Score'))
+
+		expect(mockUpdateGameById).toHaveBeenCalledWith(mockGame.id, { criticProvider: 'Metacritic' })
+		expect(resolveEffectiveProvider).toHaveBeenLastCalledWith('Metacritic', 'Metacritic')
+		expect(getCriticScoreUrl).toHaveBeenLastCalledWith('Dark Souls', 'Metacritic')
+		expect(openSpy).toHaveBeenCalledWith('https://www.metacritic.com/search/dark-souls/', '_blank', 'noopener')
 	})
 
 	it('adds closing class when close button clicked', async () => {

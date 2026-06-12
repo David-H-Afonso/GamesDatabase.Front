@@ -31,7 +31,8 @@ export const selectNeedsRefresh = (state: RootState) => state.games.needsRefresh
 export const selectGamesState = (state: RootState) => state.games
 
 // Selector for a specific game by ID
-export const selectGameById = (gameId: number) => (state: RootState) => state.games.games.find((game) => game.id === gameId)
+export const selectGameById = (gameId: number) => (state: RootState) =>
+	state.games.games.find((game) => game.id === gameId) ?? (state.games.currentGame?.id === gameId ? state.games.currentGame : undefined)
 
 // Selector for games by status
 export const selectGamesByStatus = (statusId: number) => (state: RootState) => state.games.games.filter((game) => game.statusId === statusId)

@@ -86,6 +86,11 @@ describe('games selectors', () => {
 		expect(selectGameById(999)(makeState())).toBeUndefined()
 	})
 
+	it('selectGameById falls back to currentGame when the game is not in the list', () => {
+		const currentGame = { id: 999, name: 'Imported only', statusId: 10 }
+		expect(selectGameById(999)(makeState({ currentGame: currentGame as any }))).toEqual(currentGame)
+	})
+
 	it('selectGamesByStatus filters by statusId', () => {
 		const result = selectGamesByStatus(10)(makeState())
 		expect(result).toHaveLength(2)
