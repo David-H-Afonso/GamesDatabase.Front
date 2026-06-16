@@ -41,6 +41,7 @@ function loggedInState(): AuthState {
 			showPriceComparisonIcon: false,
 		},
 		token: 'jwt-token',
+			refreshToken: null,
 		loading: false,
 		error: null,
 	}
@@ -169,7 +170,7 @@ describe('authSlice — extraReducers', () => {
 			createdAt: '2026-05-09T00:00:00Z',
 			updatedAt: '2026-05-09T00:00:00Z',
 		}
-		const action = steamLoginUser.fulfilled({ token: 'steam-token', user }, '', { token: 'steam-token', userId: 7 })
+		const action = steamLoginUser.fulfilled({ token: 'steam-token', refreshToken: 'steam-refresh', user }, '', { code: 'some-code' })
 		const next = authReducer(initialState, action)
 		expect(next.isAuthenticated).toBe(true)
 		expect(next.token).toBe('steam-token')
@@ -315,7 +316,15 @@ describe('authSlice — thunk integration', () => {
 	})
 
 	it('steamLoginUser fetches canonical user data after setting the token', async () => {
-		mockGetUserById.mockResolvedValueOnce({
+		const exchangeData = {
+			token: 'steam-token',
+			refreshToken: 'steam-refresh',
+			userId: 7,
+			username: 'steam-user',
+			role: 'Standard',
+			steamId: '76561198000000000',
+		}
+		const userData = {
 			id: 7,
 			username: 'steam-user',
 			role: 'Standard',
@@ -329,14 +338,24 @@ describe('authSlice — thunk integration', () => {
 			steamAvatarUrl: 'https://example.com/avatar.jpg',
 			createdAt: '2026-05-09T00:00:00Z',
 			updatedAt: '2026-05-09T00:00:00Z',
-		})
+		}
+		// Mock the fetch exchange call
+		vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce({
+			ok: true,
+			json: async () => exchangeData,
+		}))
+		mockGetUserById.mockResolvedValueOnce(userData)
+
 		const store = configureStore({ reducer: { auth: authReducer } })
-		const result = await store.dispatch(steamLoginUser({ token: 'steam-token', userId: 7 }))
+		const result = await store.dispatch(steamLoginUser({ code: 'some-code' }))
 
 		expect(result.type).toBe('auth/steamLogin/fulfilled')
 		expect(mockGetUserById).toHaveBeenCalledWith(7)
 		expect(store.getState().auth.token).toBe('steam-token')
+		expect(store.getState().auth.refreshToken).toBe('steam-refresh')
 		expect(store.getState().auth.user?.steamId).toBe('76561198000000000')
+
+		vi.unstubAllGlobals()
 	})
 
 	it('updateUserPreferences thunk builds updates with all fields defined', async () => {

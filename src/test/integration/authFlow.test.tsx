@@ -137,7 +137,7 @@ describe('Auth Flow — Integration', () => {
 
 	beforeEach(() => {
 		store = createTestStore()
-		initCustomFetch(store, mockPersistor, mockForceLogout)
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 	})
 
 	// ── 5.2.1 Login form renders ──────────────────────────────────────────────
@@ -229,11 +229,12 @@ describe('Auth Flow — Integration', () => {
 				isAuthenticated: true,
 				user: { id: 1, username: 'Admin', role: 'Admin' } as any,
 				token: 'tok',
+			refreshToken: null,
 				loading: false,
 				error: null,
 			},
 		} as any)
-		initCustomFetch(store, mockPersistor, mockForceLogout)
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 
 		await store.dispatch(logoutUser())
 
@@ -250,6 +251,7 @@ describe('Auth Flow — Integration', () => {
 				isAuthenticated: true,
 				user: { id: 1, username: 'Admin', role: 'Admin' } as any,
 				token: 'tok',
+			refreshToken: null,
 				loading: false,
 				error: null,
 			},
@@ -270,7 +272,7 @@ describe('Auth Flow — Integration', () => {
 				users: [{ username: 'alice', hasPassword: true }],
 			},
 		} as any)
-		initCustomFetch(store, mockPersistor, mockForceLogout)
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 
 		server.use(
 			http.post(`${BASE}/users/login`, () => HttpResponse.json({ userId: 2, username: 'alice', role: 'User', token: 'alice-token' })),

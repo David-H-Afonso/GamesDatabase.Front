@@ -98,7 +98,7 @@ describe('gameStatus thunks — fetchStatuses', () => {
 	beforeEach(() => {
 		resetIdCounter()
 		store = createTestStore()
-		initCustomFetch(store, mockPersistor, mockForceLogout)
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 	})
 
 	it('dispatches fulfilled and populates statuses in store', async () => {
@@ -127,7 +127,7 @@ describe('gameStatus thunks — fetchActiveStatuses', () => {
 	beforeEach(() => {
 		resetIdCounter()
 		store = createTestStore()
-		initCustomFetch(store, mockPersistor, mockForceLogout)
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 	})
 
 	it('dispatches fulfilled and populates activeStatuses', async () => {
@@ -146,7 +146,7 @@ describe('gameStatus thunks — createStatus', () => {
 	beforeEach(() => {
 		resetIdCounter()
 		store = createTestStore()
-		initCustomFetch(store, mockPersistor, mockForceLogout)
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 	})
 
 	it('dispatches fulfilled and prepends status', async () => {
@@ -165,7 +165,7 @@ describe('gameStatus thunks — updateStatus', () => {
 	beforeEach(() => {
 		resetIdCounter()
 		store = createTestStore()
-		initCustomFetch(store, mockPersistor, mockForceLogout)
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 	})
 
 	it('dispatches fulfilled and updates status in store', async () => {
@@ -193,7 +193,7 @@ describe('gameStatus thunks — deleteStatus', () => {
 	beforeEach(() => {
 		resetIdCounter()
 		store = createTestStore()
-		initCustomFetch(store, mockPersistor, mockForceLogout)
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 	})
 
 	it('dispatches fulfilled and removes status from store', async () => {
@@ -221,7 +221,7 @@ describe('gameStatus thunks — fetchSpecialStatuses', () => {
 	beforeEach(() => {
 		resetIdCounter()
 		store = createTestStore()
-		initCustomFetch(store, mockPersistor, mockForceLogout)
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 	})
 
 	it('dispatches fulfilled and populates specialStatuses', async () => {
@@ -244,7 +244,7 @@ describe('gameStatus thunks — reassignSpecialStatuses', () => {
 	beforeEach(() => {
 		resetIdCounter()
 		store = createTestStore()
-		initCustomFetch(store, mockPersistor, mockForceLogout)
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 	})
 
 	it('dispatches fulfilled on success', async () => {

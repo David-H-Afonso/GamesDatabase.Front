@@ -22,7 +22,9 @@
 		"test:coverage": "vitest run --coverage",
 		"test:ui": "vitest --ui",
 		"cypress:open": "cypress open",
-		"cypress:run": "cypress run"
+		"cypress:run": "cypress run",
+		"security:deps": "npm audit --audit-level=moderate",
+		"security:all": "npm run security:deps"
 	},
 	"dependencies": {
 		"@reduxjs/toolkit": "^2.9.0",

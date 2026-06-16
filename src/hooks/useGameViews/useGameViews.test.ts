@@ -87,7 +87,7 @@ describe('useGameViews', () => {
 	beforeEach(() => {
 		resetIdCounter()
 		store = createTestStore()
-		initCustomFetch(store, mockPersistor, mockForceLogout)
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 	})
 
 	// ── Initial state ──────────────────────────────────────────────────────────

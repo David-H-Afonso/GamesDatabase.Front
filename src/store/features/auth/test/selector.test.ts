@@ -7,6 +7,7 @@ const makeState = (authOverrides: Partial<RootState['auth']> = {}): RootState =>
 			isAuthenticated: false,
 			user: null,
 			token: null,
+			refreshToken: null,
 			loading: false,
 			error: null,
 			...authOverrides,

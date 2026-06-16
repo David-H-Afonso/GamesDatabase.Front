@@ -16,6 +16,7 @@ const prefsState = {
 			showPriceComparisonIcon: false,
 		},
 		token: 'tok',
+			refreshToken: null,
 		loading: false,
 		error: null,
 	},

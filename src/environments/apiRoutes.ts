@@ -114,6 +114,8 @@ export const apiRoutes = {
 	/** User endpoints */
 	users: {
 		login: '/users/login',
+		refresh: '/users/refresh',
+		logout: '/users/logout',
 		base: '/users',
 		byId: (id: number) => `/users/${id}`,
 		create: '/users',
@@ -134,6 +136,8 @@ export const apiRoutes = {
 	steam: {
 		authLogin: '/auth/steam/login',
 		linkUrl: '/auth/steam/link-url',
+		/** Exchange a short-lived one-time code for JWT + refresh token after Steam callback */
+		exchange: (code: string) => `/auth/steam/exchange/${code}`,
 		profile: '/steam/profile',
 		unlink: '/steam/link',
 		manualLink: '/steam/link/manual',

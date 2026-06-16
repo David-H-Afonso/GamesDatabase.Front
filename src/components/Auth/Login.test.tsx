@@ -87,7 +87,7 @@ describe('Login', () => {
 
 	beforeEach(() => {
 		store = createTestStore()
-		initCustomFetch(store, mockPersistor, mockForceLogout)
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 	})
 
 	// ── Rendering ─────────────────────────────────────────────────────────────
@@ -107,7 +107,8 @@ describe('Login', () => {
 
 	it('displays the error message when auth.error is set', () => {
 		store = createTestStore({
-			auth: { isAuthenticated: false, user: null, token: null, loading: false, error: 'Invalid credentials' },
+			auth: { isAuthenticated: false, user: null, token: null,
+			refreshToken: null, loading: false, error: 'Invalid credentials' },
 		} as any)
 		renderWithProviders(<Login />, { store })
 		expect(screen.getByText(/invalid credentials/i)).toBeInTheDocument()
@@ -139,6 +140,7 @@ describe('Login', () => {
 					username: 'Admin',
 					role: 'Admin',
 					token: 'test-token',
+			refreshToken: null,
 				})
 			)
 		)

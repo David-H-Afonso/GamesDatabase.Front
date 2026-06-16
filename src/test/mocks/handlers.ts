@@ -307,6 +307,7 @@ export const handlers = [
 			username: body.username ?? 'testuser',
 			role: 'Admin',
 			token: 'mock-jwt-token',
+			refreshToken: null,
 		})
 	}),
 

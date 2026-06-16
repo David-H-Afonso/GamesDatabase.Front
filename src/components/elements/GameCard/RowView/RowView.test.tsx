@@ -120,6 +120,7 @@ const preloadedState = {
 		isAuthenticated: true,
 		user: { id: 1, username: 'test', role: 'Admin', useScoreColors: false, scoreProvider: 'Metacritic', showPriceComparisonIcon: false },
 		token: 'tok',
+			refreshToken: null,
 		loading: false,
 		error: null,
 	},

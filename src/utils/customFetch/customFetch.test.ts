@@ -40,7 +40,7 @@ beforeEach(() => {
 	store = makeStore(null)
 	persistor = makePersistor()
 	forceLogout = vi.fn<() => { type: string }>().mockReturnValue({ type: 'auth/forceLogout' })
-	initCustomFetch(store, persistor, forceLogout)
+	initCustomFetch(store, persistor, forceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 })
 
 // ── 1. initCustomFetch ────────────────────────────────────────────────────────
@@ -55,11 +55,11 @@ describe('initCustomFetch', () => {
 			})
 		)
 
-		initCustomFetch(makeStore(null), persistor, forceLogout)
+		initCustomFetch(makeStore(null), persistor, forceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 		await customFetch('/probe')
 		expect(cap.auth).toBeNull()
 
-		initCustomFetch(makeStore('new-tok'), persistor, forceLogout)
+		initCustomFetch(makeStore('new-tok'), persistor, forceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 		await customFetch('/probe')
 		expect(cap.auth).toBe('Bearer new-tok')
 	})
@@ -91,7 +91,7 @@ describe('Authorization header', () => {
 				return HttpResponse.json({})
 			})
 		)
-		initCustomFetch(makeStore('my-jwt-token'), persistor, forceLogout)
+		initCustomFetch(makeStore('my-jwt-token'), persistor, forceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 		await customFetch('/probe')
 		expect(cap.auth).toBe('Bearer my-jwt-token')
 	})
@@ -104,7 +104,7 @@ describe('Authorization header', () => {
 				return HttpResponse.json({})
 			})
 		)
-		initCustomFetch(makeStore(null), persistor, forceLogout)
+		initCustomFetch(makeStore(null), persistor, forceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 		await customFetch('/probe')
 		expect(cap.has).toBe(false)
 	})
@@ -117,7 +117,7 @@ describe('Authorization header', () => {
 				return HttpResponse.json({})
 			})
 		)
-		initCustomFetch(makeStore(''), persistor, forceLogout)
+		initCustomFetch(makeStore(''), persistor, forceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 		await customFetch('/probe')
 		expect(cap.has).toBe(false)
 	})
@@ -441,7 +441,7 @@ describe('custom headers', () => {
 				return HttpResponse.json({})
 			})
 		)
-		initCustomFetch(makeStore('tok123'), persistor, forceLogout)
+		initCustomFetch(makeStore('tok123'), persistor, forceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 		await customFetch('/probe', { headers: { 'X-Request-Id': 'abc-123' } })
 		expect(cap.auth).toBe('Bearer tok123')
 		expect(cap.rid).toBe('abc-123')
@@ -548,13 +548,13 @@ describe('401 unauthorized handling', () => {
 
 	it('throws "Session expired" message', async () => {
 		server.use(http.get(`${BASE}/protected`, () => new HttpResponse(null, { status: 401 })))
-		initCustomFetch(makeStore('expired'), persistor, forceLogout)
+		initCustomFetch(makeStore('expired'), persistor, forceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 		await expect(customFetch('/protected')).rejects.toThrow('Session expired')
 	})
 
 	it('calls the forceLogout action creator', async () => {
 		server.use(http.get(`${BASE}/protected`, () => new HttpResponse(null, { status: 401 })))
-		initCustomFetch(makeStore('tok'), persistor, forceLogout)
+		initCustomFetch(makeStore('tok'), persistor, forceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 		await expect(customFetch('/protected')).rejects.toThrow()
 		expect(forceLogout).toHaveBeenCalled()
 	})
@@ -562,21 +562,21 @@ describe('401 unauthorized handling', () => {
 	it('dispatches the forceLogout action to the store', async () => {
 		const s = makeStore('tok')
 		server.use(http.get(`${BASE}/protected`, () => new HttpResponse(null, { status: 401 })))
-		initCustomFetch(s, persistor, forceLogout)
+		initCustomFetch(s, persistor, forceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 		await expect(customFetch('/protected')).rejects.toThrow()
 		expect(s.dispatch).toHaveBeenCalledWith({ type: 'auth/forceLogout' })
 	})
 
 	it('calls persistor.purge() to wipe persisted auth state', async () => {
 		server.use(http.get(`${BASE}/protected`, () => new HttpResponse(null, { status: 401 })))
-		initCustomFetch(makeStore('tok'), persistor, forceLogout)
+		initCustomFetch(makeStore('tok'), persistor, forceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 		await expect(customFetch('/protected')).rejects.toThrow()
 		expect(persistor.purge).toHaveBeenCalledTimes(1)
 	})
 
 	it('does NOT force logout for an unauthenticated 401 response', async () => {
 		server.use(http.get(`${BASE}/protected`, () => new HttpResponse(null, { status: 401 })))
-		initCustomFetch(makeStore(null), persistor, forceLogout)
+		initCustomFetch(makeStore(null), persistor, forceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 		await expect(customFetch('/protected')).rejects.toThrow('Authentication required')
 		expect(forceLogout).not.toHaveBeenCalled()
 		expect(persistor.purge).not.toHaveBeenCalled()
@@ -585,7 +585,7 @@ describe('401 unauthorized handling', () => {
 
 	it('navigates to /login after the redirect delay', async () => {
 		server.use(http.get(`${BASE}/protected`, () => new HttpResponse(null, { status: 401 })))
-		initCustomFetch(makeStore('tok'), persistor, forceLogout)
+		initCustomFetch(makeStore('tok'), persistor, forceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 		await expect(customFetch('/protected')).rejects.toThrow()
 
 		// Not yet — inside the setTimeout delay
@@ -597,7 +597,7 @@ describe('401 unauthorized handling', () => {
 	it('does NOT call forceLogout when already on the /login page', async () => {
 		globalThis.history.pushState({}, '', '/login')
 		server.use(http.get(`${BASE}/protected`, () => new HttpResponse(null, { status: 401 })))
-		initCustomFetch(makeStore('tok'), persistor, forceLogout)
+		initCustomFetch(makeStore('tok'), persistor, forceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 		await expect(customFetch('/protected')).rejects.toThrow()
 		expect(forceLogout).not.toHaveBeenCalled()
 		globalThis.history.pushState({}, '', '/')
@@ -606,7 +606,7 @@ describe('401 unauthorized handling', () => {
 	it('does NOT navigate when already on the /login page', async () => {
 		globalThis.history.pushState({}, '', '/login')
 		server.use(http.get(`${BASE}/protected`, () => new HttpResponse(null, { status: 401 })))
-		initCustomFetch(makeStore('tok'), persistor, forceLogout)
+		initCustomFetch(makeStore('tok'), persistor, forceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 		await expect(customFetch('/protected')).rejects.toThrow()
 		vi.runAllTimers()
 		expect(vi.mocked(router.navigate)).not.toHaveBeenCalled()
@@ -619,7 +619,7 @@ describe('401 unauthorized handling', () => {
 			http.get(`${BASE}/b`, () => new HttpResponse(null, { status: 401 }))
 		)
 		const s = makeStore('tok')
-		initCustomFetch(s, persistor, forceLogout)
+		initCustomFetch(s, persistor, forceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 
 		await Promise.allSettled([customFetch('/a'), customFetch('/b')])
 

@@ -7,14 +7,14 @@ import { RouterProvider } from 'react-router-dom'
 import { store, persistor } from './store'
 import { router } from '@/navigation/router'
 import { ThemeProvider } from './providers'
-import { restoreAuth, forceLogout } from './store/features/auth/authSlice'
+import { restoreAuth, forceLogout, setRefreshedTokens } from './store/features/auth/authSlice'
 import { initCustomFetch } from '@/utils/customFetch'
 import '@/assets/styles/index.scss'
 
-initCustomFetch(store, persistor, forceLogout)
+initCustomFetch(store, persistor, forceLogout, setRefreshedTokens)
 
 if (import.meta.hot) {
-	import.meta.hot.accept('@/utils/customFetch', () => initCustomFetch(store, persistor, forceLogout))
+	import.meta.hot.accept('@/utils/customFetch', () => initCustomFetch(store, persistor, forceLogout, setRefreshedTokens))
 }
 
 // Remove preload class after styles are loaded to enable transitions

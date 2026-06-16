@@ -87,7 +87,7 @@ describe('gameViews thunks — fetchGameViews', () => {
 	beforeEach(() => {
 		resetIdCounter()
 		store = createTestStore()
-		initCustomFetch(store, mockPersistor, mockForceLogout)
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 	})
 
 	it('dispatches fulfilled and populates gameViews', async () => {
@@ -110,7 +110,7 @@ describe('gameViews thunks — fetchPublicGameViews', () => {
 	beforeEach(() => {
 		resetIdCounter()
 		store = createTestStore()
-		initCustomFetch(store, mockPersistor, mockForceLogout)
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 	})
 
 	it('dispatches fulfilled and populates publicGameViews', async () => {
@@ -133,7 +133,7 @@ describe('gameViews thunks — fetchGameViewById', () => {
 	beforeEach(() => {
 		resetIdCounter()
 		store = createTestStore()
-		initCustomFetch(store, mockPersistor, mockForceLogout)
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 	})
 
 	it('dispatches fulfilled and sets currentGameView', async () => {
@@ -156,7 +156,7 @@ describe('gameViews thunks — createGameViewThunk', () => {
 	beforeEach(() => {
 		resetIdCounter()
 		store = createTestStore()
-		initCustomFetch(store, mockPersistor, mockForceLogout)
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 	})
 
 	it('dispatches fulfilled and prepends game view', async () => {
@@ -179,7 +179,7 @@ describe('gameViews thunks — updateGameViewThunk', () => {
 	beforeEach(() => {
 		resetIdCounter()
 		store = createTestStore()
-		initCustomFetch(store, mockPersistor, mockForceLogout)
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 	})
 
 	it('dispatches fulfilled and updates view in store', async () => {
@@ -209,7 +209,7 @@ describe('gameViews thunks — deleteGameViewThunk', () => {
 	beforeEach(() => {
 		resetIdCounter()
 		store = createTestStore()
-		initCustomFetch(store, mockPersistor, mockForceLogout)
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 	})
 
 	it('dispatches fulfilled and removes view from store', async () => {
@@ -235,7 +235,7 @@ describe('gameViews thunks — updateGameViewConfiguration', () => {
 	beforeEach(() => {
 		resetIdCounter()
 		store = createTestStore()
-		initCustomFetch(store, mockPersistor, mockForceLogout)
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 	})
 
 	it('dispatches fulfilled with updated configuration', async () => {

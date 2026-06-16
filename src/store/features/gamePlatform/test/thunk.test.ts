@@ -91,7 +91,7 @@ describe('gamePlatform thunks — fetchPlatforms', () => {
 	beforeEach(() => {
 		resetIdCounter()
 		store = createTestStore()
-		initCustomFetch(store, mockPersistor, mockForceLogout)
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 	})
 
 	it('dispatches fulfilled and populates platforms', async () => {
@@ -115,7 +115,7 @@ describe('gamePlatform thunks — fetchActivePlatforms', () => {
 	beforeEach(() => {
 		resetIdCounter()
 		store = createTestStore()
-		initCustomFetch(store, mockPersistor, mockForceLogout)
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 	})
 
 	it('dispatches fulfilled and populates activePlatforms', async () => {
@@ -138,7 +138,7 @@ describe('gamePlatform thunks — createPlatform', () => {
 	beforeEach(() => {
 		resetIdCounter()
 		store = createTestStore()
-		initCustomFetch(store, mockPersistor, mockForceLogout)
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 	})
 
 	it('dispatches fulfilled and prepends platform', async () => {
@@ -161,7 +161,7 @@ describe('gamePlatform thunks — updatePlatform', () => {
 	beforeEach(() => {
 		resetIdCounter()
 		store = createTestStore()
-		initCustomFetch(store, mockPersistor, mockForceLogout)
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 	})
 
 	it('dispatches fulfilled and updates platform in store', async () => {
@@ -191,7 +191,7 @@ describe('gamePlatform thunks — deletePlatform', () => {
 	beforeEach(() => {
 		resetIdCounter()
 		store = createTestStore()
-		initCustomFetch(store, mockPersistor, mockForceLogout)
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 	})
 
 	it('dispatches fulfilled and removes platform from store', async () => {

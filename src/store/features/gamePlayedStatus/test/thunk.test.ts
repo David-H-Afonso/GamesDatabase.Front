@@ -91,7 +91,7 @@ describe('gamePlayedStatus thunks — fetchPlayedStatuses', () => {
 	beforeEach(() => {
 		resetIdCounter()
 		store = createTestStore()
-		initCustomFetch(store, mockPersistor, mockForceLogout)
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 	})
 
 	it('dispatches fulfilled and populates playedStatuses', async () => {
@@ -114,7 +114,7 @@ describe('gamePlayedStatus thunks — fetchActivePlayedStatuses', () => {
 	beforeEach(() => {
 		resetIdCounter()
 		store = createTestStore()
-		initCustomFetch(store, mockPersistor, mockForceLogout)
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 	})
 
 	it('dispatches fulfilled and populates activePlayedStatuses', async () => {
@@ -137,7 +137,7 @@ describe('gamePlayedStatus thunks — createPlayedStatus', () => {
 	beforeEach(() => {
 		resetIdCounter()
 		store = createTestStore()
-		initCustomFetch(store, mockPersistor, mockForceLogout)
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 	})
 
 	it('dispatches fulfilled and prepends status', async () => {
@@ -160,7 +160,7 @@ describe('gamePlayedStatus thunks — updatePlayedStatus', () => {
 	beforeEach(() => {
 		resetIdCounter()
 		store = createTestStore()
-		initCustomFetch(store, mockPersistor, mockForceLogout)
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 	})
 
 	it('dispatches fulfilled and updates status in store', async () => {
@@ -190,7 +190,7 @@ describe('gamePlayedStatus thunks — deletePlayedStatus', () => {
 	beforeEach(() => {
 		resetIdCounter()
 		store = createTestStore()
-		initCustomFetch(store, mockPersistor, mockForceLogout)
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 	})
 
 	it('dispatches fulfilled and removes status from store', async () => {

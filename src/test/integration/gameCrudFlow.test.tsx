@@ -149,6 +149,7 @@ const authenticatedState = {
 		isAuthenticated: true,
 		user: { id: 1, username: 'TestUser', role: 'Admin' as const },
 		token: 'test-token',
+			refreshToken: null,
 		loading: false,
 		error: null,
 	},
@@ -159,7 +160,7 @@ describe('Game CRUD Flow — Integration', () => {
 
 	beforeEach(() => {
 		store = createTestStore(authenticatedState)
-		initCustomFetch(store, mockPersistor, mockForceLogout)
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 		// getPublicGameViews expects GameView[] directly (not paged result)
 		server.use(
 			http.get(`${BASE}/gameviews`, () => HttpResponse.json([])),

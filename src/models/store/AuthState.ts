@@ -15,6 +15,8 @@ export interface AuthState {
 		steamAvatarUrl?: string
 	} | null
 	token: string | null
+	/** Long-lived refresh token (30 days). Persisted in localStorage. */
+	refreshToken: string | null
 	loading: boolean
 	error: string | null
 }

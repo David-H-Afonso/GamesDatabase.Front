@@ -91,7 +91,7 @@ describe('gamePlayWith thunks — fetchPlayWithOptions', () => {
 	beforeEach(() => {
 		resetIdCounter()
 		store = createTestStore()
-		initCustomFetch(store, mockPersistor, mockForceLogout)
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 	})
 
 	it('dispatches fulfilled and populates playWithOptions', async () => {
@@ -114,7 +114,7 @@ describe('gamePlayWith thunks — fetchActivePlayWithOptions', () => {
 	beforeEach(() => {
 		resetIdCounter()
 		store = createTestStore()
-		initCustomFetch(store, mockPersistor, mockForceLogout)
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 	})
 
 	it('dispatches fulfilled and populates activePlayWithOptions', async () => {
@@ -137,7 +137,7 @@ describe('gamePlayWith thunks — createPlayWith', () => {
 	beforeEach(() => {
 		resetIdCounter()
 		store = createTestStore()
-		initCustomFetch(store, mockPersistor, mockForceLogout)
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 	})
 
 	it('dispatches fulfilled and prepends option', async () => {
@@ -160,7 +160,7 @@ describe('gamePlayWith thunks — updatePlayWith', () => {
 	beforeEach(() => {
 		resetIdCounter()
 		store = createTestStore()
-		initCustomFetch(store, mockPersistor, mockForceLogout)
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 	})
 
 	it('dispatches fulfilled and updates option in store', async () => {
@@ -190,7 +190,7 @@ describe('gamePlayWith thunks — deletePlayWith', () => {
 	beforeEach(() => {
 		resetIdCounter()
 		store = createTestStore()
-		initCustomFetch(store, mockPersistor, mockForceLogout)
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 	})
 
 	it('dispatches fulfilled and removes option from store', async () => {

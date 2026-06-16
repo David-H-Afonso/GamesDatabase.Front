@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk, createAction, type PayloadAction } from '@reduxjs/toolkit'
 import { authService, userService } from '@/services'
+import { environment } from '@/environments'
 import type { LoginRequest, User } from '@/models/api/User'
 import type { AuthState } from '@/models/store/AuthState'
 import { addRecentUser } from '../recentUsers/recentUsersSlice'
@@ -23,6 +24,7 @@ const initialState: AuthState = {
 	isAuthenticated: false,
 	user: null,
 	token: null,
+	refreshToken: null,
 	loading: false,
 	error: null,
 }
@@ -57,28 +59,62 @@ export const loginUser = createAsyncThunk('auth/login', async (credentials: Logi
 })
 
 /**
- * Async thunk: Complete Steam login with canonical user data.
+ * Async thunk: Complete Steam login — exchanges the one-time code for real tokens.
+ * The code comes from the URL hash after the Steam callback redirect.
  */
-export const steamLoginUser = createAsyncThunk('auth/steamLogin', async ({ token, userId }: { token: string; userId: number }, { rejectWithValue, dispatch }) => {
-	try {
-		// Set token immediately so the profile fetch can authenticate.
-		dispatch(setLoginToken(token))
+export const steamLoginUser = createAsyncThunk(
+	'auth/steamLogin',
+	async ({ code }: { code: string }, { rejectWithValue, dispatch }) => {
+		try {
+			const exchangeUrl = `${environment.baseUrl}${environment.apiRoutes.steam.exchange(code)}`
+			const response = await fetch(exchangeUrl)
+			if (!response.ok) throw new Error('Steam login exchange failed')
 
-		const user = await userService.getUserById(userId)
+			const data: {
+				token: string
+				refreshToken: string
+				userId: number
+				username: string
+				role: string
+				steamId?: string
+				steamNickname?: string
+				steamAvatarUrl?: string
+			} = await response.json()
 
-		return { token, user }
-	} catch (error) {
-		if (error instanceof Error) {
-			return rejectWithValue(error.message)
+			// Set token immediately so getUserById can authenticate
+			dispatch(setLoginToken(data.token))
+
+			const user = await userService.getUserById(data.userId)
+
+			return { token: data.token, refreshToken: data.refreshToken, user }
+		} catch (error) {
+			if (error instanceof Error) {
+				return rejectWithValue(error.message)
+			}
+			return rejectWithValue('Steam login failed')
 		}
-		return rejectWithValue('Steam login failed')
 	}
-})
+)
 
 /**
- * Async thunk: Logout user
+ * Async thunk: Logout user — revokes the refresh token server-side.
  */
-export const logoutUser = createAsyncThunk('auth/logout', async () => {
+export const logoutUser = createAsyncThunk('auth/logout', async (_, { getState }) => {
+	const state = getState() as { auth: AuthState }
+	const refreshToken = state.auth.refreshToken
+
+	if (refreshToken) {
+		try {
+			await fetch(`${environment.baseUrl}/users/logout`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ refreshToken }),
+			})
+		} catch {
+			// Best-effort; local state is cleared regardless
+		}
+	}
+
 	authService.logout()
 })
 
@@ -152,34 +188,22 @@ const authSlice = createSlice({
 	name: 'auth',
 	initialState,
 	reducers: {
-		/**
-		 * Clear authentication error
-		 */
 		clearError: (state) => {
 			state.error = null
 		},
 
-		/**
-		 * Restore authentication from redux-persist on app startup
-		 * Redux-persist automatically handles rehydration
-		 */
 		restoreAuth: () => {
-			// For now, redux-persist handles state restoration
+			// Redux-persist handles state restoration automatically
 		},
 
-		/**
-		 * Force logout (used when token expires during usage)
-		 */
 		forceLogout: (state) => {
 			state.isAuthenticated = false
 			state.user = null
 			state.token = null
+			state.refreshToken = null
 			state.error = null
 		},
 
-		/**
-		 * Update user preferences in local state
-		 */
 		setUserPreferences: (
 			state,
 			action: PayloadAction<{
@@ -201,9 +225,6 @@ const authSlice = createSlice({
 			}
 		},
 
-		/**
-		 * Update Steam profile in local state (after linking/unlinking)
-		 */
 		setSteamProfile: (
 			state,
 			action: PayloadAction<{
@@ -224,12 +245,22 @@ const authSlice = createSlice({
 				}
 			}
 		},
+
+		/**
+		 * Called by customFetch after a successful silent token refresh.
+		 * Updates both access token and refresh token in the store.
+		 */
+		setRefreshedTokens: (state, action: PayloadAction<{ token: string; refreshToken: string }>) => {
+			state.token = action.payload.token
+			state.refreshToken = action.payload.refreshToken
+		},
 	},
 	extraReducers: (builder) => {
 		builder.addCase(setLoginToken, (state, action) => {
 			state.token = action.payload
 		})
 
+		// Steam login
 		builder
 			.addCase(steamLoginUser.pending, (state) => {
 				state.loading = true
@@ -238,6 +269,7 @@ const authSlice = createSlice({
 			.addCase(steamLoginUser.fulfilled, (state, action) => {
 				state.isAuthenticated = true
 				state.token = action.payload.token
+				state.refreshToken = action.payload.refreshToken
 				state.user = mapUserToAuthState(action.payload.user)
 				state.error = null
 				state.loading = false
@@ -246,6 +278,7 @@ const authSlice = createSlice({
 				state.isAuthenticated = false
 				state.user = null
 				state.token = null
+				state.refreshToken = null
 				state.error = action.payload as string
 				state.loading = false
 			})
@@ -268,6 +301,7 @@ const authSlice = createSlice({
 					steamAvatarUrl: action.payload.steamAvatarUrl,
 				}
 				state.token = action.payload.token
+				state.refreshToken = action.payload.refreshToken
 				state.error = null
 			})
 			.addCase(loginUser.rejected, (state, action) => {
@@ -275,6 +309,7 @@ const authSlice = createSlice({
 				state.isAuthenticated = false
 				state.user = null
 				state.token = null
+				state.refreshToken = null
 				state.error = action.payload as string
 			})
 
@@ -283,6 +318,7 @@ const authSlice = createSlice({
 			state.isAuthenticated = false
 			state.user = null
 			state.token = null
+			state.refreshToken = null
 			state.error = null
 		})
 
@@ -332,5 +368,5 @@ const authSlice = createSlice({
 	},
 })
 
-export const { clearError, restoreAuth, forceLogout, setUserPreferences, setSteamProfile } = authSlice.actions
+export const { clearError, restoreAuth, forceLogout, setUserPreferences, setSteamProfile, setRefreshedTokens } = authSlice.actions
 export default authSlice.reducer

@@ -78,6 +78,7 @@ const authenticatedState = {
 		isAuthenticated: true,
 		user: { id: 1, username: 'user', role: 'Standard' as const, email: '', useScoreColors: false, scoreProvider: 'Metacritic' },
 		token: 'tok',
+			refreshToken: null,
 		loading: false,
 		error: null,
 	},
@@ -88,13 +89,15 @@ const adminState = {
 		isAuthenticated: true,
 		user: { id: 2, username: 'admin', role: 'Admin' as const, email: '', useScoreColors: false, scoreProvider: 'Metacritic' },
 		token: 'tok',
+			refreshToken: null,
 		loading: false,
 		error: null,
 	},
 }
 
 const unauthenticatedState = {
-	auth: { isAuthenticated: false, user: null, token: null, loading: false, error: null },
+	auth: { isAuthenticated: false, user: null, token: null,
+			refreshToken: null, loading: false, error: null },
 }
 
 describe('ProtectedRoute', () => {

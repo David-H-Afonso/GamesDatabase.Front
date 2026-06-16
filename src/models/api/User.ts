@@ -33,6 +33,7 @@ export interface LoginResponse {
 	username: string
 	role: UserRole
 	token: string
+	refreshToken: string
 	steamId?: string
 	steamNickname?: string
 	steamAvatarUrl?: string

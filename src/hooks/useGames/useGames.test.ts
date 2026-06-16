@@ -105,7 +105,7 @@ describe('useGames', () => {
 	beforeEach(() => {
 		resetIdCounter()
 		store = createTestStore()
-		initCustomFetch(store, mockPersistor, mockForceLogout)
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 	})
 
 	// ── Initial state ──────────────────────────────────────────────────────────
@@ -259,7 +259,7 @@ describe('useGames', () => {
 				needsRefresh: false,
 			} as any,
 		})
-		initCustomFetch(store, mockPersistor, mockForceLogout)
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 
 		const updated = makeGame({ id: 10, name: 'New Name' })
 		server.use(http.put(`${BASE}/games/10`, () => HttpResponse.json(updated)))
@@ -295,7 +295,7 @@ describe('useGames', () => {
 				needsRefresh: false,
 			} as any,
 		})
-		initCustomFetch(store, mockPersistor, mockForceLogout)
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
 
 		server.use(http.delete(`${BASE}/games/42`, () => new HttpResponse(null, { status: 204 })))
 

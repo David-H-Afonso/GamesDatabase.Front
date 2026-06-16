@@ -8,23 +8,35 @@ type FetchRefs = {
 	store: AnyStore | null
 	persistor: AnyPersistor | null
 	forceLogout: (() => { type: string }) | null
+	setRefreshedTokens: ((tokens: { token: string; refreshToken: string }) => { type: string }) | null
 	handlingUnauthorized: boolean
 	pending: Set<AbortController>
+	/** Shared promise while a refresh is in-flight — prevents multiple parallel refresh calls */
+	refreshPromise: Promise<boolean> | null
 }
 
 const refs: FetchRefs = ((globalThis as any).__customFetchRefs ??= {
 	store: null,
 	persistor: null,
 	forceLogout: null,
+	setRefreshedTokens: null,
 	handlingUnauthorized: false,
 	pending: new Set<AbortController>(),
+	refreshPromise: null,
 })
 
-export function initCustomFetch(store: AnyStore, persistor: AnyPersistor, forceLogout: () => { type: string }) {
+export function initCustomFetch(
+	store: AnyStore,
+	persistor: AnyPersistor,
+	forceLogout: () => { type: string },
+	setRefreshedTokens: (tokens: { token: string; refreshToken: string }) => { type: string }
+) {
 	refs.store = store
 	refs.persistor = persistor
 	refs.forceLogout = forceLogout
+	refs.setRefreshedTokens = setRefreshedTokens
 	refs.handlingUnauthorized = false
+	refs.refreshPromise = null
 }
 
 export function purgePersistedState(): void {
@@ -33,16 +45,14 @@ export function purgePersistedState(): void {
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS'
 
+// ── Force-logout (aborts pending requests + redirects to /login) ──────────────
+
 const handleUnauthorizedAccess = () => {
 	if (refs.handlingUnauthorized) return
 	refs.handlingUnauthorized = true
 
 	for (const controller of refs.pending) {
-		try {
-			controller.abort('Session expired')
-		} catch {
-			/* already aborted */
-		}
+		try { controller.abort('Session expired') } catch { /* already aborted */ }
 	}
 	refs.pending.clear()
 
@@ -66,6 +76,49 @@ const handleUnauthorizedAccess = () => {
 	}, 100)
 }
 
+// ── Refresh token logic ───────────────────────────────────────────────────────
+
+/**
+ * Attempts to obtain a new access token using the stored refresh token.
+ * Multiple concurrent 401 responses share the same in-flight refresh call.
+ * Returns true if the token was refreshed and stored, false otherwise.
+ */
+const tryRefreshToken = (): Promise<boolean> => {
+	if (refs.refreshPromise) return refs.refreshPromise
+
+	refs.refreshPromise = (async (): Promise<boolean> => {
+		try {
+			const refreshToken = refs.store?.getState().auth?.refreshToken
+			if (!refreshToken) return false
+
+			const baseUrl = environment.baseUrl
+			const response = await fetch(`${baseUrl}/users/refresh`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ refreshToken }),
+			})
+
+			if (!response.ok) return false
+
+			const data: { token: string; refreshToken: string } = await response.json()
+
+			if (refs.store && refs.setRefreshedTokens) {
+				refs.store.dispatch(refs.setRefreshedTokens({ token: data.token, refreshToken: data.refreshToken }))
+			}
+
+			return true
+		} catch {
+			return false
+		} finally {
+			refs.refreshPromise = null
+		}
+	})()
+
+	return refs.refreshPromise
+}
+
+// ── Main fetch wrapper ────────────────────────────────────────────────────────
+
 type CustomFetchOptions = {
 	method?: HttpMethod
 	headers?: Record<string, string>
@@ -74,12 +127,12 @@ type CustomFetchOptions = {
 	signal?: AbortSignal
 	timeout?: number
 	baseURL?: string
+	/** Internal flag: prevents a second refresh attempt on a retried request */
+	_skipRefresh?: boolean
 }
 
 const buildQueryString = (queryParameters?: Record<string, string | number | boolean | number[]>): string => {
-	if (!queryParameters || Object.keys(queryParameters).length === 0) {
-		return ''
-	}
+	if (!queryParameters || Object.keys(queryParameters).length === 0) return ''
 
 	const encodeURIComponent = window.encodeURIComponent
 	const queryPairs: string[] = []
@@ -99,47 +152,35 @@ const buildQueryString = (queryParameters?: Record<string, string | number | boo
 	return queryPairs.length > 0 ? `?${queryPairs.join('&')}` : ''
 }
 
-const shouldSerializeAsJson = (requestBody: any): boolean => {
-	return (
-		typeof requestBody === 'object' &&
-		requestBody !== null &&
-		!(requestBody instanceof FormData) &&
-		!(requestBody instanceof URLSearchParams) &&
-		!(requestBody instanceof Blob) &&
-		!(requestBody instanceof ArrayBuffer)
-	)
-}
+const shouldSerializeAsJson = (requestBody: any): boolean =>
+	typeof requestBody === 'object' &&
+	requestBody !== null &&
+	!(requestBody instanceof FormData) &&
+	!(requestBody instanceof URLSearchParams) &&
+	!(requestBody instanceof Blob) &&
+	!(requestBody instanceof ArrayBuffer)
 
 const parseResponseData = async (httpResponse: Response): Promise<any> => {
 	const responseContentType = httpResponse.headers.get('content-type') || ''
 
-	if (responseContentType.includes('application/json')) {
-		return await httpResponse.json()
-	}
-
-	if (responseContentType.includes('text/')) {
-		return await httpResponse.text()
-	}
-
-	if (responseContentType.includes('application/zip') || responseContentType.includes('application/octet-stream') || responseContentType.includes('image/')) {
+	if (responseContentType.includes('application/json')) return await httpResponse.json()
+	if (responseContentType.includes('text/')) return await httpResponse.text()
+	if (
+		responseContentType.includes('application/zip') ||
+		responseContentType.includes('application/octet-stream') ||
+		responseContentType.includes('image/')
+	)
 		return await httpResponse.blob()
-	}
-
 	return await httpResponse.text()
 }
 
-const createTimeoutPromise = (timeoutMs: number): Promise<never> => {
-	return new Promise((_, reject) => {
-		setTimeout(() => {
-			reject(new Error(`Request timeout after ${timeoutMs}ms`))
-		}, timeoutMs)
+const createTimeoutPromise = (timeoutMs: number): Promise<never> =>
+	new Promise((_, reject) => {
+		setTimeout(() => reject(new Error(`Request timeout after ${timeoutMs}ms`)), timeoutMs)
 	})
-}
 
 export const customFetch = async <T = any>(endpoint: string, requestOptions: CustomFetchOptions = {}): Promise<T> => {
-	if (refs.handlingUnauthorized) {
-		throw new Error('Request cancelled')
-	}
+	if (refs.handlingUnauthorized) throw new Error('Request cancelled')
 
 	const {
 		method = 'GET',
@@ -149,10 +190,11 @@ export const customFetch = async <T = any>(endpoint: string, requestOptions: Cus
 		signal: abortSignal,
 		timeout: timeoutMs,
 		baseURL: baseUrl = environment.baseUrl,
+		_skipRefresh = false,
 	} = requestOptions
 
 	const completeUrl = baseUrl + endpoint + buildQueryString(queryParams)
-	const token = refs.store?.getState().auth.token
+	const token = refs.store?.getState().auth?.token
 	const hasAuthToken = Boolean(token)
 
 	const controller = new AbortController()
@@ -187,11 +229,23 @@ export const customFetch = async <T = any>(endpoint: string, requestOptions: Cus
 
 	try {
 		const fetchPromise = fetch(completeUrl, fetchConfiguration)
-		const httpResponse = timeoutMs ? await Promise.race([fetchPromise, createTimeoutPromise(timeoutMs)]) : await fetchPromise
+		const httpResponse = timeoutMs
+			? await Promise.race([fetchPromise, createTimeoutPromise(timeoutMs)])
+			: await fetchPromise
 		const responseData = await parseResponseData(httpResponse)
 
 		if (!httpResponse.ok) {
 			if (httpResponse.status === 401) {
+				// ── Refresh token flow ────────────────────────────────────────
+				// Only attempt refresh once per request (skipRefresh guards the retry)
+				if (hasAuthToken && !_skipRefresh) {
+					const refreshed = await tryRefreshToken()
+					if (refreshed) {
+						// Retry the original request with the newly stored token
+						return customFetch<T>(endpoint, { ...requestOptions, _skipRefresh: true })
+					}
+				}
+				// Refresh failed or no refresh token — force logout
 				if (hasAuthToken) {
 					handleUnauthorizedAccess()
 					throw new Error('Session expired. Please login again.')
@@ -204,12 +258,9 @@ export const customFetch = async <T = any>(endpoint: string, requestOptions: Cus
 
 		return responseData as T
 	} catch (fetchError) {
-		if (fetchError instanceof Error && fetchError.name === 'AbortError') {
-			throw new Error('Request cancelled')
-		}
-		if (fetchError instanceof Error) {
+		if (fetchError instanceof Error && fetchError.name === 'AbortError') throw new Error('Request cancelled')
+		if (fetchError instanceof Error)
 			throw new Error(`Request failed for ${method} ${completeUrl}: ${fetchError.message}`)
-		}
 		throw fetchError
 	} finally {
 		refs.pending.delete(controller)

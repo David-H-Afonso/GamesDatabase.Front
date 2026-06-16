@@ -11,6 +11,7 @@ const baseState = {
 		isAuthenticated: true,
 		user: { id: 1, username: 'Admin', role: 'Admin' },
 		token: 'tok',
+			refreshToken: null,
 		loading: false,
 		error: null,
 	},

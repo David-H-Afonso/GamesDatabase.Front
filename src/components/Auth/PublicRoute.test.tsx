@@ -78,7 +78,8 @@ const authenticatedState = {
 }
 
 const unauthenticatedState = {
-	auth: { isAuthenticated: false, user: null, token: null, loading: false, error: null },
+	auth: { isAuthenticated: false, user: null, token: null,
+			refreshToken: null, loading: false, error: null },
 }
 
 describe('PublicRoute', () => {

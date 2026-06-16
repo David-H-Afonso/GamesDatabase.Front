@@ -109,6 +109,7 @@ const defaultState: Partial<RootState> = {
 	auth: {
 		user: { id: 1, username: 'test' },
 		token: 'tok',
+			refreshToken: null,
 		isLoggedIn: true,
 		loading: false,
 		error: null,
