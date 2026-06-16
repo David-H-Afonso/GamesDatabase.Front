@@ -34,9 +34,11 @@ export const router = createHashRouter([
 	{
 		path: '/settings',
 		element: (
-			<AppLayout>
-				<Home />
-			</AppLayout>
+			<ProtectedRoute>
+				<AppLayout>
+					<Home />
+				</AppLayout>
+			</ProtectedRoute>
 		),
 	},
 	{
