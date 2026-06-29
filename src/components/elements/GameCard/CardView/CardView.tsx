@@ -183,7 +183,7 @@ const CardView: FC<CardViewProps> = (props) => {
 									<PriceComparisonIcon width={16} height={16} color='#f9fafb' focusable={false} />
 								</span>
 							)}
-							<span className='game-card-score game-card-score--grade'>{game.grade ?? t('game.card.na')}</span>
+							{game.grade != null && <span className='game-card-score game-card-score--grade'>{game.grade}</span>}
 							{game.critic != null && !isNaN(game.critic) && (
 								<span
 									className='game-card-score game-card-score--critic'

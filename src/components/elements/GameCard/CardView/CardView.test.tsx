@@ -121,7 +121,7 @@ const preloadedState = {
 		isAuthenticated: true,
 		user: { id: 1, username: 'test', role: 'Admin', useScoreColors: false, scoreProvider: 'Metacritic', showPriceComparisonIcon: false },
 		token: 'tok',
-			refreshToken: null,
+		refreshToken: null,
 		loading: false,
 		error: null,
 	},
@@ -168,13 +168,13 @@ describe('CardView', () => {
 		expect(screen.getByText('8')).toBeInTheDocument()
 	})
 
-	it('renders N/A when grade is undefined', async () => {
+	it('hides grade when undefined', async () => {
 		const CardView = await loadComponent()
 		const game = createGame({ grade: undefined })
-		renderWithProviders(<CardView game={game} openDetails={mockOpenDetails} playWithColors={[]} gameStatusColor='#4CAF50' platformColor='#2196F3' />, {
+		const { container } = renderWithProviders(<CardView game={game} openDetails={mockOpenDetails} playWithColors={[]} gameStatusColor='#4CAF50' platformColor='#2196F3' />, {
 			preloadedState: preloadedState as any,
 		})
-		expect(screen.getAllByText('N/A').length).toBeGreaterThanOrEqual(1)
+		expect(container.querySelector('.game-card-score--grade')).toBeNull()
 	})
 
 	it('renders score', async () => {
