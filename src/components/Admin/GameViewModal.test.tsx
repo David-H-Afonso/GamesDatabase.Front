@@ -1,5 +1,6 @@
-import { render, screen } from '@testing-library/react'
+import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { renderWithProviders as render } from '@/test/utils/renderWithProviders'
 
 const mockCreateGameView = vi.fn().mockResolvedValue({ id: 1 })
 const mockUpdateGameView = vi.fn().mockResolvedValue(undefined)
@@ -57,7 +58,7 @@ describe('GameViewModal', () => {
 		const C = await loadComponent()
 		const view = { id: 1, name: 'Test View', configuration: { filterGroups: [], sorting: [] }, isPublic: true }
 		render(<C gameView={view as any} onClose={mockOnClose} onSave={mockOnSave} />)
-		expect(screen.getByText('Editar Vista')).toBeInTheDocument()
+		expect(screen.getByText('Editar')).toBeInTheDocument()
 		expect(screen.getByDisplayValue('Test View')).toBeInTheDocument()
 	})
 
@@ -71,20 +72,20 @@ describe('GameViewModal', () => {
 		const C = await loadComponent()
 		render(<C onClose={mockOnClose} onSave={mockOnSave} />)
 		expect(screen.getByText('Filtros')).toBeInTheDocument()
-		expect(screen.getByText('Ordenamiento')).toBeInTheDocument()
+		expect(screen.getByText('Ordenación')).toBeInTheDocument()
 	})
 
 	it('shows empty state for sorting', async () => {
 		const C = await loadComponent()
 		render(<C onClose={mockOnClose} onSave={mockOnSave} />)
-		expect(screen.getByText('No hay ordenamientos configurados')).toBeInTheDocument()
+		expect(screen.getByText('Sin ordenaciones configuradas')).toBeInTheDocument()
 	})
 
 	it('has add group and add sorting buttons', async () => {
 		const C = await loadComponent()
 		render(<C onClose={mockOnClose} onSave={mockOnSave} />)
-		expect(screen.getByText('Agregar Grupo')).toBeInTheDocument()
-		expect(screen.getByText('Agregar Ordenamiento')).toBeInTheDocument()
+		expect(screen.getByText('Añadir Grupo')).toBeInTheDocument()
+		expect(screen.getByText('Añadir Ordenación')).toBeInTheDocument()
 	})
 
 	it('calls onClose when close button is clicked', async () => {

@@ -16,7 +16,7 @@ const prefsState = {
 			showPriceComparisonIcon: false,
 		},
 		token: 'tok',
-			refreshToken: null,
+		refreshToken: null,
 		loading: false,
 		error: null,
 	},
@@ -33,25 +33,25 @@ describe('AdminPreferences', () => {
 	it('renders preferences title', async () => {
 		const C = await loadComponent()
 		renderWithProviders(<C />, { preloadedState: prefsState as any })
-		expect(screen.getByText('User Preferences')).toBeInTheDocument()
+		expect(screen.getByText('Preferencias de Usuario')).toBeInTheDocument()
 	})
 
 	it('renders score colors toggle', async () => {
 		const C = await loadComponent()
 		renderWithProviders(<C />, { preloadedState: prefsState as any })
-		expect(screen.getByText('Metacritic Score Colors')).toBeInTheDocument()
+		expect(screen.getByText('Colores de Puntuación Metacritic')).toBeInTheDocument()
 	})
 
 	it('renders score provider selector', async () => {
 		const C = await loadComponent()
 		renderWithProviders(<C />, { preloadedState: prefsState as any })
-		expect(screen.getByLabelText('Score Provider Logo')).toBeInTheDocument()
+		expect(screen.getByLabelText('Logo del Proveedor de Puntuación')).toBeInTheDocument()
 	})
 
 	it('renders price comparison toggle', async () => {
 		const C = await loadComponent()
 		renderWithProviders(<C />, { preloadedState: prefsState as any })
-		expect(screen.getByText('Price Comparison Icon')).toBeInTheDocument()
+		expect(screen.getByText('Icono de Comparación de Precios')).toBeInTheDocument()
 	})
 
 	it('toggles score colors', async () => {

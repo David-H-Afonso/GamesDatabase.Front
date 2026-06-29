@@ -35,7 +35,7 @@ describe('ErrorBoundary', () => {
 				<ThrowingChild message='Test crash' />
 			</ErrorBoundary>
 		)
-		expect(screen.getByText('Something went wrong')).toBeInTheDocument()
+		expect(screen.getByText('Algo salió mal')).toBeInTheDocument()
 		expect(screen.getByText('Test crash')).toBeInTheDocument()
 	})
 
@@ -48,7 +48,7 @@ describe('ErrorBoundary', () => {
 				<ThrowEmpty />
 			</ErrorBoundary>
 		)
-		expect(screen.getByText('Something went wrong')).toBeInTheDocument()
+		expect(screen.getByText('Algo salió mal')).toBeInTheDocument()
 	})
 
 	it('shows "Return to Home" and "Reload Page" buttons', () => {
@@ -57,8 +57,8 @@ describe('ErrorBoundary', () => {
 				<ThrowingChild message='crash' />
 			</ErrorBoundary>
 		)
-		expect(screen.getByText('Return to Home')).toBeInTheDocument()
-		expect(screen.getByText('Reload Page')).toBeInTheDocument()
+		expect(screen.getByText('Volver al Inicio')).toBeInTheDocument()
+		expect(screen.getByText('Recargar página')).toBeInTheDocument()
 	})
 
 	it('navigates to / when "Return to Home" is clicked', async () => {
@@ -76,7 +76,7 @@ describe('ErrorBoundary', () => {
 			</ErrorBoundary>
 		)
 
-		await user.click(screen.getByText('Return to Home'))
+		await user.click(screen.getByText('Volver al Inicio'))
 		expect(globalThis.location.href).toBe('/')
 	})
 
@@ -95,7 +95,7 @@ describe('ErrorBoundary', () => {
 			</ErrorBoundary>
 		)
 
-		await user.click(screen.getByText('Reload Page'))
+		await user.click(screen.getByText('Recargar página'))
 		expect(reloadMock).toHaveBeenCalled()
 	})
 })

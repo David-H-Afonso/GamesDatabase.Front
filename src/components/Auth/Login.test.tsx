@@ -87,28 +87,27 @@ describe('Login', () => {
 
 	beforeEach(() => {
 		store = createTestStore()
-		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: 'auth/setRefreshedTokens', payload: { token: '', refreshToken: '' } }))
 	})
 
 	// ── Rendering ─────────────────────────────────────────────────────────────
 
 	it('renders username and password fields', () => {
 		renderWithProviders(<Login />, { store })
-		expect(screen.getByPlaceholderText(/username/i)).toBeInTheDocument()
-		expect(screen.getByPlaceholderText(/password/i)).toBeInTheDocument()
+		expect(screen.getByPlaceholderText(/usuario/i)).toBeInTheDocument()
+		expect(screen.getByPlaceholderText(/contraseña/i)).toBeInTheDocument()
 	})
 
 	it('renders the submit button', () => {
 		renderWithProviders(<Login />, { store })
-		expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: /^iniciar sesión$/i })).toBeInTheDocument()
 	})
 
 	// ── Error display ─────────────────────────────────────────────────────────
 
 	it('displays the error message when auth.error is set', () => {
 		store = createTestStore({
-			auth: { isAuthenticated: false, user: null, token: null,
-			refreshToken: null, loading: false, error: 'Invalid credentials' },
+			auth: { isAuthenticated: false, user: null, token: null, refreshToken: null, loading: false, error: 'Invalid credentials' },
 		} as any)
 		renderWithProviders(<Login />, { store })
 		expect(screen.getByText(/invalid credentials/i)).toBeInTheDocument()
@@ -140,15 +139,15 @@ describe('Login', () => {
 					username: 'Admin',
 					role: 'Admin',
 					token: 'test-token',
-			refreshToken: null,
+					refreshToken: null,
 				})
 			)
 		)
 		renderWithProviders(<Login />, { store })
 
-		await userEvent.type(screen.getByPlaceholderText(/username/i), 'Admin')
-		await userEvent.type(screen.getByPlaceholderText(/password/i), 'pass')
-		await userEvent.click(screen.getByRole('button', { name: /sign in/i }))
+		await userEvent.type(screen.getByPlaceholderText(/usuario/i), 'Admin')
+		await userEvent.type(screen.getByPlaceholderText(/contraseña/i), 'pass')
+		await userEvent.click(screen.getByRole('button', { name: /^iniciar sesión$/i }))
 
 		await waitFor(() => {
 			expect(store.getState().auth.isAuthenticated).toBe(true)
@@ -159,9 +158,9 @@ describe('Login', () => {
 		server.use(http.post(`${BASE}/users/login`, () => HttpResponse.json({ message: 'Invalid credentials' }, { status: 401 })))
 		renderWithProviders(<Login />, { store })
 
-		await userEvent.type(screen.getByPlaceholderText(/username/i), 'Admin')
-		await userEvent.type(screen.getByPlaceholderText(/password/i), 'wrong')
-		await userEvent.click(screen.getByRole('button', { name: /sign in/i }))
+		await userEvent.type(screen.getByPlaceholderText(/usuario/i), 'Admin')
+		await userEvent.type(screen.getByPlaceholderText(/contraseña/i), 'wrong')
+		await userEvent.click(screen.getByRole('button', { name: /^iniciar sesión$/i }))
 
 		await waitFor(() => {
 			expect(store.getState().auth.error).not.toBeNull()

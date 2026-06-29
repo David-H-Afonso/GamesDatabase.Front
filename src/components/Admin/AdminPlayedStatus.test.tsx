@@ -56,8 +56,8 @@ describe('AdminPlayedStatus', () => {
 		const C = await loadComponent()
 		const user = userEvent.setup()
 		renderWithProviders(<C />)
-		await user.click(screen.getByText('Nuevo Estado'))
-		expect(screen.getByText('Nuevo Estado', { selector: 'h2' })).toBeInTheDocument()
+		await user.click(screen.getByText('Nueva Opción'))
+		expect(screen.getByText('Nueva Opción', { selector: 'h2' })).toBeInTheDocument()
 	})
 
 	it('opens edit modal with prefilled data', async () => {
@@ -84,7 +84,7 @@ describe('AdminPlayedStatus', () => {
 		const C = await loadComponent()
 		const user = userEvent.setup()
 		renderWithProviders(<C />)
-		await user.click(screen.getByText('Nuevo Estado'))
+		await user.click(screen.getByText('Nueva Opción'))
 		await user.type(screen.getByLabelText('Nombre'), 'On Hold')
 		await user.click(screen.getByText('Crear'))
 		expect(mockCreatePlayedStatus).toHaveBeenCalledWith(expect.objectContaining({ name: 'On Hold' }))

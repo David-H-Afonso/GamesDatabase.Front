@@ -24,7 +24,7 @@ const adminState = {
 		isAuthenticated: true,
 		user: { id: 1, username: 'Admin', role: 'Admin' },
 		token: 'tok',
-			refreshToken: null,
+		refreshToken: null,
 		loading: false,
 		error: null,
 	},
@@ -41,7 +41,7 @@ describe('AdminUsers', () => {
 	it('renders users title', async () => {
 		const C = await loadComponent()
 		renderWithProviders(<C />, { preloadedState: adminState as any })
-		expect(screen.getByText('User Management')).toBeInTheDocument()
+		expect(screen.getByText('Gestión de Usuarios')).toBeInTheDocument()
 	})
 
 	it('loads and displays users', async () => {
@@ -64,7 +64,7 @@ describe('AdminUsers', () => {
 	it('has search functionality', async () => {
 		const C = await loadComponent()
 		renderWithProviders(<C />, { preloadedState: adminState as any })
-		const searchInput = screen.getByPlaceholderText('Search users by username or role...')
+		const searchInput = screen.getByPlaceholderText('Buscar usuarios por nombre o rol...')
 		expect(searchInput).toBeInTheDocument()
 	})
 
@@ -73,7 +73,7 @@ describe('AdminUsers', () => {
 		const user = userEvent.setup()
 		renderWithProviders(<C />, { preloadedState: adminState as any })
 		await vi.waitFor(() => expect(screen.getByText('Player1')).toBeInTheDocument())
-		const searchInput = screen.getByPlaceholderText('Search users by username or role...')
+		const searchInput = screen.getByPlaceholderText('Buscar usuarios por nombre o rol...')
 		await user.type(searchInput, 'Player')
 		expect(screen.getByText('Player1')).toBeInTheDocument()
 	})
@@ -82,8 +82,8 @@ describe('AdminUsers', () => {
 		const C = await loadComponent()
 		const user = userEvent.setup()
 		renderWithProviders(<C />, { preloadedState: adminState as any })
-		await user.click(screen.getByText('+ Create New User'))
-		expect(screen.getByText('Create New User', { selector: 'h2' })).toBeInTheDocument()
+		await user.click(screen.getByText('+ Crear Nuevo Usuario'))
+		expect(screen.getByText('Crear Nuevo Usuario', { selector: 'h2' })).toBeInTheDocument()
 	})
 
 	it('opens edit user modal', async () => {
@@ -91,21 +91,21 @@ describe('AdminUsers', () => {
 		const user = userEvent.setup()
 		renderWithProviders(<C />, { preloadedState: adminState as any })
 		await vi.waitFor(() => expect(screen.getByText('Player1')).toBeInTheDocument())
-		const editButtons = screen.getAllByText('Edit')
+		const editButtons = screen.getAllByText('Editar')
 		await user.click(editButtons[0])
-		expect(screen.getByText('Edit User')).toBeInTheDocument()
+		expect(screen.getByText('Editar Usuario')).toBeInTheDocument()
 	})
 
 	it('submits create user form', async () => {
 		const C = await loadComponent()
 		const user = userEvent.setup()
 		renderWithProviders(<C />, { preloadedState: adminState as any })
-		await user.click(screen.getByText('+ Create New User'))
+		await user.click(screen.getByText('+ Crear Nuevo Usuario'))
 		// Labels lack htmlFor, so query by role
 		const inputs = screen.getAllByRole('textbox')
 		const usernameInput = inputs[inputs.length - 1] // last textbox in modal
 		await user.type(usernameInput, 'NewUser')
-		await user.click(screen.getByText('Create'))
+		await user.click(screen.getByText('Crear'))
 		await waitFor(() => {
 			expect(mockService.createUser).toHaveBeenCalled()
 		})
@@ -116,10 +116,10 @@ describe('AdminUsers', () => {
 		const user = userEvent.setup()
 		renderWithProviders(<C />, { preloadedState: adminState as any })
 		await vi.waitFor(() => expect(screen.getByText('Player1')).toBeInTheDocument())
-		const editButtons = screen.getAllByText('Edit')
+		const editButtons = screen.getAllByText('Editar')
 		await user.click(editButtons[editButtons.length - 1])
-		await vi.waitFor(() => expect(screen.getByText('Edit User')).toBeInTheDocument())
-		await user.click(screen.getByText('Update'))
+		await vi.waitFor(() => expect(screen.getByText('Editar Usuario')).toBeInTheDocument())
+		await user.click(screen.getByText('Actualizar'))
 		await waitFor(() => {
 			expect(mockService.updateUser).toHaveBeenCalled()
 		})
@@ -130,9 +130,9 @@ describe('AdminUsers', () => {
 		const user = userEvent.setup()
 		renderWithProviders(<C />, { preloadedState: adminState as any })
 		await vi.waitFor(() => expect(screen.getByText('Player1')).toBeInTheDocument())
-		const deleteButtons = screen.getAllByText('Delete')
+		const deleteButtons = screen.getAllByText('Eliminar')
 		await user.click(deleteButtons[deleteButtons.length - 1])
-		expect(screen.getByText(/are you sure/i)).toBeInTheDocument()
+		expect(screen.getByText(/¿estás seguro/i)).toBeInTheDocument()
 	})
 
 	it('confirms delete user', async () => {
@@ -140,10 +140,10 @@ describe('AdminUsers', () => {
 		const user = userEvent.setup()
 		renderWithProviders(<C />, { preloadedState: adminState as any })
 		await vi.waitFor(() => expect(screen.getByText('Player1')).toBeInTheDocument())
-		const deleteButtons = screen.getAllByText('Delete')
+		const deleteButtons = screen.getAllByText('Eliminar')
 		await user.click(deleteButtons[deleteButtons.length - 1])
-		await vi.waitFor(() => expect(screen.getByText(/are you sure/i)).toBeInTheDocument())
-		await user.click(screen.getByText('Yes, Delete User'))
+		await vi.waitFor(() => expect(screen.getByText(/¿estás seguro/i)).toBeInTheDocument())
+		await user.click(screen.getByText('Sí, Eliminar Usuario'))
 		await waitFor(() => {
 			expect(mockService.deleteUser).toHaveBeenCalledWith(2)
 		})
@@ -154,9 +154,9 @@ describe('AdminUsers', () => {
 		const user = userEvent.setup()
 		renderWithProviders(<C />, { preloadedState: adminState as any })
 		await vi.waitFor(() => expect(screen.getByText('Player1')).toBeInTheDocument())
-		const pwButtons = screen.getAllByText('Change Password')
+		const pwButtons = screen.getAllByText('Cambiar Contraseña')
 		await user.click(pwButtons[0])
-		expect(screen.getByText(/new password/i)).toBeInTheDocument()
+		expect(screen.getByText(/nueva contraseña/i)).toBeInTheDocument()
 	})
 
 	it('handles load error gracefully', async () => {

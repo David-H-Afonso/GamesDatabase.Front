@@ -75,7 +75,7 @@ describe('AdminGameViews', () => {
 	it('renders heading', async () => {
 		const C = await loadComponent()
 		render(<C />)
-		expect(screen.getByText('Gestión de Vistas de Juegos')).toBeInTheDocument()
+		expect(screen.getByText('Gestión de Vistas de Juego')).toBeInTheDocument()
 	})
 
 	it('renders game views in table', async () => {

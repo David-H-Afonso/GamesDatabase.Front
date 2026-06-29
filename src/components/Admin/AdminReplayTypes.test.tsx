@@ -54,7 +54,7 @@ describe('AdminReplayTypes', () => {
 		render(<C />)
 		await vi.waitFor(() => expect(screen.getByText('New Game+')).toBeInTheDocument())
 		await user.click(screen.getByText('Nuevo Tipo'))
-		expect(screen.getByText('Nuevo Tipo de Rejugada', { selector: 'h2' })).toBeInTheDocument()
+		expect(screen.getByText('Nuevo Tipo', { selector: 'h2' })).toBeInTheDocument()
 	})
 
 	it('opens edit modal with prefilled data', async () => {

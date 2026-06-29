@@ -149,7 +149,7 @@ const authenticatedState = {
 		isAuthenticated: true,
 		user: { id: 1, username: 'TestUser', role: 'Admin' as const },
 		token: 'test-token',
-			refreshToken: null,
+		refreshToken: null,
 		loading: false,
 		error: null,
 	},
@@ -160,7 +160,7 @@ describe('Game CRUD Flow — Integration', () => {
 
 	beforeEach(() => {
 		store = createTestStore(authenticatedState)
-		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: 'auth/setRefreshedTokens', payload: { token: '', refreshToken: '' } }))
 		// getPublicGameViews expects GameView[] directly (not paged result)
 		server.use(
 			http.get(`${BASE}/gameviews`, () => HttpResponse.json([])),
@@ -185,8 +185,8 @@ describe('Game CRUD Flow — Integration', () => {
 		const gameName = await screen.findByRole('heading', { level: 3, name: 'Dark Souls' })
 		await userEvent.click(gameName)
 
-		// GameDetails renders an sr-only h2 with "Game details: <name>"
-		await screen.findByRole('heading', { name: /Game details: Dark Souls/i })
+		// GameDetails renders an sr-only h2 with "Detalles del juego: <name>"
+		await screen.findByRole('heading', { name: /Detalles del juego: Dark Souls/i })
 	})
 
 	// ── 5.1 Ver detalles: panel shows correct data ────────────────────────────
@@ -198,7 +198,7 @@ describe('Game CRUD Flow — Integration', () => {
 		await userEvent.click(gameName)
 
 		await waitFor(() => {
-			expect(screen.getByRole('heading', { name: /Game details: Dark Souls/i })).toBeInTheDocument()
+			expect(screen.getByRole('heading', { name: /Detalles del juego: Dark Souls/i })).toBeInTheDocument()
 		})
 	})
 
@@ -211,15 +211,15 @@ describe('Game CRUD Flow — Integration', () => {
 		await userEvent.click(gameName)
 
 		// Verify panel is open
-		await screen.findByRole('heading', { name: /Game details: Dark Souls/i })
+		await screen.findByRole('heading', { name: /Detalles del juego: Dark Souls/i })
 
 		// Close the panel
-		const closeBtn = screen.getByRole('button', { name: /close details/i })
+		const closeBtn = screen.getByRole('button', { name: /cerrar detalles/i })
 		await userEvent.click(closeBtn)
 
 		// Panel should be gone (or in closing animation — but with css:false it disappears)
 		await waitFor(() => {
-			expect(screen.queryByRole('heading', { name: /Game details: Dark Souls/i })).not.toBeInTheDocument()
+			expect(screen.queryByRole('heading', { name: /Detalles del juego: Dark Souls/i })).not.toBeInTheDocument()
 		})
 	})
 })

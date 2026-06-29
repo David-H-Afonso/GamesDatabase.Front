@@ -10,17 +10,17 @@ describe('NotFound', () => {
 
 	it('renders "Page Not Found" heading', () => {
 		renderWithProviders(<NotFound />)
-		expect(screen.getByText('Page Not Found')).toBeInTheDocument()
+		expect(screen.getByText('Página no encontrada')).toBeInTheDocument()
 	})
 
 	it('renders a description message', () => {
 		renderWithProviders(<NotFound />)
-		expect(screen.getByText('The page you are looking for does not exist or has been moved.')).toBeInTheDocument()
+		expect(screen.getByText('La página que buscas no existe o ha sido movida.')).toBeInTheDocument()
 	})
 
 	it('renders a link to home', () => {
 		renderWithProviders(<NotFound />)
-		const link = screen.getByRole('link', { name: 'Go to Home' })
+		const link = screen.getByRole('link', { name: 'Ir al Inicio' })
 		expect(link).toBeInTheDocument()
 		expect(link).toHaveAttribute('href', '/')
 	})

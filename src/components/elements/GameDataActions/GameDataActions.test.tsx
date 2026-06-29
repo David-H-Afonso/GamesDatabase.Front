@@ -20,18 +20,19 @@ async function loadComponent() {
 describe('GameDataActions', () => {
 	beforeEach(() => vi.clearAllMocks())
 
-	it('renders export button', async () => {
+	it('renders trigger button', async () => {
 		const C = await loadComponent()
 		renderWithProviders(<C />)
-		expect(screen.getByTitle('Export games to CSV')).toBeInTheDocument()
-		expect(screen.getByText('Export')).toBeInTheDocument()
+		expect(screen.getByTitle('Importar / Exportar')).toBeInTheDocument()
 	})
 
-	it('renders import button', async () => {
+	it('shows export/import options when opened', async () => {
 		const C = await loadComponent()
+		const user = userEvent.setup()
 		renderWithProviders(<C />)
-		expect(screen.getByTitle('Import games from CSV')).toBeInTheDocument()
-		expect(screen.getByText('Import')).toBeInTheDocument()
+		await user.click(screen.getByTitle('Importar / Exportar'))
+		expect(screen.getByText('Exportar')).toBeInTheDocument()
+		expect(screen.getByText('Importar')).toBeInTheDocument()
 	})
 
 	it('opens export modal when clicking export', async () => {
@@ -39,7 +40,8 @@ describe('GameDataActions', () => {
 		const user = userEvent.setup()
 		renderWithProviders(<C />)
 		expect(screen.queryByTestId('export-modal')).not.toBeInTheDocument()
-		await user.click(screen.getByTitle('Export games to CSV'))
+		await user.click(screen.getByTitle('Importar / Exportar'))
+		await user.click(screen.getByText('Exportar'))
 		expect(screen.getByTestId('export-modal')).toBeInTheDocument()
 	})
 
@@ -48,7 +50,8 @@ describe('GameDataActions', () => {
 		const user = userEvent.setup()
 		renderWithProviders(<C />)
 		expect(screen.queryByTestId('import-modal')).not.toBeInTheDocument()
-		await user.click(screen.getByTitle('Import games from CSV'))
+		await user.click(screen.getByTitle('Importar / Exportar'))
+		await user.click(screen.getByText('Importar'))
 		expect(screen.getByTestId('import-modal')).toBeInTheDocument()
 	})
 })

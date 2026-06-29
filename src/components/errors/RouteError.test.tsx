@@ -26,8 +26,8 @@ describe('RouteError', () => {
 	it('renders heading and "Go to Home" link', () => {
 		mockUseRouteError.mockReturnValue(new Error('fail'))
 		renderRouteError()
-		expect(screen.getByText('Oops! Something went wrong')).toBeInTheDocument()
-		expect(screen.getByRole('link', { name: 'Go to Home' })).toHaveAttribute('href', '/')
+		expect(screen.getByText('¡Vaya! Algo salió mal')).toBeInTheDocument()
+		expect(screen.getByRole('link', { name: 'Ir al Inicio' })).toHaveAttribute('href', '/')
 	})
 
 	it('displays the error message from an Error instance', () => {
@@ -51,7 +51,7 @@ describe('RouteError', () => {
 	it('displays fallback message for unknown errors', () => {
 		mockUseRouteError.mockReturnValue('some string error')
 		renderRouteError()
-		expect(screen.getByText('An unknown error occurred')).toBeInTheDocument()
+		expect(screen.getByText('Ocurrió un error desconocido')).toBeInTheDocument()
 	})
 
 	it('renders a "Reload Page" button that reloads', async () => {
@@ -66,7 +66,7 @@ describe('RouteError', () => {
 		mockUseRouteError.mockReturnValue(new Error('fail'))
 		renderRouteError()
 
-		await user.click(screen.getByText('Reload Page'))
+		await user.click(screen.getByText('Recargar página'))
 		expect(reloadMock).toHaveBeenCalled()
 	})
 })

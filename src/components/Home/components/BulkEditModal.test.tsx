@@ -1,5 +1,15 @@
-import { render, screen } from '@testing-library/react'
+import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { renderWithProviders as render } from '@/test/utils/renderWithProviders'
+
+vi.mock('@/hooks/useGameStatus/useGameStatus', () => ({
+	useGameStatus: () => ({
+		fetchActiveStatusList: vi.fn().mockResolvedValue([
+			{ id: 1, name: 'Playing' },
+			{ id: 2, name: 'Completed' },
+		]),
+	}),
+}))
 
 vi.mock('@/hooks', () => ({
 	useGameStatus: () => ({

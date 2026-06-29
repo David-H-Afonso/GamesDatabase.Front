@@ -11,7 +11,7 @@ const baseState = {
 		isAuthenticated: true,
 		user: { id: 1, username: 'Admin', role: 'Admin' },
 		token: 'tok',
-			refreshToken: null,
+		refreshToken: null,
 		loading: false,
 		error: null,
 	},
@@ -36,14 +36,14 @@ describe('MobileMenu', () => {
 		renderWithProviders(<MobileMenu isOpen={true} onClose={onClose} onLogout={onLogout} />, {
 			preloadedState: baseState as any,
 		})
-		expect(screen.getByText('Menu')).toBeInTheDocument()
+		expect(screen.getByText('Menú')).toBeInTheDocument()
 	})
 
 	it('renders nav links', () => {
 		renderWithProviders(<MobileMenu isOpen={true} onClose={onClose} onLogout={onLogout} />, {
 			preloadedState: baseState as any,
 		})
-		expect(screen.getByText('Home')).toBeInTheDocument()
+		expect(screen.getByText('Inicio')).toBeInTheDocument()
 		expect(screen.getAllByText('Admin').length).toBeGreaterThanOrEqual(1)
 	})
 
@@ -51,7 +51,7 @@ describe('MobileMenu', () => {
 		renderWithProviders(<MobileMenu isOpen={true} onClose={onClose} onLogout={onLogout} />, {
 			preloadedState: baseState as any,
 		})
-		expect(screen.getByText('Users')).toBeInTheDocument()
+		expect(screen.getByText('Usuarios')).toBeInTheDocument()
 	})
 
 	it('hides Users link for non-admin', () => {
@@ -64,7 +64,7 @@ describe('MobileMenu', () => {
 		renderWithProviders(<MobileMenu isOpen={true} onClose={onClose} onLogout={onLogout} />, {
 			preloadedState: standardState as any,
 		})
-		expect(screen.queryByText('Users')).not.toBeInTheDocument()
+		expect(screen.queryByText('Usuarios')).not.toBeInTheDocument()
 	})
 
 	it('shows current username', () => {
@@ -104,7 +104,7 @@ describe('MobileMenu', () => {
 		renderWithProviders(<MobileMenu isOpen={true} onClose={onClose} onLogout={onLogout} />, {
 			preloadedState: baseState as any,
 		})
-		await user.click(screen.getByText('Logout'))
+		await user.click(screen.getByText('Cerrar sesión'))
 		expect(onLogout).toHaveBeenCalledOnce()
 	})
 
@@ -113,7 +113,7 @@ describe('MobileMenu', () => {
 		renderWithProviders(<MobileMenu isOpen={true} onClose={onClose} onLogout={onLogout} />, {
 			preloadedState: baseState as any,
 		})
-		await user.click(screen.getByText('Home'))
+		await user.click(screen.getByText('Inicio'))
 		expect(onClose).toHaveBeenCalledOnce()
 	})
 })

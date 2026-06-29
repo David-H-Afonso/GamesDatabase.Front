@@ -14,6 +14,7 @@ const mockEntries = [
 	{
 		id: 2,
 		actionType: 'Updated',
+		field: 'Status',
 		description: 'Status changed',
 		oldValue: 'Playing',
 		newValue: 'Completed',
@@ -59,9 +60,9 @@ describe('GameHistoryTab', () => {
 		})
 
 		expect(screen.getByText('Creado')).toBeInTheDocument()
-		expect(screen.getByText('Game created')).toBeInTheDocument()
+		expect(screen.getAllByText(/Dark Souls/).length).toBeGreaterThanOrEqual(1)
 		expect(screen.getByText('Actualizado')).toBeInTheDocument()
-		expect(screen.getByText('Status changed')).toBeInTheDocument()
+		expect(screen.getByText(/Estado cambiado de/)).toBeInTheDocument()
 	})
 
 	it('shows old → new values for updated entries', async () => {
@@ -94,7 +95,7 @@ describe('GameHistoryTab', () => {
 			expect(screen.getByText('2 entradas')).toBeInTheDocument()
 		})
 
-		const deleteBtns = screen.getAllByTitle('Borrar entrada')
+		const deleteBtns = screen.getAllByTitle('Eliminar entrada')
 		await user.click(deleteBtns[0])
 
 		expect(mockDeleteHistoryEntry).toHaveBeenCalledWith(1, 1)
@@ -106,10 +107,10 @@ describe('GameHistoryTab', () => {
 		renderWithProviders(<GameHistoryTab gameId={1} />)
 
 		await waitFor(() => {
-			expect(screen.getByText('Borrar todo')).toBeInTheDocument()
+			expect(screen.getByText('Limpiar todo')).toBeInTheDocument()
 		})
 
-		await user.click(screen.getByText('Borrar todo'))
+		await user.click(screen.getByText('Limpiar todo'))
 
 		expect(mockClearGameHistory).toHaveBeenCalledWith(1)
 		vi.mocked(globalThis.confirm).mockRestore()

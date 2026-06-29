@@ -22,7 +22,7 @@ const adminState = {
 		isAuthenticated: true,
 		user: { id: 1, username: 'Admin', role: 'Admin' },
 		token: 'tok',
-			refreshToken: null,
+		refreshToken: null,
 		loading: false,
 		error: null,
 	},
@@ -34,7 +34,7 @@ const standardState = {
 		isAuthenticated: true,
 		user: { id: 2, username: 'Player', role: 'Standard' },
 		token: 'tok',
-			refreshToken: null,
+		refreshToken: null,
 		loading: false,
 		error: null,
 	},
@@ -50,9 +50,9 @@ describe('AdminLayout', () => {
 	it('renders all nav links', () => {
 		renderWithProviders(<AdminLayout />, { preloadedState: adminState as any, route: '/admin/platforms' })
 		expect(screen.getByText('Plataformas')).toBeInTheDocument()
-		expect(screen.getByText('Status')).toBeInTheDocument()
-		expect(screen.getByText('Play With')).toBeInTheDocument()
-		expect(screen.getByText('Played Status')).toBeInTheDocument()
+		expect(screen.getByText('Estado')).toBeInTheDocument()
+		expect(screen.getByText('Jugar con')).toBeInTheDocument()
+		expect(screen.getByText('Jugado')).toBeInTheDocument()
 		expect(screen.getByText('Tipos de Rejugada')).toBeInTheDocument()
 		expect(screen.getByText('Importar/Exportar')).toBeInTheDocument()
 		expect(screen.getByText('Vistas de Juego')).toBeInTheDocument()
@@ -62,7 +62,7 @@ describe('AdminLayout', () => {
 
 	it('shows Usuarios link for admin user', () => {
 		renderWithProviders(<AdminLayout />, { preloadedState: adminState as any, route: '/admin/platforms' })
-		expect(screen.getByText('Usuarios')).toBeInTheDocument()
+		expect(screen.getAllByText('Usuarios').length).toBeGreaterThanOrEqual(1)
 	})
 
 	it('hides Usuarios link for standard user', () => {
@@ -78,25 +78,25 @@ describe('AdminLayout', () => {
 
 	it('marks Usuarios link active when on users route', () => {
 		renderWithProviders(<AdminLayout />, { preloadedState: adminState as any, route: '/admin/users' })
-		const link = screen.getByText('Usuarios')
+		const link = screen.getAllByText('Usuarios').find((el) => el.className.includes('nav-link'))!
 		expect(link.className).toContain('active')
 	})
 
 	it('marks Status link active when on status route', () => {
 		renderWithProviders(<AdminLayout />, { preloadedState: adminState as any, route: '/admin/status' })
-		const link = screen.getByText('Status')
+		const link = screen.getByText('Estado')
 		expect(link.className).toContain('active')
 	})
 
 	it('marks Play With link active when on play-with route', () => {
 		renderWithProviders(<AdminLayout />, { preloadedState: adminState as any, route: '/admin/play-with' })
-		const link = screen.getByText('Play With')
+		const link = screen.getByText('Jugar con')
 		expect(link.className).toContain('active')
 	})
 
 	it('marks Played Status link active when on played-status route', () => {
 		renderWithProviders(<AdminLayout />, { preloadedState: adminState as any, route: '/admin/played-status' })
-		const link = screen.getByText('Played Status')
+		const link = screen.getByText('Jugado')
 		expect(link.className).toContain('active')
 	})
 

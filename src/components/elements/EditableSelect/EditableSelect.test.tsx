@@ -27,7 +27,7 @@ describe('EditableSelect', () => {
 	})
 
 	it('shows placeholder when displayValue is undefined', () => {
-		render(<EditableSelect {...defaultProps} displayValue={undefined} />)
+		render(<EditableSelect {...defaultProps} value={undefined} displayValue={undefined} />)
 		expect(screen.getByText('Select...')).toBeInTheDocument()
 	})
 

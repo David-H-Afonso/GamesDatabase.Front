@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import GameSelectorPanel from './GameSelectorPanel'
 import { getGames } from '@/services/GamesService'
+import i18n from '@/i18n'
 
 vi.mock('@/services/GamesService', () => ({
 	getGames: vi.fn(),
@@ -11,6 +12,10 @@ vi.mock('./GameSelectorPanel.scss', () => ({}))
 const mockGetGames = vi.mocked(getGames)
 
 describe('GameSelectorPanel', () => {
+	beforeAll(async () => {
+		await i18n.changeLanguage('en')
+	})
+
 	beforeEach(() => {
 		vi.clearAllMocks()
 		vi.useFakeTimers({ shouldAdvanceTime: true })

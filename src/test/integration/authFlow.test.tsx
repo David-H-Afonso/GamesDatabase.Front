@@ -137,16 +137,16 @@ describe('Auth Flow — Integration', () => {
 
 	beforeEach(() => {
 		store = createTestStore()
-		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: 'auth/setRefreshedTokens', payload: { token: '', refreshToken: '' } }))
 	})
 
 	// ── 5.2.1 Login form renders ──────────────────────────────────────────────
 
 	it('renders the login form with username and password inputs', () => {
 		renderWithProviders(<Login />, { store })
-		expect(screen.getByPlaceholderText(/username/i)).toBeInTheDocument()
-		expect(screen.getByPlaceholderText(/password/i)).toBeInTheDocument()
-		expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument()
+		expect(screen.getByPlaceholderText(/usuario/i)).toBeInTheDocument()
+		expect(screen.getByPlaceholderText(/contraseña/i)).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: /^iniciar sesión$/i })).toBeInTheDocument()
 	})
 
 	// ── 5.2.3 Session restore ─────────────────────────────────────────────────
@@ -194,9 +194,9 @@ describe('Auth Flow — Integration', () => {
 			{ store, route: '/login' }
 		)
 
-		await userEvent.type(screen.getByPlaceholderText(/username/i), 'Admin')
-		await userEvent.type(screen.getByPlaceholderText(/password/i), 'pass')
-		await userEvent.click(screen.getByRole('button', { name: /sign in/i }))
+		await userEvent.type(screen.getByPlaceholderText(/usuario/i), 'Admin')
+		await userEvent.type(screen.getByPlaceholderText(/contraseña/i), 'pass')
+		await userEvent.click(screen.getByRole('button', { name: /^iniciar sesión$/i }))
 
 		await waitFor(() => {
 			expect(store.getState().auth.isAuthenticated).toBe(true)
@@ -211,9 +211,9 @@ describe('Auth Flow — Integration', () => {
 
 		renderWithProviders(<Login />, { store })
 
-		await userEvent.type(screen.getByPlaceholderText(/username/i), 'Admin')
-		await userEvent.type(screen.getByPlaceholderText(/password/i), 'wrong')
-		await userEvent.click(screen.getByRole('button', { name: /sign in/i }))
+		await userEvent.type(screen.getByPlaceholderText(/usuario/i), 'Admin')
+		await userEvent.type(screen.getByPlaceholderText(/contraseña/i), 'wrong')
+		await userEvent.click(screen.getByRole('button', { name: /^iniciar sesión$/i }))
 
 		await waitFor(() => {
 			expect(store.getState().auth.error).not.toBeNull()
@@ -229,12 +229,12 @@ describe('Auth Flow — Integration', () => {
 				isAuthenticated: true,
 				user: { id: 1, username: 'Admin', role: 'Admin' } as any,
 				token: 'tok',
-			refreshToken: null,
+				refreshToken: null,
 				loading: false,
 				error: null,
 			},
 		} as any)
-		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: 'auth/setRefreshedTokens', payload: { token: '', refreshToken: '' } }))
 
 		await store.dispatch(logoutUser())
 
@@ -251,7 +251,7 @@ describe('Auth Flow — Integration', () => {
 				isAuthenticated: true,
 				user: { id: 1, username: 'Admin', role: 'Admin' } as any,
 				token: 'tok',
-			refreshToken: null,
+				refreshToken: null,
 				loading: false,
 				error: null,
 			},
@@ -272,7 +272,7 @@ describe('Auth Flow — Integration', () => {
 				users: [{ username: 'alice', hasPassword: true }],
 			},
 		} as any)
-		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: 'auth/setRefreshedTokens', payload: { token: '', refreshToken: '' } }))
 
 		server.use(
 			http.post(`${BASE}/users/login`, () => HttpResponse.json({ userId: 2, username: 'alice', role: 'User', token: 'alice-token' })),
@@ -305,11 +305,11 @@ describe('Auth Flow — Integration', () => {
 		await userEvent.click(userCard)
 
 		// Username should be pre-filled
-		expect(screen.getByPlaceholderText(/username/i)).toHaveValue('alice')
+		expect(screen.getByPlaceholderText(/usuario/i)).toHaveValue('alice')
 
 		// Enter password and submit
-		await userEvent.type(screen.getByPlaceholderText(/password/i), 'alice-pass')
-		await userEvent.click(screen.getByRole('button', { name: /sign in/i }))
+		await userEvent.type(screen.getByPlaceholderText(/contraseña/i), 'alice-pass')
+		await userEvent.click(screen.getByRole('button', { name: /^iniciar sesión$/i }))
 
 		await waitFor(() => {
 			expect(store.getState().auth.isAuthenticated).toBe(true)

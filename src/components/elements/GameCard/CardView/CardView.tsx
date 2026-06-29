@@ -307,12 +307,14 @@ const CardView: FC<CardViewProps> = (props) => {
 						</div>
 					</div>
 					<div className='game-card-metadata' role='group' aria-label={t('game.card.gameMeta')}>
-						<div className='game-card-score' role='group' aria-label={t('game.card.scoreDisplay', { score: game.score ?? t('game.card.na') })}>
-							<ScoreIcon width={20} height={20} color='#9ca3af' title={t('game.card.scoreIcon')} focusable={false} />
-							<div className='game-card-score-value'>
-								<p>{game.score ?? t('game.card.na')} / 10</p>
+						{game.score != null && (
+							<div className='game-card-score' role='group' aria-label={t('game.card.scoreDisplay', { score: game.score })}>
+								<ScoreIcon width={20} height={20} color='#9ca3af' title={t('game.card.scoreIcon')} focusable={false} />
+								<div className='game-card-score-value'>
+									<p>{game.score} / 10</p>
+								</div>
 							</div>
-						</div>
+						)}
 						<div className='game-card-release-date' role='group' aria-label={t('game.card.releasedAria', { date: released })}>
 							<CalendarIcon width={20} height={20} color='#9ca3af' title={t('game.card.releasedIcon')} focusable={false} />
 							<p style={hasPlaytime ? { fontSize: '0.8rem' } : {}}>{released}</p>

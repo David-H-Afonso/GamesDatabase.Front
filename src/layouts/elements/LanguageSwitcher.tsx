@@ -20,13 +20,13 @@ const FlagEN = () => (
 )
 
 const LANGS = [
-	{ code: 'es', Flag: FlagES },
 	{ code: 'en', Flag: FlagEN },
+	{ code: 'es', Flag: FlagES },
 ] as const
 
 export const LanguageSwitcher: React.FC = () => {
 	const { t, i18n } = useTranslation()
-	const current = i18n.resolvedLanguage ?? 'es'
+	const current = i18n.resolvedLanguage ?? 'en'
 	const [open, setOpen] = useState(false)
 
 	const currentLang = LANGS.find((l) => l.code === current) ?? LANGS[0]

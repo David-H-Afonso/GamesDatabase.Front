@@ -137,7 +137,7 @@ const authenticatedState = {
 		isAuthenticated: true,
 		user: { id: 1, username: 'TestUser', role: 'Admin' as const },
 		token: 'test-token',
-			refreshToken: null,
+		refreshToken: null,
 		loading: false,
 		error: null,
 	},
@@ -148,7 +148,7 @@ describe('Filter & Search Flow — Integration', () => {
 
 	beforeEach(() => {
 		store = createTestStore(authenticatedState)
-		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: 'auth/setRefreshedTokens', payload: { token: '', refreshToken: '' } }))
 		// getPublicGameViews expects GameView[] directly (not paged result)
 		server.use(http.get(`${BASE}/gameviews`, () => HttpResponse.json([])))
 		server.use(http.get(`${BASE}/users/1`, () => HttpResponse.json(authenticatedState.auth.user)))
@@ -199,7 +199,9 @@ describe('Filter & Search Flow — Integration', () => {
 		const searchInput = screen.getByPlaceholderText(/buscar juegos/i)
 		await userEvent.type(searchInput, 'zelda')
 
-		expect(store.getState().games.filters.search).toBe('zelda')
+		await waitFor(() => {
+			expect(store.getState().games.filters.search).toBe('zelda')
+		})
 	})
 
 	// ── 5.3.5 Sort ───────────────────────────────────────────────────────────

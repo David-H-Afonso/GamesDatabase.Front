@@ -120,7 +120,7 @@ const preloadedState = {
 		isAuthenticated: true,
 		user: { id: 1, username: 'test', role: 'Admin', useScoreColors: false, scoreProvider: 'Metacritic', showPriceComparisonIcon: false },
 		token: 'tok',
-			refreshToken: null,
+		refreshToken: null,
 		loading: false,
 		error: null,
 	},
@@ -163,7 +163,7 @@ describe('RowView', () => {
 		renderWithProviders(<RowView game={game} openDetails={mockOpenDetails} playWithColors={[]} gameStatusColor='#4CAF50' platformColor='#2196F3' playedStatusColor='#9C27B0' />, {
 			preloadedState: preloadedState as any,
 		})
-		expect(screen.getByLabelText('Grade')).toHaveTextContent('8')
+		expect(screen.getByLabelText('Nota')).toHaveTextContent('8')
 	})
 
 	it('renders em-dash when grade is undefined', async () => {
@@ -172,7 +172,7 @@ describe('RowView', () => {
 		renderWithProviders(<RowView game={game} openDetails={mockOpenDetails} playWithColors={[]} gameStatusColor='#4CAF50' platformColor='#2196F3' playedStatusColor='#9C27B0' />, {
 			preloadedState: preloadedState as any,
 		})
-		expect(screen.getByLabelText('Grade')).toHaveTextContent('—')
+		expect(screen.getByLabelText('Nota')).toHaveTextContent('—')
 	})
 
 	it('renders critic score', async () => {
@@ -181,7 +181,7 @@ describe('RowView', () => {
 		renderWithProviders(<RowView game={game} openDetails={mockOpenDetails} playWithColors={[]} gameStatusColor='#4CAF50' platformColor='#2196F3' playedStatusColor='#9C27B0' />, {
 			preloadedState: preloadedState as any,
 		})
-		expect(screen.getByLabelText('Critic')).toHaveTextContent('92')
+		expect(screen.getByLabelText('Crítica')).toHaveTextContent('92')
 	})
 
 	it('renders em-dash when critic is undefined', async () => {
@@ -190,7 +190,7 @@ describe('RowView', () => {
 		renderWithProviders(<RowView game={game} openDetails={mockOpenDetails} playWithColors={[]} gameStatusColor='#4CAF50' platformColor='#2196F3' playedStatusColor='#9C27B0' />, {
 			preloadedState: preloadedState as any,
 		})
-		expect(screen.getByLabelText('Critic')).toHaveTextContent('—')
+		expect(screen.getByLabelText('Crítica')).toHaveTextContent('—')
 	})
 
 	it('renders story hours', async () => {
@@ -199,7 +199,7 @@ describe('RowView', () => {
 		renderWithProviders(<RowView game={game} openDetails={mockOpenDetails} playWithColors={[]} gameStatusColor='#4CAF50' platformColor='#2196F3' playedStatusColor='#9C27B0' />, {
 			preloadedState: preloadedState as any,
 		})
-		expect(screen.getByLabelText('Story')).toHaveTextContent('40h')
+		expect(screen.getByLabelText('Historia')).toHaveTextContent('40h')
 	})
 
 	it('renders platform badge', async () => {

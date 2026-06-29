@@ -66,8 +66,8 @@ describe('AdminStatus', () => {
 		const C = await loadComponent()
 		const user = userEvent.setup()
 		renderWithProviders(<C />)
-		await user.click(screen.getByText('Nuevo Status'))
-		expect(screen.getByText('Nuevo Status', { selector: 'h2' })).toBeInTheDocument()
+		await user.click(screen.getByText('Nuevo Estado'))
+		expect(screen.getByText('Nuevo Estado', { selector: 'h2' })).toBeInTheDocument()
 	})
 
 	it('opens edit modal with prefilled data', async () => {
@@ -76,7 +76,7 @@ describe('AdminStatus', () => {
 		renderWithProviders(<C />)
 		const editButtons = screen.getAllByText('Editar')
 		await user.click(editButtons[0])
-		expect(screen.getByText('Editar Status')).toBeInTheDocument()
+		expect(screen.getByText('Editar Estado')).toBeInTheDocument()
 		expect(screen.getByDisplayValue('Playing')).toBeInTheDocument()
 	})
 
@@ -95,7 +95,7 @@ describe('AdminStatus', () => {
 		const C = await loadComponent()
 		const user = userEvent.setup()
 		renderWithProviders(<C />)
-		await user.click(screen.getByText('Nuevo Status'))
+		await user.click(screen.getByText('Nuevo Estado'))
 		await user.type(screen.getByLabelText('Nombre'), 'Backlog')
 		await user.click(screen.getByText('Crear'))
 		expect(mockCreateStatus).toHaveBeenCalledWith(expect.objectContaining({ name: 'Backlog' }))
