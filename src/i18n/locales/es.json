@@ -167,7 +167,8 @@
 				"activeLabel": "Activo",
 				"colorLabel": "Color",
 				"nameLabel": "Nombre"
-			}
+			},
+			"empty": "Aún no hay elementos"
 		},
 		"status": {
 			"title": "Gestión de Estado",

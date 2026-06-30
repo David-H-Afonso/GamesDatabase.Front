@@ -1,0 +1,17 @@
+.admin-crud-table__actions {
+	display: inline-flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 4px;
+}
+
+.admin-crud-table__status {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+
+	.admin-crud-table__meta {
+		color: var(--text-tertiary);
+		font-size: 12px;
+	}
+}

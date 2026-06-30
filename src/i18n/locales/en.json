@@ -167,7 +167,8 @@
 				"activeLabel": "Active",
 				"colorLabel": "Color",
 				"nameLabel": "Name"
-			}
+			},
+			"empty": "No items yet"
 		},
 		"status": {
 			"title": "Status Management",

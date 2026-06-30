@@ -1,0 +1,19 @@
+.admin-crud-modal__color {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+
+	input[type='color'] {
+		width: 50px;
+		height: 40px;
+		padding: 0;
+		border: none;
+		background: none;
+		cursor: pointer;
+		flex: 0 0 auto;
+	}
+
+	input[type='text'] {
+		flex: 1;
+	}
+}

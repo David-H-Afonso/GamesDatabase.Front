@@ -1,6 +1,8 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
+import type { ReactElement } from 'react'
 import { useAppSelector } from '@/store/hooks'
 import { selectIsAdmin } from '@/store/features/auth/selector'
+import { ADMIN_TABS } from '../config/adminTabs'
 import AdminLayout from '../AdminLayout'
 import AdminPlatforms from '../AdminPlatforms'
 import AdminStatus from '../AdminStatus'
@@ -15,6 +17,21 @@ import { AdminAuditLog } from '../AdminAuditLog'
 import AdminBackupScheduleUsers from '../AdminBackupScheduleUsers'
 import { AdminSteam } from '../AdminSteam'
 
+const TAB_ELEMENTS: Record<string, ReactElement> = {
+	users: <AdminUsers />,
+	platforms: <AdminPlatforms />,
+	status: <AdminStatus />,
+	'play-with': <AdminPlayWith />,
+	'played-status': <AdminPlayedStatus />,
+	'replay-types': <AdminReplayTypes />,
+	'data-export': <AdminDataExport />,
+	'game-views': <AdminGameViews />,
+	'audit-log': <AdminAuditLog />,
+	'backup-schedule-users': <AdminBackupScheduleUsers />,
+	preferences: <AdminPreferences />,
+	steam: <AdminSteam />,
+}
+
 const Admin = () => {
 	const isAdmin = useAppSelector(selectIsAdmin)
 
@@ -22,19 +39,9 @@ const Admin = () => {
 		<Routes>
 			<Route element={<AdminLayout />}>
 				<Route index element={<Navigate to='platforms' replace />} />
-				<Route path='platforms' element={<AdminPlatforms />} />
-				<Route path='status' element={<AdminStatus />} />
-				<Route path='play-with' element={<AdminPlayWith />} />
-				<Route path='played-status' element={<AdminPlayedStatus />} />
-				<Route path='replay-types' element={<AdminReplayTypes />} />
-				<Route path='data-export' element={<AdminDataExport />} />
-				<Route path='game-views' element={<AdminGameViews />} />
-				<Route path='audit-log' element={<AdminAuditLog />} />
-				{isAdmin && <Route path='users' element={<AdminUsers />} />}
-				{isAdmin && <Route path='backup-schedule' element={<Navigate to='/admin/backup-schedule-users' replace />} />}
-				{isAdmin && <Route path='backup-schedule-users' element={<AdminBackupScheduleUsers />} />}
-				<Route path='preferences' element={<AdminPreferences />} />
-				<Route path='steam' element={<AdminSteam />} />
+				{ADMIN_TABS.filter((tab) => !tab.adminOnly || isAdmin).map((tab) => (
+					<Route key={tab.path} path={tab.path} element={TAB_ELEMENTS[tab.path]} />
+				))}
 				<Route path='steam-import' element={<Navigate to='/admin/steam' replace />} />
 			</Route>
 		</Routes>

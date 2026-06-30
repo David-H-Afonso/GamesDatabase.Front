@@ -6,6 +6,10 @@ import type { GameView, GameViewCreateDto, GameViewQueryParameters } from '@/mod
 import GameViewModal from './GameViewModal'
 import ViewTemplateSelector from './ViewTemplates'
 import { ReorderButtons } from '@/components/elements/ReorderButtons/ReorderButtons'
+import { IconButton } from '@/components/elements/IconButton/IconButton'
+import EditIcon from '@/assets/svgs/edit.svg?react'
+import ExportIcon from '@/assets/svgs/export.svg?react'
+import DeleteIcon from '@/assets/svgs/trashbin.svg?react'
 import './AdminGameViews.scss'
 
 export const AdminGameViews: React.FC = () => {
@@ -224,7 +228,16 @@ export const AdminGameViews: React.FC = () => {
 							setTemplatePanelOpen((v) => !v)
 							setImportPanelOpen(false)
 						}}>
-						{templatePanelOpen ? t('admin.crud.cancel') : `⚡ ${t('admin.gameViews.templates')}`}
+						{templatePanelOpen ? (
+							t('admin.crud.cancel')
+						) : (
+							<>
+								<svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round' strokeLinejoin='round' aria-hidden='true'>
+									<path d='M13 2 3 14h7l-1 8 10-12h-7l1-8Z' />
+								</svg>
+								{t('admin.gameViews.templates')}
+							</>
+						)}
 					</button>
 					<button
 						className='btn btn-secondary'
@@ -233,7 +246,18 @@ export const AdminGameViews: React.FC = () => {
 							setImportError(null)
 							setTemplatePanelOpen(false)
 						}}>
-						{importPanelOpen ? t('admin.crud.cancel') : `📥 ${t('admin.gameViews.importView')}`}
+						{importPanelOpen ? (
+							t('admin.crud.cancel')
+						) : (
+							<>
+								<svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round' strokeLinejoin='round' aria-hidden='true'>
+									<path d='M12 3v12' />
+									<path d='m8 11 4 4 4-4' />
+									<path d='M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2' />
+								</svg>
+								{t('admin.gameViews.importView')}
+							</>
+						)}
 					</button>
 					<button className='btn btn-primary' onClick={() => handleOpenModal()}>
 						{t('admin.gameViews.newView')}
@@ -329,26 +353,23 @@ export const AdminGameViews: React.FC = () => {
 										</td>
 										<td>{new Date(gameView.createdAt).toLocaleDateString()}</td>
 										<td className='actions'>
-											<button
-												className={`action-btn export${copiedId === gameView.id ? ' copied' : ''}`}
-												onClick={() => handleExportView(gameView)}
+											<IconButton label={t('admin.crud.edit')} icon={<EditIcon />} size='sm' onClick={() => handleOpenModal(gameView)} />
+											<IconButton
+												label={copiedId === gameView.id ? t('admin.gameViews.copied') : t('admin.gameViews.exportTitle')}
+												icon={<ExportIcon />}
+												size='sm'
+												className={copiedId === gameView.id ? 'icon-button--success' : undefined}
 												disabled={exportingId === gameView.id}
-												title={t('admin.gameViews.exportTitle')}>
-												{exportingId === gameView.id ? '...' : copiedId === gameView.id ? `✓ ${t('admin.gameViews.copied')}` : t('admin.gameViews.export')}
-											</button>
-											<button className='action-btn edit' onClick={() => handleOpenModal(gameView)}>
-												{t('admin.crud.edit')}
-											</button>
-											<button className='action-btn delete' onClick={() => handleDelete(gameView.id, gameView.name)}>
-												{t('admin.crud.delete')}
-											</button>
+												onClick={() => handleExportView(gameView)}
+											/>
+											<IconButton label={t('admin.crud.delete')} icon={<DeleteIcon />} variant='danger' size='sm' onClick={() => handleDelete(gameView.id, gameView.name)} />
 										</td>
 									</tr>
 								))}
 							{!gameViews && (
 								<tr>
 									<td
-										colSpan={6}
+										colSpan={5}
 										style={{
 											textAlign: 'center',
 											padding: '2rem',
