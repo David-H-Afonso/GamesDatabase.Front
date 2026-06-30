@@ -4,7 +4,9 @@ import type { Game } from '@/models/api/Game'
 import './GameDetails.scss'
 import { formatPlaytime, formatToLocaleDate, hoursToMinutesValue, minutesToHoursValue, searchGoogleImage, useClickOutside } from '@/utils'
 import DeleteIcon from '@/assets/svgs/trashbin.svg?react'
-import { EditableField, OptimizedImage } from '@/components/elements'
+import LockIcon from '@/assets/svgs/lock.svg?react'
+import UnlockIcon from '@/assets/svgs/unlock.svg?react'
+import { EditableField, OptimizedImage, Toast } from '@/components/elements'
 import { EditableSelect } from '../EditableSelect/EditableSelect'
 import { EditableMultiSelect } from '../EditableMultiSelect/EditableMultiSelect'
 import { useGames } from '@/hooks'
@@ -20,6 +22,14 @@ type DetailTab = 'info' | 'replays' | 'history' | 'steam'
 
 const getSteamCoverUrl = (appId: number) => `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/header.jpg`
 
+const preloadImage = (url: string) =>
+	new Promise<boolean>((resolve) => {
+		const img = new Image()
+		img.onload = () => resolve(true)
+		img.onerror = () => resolve(false)
+		img.src = url
+	})
+
 interface GameDetailsProps {
 	game: Game
 	closeDetails: () => void
@@ -32,11 +42,14 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 	const [game, setGame] = useState(gameProp)
 	const [isClosing, setIsClosing] = useState(false)
 	const [activeTab, setActiveTab] = useState<DetailTab>('info')
-	const [steamImgLoading, setSteamImgLoading] = useState<'logo' | 'cover' | 'both' | null>(null)
+	const [steamImgLoading, setSteamImgLoading] = useState<'logo' | 'cover' | null>(null)
+	const [steamIdLocked, setSteamIdLocked] = useState(() => gameProp.steamAppId != null)
+	const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
 	const { updateGameById, fetchGameDetails } = useGames()
 
 	useEffect(() => {
 		setGame(gameProp)
+		setSteamIdLocked(gameProp.steamAppId != null)
 	}, [gameProp])
 
 	// Get options for selectable fields
@@ -66,12 +79,20 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 
 	const refreshSteamLogo = async () => {
 		if (!game.steamAppId || steamImgLoading !== null) return
+		const previousLogo = game.logo
 		setSteamImgLoading('logo')
 		try {
 			// Clear current icon so backend re-resolves it (community icon → API hash → fallback)
 			await saveField('logo', null)
 			await steamService.syncGame(game.id)
-			await fetchGameDetails(game.id)
+			const refreshed = await fetchGameDetails(game.id)
+			const nextLogo = refreshed?.logo
+			if (nextLogo && (await preloadImage(nextLogo))) {
+				setGame(refreshed)
+			} else {
+				await saveField('logo', previousLogo ?? null)
+				setToast({ message: t('game.details.refreshLogoFailed'), type: 'error' })
+			}
 		} finally {
 			setSteamImgLoading(null)
 		}
@@ -80,22 +101,13 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 	const refreshSteamCover = async () => {
 		if (!game.steamAppId || steamImgLoading !== null) return
 		setSteamImgLoading('cover')
-		await saveField('cover', getSteamCoverUrl(game.steamAppId))
-		setSteamImgLoading(null)
-	}
-
-	const refreshSteamImages = async () => {
-		if (!game.steamAppId || steamImgLoading !== null) return
-		setSteamImgLoading('both')
-		try {
-			// Cover is a deterministic CDN URL; logo needs backend resolution
-			await saveField('cover', getSteamCoverUrl(game.steamAppId))
-			await saveField('logo', null)
-			await steamService.syncGame(game.id)
-			await fetchGameDetails(game.id)
-		} finally {
-			setSteamImgLoading(null)
+		const url = getSteamCoverUrl(game.steamAppId)
+		if (await preloadImage(url)) {
+			await saveField('cover', url)
+		} else {
+			setToast({ message: t('game.details.refreshCoverFailed'), type: 'error' })
 		}
+		setSteamImgLoading(null)
 	}
 
 	// Formik to manage fields locally and validate critic/grade
@@ -247,16 +259,6 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 			<h2 className='sr-only'>{t('game.details.title', { name: game.name })}</h2>
 			<div className='game-details-header'>
 				<div className='game-details-header-actions'>
-					{game.steamAppId && (
-						<button
-							className='game-details-header-actions-steam'
-							onClick={() => void refreshSteamImages()}
-							disabled={steamImgLoading !== null}
-							aria-label={t('game.details.refreshSteamImages')}
-							title={t('game.details.refreshSteamImages')}>
-							↺
-						</button>
-					)}
 					<button className='game-details-header-actions-delete' onClick={() => onDelete?.(game)} aria-label={t('game.details.deleteGame')}>
 						<DeleteIcon width={20} height={20} color='#ef4444' />
 					</button>
@@ -616,13 +618,30 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 
 							<div className='game-details-content-infoList'>
 								<div className='game-details-content-infoList-item'>
-									<h3>Steam App ID</h3>
-									<EditableField
-										value={formik.values.steamAppId?.toString() ?? ''}
-										type='text'
-										onSave={(value) => saveField('steamAppId', value ? parseInt(value as string, 10) : null)}
-										placeholder='Ej: 570'
-									/>
+									<h3>{t('game.details.fieldSteamAppId')}</h3>
+									<div className='game-details-steam-id'>
+										<EditableField
+											value={formik.values.steamAppId?.toString() ?? ''}
+											type='text'
+											onSave={(value) => {
+												const next = value ? parseInt(value as string, 10) : null
+												saveField('steamAppId', next)
+												if (next != null) setSteamIdLocked(true)
+											}}
+											placeholder={t('game.details.placeholderSteamAppId')}
+											allowEditing={!steamIdLocked}
+										/>
+										{formik.values.steamAppId != null && (
+											<button
+												type='button'
+												className='game-details-steam-id__lock'
+												onClick={() => setSteamIdLocked((locked) => !locked)}
+												aria-label={steamIdLocked ? t('game.details.unlockSteamId') : t('game.details.lockSteamId')}
+												title={steamIdLocked ? t('game.details.unlockSteamId') : t('game.details.lockSteamId')}>
+												{steamIdLocked ? <LockIcon width={16} height={16} /> : <UnlockIcon width={16} height={16} />}
+											</button>
+										)}
+									</div>
 								</div>
 								<div className='game-details-content-infoList-item game-details-content-infoList-item--checkbox'>
 									<h3>{t('game.details.manuallyCompleted')}</h3>
@@ -649,6 +668,8 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 					{activeTab === 'steam' && game.steamAppId && <SteamTab game={game} />}
 				</div>
 			</div>
+
+			<Toast isOpen={toast !== null} message={toast?.message ?? ''} type={toast?.type} onClose={() => setToast(null)} />
 		</div>
 	)
 }
