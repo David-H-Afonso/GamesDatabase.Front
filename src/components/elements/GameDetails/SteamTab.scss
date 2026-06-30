@@ -209,9 +209,6 @@
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
 		gap: 0.55rem;
-		max-height: min(48vh, 420px);
-		overflow-y: auto;
-		padding-right: 0.15rem;
 	}
 
 	.achievement-item {
@@ -267,7 +264,7 @@
 	}
 }
 
-.btn-sm {
+.steam-tab .btn-sm {
 	padding: 0.3rem 0.75rem;
 	font-size: 0.82rem;
 }
@@ -303,9 +300,6 @@
 
 		.achievement-grid {
 			grid-template-columns: 1fr;
-			max-height: none;
-			overflow: visible;
-			padding-right: 0;
 		}
 	}
 }

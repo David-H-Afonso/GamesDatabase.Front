@@ -891,7 +891,6 @@
 			"placeholderGrade": "No grade",
 			"placeholderLogo": "Enter logo URL (optional)",
 			"placeholderCover": "Enter cover URL (optional)",
-			"refreshSteamImages": "Re-fetch images from Steam",
 			"refreshSteamLogo": "Refresh logo from Steam",
 			"refreshSteamCover": "Refresh cover from Steam",
 			"placeholderKeyUrl": "Enter key store URL (optional)",
@@ -914,7 +913,13 @@
 			"errorGrade": "Grade must be a number between 0 and 100",
 			"errorMustBeNumber": "Must be a number",
 			"errorNameRequired": "Name is required",
-			"errorStatusRequired": "Status is required"
+			"errorStatusRequired": "Status is required",
+			"fieldSteamAppId": "Steam App ID",
+			"placeholderSteamAppId": "e.g. 570",
+			"unlockSteamId": "Unlock to edit the Steam App ID",
+			"lockSteamId": "Lock the Steam App ID",
+			"refreshCoverFailed": "Couldn't load the Steam cover; the previous one was kept",
+			"refreshLogoFailed": "Couldn't load the Steam logo; the previous one was kept"
 		},
 		"replays": {
 			"loading": "Loading replays...",

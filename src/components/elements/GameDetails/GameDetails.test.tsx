@@ -1,21 +1,29 @@
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test/utils/renderWithProviders'
 import type { Game } from '@/models/api/Game'
 import type { RootState } from '@/store'
 import i18n from '@/i18n'
+import { steamService } from '@/services'
 
 const mockUpdateGameById = vi.fn().mockResolvedValue(undefined)
+const mockFetchGameDetails = vi.fn().mockResolvedValue(undefined)
 
 vi.mock('@/hooks', () => ({
 	useGames: () => ({
 		updateGameById: mockUpdateGameById,
+		fetchGameDetails: mockFetchGameDetails,
 	}),
 }))
 
 vi.mock('@/components/elements', () => ({
-	EditableField: ({ value, placeholder, formatter }: any) => <span data-testid='editable-field'>{formatter ? formatter(value) : value || placeholder}</span>,
+	EditableField: ({ value, placeholder, formatter, allowEditing }: any) => (
+		<span data-testid='editable-field' data-allow-editing={allowEditing === false ? 'false' : 'true'}>
+			{formatter ? formatter(value) : value || placeholder}
+		</span>
+	),
 	OptimizedImage: ({ alt }: any) => <img alt={alt} />,
+	Toast: ({ isOpen, message, type }: any) => (isOpen ? <div role='status' data-toast-type={type}>{message}</div> : null),
 }))
 
 vi.mock('../EditableSelect/EditableSelect', () => ({
@@ -42,6 +50,14 @@ vi.mock('./GameHistoryTab', () => ({
 
 vi.mock('@/assets/svgs/trashbin.svg?react', () => ({
 	default: (props: any) => <svg data-testid='delete-icon' {...props} />,
+}))
+
+vi.mock('@/assets/svgs/lock.svg?react', () => ({
+	default: (props: any) => <svg data-testid='lock-icon' {...props} />,
+}))
+
+vi.mock('@/assets/svgs/unlock.svg?react', () => ({
+	default: (props: any) => <svg data-testid='unlock-icon' {...props} />,
 }))
 
 vi.mock('./GameDetails.scss', () => ({}))
@@ -102,12 +118,27 @@ const defaultState: Partial<RootState> = {
 	auth: { user: { scoreProvider: 'Metacritic' } } as any,
 }
 
+const steamGame: Game = { ...mockGame, steamAppId: 570 } as any
+
+let imageShouldLoad = true
+
+class MockImage {
+	onload: (() => void) | null = null
+	onerror: (() => void) | null = null
+	set src(_value: string) {
+		queueMicrotask(() => (imageShouldLoad ? this.onload?.() : this.onerror?.()))
+	}
+}
+
+vi.stubGlobal('Image', MockImage)
+
 describe('GameDetails', () => {
 	const user = userEvent.setup()
 
 	beforeEach(async () => {
 		await i18n.changeLanguage('en')
 		vi.clearAllMocks()
+		imageShouldLoad = true
 		vi.useFakeTimers({ shouldAdvanceTime: true })
 	})
 
@@ -285,5 +316,95 @@ describe('GameDetails', () => {
 
 		const panel = container.querySelector('.game-details')
 		expect(panel?.classList.contains('closing')).toBe(true)
+	})
+
+	it('no longer renders the re-fetch both images button in the header', async () => {
+		const { GameDetails } = await import('./GameDetails')
+		renderWithProviders(<GameDetails game={steamGame} closeDetails={vi.fn()} />, { preloadedState: defaultState })
+
+		expect(screen.queryByLabelText('Re-fetch images from Steam')).not.toBeInTheDocument()
+	})
+
+	it('locks the Steam App ID field when the game is already linked', async () => {
+		const { GameDetails } = await import('./GameDetails')
+		renderWithProviders(<GameDetails game={steamGame} closeDetails={vi.fn()} />, { preloadedState: defaultState })
+
+		expect(screen.getByText('570')).toHaveAttribute('data-allow-editing', 'false')
+		expect(screen.getByTestId('lock-icon')).toBeInTheDocument()
+		expect(screen.getByLabelText('Unlock to edit the Steam App ID')).toBeInTheDocument()
+	})
+
+	it('unlocks the Steam App ID field when the lock button is clicked', async () => {
+		const { GameDetails } = await import('./GameDetails')
+		renderWithProviders(<GameDetails game={steamGame} closeDetails={vi.fn()} />, { preloadedState: defaultState })
+
+		await user.click(screen.getByLabelText('Unlock to edit the Steam App ID'))
+
+		expect(screen.getByText('570')).toHaveAttribute('data-allow-editing', 'true')
+		expect(screen.getByTestId('unlock-icon')).toBeInTheDocument()
+		expect(screen.getByLabelText('Lock the Steam App ID')).toBeInTheDocument()
+	})
+
+	it('keeps the Steam App ID editable when the game has no steamAppId', async () => {
+		const { GameDetails } = await import('./GameDetails')
+		renderWithProviders(<GameDetails game={mockGame} closeDetails={vi.fn()} />, { preloadedState: defaultState })
+
+		expect(screen.queryByTestId('lock-icon')).not.toBeInTheDocument()
+		expect(screen.queryByLabelText('Unlock to edit the Steam App ID')).not.toBeInTheDocument()
+	})
+
+	it('refreshes the cover from Steam when the candidate image loads', async () => {
+		vi.useRealTimers()
+		imageShouldLoad = true
+		const { GameDetails } = await import('./GameDetails')
+		renderWithProviders(<GameDetails game={steamGame} closeDetails={vi.fn()} />, { preloadedState: defaultState })
+
+		await user.click(screen.getAllByLabelText('Refresh cover from Steam')[0])
+
+		await waitFor(() => expect(mockUpdateGameById).toHaveBeenCalledWith(steamGame.id, { cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/570/header.jpg' }))
+		expect(screen.queryByRole('status')).not.toBeInTheDocument()
+	})
+
+	it('keeps the previous cover and shows a toast when the Steam cover does not load', async () => {
+		vi.useRealTimers()
+		imageShouldLoad = false
+		const { GameDetails } = await import('./GameDetails')
+		renderWithProviders(<GameDetails game={steamGame} closeDetails={vi.fn()} />, { preloadedState: defaultState })
+
+		await user.click(screen.getAllByLabelText('Refresh cover from Steam')[0])
+
+		expect(await screen.findByRole('status')).toHaveTextContent(/load the Steam cover/)
+		expect(mockUpdateGameById).not.toHaveBeenCalled()
+	})
+
+	it('restores the previous logo and shows a toast when Steam returns no valid logo', async () => {
+		vi.useRealTimers()
+		imageShouldLoad = true
+		const syncSpy = vi.spyOn(steamService, 'syncGame').mockResolvedValue({} as any)
+		mockFetchGameDetails.mockResolvedValueOnce({ ...steamGame, logo: '' })
+
+		const { GameDetails } = await import('./GameDetails')
+		renderWithProviders(<GameDetails game={steamGame} closeDetails={vi.fn()} />, { preloadedState: defaultState })
+
+		await user.click(screen.getByLabelText('Refresh logo from Steam'))
+
+		expect(await screen.findByRole('status')).toHaveTextContent(/load the Steam logo/)
+		await waitFor(() => expect(mockUpdateGameById).toHaveBeenCalledWith(steamGame.id, { logo: steamGame.logo }))
+		expect(syncSpy).toHaveBeenCalledWith(steamGame.id)
+	})
+
+	it('replaces the logo when Steam returns one that loads', async () => {
+		vi.useRealTimers()
+		imageShouldLoad = true
+		vi.spyOn(steamService, 'syncGame').mockResolvedValue({} as any)
+		mockFetchGameDetails.mockResolvedValueOnce({ ...steamGame, logo: 'https://example.com/new-logo.png' })
+
+		const { GameDetails } = await import('./GameDetails')
+		renderWithProviders(<GameDetails game={steamGame} closeDetails={vi.fn()} />, { preloadedState: defaultState })
+
+		await user.click(screen.getByLabelText('Refresh logo from Steam'))
+
+		await waitFor(() => expect(mockFetchGameDetails).toHaveBeenCalledWith(steamGame.id))
+		expect(screen.queryByText(/load the Steam logo/)).not.toBeInTheDocument()
 	})
 })
