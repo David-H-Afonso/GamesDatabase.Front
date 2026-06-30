@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useGamePlayWith } from '@/hooks/useGamePlayWith'
 import { reorderGamePlayWith } from '@/services/GamePlayWithService'
 import type { GamePlayWith, GamePlayWithCreateDto, GamePlayWithUpdateDto } from '@/models/api/GamePlayWith'
+import { Toast } from '@/components/elements'
 import { useAdminCrud } from './hooks/useAdminCrud'
 import { AdminCrudTable } from './components/AdminCrudTable/AdminCrudTable'
 import { AdminCrudModal } from './components/AdminCrudModal/AdminCrudModal'
@@ -14,20 +15,17 @@ export const AdminPlayWith: React.FC = () => {
 	const { t } = useTranslation()
 	const { playWiths, loading, error, pagination, loadPlayWiths, createPlayWith, updatePlayWith, deletePlayWith } = useGamePlayWith()
 
-	const crud = useAdminCrud<GamePlayWith, GamePlayWithCreateDto, GamePlayWithUpdateDto>(
-		{
-			items: playWiths,
-			loading,
-			error,
-			pagination,
-			load: loadPlayWiths,
-			create: createPlayWith,
-			update: updatePlayWith,
-			remove: deletePlayWith,
-			reorder: reorderGamePlayWith,
-		},
-		{ onReorderError: () => window.alert(t('admin.playWith.reorderError')) }
-	)
+	const crud = useAdminCrud<GamePlayWith, GamePlayWithCreateDto, GamePlayWithUpdateDto>({
+		items: playWiths,
+		loading,
+		error,
+		pagination,
+		load: loadPlayWiths,
+		create: createPlayWith,
+		update: updatePlayWith,
+		remove: deletePlayWith,
+		reorder: reorderGamePlayWith,
+	})
 
 	const [isModalOpen, setIsModalOpen] = useState(false)
 	const [editingOption, setEditingOption] = useState<GamePlayWith | null>(null)
@@ -65,7 +63,6 @@ export const AdminPlayWith: React.FC = () => {
 	}
 
 	const handleDelete = (option: GamePlayWith) => {
-		if (!window.confirm(t('admin.playWith.confirmDelete'))) return
 		crud.removeItem(option.id).catch((error) => console.error('Error deleting play with option:', error))
 	}
 
@@ -87,7 +84,10 @@ export const AdminPlayWith: React.FC = () => {
 				getActive={(option) => option.isActive}
 				onEdit={handleOpenModal}
 				onDelete={handleDelete}
+				deleteConfirmTitle={t('admin.crud.confirmDeleteTitle')}
+				deleteConfirmMessage={t('admin.playWith.confirmDelete')}
 				isReordering={crud.isReordering}
+				onReorder={crud.reorderTo}
 				onMoveUp={(option) => crud.move(option.id, 'up')}
 				onMoveDown={(option) => crud.move(option.id, 'down')}
 				emptyMessage={t('admin.crud.empty')}
@@ -115,6 +115,8 @@ export const AdminPlayWith: React.FC = () => {
 					</div>
 				</AdminCrudModal>
 			)}
+
+			<Toast isOpen={crud.reorderError} message={t('admin.playWith.reorderError')} type='error' onClose={crud.clearReorderError} />
 		</div>
 	)
 }

@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test/utils/renderWithProviders'
 
@@ -72,12 +72,12 @@ describe('AdminPlayedStatus', () => {
 	it('calls deletePlayedStatus on confirm', async () => {
 		const C = await loadComponent()
 		const user = userEvent.setup()
-		vi.spyOn(globalThis, 'confirm').mockReturnValue(true)
 		renderWithProviders(<C />)
 		const deleteButtons = screen.getAllByRole('button', { name: 'Eliminar' })
 		await user.click(deleteButtons[0])
+		const dialog = screen.getByRole('alertdialog')
+		await user.click(within(dialog).getByRole('button', { name: 'Eliminar' }))
 		expect(mockDeletePlayedStatus).toHaveBeenCalledWith(1)
-		vi.restoreAllMocks()
 	})
 
 	it('submits create form', async () => {

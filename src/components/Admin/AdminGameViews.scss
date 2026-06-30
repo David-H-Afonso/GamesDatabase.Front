@@ -146,40 +146,10 @@
 	}
 
 	.game-views-table {
-		background: var(--surface);
-		border-radius: 8px;
-		border: 1px solid var(--border);
-		overflow: hidden;
-
-		table {
-			border-collapse: collapse;
-			width: 100%;
-
-			th,
-			td {
-				padding: 12px;
-				text-align: left;
-			}
-
-			th {
-				background-color: var(--bg-secondary);
-				border-bottom: 1px solid var(--border);
-				color: var(--text-primary);
-				font-weight: 600;
-			}
-
-			td {
-				border-bottom: 1px solid var(--border);
-				color: var(--text-primary);
-
-				&:last-child {
-					border-bottom: none;
-				}
-			}
-
-			tbody tr:hover {
-				background-color: var(--surface-hover);
-			}
+		.order-cell {
+			display: inline-flex;
+			align-items: center;
+			gap: 4px;
 		}
 
 		.view-name {
@@ -210,16 +180,19 @@
 		}
 
 		.filters-preview {
+			display: inline-block;
 			font-size: 12px;
-			max-width: 150px;
+			max-width: 220px;
 			overflow: hidden;
 			text-overflow: ellipsis;
 			white-space: nowrap;
+			vertical-align: middle;
 		}
 
 		.actions {
 			align-items: center;
 			display: flex;
+			justify-content: flex-end;
 			gap: 0.25rem;
 
 			.icon-button--success {

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 vi.mock('@/services/DataExportService', () => ({
@@ -199,7 +199,6 @@ describe('AdminDataExport', () => {
 	it('deletes a duplicate game only after confirmation', async () => {
 		const { analyzeDatabaseDuplicates, deleteDuplicateGame } = await import('@/services/DataExportService')
 		vi.mocked(analyzeDatabaseDuplicates).mockResolvedValueOnce(makeDuplicateGroupResult())
-		const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
 
 		const C = await loadComponent()
 		const user = userEvent.setup()
@@ -209,8 +208,27 @@ describe('AdminDataExport', () => {
 
 		await user.click(screen.getAllByText('Borrar este')[0])
 
-		expect(confirmSpy).toHaveBeenCalled()
+		const dialog = await screen.findByRole('alertdialog')
+		await user.click(within(dialog).getByRole('button', { name: 'Confirmar' }))
+
 		expect(deleteDuplicateGame).toHaveBeenCalledWith(1)
-		confirmSpy.mockRestore()
+	})
+
+	it('does not delete a duplicate game when confirmation is cancelled', async () => {
+		const { analyzeDatabaseDuplicates, deleteDuplicateGame } = await import('@/services/DataExportService')
+		vi.mocked(analyzeDatabaseDuplicates).mockResolvedValueOnce(makeDuplicateGroupResult())
+
+		const C = await loadComponent()
+		const user = userEvent.setup()
+		render(<C />)
+		await user.click(screen.getByText(/Buscar Duplicados/))
+		await screen.findByText('God of War')
+
+		await user.click(screen.getAllByText('Borrar este')[0])
+
+		const dialog = await screen.findByRole('alertdialog')
+		await user.click(within(dialog).getByRole('button', { name: 'Cancelar' }))
+
+		expect(deleteDuplicateGame).not.toHaveBeenCalled()
 	})
 })

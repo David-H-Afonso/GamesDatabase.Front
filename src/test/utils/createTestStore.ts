@@ -4,6 +4,7 @@ import gameStatusReducer from '@/store/features/gameStatus/gameStatusSlice'
 import gamePlatformReducer from '@/store/features/gamePlatform/gamePlatformSlice'
 import gamePlayWithReducer from '@/store/features/gamePlayWith/gamePlayWithSlice'
 import gamePlayedStatusReducer from '@/store/features/gamePlayedStatus/gamePlayedStatusSlice'
+import gameReplayTypeReducer from '@/store/features/gameReplayType/gameReplayTypeSlice'
 import gameViewsReducer from '@/store/features/gameViews/gameViewSlice'
 import themeReducer from '@/store/features/theme/themeSlice'
 import authReducer from '@/store/features/auth/authSlice'
@@ -17,6 +18,7 @@ const rootReducer = combineReducers({
 	gamePlatform: gamePlatformReducer,
 	gamePlayWith: gamePlayWithReducer,
 	gamePlayedStatus: gamePlayedStatusReducer,
+	gameReplayType: gameReplayTypeReducer,
 	gameViews: gameViewsReducer,
 	theme: themeReducer,
 	auth: authReducer,

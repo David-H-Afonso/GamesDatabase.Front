@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test/utils/renderWithProviders'
 
@@ -83,12 +83,12 @@ describe('AdminStatus', () => {
 	it('calls deleteStatus on confirm', async () => {
 		const C = await loadComponent()
 		const user = userEvent.setup()
-		vi.spyOn(globalThis, 'confirm').mockReturnValue(true)
 		renderWithProviders(<C />)
 		const deleteButtons = screen.getAllByRole('button', { name: 'Eliminar' })
 		await user.click(deleteButtons[0])
+		const dialog = screen.getByRole('alertdialog')
+		await user.click(within(dialog).getByRole('button', { name: 'Eliminar' }))
 		expect(mockDeleteStatus).toHaveBeenCalledWith(1)
-		vi.restoreAllMocks()
 	})
 
 	it('submits create form', async () => {
@@ -129,12 +129,12 @@ describe('AdminStatus', () => {
 	it('does not delete on cancel confirm', async () => {
 		const C = await loadComponent()
 		const user = userEvent.setup()
-		vi.spyOn(globalThis, 'confirm').mockReturnValue(false)
 		renderWithProviders(<C />)
 		const deleteButtons = screen.getAllByRole('button', { name: 'Eliminar' })
 		await user.click(deleteButtons[0])
+		const dialog = screen.getByRole('alertdialog')
+		await user.click(within(dialog).getByRole('button', { name: 'Cancelar' }))
 		expect(mockDeleteStatus).not.toHaveBeenCalled()
-		vi.restoreAllMocks()
 	})
 
 	it('renders color swatches', async () => {

@@ -6,6 +6,7 @@ import gameStatusReducer from './features/gameStatus/gameStatusSlice'
 import gamePlatformReducer from './features/gamePlatform/gamePlatformSlice'
 import gamePlayWithReducer from './features/gamePlayWith/gamePlayWithSlice'
 import gamePlayedStatusReducer from './features/gamePlayedStatus/gamePlayedStatusSlice'
+import gameReplayTypeReducer from './features/gameReplayType/gameReplayTypeSlice'
 import gameViewsReducer from './features/gameViews/gameViewSlice'
 import themeReducer from './features/theme/themeSlice'
 import authReducer from './features/auth/authSlice'
@@ -88,6 +89,7 @@ const persistConfig = {
 		'gamePlatform',
 		'gamePlayWith',
 		'gamePlayedStatus',
+		'gameReplayType',
 		'gameViews',
 		'theme',
 		'auth', // Persist authentication state
@@ -103,6 +105,7 @@ const rootReducer = combineReducers({
 	gamePlatform: gamePlatformReducer,
 	gamePlayWith: gamePlayWithReducer,
 	gamePlayedStatus: gamePlayedStatusReducer,
+	gameReplayType: gameReplayTypeReducer,
 	gameViews: gameViewsReducer,
 	theme: themeReducer,
 	auth: authReducer,

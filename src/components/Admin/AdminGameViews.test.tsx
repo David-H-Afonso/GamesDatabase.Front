@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 const mockGameViews = vi.hoisted(() => [
@@ -117,23 +117,23 @@ describe('AdminGameViews', () => {
 	it('calls deleteGameView on confirm', async () => {
 		const C = await loadComponent()
 		const user = userEvent.setup()
-		vi.spyOn(globalThis, 'confirm').mockReturnValue(true)
 		render(<C />)
 		const deleteButtons = screen.getAllByRole('button', { name: 'Eliminar' })
 		await user.click(deleteButtons[0])
+		const dialog = screen.getByRole('alertdialog')
+		await user.click(within(dialog).getByRole('button', { name: 'Eliminar' }))
 		expect(mockDeleteGameView).toHaveBeenCalledWith(1)
-		vi.restoreAllMocks()
 	})
 
 	it('does not delete when confirm is cancelled', async () => {
 		const C = await loadComponent()
 		const user = userEvent.setup()
-		vi.spyOn(globalThis, 'confirm').mockReturnValue(false)
 		render(<C />)
 		const deleteButtons = screen.getAllByRole('button', { name: 'Eliminar' })
 		await user.click(deleteButtons[0])
+		const dialog = screen.getByRole('alertdialog')
+		await user.click(within(dialog).getByRole('button', { name: 'Cancelar' }))
 		expect(mockDeleteGameView).not.toHaveBeenCalled()
-		vi.restoreAllMocks()
 	})
 
 	it('loads game views on mount', async () => {
@@ -154,5 +154,11 @@ describe('AdminGameViews', () => {
 		const C = await loadComponent()
 		render(<C />)
 		expect(screen.getAllByTestId('reorder-buttons')).toHaveLength(2)
+	})
+
+	it('renders a drag handle per view for reordering', async () => {
+		const C = await loadComponent()
+		render(<C />)
+		expect(screen.getAllByRole('button', { name: 'Arrastra para reordenar' })).toHaveLength(2)
 	})
 })

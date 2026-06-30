@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useGamePlayedStatus } from '@/hooks/useGamePlayedStatus'
 import { reorderGamePlayedStatuses } from '@/services/GamePlayedStatusService'
 import type { GamePlayedStatus, GamePlayedStatusCreateDto, GamePlayedStatusUpdateDto } from '@/models/api/GamePlayedStatus'
+import { Toast } from '@/components/elements'
 import { useAdminCrud } from './hooks/useAdminCrud'
 import { AdminCrudTable } from './components/AdminCrudTable/AdminCrudTable'
 import { AdminCrudModal } from './components/AdminCrudModal/AdminCrudModal'
@@ -14,20 +15,17 @@ export const AdminPlayedStatus: React.FC = () => {
 	const { t } = useTranslation()
 	const { playedStatuses, loading, error, pagination, loadPlayedStatuses, createPlayedStatus, updatePlayedStatus, deletePlayedStatus } = useGamePlayedStatus()
 
-	const crud = useAdminCrud<GamePlayedStatus, GamePlayedStatusCreateDto, GamePlayedStatusUpdateDto>(
-		{
-			items: playedStatuses,
-			loading,
-			error,
-			pagination,
-			load: loadPlayedStatuses,
-			create: createPlayedStatus,
-			update: updatePlayedStatus,
-			remove: deletePlayedStatus,
-			reorder: reorderGamePlayedStatuses,
-		},
-		{ onReorderError: () => window.alert(t('admin.playedStatus.reorderError')) }
-	)
+	const crud = useAdminCrud<GamePlayedStatus, GamePlayedStatusCreateDto, GamePlayedStatusUpdateDto>({
+		items: playedStatuses,
+		loading,
+		error,
+		pagination,
+		load: loadPlayedStatuses,
+		create: createPlayedStatus,
+		update: updatePlayedStatus,
+		remove: deletePlayedStatus,
+		reorder: reorderGamePlayedStatuses,
+	})
 
 	const [isModalOpen, setIsModalOpen] = useState(false)
 	const [editingStatus, setEditingStatus] = useState<GamePlayedStatus | null>(null)
@@ -65,7 +63,6 @@ export const AdminPlayedStatus: React.FC = () => {
 	}
 
 	const handleDelete = (status: GamePlayedStatus) => {
-		if (!window.confirm(t('admin.playedStatus.confirmDelete'))) return
 		crud.removeItem(status.id).catch((error) => console.error('Error deleting played status:', error))
 	}
 
@@ -87,7 +84,10 @@ export const AdminPlayedStatus: React.FC = () => {
 				getActive={(status) => status.isActive}
 				onEdit={handleOpenModal}
 				onDelete={handleDelete}
+				deleteConfirmTitle={t('admin.crud.confirmDeleteTitle')}
+				deleteConfirmMessage={t('admin.playedStatus.confirmDelete')}
 				isReordering={crud.isReordering}
+				onReorder={crud.reorderTo}
 				onMoveUp={(status) => crud.move(status.id, 'up')}
 				onMoveDown={(status) => crud.move(status.id, 'down')}
 				emptyMessage={t('admin.crud.empty')}
@@ -115,6 +115,8 @@ export const AdminPlayedStatus: React.FC = () => {
 					</div>
 				</AdminCrudModal>
 			)}
+
+			<Toast isOpen={crud.reorderError} message={t('admin.playedStatus.reorderError')} type='error' onClose={crud.clearReorderError} />
 		</div>
 	)
 }

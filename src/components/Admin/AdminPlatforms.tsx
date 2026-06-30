@@ -4,6 +4,7 @@ import { useGamePlatform } from '@/hooks/useGamePlatform'
 import { reorderGamePlatforms } from '@/services/GamePlatformService'
 import type { GamePlatform, GamePlatformCreateDto, GamePlatformUpdateDto } from '@/models/api/GamePlatform'
 import type { DataTableColumn } from '@/components/elements/DataTable/DataTable'
+import { Toast } from '@/components/elements'
 import { useAdminCrud } from './hooks/useAdminCrud'
 import { AdminCrudTable } from './components/AdminCrudTable/AdminCrudTable'
 import { AdminCrudModal } from './components/AdminCrudModal/AdminCrudModal'
@@ -16,20 +17,17 @@ export const AdminPlatforms: React.FC = () => {
 	const { t } = useTranslation()
 	const { platforms, loading, error, pagination, loadPlatforms, createPlatform, updatePlatform, deletePlatform } = useGamePlatform()
 
-	const crud = useAdminCrud<GamePlatform, GamePlatformCreateDto, GamePlatformUpdateDto>(
-		{
-			items: platforms,
-			loading,
-			error,
-			pagination,
-			load: loadPlatforms,
-			create: createPlatform,
-			update: updatePlatform,
-			remove: deletePlatform,
-			reorder: reorderGamePlatforms,
-		},
-		{ onReorderError: () => window.alert(t('admin.platforms.reorderError')) }
-	)
+	const crud = useAdminCrud<GamePlatform, GamePlatformCreateDto, GamePlatformUpdateDto>({
+		items: platforms,
+		loading,
+		error,
+		pagination,
+		load: loadPlatforms,
+		create: createPlatform,
+		update: updatePlatform,
+		remove: deletePlatform,
+		reorder: reorderGamePlatforms,
+	})
 
 	const [isModalOpen, setIsModalOpen] = useState(false)
 	const [editingOption, setEditingOption] = useState<GamePlatform | null>(null)
@@ -85,7 +83,6 @@ export const AdminPlatforms: React.FC = () => {
 	}
 
 	const handleDelete = (option: GamePlatform) => {
-		if (!window.confirm(t('admin.platforms.confirmDelete'))) return
 		crud.removeItem(option.id).catch((error) => console.error('Error deleting platform:', error))
 	}
 
@@ -124,7 +121,10 @@ export const AdminPlatforms: React.FC = () => {
 				leadingColumns={[logoColumn]}
 				onEdit={handleOpenModal}
 				onDelete={handleDelete}
+				deleteConfirmTitle={t('admin.crud.confirmDeleteTitle')}
+				deleteConfirmMessage={t('admin.platforms.confirmDelete')}
 				isReordering={crud.isReordering}
+				onReorder={crud.reorderTo}
 				onMoveUp={(option) => crud.move(option.id, 'up')}
 				onMoveDown={(option) => crud.move(option.id, 'down')}
 				emptyMessage={t('admin.crud.empty')}
@@ -192,6 +192,8 @@ export const AdminPlatforms: React.FC = () => {
 					</div>
 				</AdminCrudModal>
 			)}
+
+			<Toast isOpen={crud.reorderError} message={t('admin.platforms.reorderError')} type='error' onClose={crud.clearReorderError} />
 		</div>
 	)
 }

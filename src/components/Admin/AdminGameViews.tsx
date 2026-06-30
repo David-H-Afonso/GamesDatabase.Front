@@ -5,8 +5,10 @@ import { reorderGameViews } from '@/services/GameViewService'
 import type { GameView, GameViewCreateDto, GameViewQueryParameters } from '@/models/api/GameView'
 import GameViewModal from './GameViewModal'
 import ViewTemplateSelector from './ViewTemplates'
+import { DataTable, DragHandle, type DataTableColumn } from '@/components/elements/DataTable/DataTable'
 import { ReorderButtons } from '@/components/elements/ReorderButtons/ReorderButtons'
 import { IconButton } from '@/components/elements/IconButton/IconButton'
+import { ConfirmDialog, Toast } from '@/components/elements'
 import EditIcon from '@/assets/svgs/edit.svg?react'
 import ExportIcon from '@/assets/svgs/export.svg?react'
 import DeleteIcon from '@/assets/svgs/trashbin.svg?react'
@@ -18,7 +20,10 @@ export const AdminGameViews: React.FC = () => {
 
 	const [isModalOpen, setIsModalOpen] = useState(false)
 	const [editingGameView, setEditingGameView] = useState<GameView | null>(null)
+	const [views, setViews] = useState<GameView[]>([])
 	const [isReordering, setIsReordering] = useState(false)
+	const [reorderError, setReorderError] = useState(false)
+	const [deleteTarget, setDeleteTarget] = useState<GameView | null>(null)
 	const [exportingId, setExportingId] = useState<number | null>(null)
 	const [copiedId, setCopiedId] = useState<number | null>(null)
 	const [importPanelOpen, setImportPanelOpen] = useState(false)
@@ -28,7 +33,6 @@ export const AdminGameViews: React.FC = () => {
 	const [templatePanelOpen, setTemplatePanelOpen] = useState(false)
 	const importTextareaRef = useRef<HTMLTextAreaElement>(null)
 
-	// Pagination and sorting state
 	const [queryParams, setQueryParams] = useState<GameViewQueryParameters>({
 		page: 1,
 		pageSize: 50,
@@ -39,44 +43,46 @@ export const AdminGameViews: React.FC = () => {
 		loadGameViews(queryParams)
 	}, [loadGameViews, queryParams])
 
+	useEffect(() => {
+		setViews(gameViews ?? [])
+	}, [gameViews])
+
 	const handleSearchChange = (search: string) => {
 		setQueryParams((prev) => ({ ...prev, search: search || undefined, page: 1 }))
 	}
 
-	const moveView = async (viewId: number, direction: 'up' | 'down') => {
-		if (isReordering || !gameViews || gameViews.length < 2) return
-
-		const currentIndex = gameViews.findIndex((v) => v.id === viewId)
-		if (currentIndex === -1) return
-
-		const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
-		if (targetIndex < 0 || targetIndex >= gameViews.length) return
-
-		// Create new array with swapped positions
-		const newOrder = [...gameViews]
-		const temp = newOrder[currentIndex]
-		newOrder[currentIndex] = newOrder[targetIndex]
-		newOrder[targetIndex] = temp
-
-		// Send the new order to backend
-		const orderedIds = newOrder.map((v) => v.id)
-
+	const handleReorder = async (orderedIds: number[]) => {
+		if (isReordering) return
+		const byId = new Map(views.map((view) => [view.id, view]))
+		const next = orderedIds.map((id) => byId.get(id)).filter((view): view is GameView => view !== undefined)
+		const previous = views
+		setReorderError(false)
+		setViews(next)
 		setIsReordering(true)
 		try {
 			await reorderGameViews(orderedIds)
-			// Reload to get fresh data with updated sortOrder
 			await loadGameViews(queryParams)
-		} catch (err) {
-			console.error('Failed to reorder views:', err)
-			window.alert(t('admin.gameViews.reorderError'))
+		} catch {
+			setViews(previous)
+			setReorderError(true)
 		} finally {
 			setIsReordering(false)
 		}
 	}
 
+	const moveView = (viewId: number, direction: 'up' | 'down') => {
+		const ordered = [...views]
+		const currentIndex = ordered.findIndex((view) => view.id === viewId)
+		if (currentIndex === -1) return
+		const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
+		if (targetIndex < 0 || targetIndex >= ordered.length) return
+		const [moved] = ordered.splice(currentIndex, 1)
+		ordered.splice(targetIndex, 0, moved)
+		void handleReorder(ordered.map((view) => view.id))
+	}
+
 	const handleOpenModal = async (gameView?: GameView) => {
 		if (gameView && gameView.id) {
-			// Load the full game view (with configuration) by id before opening the modal
 			try {
 				const full = await loadGameViewById(gameView.id)
 				setEditingGameView((full as GameView) || gameView)
@@ -156,14 +162,15 @@ export const AdminGameViews: React.FC = () => {
 		}
 	}
 
-	const handleDelete = async (id: number, name: string) => {
-		if (window.confirm(t('admin.gameViews.confirmDelete', { name }))) {
-			try {
-				await deleteGameView(id)
-				await loadGameViews(queryParams) // Reload data after delete
-			} catch (error) {
-				console.error('Error deleting game view:', error)
-			}
+	const confirmDelete = async () => {
+		if (!deleteTarget) return
+		const target = deleteTarget
+		setDeleteTarget(null)
+		try {
+			await deleteGameView(target.id)
+			await loadGameViews(queryParams)
+		} catch (error) {
+			console.error('Error deleting game view:', error)
 		}
 	}
 
@@ -174,25 +181,20 @@ export const AdminGameViews: React.FC = () => {
 	}
 
 	const formatFiltersPreview = (gameView: GameView): string => {
-		// Prefer explicit configuration -> fallback to counts provided in the list DTO -> fallback to legacy fields
 		const config = (gameView as any).configuration
 
 		let filtersCount = 0
 		let sortingCount = 0
 
 		if (config?.filterGroups) {
-			// New FilterGroups structure - count total filters across all groups
 			filtersCount = config.filterGroups.reduce((total: number, group: any) => {
 				return total + (Array.isArray(group.filters) ? group.filters.length : 0)
 			}, 0)
 		} else if (Array.isArray(config?.filters)) {
-			// Legacy filters array
 			filtersCount = config.filters.length
 		} else if (typeof (gameView as any).filterCount === 'number') {
-			// Count from list DTO summary
 			filtersCount = (gameView as any).filterCount
 		} else if (Array.isArray((gameView as any).filters)) {
-			// Very legacy structure
 			filtersCount = (gameView as any).filters.length
 		}
 
@@ -216,6 +218,66 @@ export const AdminGameViews: React.FC = () => {
 
 		return parts.length > 0 ? parts.join(', ') : t('admin.gameViews.noConfig')
 	}
+
+	const columns: DataTableColumn<GameView>[] = [
+		{
+			key: '__order',
+			header: t('common.order'),
+			width: '108px',
+			render: (gameView, index) => (
+				<div className='order-cell'>
+					<DragHandle label={t('common.dragToReorder')} />
+					<ReorderButtons
+						canMoveUp={index > 0}
+						canMoveDown={index < views.length - 1}
+						onMoveUp={() => moveView(gameView.id, 'up')}
+						onMoveDown={() => moveView(gameView.id, 'down')}
+						isProcessing={isReordering}
+						size='small'
+					/>
+				</div>
+			),
+		},
+		{
+			key: 'name',
+			header: t('common.name'),
+			render: (gameView) => <span className='view-name'>{gameView.name}</span>,
+		},
+		{
+			key: 'config',
+			header: t('admin.gameViews.configHeader'),
+			render: (gameView) => (
+				<span className='filters-preview' title={formatFiltersPreview(gameView)}>
+					{formatFiltersPreview(gameView)}
+				</span>
+			),
+		},
+		{
+			key: 'created',
+			header: t('common.created'),
+			render: (gameView) => new Date(gameView.createdAt).toLocaleDateString(),
+		},
+		{
+			key: 'actions',
+			header: t('common.actions'),
+			align: 'right',
+			width: '160px',
+			render: (gameView) => (
+				<div className='actions'>
+					<IconButton label={t('admin.crud.edit')} icon={<EditIcon />} size='sm' onClick={() => handleOpenModal(gameView)} />
+					<IconButton
+						label={copiedId === gameView.id ? t('admin.gameViews.copied') : t('admin.gameViews.exportTitle')}
+						icon={<ExportIcon />}
+						size='sm'
+						className={copiedId === gameView.id ? 'icon-button--success' : undefined}
+						disabled={exportingId === gameView.id}
+						onClick={() => handleExportView(gameView)}
+					/>
+					<IconButton label={t('admin.crud.delete')} icon={<DeleteIcon />} variant='danger' size='sm' onClick={() => setDeleteTarget(gameView)} />
+				</div>
+			),
+		},
+	]
 
 	return (
 		<div className='admin-game-views'>
@@ -297,18 +359,7 @@ export const AdminGameViews: React.FC = () => {
 				</div>
 			)}
 
-			{error && (
-				<div
-					style={{
-						padding: '1rem',
-						color: 'red',
-						backgroundColor: '#fee',
-						borderRadius: '4px',
-						marginBottom: '1rem',
-					}}>
-					Error: {error}
-				</div>
-			)}
+			{error && <div className='alert alert-error'>{error}</div>}
 
 			<div className='controls'>
 				<input
@@ -320,71 +371,30 @@ export const AdminGameViews: React.FC = () => {
 				/>
 			</div>
 
-			{loading ? (
-				<div className='loading'>{t('common.loading')}</div>
-			) : (
-				<div className='game-views-table'>
-					<table>
-						<thead>
-							<tr>
-								<th style={{ width: '80px' }}>{t('common.order')}</th>
-								<th>{t('common.name')}</th>
-								<th>{t('admin.gameViews.configHeader')}</th>
-								<th>{t('common.created')}</th>
-								<th>{t('common.actions')}</th>
-							</tr>
-						</thead>
-						<tbody>
-							{gameViews &&
-								gameViews.map((gameView, index) => (
-									<tr key={gameView.id}>
-										<td>
-											<ReorderButtons
-												canMoveUp={index > 0}
-												canMoveDown={index < gameViews.length - 1}
-												onMoveUp={() => moveView(gameView.id, 'up')}
-												onMoveDown={() => moveView(gameView.id, 'down')}
-												isProcessing={isReordering}
-											/>
-										</td>
-										<td className='view-name'>{gameView.name}</td>
-										<td className='filters-preview' title={formatFiltersPreview(gameView)}>
-											{formatFiltersPreview(gameView)}
-										</td>
-										<td>{new Date(gameView.createdAt).toLocaleDateString()}</td>
-										<td className='actions'>
-											<IconButton label={t('admin.crud.edit')} icon={<EditIcon />} size='sm' onClick={() => handleOpenModal(gameView)} />
-											<IconButton
-												label={copiedId === gameView.id ? t('admin.gameViews.copied') : t('admin.gameViews.exportTitle')}
-												icon={<ExportIcon />}
-												size='sm'
-												className={copiedId === gameView.id ? 'icon-button--success' : undefined}
-												disabled={exportingId === gameView.id}
-												onClick={() => handleExportView(gameView)}
-											/>
-											<IconButton label={t('admin.crud.delete')} icon={<DeleteIcon />} variant='danger' size='sm' onClick={() => handleDelete(gameView.id, gameView.name)} />
-										</td>
-									</tr>
-								))}
-							{!gameViews && (
-								<tr>
-									<td
-										colSpan={5}
-										style={{
-											textAlign: 'center',
-											padding: '2rem',
-											color: 'var(--text-secondary)',
-										}}>
-										{t('admin.gameViews.noViews')}
-									</td>
-								</tr>
-							)}
-						</tbody>
-					</table>
-				</div>
-			)}
+			<div className='game-views-table'>
+				<DataTable
+					columns={columns}
+					items={views}
+					getRowId={(gameView) => gameView.id}
+					loading={loading}
+					emptyMessage={t('admin.gameViews.noViews')}
+					sortable={{ onReorder: (orderedIds) => void handleReorder(orderedIds.map(Number)) }}
+				/>
+			</div>
 
 			{isModalOpen && <GameViewModal gameView={editingGameView} onClose={handleCloseModal} onSave={handleSaveComplete} />}
+
+			<ConfirmDialog
+				isOpen={deleteTarget !== null}
+				title={t('admin.crud.confirmDeleteTitle')}
+				message={deleteTarget ? t('admin.gameViews.confirmDelete', { name: deleteTarget.name }) : ''}
+				variant='danger'
+				confirmLabel={t('admin.crud.delete')}
+				onConfirm={confirmDelete}
+				onCancel={() => setDeleteTarget(null)}
+			/>
+
+			<Toast isOpen={reorderError} message={t('admin.gameViews.reorderError')} type='error' onClose={() => setReorderError(false)} />
 		</div>
 	)
 }

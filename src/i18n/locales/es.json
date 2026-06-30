@@ -46,7 +46,10 @@
 		"analyzing": "Analizando...",
 		"updating": "Actualizando...",
 		"clearing": "Limpiando...",
-		"selectOption": "Selecciona una opción"
+		"selectOption": "Selecciona una opción",
+		"moveUp": "Mover arriba",
+		"moveDown": "Mover abajo",
+		"dragToReorder": "Arrastra para reordenar"
 	},
 	"auth": {
 		"title": "Games Database",
@@ -168,7 +171,8 @@
 				"colorLabel": "Color",
 				"nameLabel": "Nombre"
 			},
-			"empty": "Aún no hay elementos"
+			"empty": "Aún no hay elementos",
+			"confirmDeleteTitle": "Confirmar eliminación"
 		},
 		"status": {
 			"title": "Gestión de Estado",
@@ -612,6 +616,12 @@
 			"analysisComplete": "No se encontraron duplicados en la base de datos.",
 			"errorAnalyze": "Error al analizar las carpetas",
 			"errorClearCache": "Error al limpiar la caché",
+			"confirmDeleteTitle": "Confirmar eliminación",
+			"confirmDismissTitle": "Confirmar descarte",
+			"confirmDeleteOrphanFolder": "Se borrará la carpeta huérfana \"{{folder}}\" y todo su contenido. Esta acción no se puede deshacer.",
+			"confirmDeleteSelectedOrphanFolders": "Se borrarán {{count}} carpeta(s) huérfana(s) y todo su contenido. Esta acción no se puede deshacer.",
+			"confirmDeleteDuplicateGame": "Se borrará \"{{name}}\" (#{{id}}) de la base de datos. Esta acción no se puede deshacer.",
+			"confirmDismissDuplicateGroup": "Se descartará este grupo como falso positivo. No volverá a aparecer en el análisis de duplicados.",
 			"instructionsTitle": "Instrucciones y Casos de Uso",
 			"instrExportTitle": "Exportar Base de Datos",
 			"instrExport1": "Descarga TODO: juegos + catálogos (Platforms, Status, PlayWith, PlayedStatus)",
@@ -730,6 +740,9 @@
 				"storeSuggestions": "Sugerencias de tienda",
 				"dateSuggestions": "Fechas desde Steam"
 			},
+			"unlinkConfirmTitle": "Desconectar Steam",
+			"unlinkConfirmMessage": "¿Desconectar cuenta de Steam?",
+			"noGamesSelected": "No hay juegos seleccionados para importar o vincular",
 			"common": {
 				"steam": "Steam",
 				"gdb": "En GDB",

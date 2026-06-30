@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import { DataTable, ColorSwatch, StatusPill, type DataTableColumn } from './DataTable'
+import { DataTable, ColorSwatch, DragHandle, StatusPill, type DataTableColumn } from './DataTable'
 
 vi.mock('./DataTable.scss', () => ({}))
 
@@ -35,6 +35,18 @@ describe('DataTable', () => {
 	it('renders skeleton rows while loading', () => {
 		const { container } = render(<DataTable columns={columns} items={[]} getRowId={(item) => item.id} loading skeletonRows={3} />)
 		expect(container.querySelectorAll('.data-table__skeleton')).toHaveLength(6)
+	})
+
+	it('renders a drag handle per row when sortable', () => {
+		const sortableColumns: DataTableColumn<Row>[] = [{ key: 'handle', header: 'Order', render: () => <DragHandle label='drag' /> }, ...columns]
+		render(<DataTable columns={sortableColumns} items={rows} getRowId={(item) => item.id} sortable={{ onReorder: () => {} }} />)
+		expect(screen.getAllByRole('button', { name: 'drag' })).toHaveLength(2)
+	})
+
+	it('does not render drag handles when not sortable', () => {
+		const sortableColumns: DataTableColumn<Row>[] = [{ key: 'handle', header: 'Order', render: () => <DragHandle label='drag' /> }, ...columns]
+		render(<DataTable columns={sortableColumns} items={rows} getRowId={(item) => item.id} />)
+		expect(screen.queryByRole('button', { name: 'drag' })).toBeNull()
 	})
 })
 

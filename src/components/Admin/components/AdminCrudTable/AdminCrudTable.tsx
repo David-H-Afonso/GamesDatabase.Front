@@ -1,9 +1,10 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { DataTable, ColorSwatch, StatusPill, type DataTableColumn } from '@/components/elements/DataTable/DataTable'
+import { DataTable, ColorSwatch, DragHandle, StatusPill, type DataTableColumn } from '@/components/elements/DataTable/DataTable'
 import { TablePagination } from '@/components/elements/TablePagination/TablePagination'
 import { ReorderButtons } from '@/components/elements/ReorderButtons/ReorderButtons'
 import { IconButton } from '@/components/elements/IconButton/IconButton'
+import { ConfirmDialog } from '@/components/elements'
 import EditIcon from '@/assets/svgs/edit.svg?react'
 import DeleteIcon from '@/assets/svgs/trashbin.svg?react'
 import './AdminCrudTable.scss'
@@ -21,7 +22,10 @@ export interface AdminCrudTableProps<T> {
 	onDelete: (item: T) => void
 	deleteDisabled?: (item: T) => boolean
 	deleteTitle?: (item: T) => string
+	deleteConfirmTitle: string
+	deleteConfirmMessage: ReactNode
 	isReordering?: boolean
+	onReorder: (orderedIds: number[]) => void
 	onMoveUp: (item: T) => void
 	onMoveDown: (item: T) => void
 	emptyMessage?: ReactNode
@@ -44,7 +48,10 @@ export function AdminCrudTable<T>({
 	onDelete,
 	deleteDisabled,
 	deleteTitle,
+	deleteConfirmTitle,
+	deleteConfirmMessage,
 	isReordering,
+	onReorder,
 	onMoveUp,
 	onMoveDown,
 	emptyMessage,
@@ -54,21 +61,25 @@ export function AdminCrudTable<T>({
 	onPageSizeChange,
 }: AdminCrudTableProps<T>) {
 	const { t } = useTranslation()
+	const [pendingDelete, setPendingDelete] = useState<T | null>(null)
 
 	const columns: DataTableColumn<T>[] = [
 		{
 			key: '__order',
 			header: t('common.order'),
-			width: '72px',
+			width: '108px',
 			render: (item, index) => (
-				<ReorderButtons
-					canMoveUp={index > 0}
-					canMoveDown={index < items.length - 1}
-					onMoveUp={() => onMoveUp(item)}
-					onMoveDown={() => onMoveDown(item)}
-					isProcessing={isReordering}
-					size='small'
-				/>
+				<div className='admin-crud-table__order'>
+					<DragHandle label={t('common.dragToReorder')} />
+					<ReorderButtons
+						canMoveUp={index > 0}
+						canMoveDown={index < items.length - 1}
+						onMoveUp={() => onMoveUp(item)}
+						onMoveDown={() => onMoveDown(item)}
+						isProcessing={isReordering}
+						size='small'
+					/>
+				</div>
 			),
 		},
 		...leadingColumns,
@@ -105,7 +116,7 @@ export function AdminCrudTable<T>({
 						icon={<DeleteIcon />}
 						variant='danger'
 						size='sm'
-						onClick={() => onDelete(item)}
+						onClick={() => setPendingDelete(item)}
 						disabled={deleteDisabled?.(item)}
 						title={deleteDisabled?.(item) ? deleteTitle?.(item) : undefined}
 					/>
@@ -114,23 +125,42 @@ export function AdminCrudTable<T>({
 		},
 	]
 
+	const handleConfirmDelete = () => {
+		if (!pendingDelete) return
+		const target = pendingDelete
+		setPendingDelete(null)
+		onDelete(target)
+	}
+
 	return (
-		<DataTable
-			columns={columns}
-			items={items}
-			getRowId={getRowId}
-			loading={loading}
-			emptyMessage={emptyMessage}
-			footer={
-				<TablePagination
-					page={pagination.page}
-					totalPages={pagination.totalPages}
-					totalCount={pagination.totalCount}
-					pageSize={pageSize}
-					onPageChange={onPageChange}
-					onPageSizeChange={onPageSizeChange}
-				/>
-			}
-		/>
+		<>
+			<DataTable
+				columns={columns}
+				items={items}
+				getRowId={getRowId}
+				loading={loading}
+				emptyMessage={emptyMessage}
+				sortable={{ onReorder: (orderedIds) => onReorder(orderedIds.map(Number)) }}
+				footer={
+					<TablePagination
+						page={pagination.page}
+						totalPages={pagination.totalPages}
+						totalCount={pagination.totalCount}
+						pageSize={pageSize}
+						onPageChange={onPageChange}
+						onPageSizeChange={onPageSizeChange}
+					/>
+				}
+			/>
+			<ConfirmDialog
+				isOpen={pendingDelete !== null}
+				title={deleteConfirmTitle}
+				message={deleteConfirmMessage}
+				variant='danger'
+				confirmLabel={t('admin.crud.delete')}
+				onConfirm={handleConfirmDelete}
+				onCancel={() => setPendingDelete(null)}
+			/>
+		</>
 	)
 }

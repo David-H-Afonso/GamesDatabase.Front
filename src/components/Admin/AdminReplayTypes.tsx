@@ -1,15 +1,9 @@
-import React, { useCallback, useState } from 'react'
+import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-	getGameReplayTypes,
-	createGameReplayType,
-	updateGameReplayType,
-	deleteGameReplayType,
-	reorderGameReplayTypes,
-	getSpecialGameReplayType,
-} from '@/services/GameReplayTypeService'
+import { useGameReplayType } from '@/hooks/useGameReplayType'
+import { reorderGameReplayTypes } from '@/services/GameReplayTypeService'
 import type { GameReplayType, GameReplayTypeCreateDto, GameReplayTypeUpdateDto } from '@/models/api/GameReplayType'
-import type { PagedResult } from '@/models/api/Game'
+import { Toast } from '@/components/elements'
 import { useAdminCrud } from './hooks/useAdminCrud'
 import { AdminCrudTable } from './components/AdminCrudTable/AdminCrudTable'
 import { AdminCrudModal } from './components/AdminCrudModal/AdminCrudModal'
@@ -19,48 +13,21 @@ const emptyForm: GameReplayTypeCreateDto = { name: '', isActive: true, color: '#
 
 export const AdminReplayTypes: React.FC = () => {
 	const { t } = useTranslation()
+	const { replayTypes, loading, error, pagination, specialReplayType, loadReplayTypes, createReplayType, updateReplayType, deleteReplayType } = useGameReplayType()
 
-	const [replayTypes, setReplayTypes] = useState<GameReplayType[]>([])
-	const [loading, setLoading] = useState(false)
-	const [error, setError] = useState<string | null>(null)
-	const [pagination, setPagination] = useState({ page: 1, totalPages: 1, totalCount: 0 })
-	const [specialTypeId, setSpecialTypeId] = useState<number | null>(null)
+	const crud = useAdminCrud<GameReplayType, GameReplayTypeCreateDto, GameReplayTypeUpdateDto>({
+		items: replayTypes,
+		loading,
+		error,
+		pagination,
+		load: loadReplayTypes,
+		create: createReplayType,
+		update: updateReplayType,
+		remove: deleteReplayType,
+		reorder: reorderGameReplayTypes,
+	})
 
-	const load = useCallback(
-		async (params: { page: number; pageSize: number }) => {
-			setLoading(true)
-			setError(null)
-			try {
-				const [result, special] = await Promise.all([
-					getGameReplayTypes(params) as Promise<PagedResult<GameReplayType>>,
-					getSpecialGameReplayType().catch(() => null),
-				])
-				setReplayTypes(result.data)
-				setPagination({ page: result.page, totalPages: result.totalPages, totalCount: result.totalCount })
-				if (special) setSpecialTypeId(special.id)
-			} catch {
-				setError(t('admin.replayTypes.errorLoad'))
-			} finally {
-				setLoading(false)
-			}
-		},
-		[t]
-	)
-
-	const crud = useAdminCrud<GameReplayType, GameReplayTypeCreateDto, GameReplayTypeUpdateDto>(
-		{
-			items: replayTypes,
-			loading,
-			error,
-			pagination,
-			load,
-			create: createGameReplayType,
-			update: updateGameReplayType,
-			remove: deleteGameReplayType,
-			reorder: reorderGameReplayTypes,
-		},
-		{ onReorderError: () => window.alert(t('admin.replayTypes.reorderError')) }
-	)
+	const specialTypeId = specialReplayType?.id ?? null
 
 	const [isModalOpen, setIsModalOpen] = useState(false)
 	const [editingType, setEditingType] = useState<GameReplayType | null>(null)
@@ -99,15 +66,14 @@ export const AdminReplayTypes: React.FC = () => {
 				await crud.createItem(formData)
 			}
 			handleCloseModal()
-		} catch {
-			setError(t('admin.replayTypes.errorSave'))
+		} catch (err) {
+			console.error('Error saving replay type:', err)
 		}
 	}
 
 	const handleDelete = (type: GameReplayType) => {
 		if (type.id === specialTypeId) return
-		if (!window.confirm(t('admin.replayTypes.confirmDelete'))) return
-		crud.removeItem(type.id).catch(() => setError(t('admin.replayTypes.errorDelete')))
+		crud.removeItem(type.id).catch((err) => console.error('Error deleting replay type:', err))
 	}
 
 	const renderName = (type: GameReplayType) => (
@@ -138,7 +104,10 @@ export const AdminReplayTypes: React.FC = () => {
 				onDelete={handleDelete}
 				deleteDisabled={(type) => type.id === specialTypeId}
 				deleteTitle={() => t('admin.replayTypes.cantDeleteSpecial')}
+				deleteConfirmTitle={t('admin.crud.confirmDeleteTitle')}
+				deleteConfirmMessage={t('admin.replayTypes.confirmDelete')}
 				isReordering={crud.isReordering}
+				onReorder={crud.reorderTo}
 				onMoveUp={(type) => crud.move(type.id, 'up')}
 				onMoveDown={(type) => crud.move(type.id, 'down')}
 				emptyMessage={t('admin.crud.empty')}
@@ -172,6 +141,8 @@ export const AdminReplayTypes: React.FC = () => {
 					</div>
 				</AdminCrudModal>
 			)}
+
+			<Toast isOpen={crud.reorderError} message={t('admin.replayTypes.reorderError')} type='error' onClose={crud.clearReorderError} />
 		</div>
 	)
 }

@@ -46,7 +46,10 @@
 		"analyzing": "Analyzing...",
 		"updating": "Updating...",
 		"clearing": "Clearing...",
-		"selectOption": "Select an option"
+		"selectOption": "Select an option",
+		"moveUp": "Move up",
+		"moveDown": "Move down",
+		"dragToReorder": "Drag to reorder"
 	},
 	"auth": {
 		"title": "Games Database",
@@ -168,7 +171,8 @@
 				"colorLabel": "Color",
 				"nameLabel": "Name"
 			},
-			"empty": "No items yet"
+			"empty": "No items yet",
+			"confirmDeleteTitle": "Confirm deletion"
 		},
 		"status": {
 			"title": "Status Management",
@@ -609,6 +613,12 @@
 			"analysisComplete": "No duplicates found in the database.",
 			"errorAnalyze": "Error analyzing folders",
 			"errorClearCache": "Error clearing cache",
+			"confirmDeleteTitle": "Confirm deletion",
+			"confirmDismissTitle": "Confirm dismissal",
+			"confirmDeleteOrphanFolder": "The orphan folder \"{{folder}}\" and all its contents will be deleted. This action cannot be undone.",
+			"confirmDeleteSelectedOrphanFolders": "{{count}} orphan folder(s) and all their contents will be deleted. This action cannot be undone.",
+			"confirmDeleteDuplicateGame": "\"{{name}}\" (#{{id}}) will be deleted from the database. This action cannot be undone.",
+			"confirmDismissDuplicateGroup": "This group will be dismissed as a false positive. It will no longer appear in the duplicate analysis.",
 			"instructionsTitle": "Instructions & Use Cases",
 			"instrExportTitle": "Export Database",
 			"instrExport1": "Downloads EVERYTHING: games + catalogs (Platforms, Status, PlayWith, PlayedStatus)",
@@ -727,6 +737,9 @@
 				"storeSuggestions": "Store suggestions",
 				"dateSuggestions": "Dates from Steam"
 			},
+			"unlinkConfirmTitle": "Disconnect Steam",
+			"unlinkConfirmMessage": "Disconnect your Steam account?",
+			"noGamesSelected": "No games selected to import or link",
 			"common": {
 				"steam": "Steam",
 				"gdb": "In GDB",

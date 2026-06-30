@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
 	exportFullDatabase,
@@ -16,6 +16,7 @@ import {
 	clearImageCache,
 } from '@/services/DataExportService'
 import { useGames } from '@/hooks/useGames'
+import { ConfirmDialog } from '@/components/elements'
 import './AdminDataExport.scss'
 
 interface FolderAnalysisResult {
@@ -83,9 +84,20 @@ export const AdminDataExport: React.FC = () => {
 	const [expandedDuplicateGroups, setExpandedDuplicateGroups] = useState<string[]>([])
 	const [deletingGameIds, setDeletingGameIds] = useState<number[]>([])
 	const [dismissingDuplicateGroups, setDismissingDuplicateGroups] = useState<string[]>([])
+	const [confirmDialog, setConfirmDialog] = useState<{ title: string; message: ReactNode; variant: 'danger' | 'primary'; resolve: (value: boolean) => void } | null>(null)
 
 	// Hook para manejar los juegos
 	const { refreshGames, filters } = useGames()
+
+	const askConfirm = (title: string, message: ReactNode, variant: 'danger' | 'primary' = 'danger') =>
+		new Promise<boolean>((resolve) => setConfirmDialog({ title, message, variant, resolve }))
+
+	const resolveConfirm = (value: boolean) => {
+		setConfirmDialog((current) => {
+			current?.resolve(value)
+			return null
+		})
+	}
 
 	const showMessage = (text: string, type: 'success' | 'error') => {
 		setMessage(text)
@@ -328,7 +340,7 @@ Statistics:
 	}
 
 	const handleDeleteOrphanFolder = async (folderName: string) => {
-		const confirmed = window.confirm(`Se borrará la carpeta huérfana "${folderName}" y todo su contenido. Esta acción no se puede deshacer.`)
+		const confirmed = await askConfirm(t('admin.dataExport.confirmDeleteTitle'), t('admin.dataExport.confirmDeleteOrphanFolder', { folder: folderName }))
 		if (!confirmed) return
 
 		try {
@@ -356,7 +368,7 @@ Statistics:
 
 	const handleDeleteSelectedOrphanFolders = async () => {
 		if (selectedOrphanFolders.length === 0) return
-		const confirmed = window.confirm(`Se borrarán ${selectedOrphanFolders.length} carpeta(s) huérfana(s) y todo su contenido. Esta acción no se puede deshacer.`)
+		const confirmed = await askConfirm(t('admin.dataExport.confirmDeleteTitle'), t('admin.dataExport.confirmDeleteSelectedOrphanFolders', { count: selectedOrphanFolders.length }))
 		if (!confirmed) return
 
 		for (const folderName of selectedOrphanFolders) {
@@ -391,7 +403,7 @@ Statistics:
 	}
 
 	const handleDeleteDuplicateGame = async (game: DatabaseDuplicateGameDetails) => {
-		const confirmed = window.confirm(`Se borrará "${game.name}" (#${game.id}) de la base de datos. Esta acción no se puede deshacer.`)
+		const confirmed = await askConfirm(t('admin.dataExport.confirmDeleteTitle'), t('admin.dataExport.confirmDeleteDuplicateGame', { name: game.name, id: game.id }))
 		if (!confirmed) return
 
 		try {
@@ -410,7 +422,7 @@ Statistics:
 
 	const handleDismissDuplicateGroup = async (group: DatabaseDuplicateGroup) => {
 		const groupKey = getDuplicateGroupKey(group)
-		const confirmed = window.confirm(`Se descartará este grupo como falso positivo. No volverá a aparecer en el análisis de duplicados.`)
+		const confirmed = await askConfirm(t('admin.dataExport.confirmDismissTitle'), t('admin.dataExport.confirmDismissDuplicateGroup'), 'primary')
 		if (!confirmed) return
 
 		try {
@@ -982,6 +994,14 @@ Statistics:
 					</div>
 				</div>
 			</div>
+			<ConfirmDialog
+				isOpen={confirmDialog !== null}
+				title={confirmDialog?.title ?? ''}
+				message={confirmDialog?.message ?? ''}
+				variant={confirmDialog?.variant ?? 'danger'}
+				onConfirm={() => resolveConfirm(true)}
+				onCancel={() => resolveConfirm(false)}
+			/>
 		</div>
 	)
 }

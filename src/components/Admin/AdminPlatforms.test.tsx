@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test/utils/renderWithProviders'
 
@@ -114,23 +114,23 @@ describe('AdminPlatforms', () => {
 	it('calls deletePlatform on confirm', async () => {
 		const AdminPlatforms = await loadComponent()
 		const user = userEvent.setup()
-		vi.spyOn(globalThis, 'confirm').mockReturnValue(true)
 		renderWithProviders(<AdminPlatforms />)
 		const deleteButtons = screen.getAllByRole('button', { name: 'Eliminar' })
 		await user.click(deleteButtons[0])
+		const dialog = screen.getByRole('alertdialog')
+		await user.click(within(dialog).getByRole('button', { name: 'Eliminar' }))
 		expect(mockDeletePlatform).toHaveBeenCalledWith(1)
-		vi.restoreAllMocks()
 	})
 
 	it('does not delete when confirm is cancelled', async () => {
 		const AdminPlatforms = await loadComponent()
 		const user = userEvent.setup()
-		vi.spyOn(globalThis, 'confirm').mockReturnValue(false)
 		renderWithProviders(<AdminPlatforms />)
 		const deleteButtons = screen.getAllByRole('button', { name: 'Eliminar' })
 		await user.click(deleteButtons[0])
+		const dialog = screen.getByRole('alertdialog')
+		await user.click(within(dialog).getByRole('button', { name: 'Cancelar' }))
 		expect(mockDeletePlatform).not.toHaveBeenCalled()
-		vi.restoreAllMocks()
 	})
 
 	it('submits create form with new data', async () => {
@@ -177,5 +177,11 @@ describe('AdminPlatforms', () => {
 		const AdminPlatforms = await loadComponent()
 		renderWithProviders(<AdminPlatforms />)
 		expect(screen.getByText('Elementos por página:')).toBeInTheDocument()
+	})
+
+	it('renders a drag handle per row for reordering', async () => {
+		const AdminPlatforms = await loadComponent()
+		renderWithProviders(<AdminPlatforms />)
+		expect(screen.getAllByRole('button', { name: 'Arrastra para reordenar' })).toHaveLength(2)
 	})
 })

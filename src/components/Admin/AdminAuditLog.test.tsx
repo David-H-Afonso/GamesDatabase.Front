@@ -1,4 +1,4 @@
-import { fireEvent, screen } from '@testing-library/react'
+import { fireEvent, screen, within } from '@testing-library/react'
 import React from 'react'
 import { renderWithProviders } from '@/test/utils/renderWithProviders'
 
@@ -88,7 +88,6 @@ const adminState = {
 describe('AdminAuditLog', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
-		window.confirm = vi.fn().mockReturnValue(true)
 	})
 
 	async function loadComponent() {
@@ -165,6 +164,9 @@ describe('AdminAuditLog', () => {
 
 		const row = screen.getByText('The Alters').closest('tr')!
 		fireEvent.click(row.querySelector('.aal-action-btn--revert')!)
+
+		const dialog = await screen.findByRole('alertdialog')
+		fireEvent.click(within(dialog).getByRole('button', { name: 'Confirmar' }))
 
 		await vi.waitFor(() => {
 			expect(mockUpdateGame).toHaveBeenCalledWith(12, { comment: 'De la librería de Kayko' })

@@ -23,18 +23,19 @@ export interface UseAdminCrudOptions<T> {
 	defaultPageSize?: number
 	getId?: (item: T) => number
 	getSortKey?: (item: T) => number
-	onReorderError?: () => void
 }
 
 const defaultGetId = <T,>(item: T) => (item as { id: number }).id
 
 export const useAdminCrud = <T, TCreate, TUpdate>(controller: AdminCrudController<T, TCreate, TUpdate>, options: UseAdminCrudOptions<T> = {}) => {
-	const { defaultPageSize = DEFAULT_PAGE_SIZE, getId = defaultGetId, getSortKey, onReorderError } = options
+	const { defaultPageSize = DEFAULT_PAGE_SIZE, getId = defaultGetId, getSortKey } = options
 	const { items, loading, error, pagination, load, create, update, remove, reorder } = controller
 
 	const [page, setPage] = useState(1)
 	const [pageSize, setPageSize] = useState(defaultPageSize)
 	const [isReordering, setIsReordering] = useState(false)
+	const [optimisticItems, setOptimisticItems] = useState<T[] | null>(null)
+	const [reorderError, setReorderError] = useState(false)
 
 	useEffect(() => {
 		void load({ page, pageSize })
@@ -47,6 +48,8 @@ export const useAdminCrud = <T, TCreate, TUpdate>(controller: AdminCrudControlle
 		return [...items].sort((a, b) => keyOf(a) - keyOf(b))
 	}, [items, getSortKey, getId])
 
+	const currentItems = optimisticItems ?? sortedItems
+
 	const handlePageChange = useCallback((next: number) => setPage(next), [])
 
 	const handlePageSizeChange = useCallback((size: number) => {
@@ -54,27 +57,42 @@ export const useAdminCrud = <T, TCreate, TUpdate>(controller: AdminCrudControlle
 		setPage(1)
 	}, [])
 
+	const clearReorderError = useCallback(() => setReorderError(false), [])
+
+	const reorderTo = useCallback(
+		async (orderedIds: number[]) => {
+			if (isReordering) return
+			const byId = new Map(currentItems.map((item) => [getId(item), item]))
+			const next = orderedIds.map((id) => byId.get(id)).filter((item): item is T => item !== undefined)
+			setReorderError(false)
+			setOptimisticItems(next)
+			setIsReordering(true)
+			try {
+				await reorder(orderedIds)
+				await reload()
+				setOptimisticItems(null)
+			} catch {
+				setOptimisticItems(null)
+				setReorderError(true)
+			} finally {
+				setIsReordering(false)
+			}
+		},
+		[isReordering, currentItems, getId, reorder, reload]
+	)
+
 	const move = useCallback(
 		async (id: number, direction: 'up' | 'down') => {
-			if (isReordering) return
-			const ordered = [...sortedItems]
+			const ordered = [...currentItems]
 			const currentIndex = ordered.findIndex((item) => getId(item) === id)
 			if (currentIndex === -1) return
 			const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
 			if (targetIndex < 0 || targetIndex >= ordered.length) return
 			const [moved] = ordered.splice(currentIndex, 1)
 			ordered.splice(targetIndex, 0, moved)
-			setIsReordering(true)
-			try {
-				await reorder(ordered.map(getId))
-				await reload()
-			} catch {
-				onReorderError?.()
-			} finally {
-				setIsReordering(false)
-			}
+			await reorderTo(ordered.map(getId))
 		},
-		[isReordering, sortedItems, getId, reorder, reload, onReorderError]
+		[currentItems, getId, reorderTo]
 	)
 
 	const createItem = useCallback(
@@ -102,16 +120,19 @@ export const useAdminCrud = <T, TCreate, TUpdate>(controller: AdminCrudControlle
 	)
 
 	return {
-		items: sortedItems,
+		items: currentItems,
 		loading,
 		error,
 		pagination,
 		page,
 		pageSize,
 		isReordering,
+		reorderError,
+		clearReorderError,
 		handlePageChange,
 		handlePageSizeChange,
 		move,
+		reorderTo,
 		reload,
 		createItem,
 		updateItem,

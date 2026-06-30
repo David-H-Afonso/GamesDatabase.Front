@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useGameStatus } from '@/hooks/useGameStatus'
 import { reorderGameStatuses } from '@/services/GameStatusService'
 import type { GameStatus, GameStatusCreateDto, GameStatusUpdateDto } from '@/models/api/GameStatus'
+import { Toast } from '@/components/elements'
 import { useAdminCrud } from './hooks/useAdminCrud'
 import { AdminCrudTable } from './components/AdminCrudTable/AdminCrudTable'
 import { AdminCrudModal } from './components/AdminCrudModal/AdminCrudModal'
@@ -21,20 +22,17 @@ export const AdminStatus: React.FC = () => {
 	const { t } = useTranslation()
 	const { statuses, loading, error, pagination, loadStatuses, createStatus, updateStatus, deleteStatus, reassignSpecial } = useGameStatus()
 
-	const crud = useAdminCrud<GameStatus, GameStatusCreateDto, GameStatusUpdateDto>(
-		{
-			items: statuses,
-			loading,
-			error,
-			pagination,
-			load: loadStatuses,
-			create: createStatus,
-			update: updateStatus,
-			remove: deleteStatus,
-			reorder: reorderGameStatuses,
-		},
-		{ onReorderError: () => window.alert(t('admin.status.reorderError')) }
-	)
+	const crud = useAdminCrud<GameStatus, GameStatusCreateDto, GameStatusUpdateDto>({
+		items: statuses,
+		loading,
+		error,
+		pagination,
+		load: loadStatuses,
+		create: createStatus,
+		update: updateStatus,
+		remove: deleteStatus,
+		reorder: reorderGameStatuses,
+	})
 
 	const [isModalOpen, setIsModalOpen] = useState(false)
 	const [editingStatus, setEditingStatus] = useState<GameStatus | null>(null)
@@ -87,7 +85,6 @@ export const AdminStatus: React.FC = () => {
 	}
 
 	const handleDelete = (status: GameStatus) => {
-		if (!window.confirm(t('admin.status.confirmDelete'))) return
 		crud.removeItem(status.id).catch((error) => console.error('Error deleting status:', error))
 	}
 
@@ -115,7 +112,10 @@ export const AdminStatus: React.FC = () => {
 				onDelete={handleDelete}
 				deleteDisabled={(status) => !!status.isSpecialStatus}
 				deleteTitle={() => t('admin.status.cantDeleteSpecial')}
+				deleteConfirmTitle={t('admin.crud.confirmDeleteTitle')}
+				deleteConfirmMessage={t('admin.status.confirmDelete')}
 				isReordering={crud.isReordering}
+				onReorder={crud.reorderTo}
 				onMoveUp={(status) => crud.move(status.id, 'up')}
 				onMoveDown={(status) => crud.move(status.id, 'down')}
 				emptyMessage={t('admin.crud.empty')}
@@ -168,6 +168,8 @@ export const AdminStatus: React.FC = () => {
 					)}
 				</AdminCrudModal>
 			)}
+
+			<Toast isOpen={crud.reorderError} message={t('admin.status.reorderError')} type='error' onClose={crud.clearReorderError} />
 		</div>
 	)
 }

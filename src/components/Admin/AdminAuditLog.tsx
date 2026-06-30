@@ -5,6 +5,7 @@ import { updateGame } from '@/services/GamesService'
 import { useAppSelector } from '@/store/hooks'
 import { selectIsAdmin } from '@/store/features/auth/selector'
 import { GameDetails } from '@/components/elements/GameDetails/GameDetails'
+import { ConfirmDialog } from '@/components/elements'
 import { useGames } from '@/hooks/useGames/useGames'
 import type { Game } from '@/models/api/Game'
 import type { GameHistoryEntry, GameHistoryQueryParameters } from '@/models/api/GameHistoryEntry'
@@ -102,6 +103,7 @@ export const AdminAuditLog: React.FC = () => {
 	const [selectedGame, setSelectedGame] = useState<Game | null>(null)
 	const [openingGameId, setOpeningGameId] = useState<number | null>(null)
 	const [revertingEntryId, setRevertingEntryId] = useState<number | null>(null)
+	const [revertTarget, setRevertTarget] = useState<GameHistoryEntry | null>(null)
 	const [page, setPage] = useState(1)
 	const [totalPages, setTotalPages] = useState(1)
 	const [totalCount, setTotalCount] = useState(0)
@@ -173,12 +175,16 @@ export const AdminAuditLog: React.FC = () => {
 		}
 	}
 
-	const revertEntry = async (entry: GameHistoryEntry) => {
+	const requestRevert = (entry: GameHistoryEntry) => {
 		const disabledReason = getRevertDisabledReason(entry)
 		if (disabledReason || !entry.gameId || revertingEntryId !== null) return
+		setRevertTarget(entry)
+	}
 
-		const confirmed = window.confirm(t('admin.audit.revertConfirm', { game: entry.gameName, field: entry.field }))
-		if (!confirmed) return
+	const confirmRevert = async () => {
+		const entry = revertTarget
+		setRevertTarget(null)
+		if (!entry || !entry.gameId) return
 
 		setRevertingEntryId(entry.id)
 		try {
@@ -278,7 +284,7 @@ export const AdminAuditLog: React.FC = () => {
 													<button
 														type='button'
 														className='aal-action-btn aal-action-btn--revert'
-														onClick={() => void revertEntry(entry)}
+														onClick={() => requestRevert(entry)}
 														disabled={!!revertDisabledReason || revertingEntryId === entry.id}
 														title={revertDisabledReason || t('admin.audit.revertChange')}>
 														{revertingEntryId === entry.id ? t('common.loading') : t('admin.audit.revertChange')}
@@ -305,6 +311,15 @@ export const AdminAuditLog: React.FC = () => {
 					</div>
 				</>
 			)}
+
+			<ConfirmDialog
+				isOpen={revertTarget !== null}
+				title={t('admin.audit.revertChange')}
+				message={revertTarget ? t('admin.audit.revertConfirm', { game: revertTarget.gameName, field: revertTarget.field }) : ''}
+				variant='primary'
+				onConfirm={confirmRevert}
+				onCancel={() => setRevertTarget(null)}
+			/>
 		</div>
 	)
 }

@@ -15,6 +15,7 @@ import { setSteamProfile } from '@/store/features/auth/authSlice'
 import { steamService, type SteamDateSuggestion, type SteamMatchSuggestion, type SteamStoreSearchResult } from '@/services/SteamService/SteamService'
 import { getGames } from '@/services/GamesService/GamesService'
 import type { Game } from '@/models/api/Game'
+import { ConfirmDialog, Toast } from '@/components/elements'
 import './AdminSteam.scss'
 import './AdminSteamImport.scss'
 
@@ -65,6 +66,8 @@ export const AdminSteamImport = () => {
 	const [librarySort, setLibrarySort] = useState<{ key: LibrarySortKey; direction: SortDirection }>({ key: 'appId', direction: 'asc' })
 	const [message, setMessage] = useState<string | null>(null)
 	const [isSuccess, setIsSuccess] = useState(true)
+	const [unlinkConfirmOpen, setUnlinkConfirmOpen] = useState(false)
+	const [noGamesToast, setNoGamesToast] = useState(false)
 	const [manualSteamId, setManualSteamId] = useState('')
 	const [manualLinkLoading, setManualLinkLoading] = useState(false)
 
@@ -147,7 +150,7 @@ export const AdminSteamImport = () => {
 	}
 
 	const handleUnlink = async () => {
-		if (!confirm('¿Desconectar cuenta de Steam?')) return
+		setUnlinkConfirmOpen(false)
 		try {
 			await dispatch(unlinkSteam()).unwrap()
 			dispatch(setSteamProfile(null))
@@ -562,7 +565,7 @@ export const AdminSteamImport = () => {
 		const toLink = library.filter((g) => getAction(g.appId) === 'link' && linkTargets.has(g.appId))
 
 		if (appIds.length === 0 && toLink.length === 0) {
-			alert('No hay juegos seleccionados para importar o vincular')
+			setNoGamesToast(true)
 			return
 		}
 
@@ -757,7 +760,7 @@ export const AdminSteamImport = () => {
 					<button className='btn btn-primary' onClick={handleSyncAll} disabled={syncLoading}>
 						{syncLoading ? 'Sincronizando...' : 'Sincronizar todo'}
 					</button>
-					<button className='btn btn-danger' onClick={handleUnlink}>
+					<button className='btn btn-danger' onClick={() => setUnlinkConfirmOpen(true)}>
 						Desconectar Steam
 					</button>
 				</div>
@@ -783,6 +786,16 @@ export const AdminSteamImport = () => {
 	return (
 		<div className='admin-steam admin-steam-import'>
 			<h1 className='admin-page-title'>Steam</h1>
+
+			<ConfirmDialog
+				isOpen={unlinkConfirmOpen}
+				title={t('admin.steam.unlinkConfirmTitle')}
+				message={t('admin.steam.unlinkConfirmMessage')}
+				variant='danger'
+				onConfirm={handleUnlink}
+				onCancel={() => setUnlinkConfirmOpen(false)}
+			/>
+			<Toast isOpen={noGamesToast} message={t('admin.steam.noGamesSelected')} type='warning' onClose={() => setNoGamesToast(false)} />
 
 			<div className='import-tabs'>
 				<button className={`tab-btn${activeTab === 'account' ? ' tab-btn--active' : ''}`} onClick={() => setActiveTab('account')}>
