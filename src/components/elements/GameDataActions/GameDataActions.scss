@@ -7,25 +7,24 @@
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		width: 36px;
-		height: 36px;
+		width: 40px;
+		height: 40px;
 		padding: 0;
-		background: $color-bg-secondary;
-		border: 1px solid $color-border-primary;
-		border-radius: 8px;
-		color: $color-text-secondary;
+		background: var(--control-bg);
+		border: 1px solid var(--control-border);
+		border-radius: 10px;
+		color: var(--control-text);
 		cursor: pointer;
-		transition: all 0.2s;
-
-		[data-theme='dark'] & {
-			background: rgba(255, 255, 255, 0.05);
-			border-color: rgba(255, 255, 255, 0.12);
-		}
+		transition:
+			background 0.2s,
+			border-color 0.2s,
+			color 0.2s;
+		@include focus-ring;
 
 		&:hover {
-			background: $color-bg-tertiary;
-			border-color: $color-primary;
-			color: $color-primary;
+			background: var(--control-hover-bg);
+			border-color: var(--control-hover-border);
+			color: var(--primary);
 		}
 	}
 
@@ -40,21 +39,15 @@
 		top: calc(100% + 6px);
 		right: 0;
 		z-index: 100;
-		min-width: 148px;
-		background: $color-bg-primary;
-		border: 1px solid $color-border-primary;
-		border-radius: 10px;
-		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+		min-width: 168px;
 		padding: 0.35rem;
+		background: var(--menu-bg);
+		border: 1px solid var(--menu-border);
+		border-radius: 10px;
+		box-shadow: var(--menu-shadow);
 		display: flex;
 		flex-direction: column;
 		gap: 0.1rem;
-
-		[data-theme='dark'] & {
-			background: #1e2330;
-			border-color: rgba(255, 255, 255, 0.12);
-			box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55);
-		}
 	}
 
 	&__menu-item {
@@ -62,26 +55,23 @@
 		align-items: center;
 		gap: 0.55rem;
 		width: 100%;
-		padding: 0.5rem 0.75rem;
+		padding: 0.55rem 0.75rem;
 		background: transparent;
 		border: none;
 		border-radius: 7px;
-		color: $color-text-primary;
-		cursor: pointer;
+		color: var(--text-primary);
 		font-size: 0.875rem;
 		font-weight: 500;
 		text-align: left;
+		cursor: pointer;
 		transition:
 			background 0.15s,
 			color 0.15s;
+		@include focus-ring($offset: -2px);
 
 		&:hover {
-			background: $color-bg-secondary;
-			color: $color-primary;
-
-			[data-theme='dark'] & {
-				background: rgba(255, 255, 255, 0.07);
-			}
+			background: var(--control-hover-bg);
+			color: var(--primary);
 		}
 	}
 }

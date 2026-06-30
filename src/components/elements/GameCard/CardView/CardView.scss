@@ -2,7 +2,7 @@
 	background: var(--surface);
 	border-radius: 18px;
 	border: 1px solid rgba(0, 0, 0, 0.1);
-	box-shadow: var(--box-shadow);
+	box-shadow: var(--card-shadow);
 	cursor: pointer;
 
 	[data-theme='dark'] & {
@@ -17,7 +17,11 @@
 
 	&:hover {
 		transform: translateY(-3px) scale(1.01);
-		box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+		box-shadow: var(--card-shadow-hover);
+	}
+
+	[data-theme='dark'] &:hover {
+		box-shadow: 0 16px 44px rgba(0, 0, 0, 0.45);
 	}
 
 	&--steam-complete {

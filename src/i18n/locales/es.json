@@ -79,8 +79,28 @@
 		"themeLight": "Claro",
 		"themeDark": "Oscuro",
 		"language": "Idioma",
+		"account": "Cuenta",
 		"langEn": "English",
-		"langEs": "Español"
+		"langEs": "Español",
+		"search": "Buscar",
+		"commandSearch": "Buscar y comandos"
+	},
+	"command": {
+		"placeholder": "Busca juegos, navega o ejecuta un comando…",
+		"goto": "Ir a",
+		"actions": "Acciones",
+		"games": "Juegos",
+		"settings": "Ajustes",
+		"toggleTheme": "Cambiar tema claro / oscuro",
+		"langEn": "Idioma: English",
+		"langEs": "Idioma: Español",
+		"searchLibrary": "Buscar en la biblioteca “{{query}}”",
+		"createGame": "Añadir un juego",
+		"empty": "Sin resultados",
+		"searching": "Buscando…",
+		"hintNavigate": "Navegar",
+		"hintSelect": "Seleccionar",
+		"hintClose": "Cerrar"
 	},
 	"errors": {
 		"somethingWrong": "Algo salió mal",

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import './LanguageSwitcher.scss'
 
@@ -31,6 +31,15 @@ export const LanguageSwitcher: React.FC = () => {
 
 	const currentLang = LANGS.find((l) => l.code === current) ?? LANGS[0]
 	const CurrentFlag = currentLang.Flag
+
+	useEffect(() => {
+		if (!open) return
+		const onKey = (e: KeyboardEvent) => {
+			if (e.key === 'Escape') setOpen(false)
+		}
+		window.addEventListener('keydown', onKey)
+		return () => window.removeEventListener('keydown', onKey)
+	}, [open])
 
 	const select = (code: string) => {
 		i18n.changeLanguage(code)

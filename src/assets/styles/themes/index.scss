@@ -1,6 +1,7 @@
 // Import all available themes
 @use './light.scss';
 @use './dark.scss';
+@use './steam.scss';
 
 // Default theme - applies when no data-theme is set or as fallback
 :root {

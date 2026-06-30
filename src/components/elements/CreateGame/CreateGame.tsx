@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type FC } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Game, GameCreateDto } from '@/models/api/Game'
 import { Modal, GameDetails } from '@/components/elements'
@@ -157,7 +157,16 @@ const getStoreSuggestions = (
 
 const getValidStatusId = (statusId: RowStatusId, defaultStatusId?: number) => (statusId === '' ? defaultStatusId : statusId)
 
-const CreateGame: FC = () => {
+export interface CreateGameHandle {
+	open: () => void
+}
+
+interface CreateGameProps {
+	className?: string
+	renderTrigger?: (open: () => void) => ReactNode
+}
+
+const CreateGame = forwardRef<CreateGameHandle, CreateGameProps>(({ className, renderTrigger }, ref) => {
 	const { t } = useTranslation()
 	const dispatch = useAppDispatch()
 	const [isModalOpen, setIsModalOpen] = useState(false)
@@ -686,6 +695,8 @@ const CreateGame: FC = () => {
 		</div>
 	)
 
+	useImperativeHandle(ref, () => ({ open: openAddGameModal }))
+
 	return (
 		<>
 			{isModalOpen && (
@@ -724,29 +735,35 @@ const CreateGame: FC = () => {
 				/>
 			)}
 
-			<button className='home-component__add-button' onClick={openAddGameModal}>
-				<svg
-					width='14'
-					height='14'
-					viewBox='0 0 24 24'
-					fill='none'
-					stroke='currentColor'
-					strokeWidth='2'
-					strokeLinecap='round'
-					strokeLinejoin='round'
-					aria-hidden='true'
-					style={{ flexShrink: 0 }}>
-					<rect x='1' y='5' width='22' height='14' rx='4' />
-					<path d='M8 9v6M5 12h6' />
-					<circle cx='16' cy='10' r='1.2' fill='currentColor' stroke='none' />
-					<circle cx='19' cy='12' r='1.2' fill='currentColor' stroke='none' />
-					<circle cx='16' cy='14' r='1.2' fill='currentColor' stroke='none' />
-					<circle cx='13' cy='12' r='1.2' fill='currentColor' stroke='none' />
-				</svg>
-				{t('game.addGame')}
-			</button>
+			{renderTrigger ? (
+				renderTrigger(openAddGameModal)
+			) : (
+				<button className={className ?? 'home-component__add-button'} onClick={openAddGameModal} aria-label={t('game.addGame')}>
+					<svg
+						width='14'
+						height='14'
+						viewBox='0 0 24 24'
+						fill='none'
+						stroke='currentColor'
+						strokeWidth='2'
+						strokeLinecap='round'
+						strokeLinejoin='round'
+						aria-hidden='true'
+						style={{ flexShrink: 0 }}>
+						<rect x='1' y='5' width='22' height='14' rx='4' />
+						<path d='M8 9v6M5 12h6' />
+						<circle cx='16' cy='10' r='1.2' fill='currentColor' stroke='none' />
+						<circle cx='19' cy='12' r='1.2' fill='currentColor' stroke='none' />
+						<circle cx='16' cy='14' r='1.2' fill='currentColor' stroke='none' />
+						<circle cx='13' cy='12' r='1.2' fill='currentColor' stroke='none' />
+					</svg>
+					<span className='add-game-label'>{t('game.addGame')}</span>
+				</button>
+			)}
 		</>
 	)
-}
+})
+
+CreateGame.displayName = 'CreateGame'
 
 export default CreateGame

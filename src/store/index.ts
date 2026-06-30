@@ -70,7 +70,6 @@ const gamesTransform = createTransform(
 // change so pressing F5 right after a filter update never loses the state.
 // (_persistorFlush is assigned after persistor is created below.)
 let _persistorFlush: (() => void) | null = null
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const filterFlushMiddleware = (_storeApi: any) => (next: any) => (action: any) => {
 	const result = next(action)
 	if (action.type === 'games/setFilters' || action.type === 'games/resetFilters') {
@@ -114,10 +113,8 @@ const rootReducer = combineReducers({
 // Create persisted reducer - Single point of persistence configuration
 // rootReducer has a 3-generic Reducer<S, A, PreloadedState> type from combineReducers
 // but persistReducer only accepts Reducer<S, A> — cast needed to satisfy the overload.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const persistedReducer = persistReducer(persistConfig, rootReducer as any)
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const store = configureStore({
 	// redux-persist's state type (S & PersistPartial) is incompatible with the
 	// Reducer overload expected by configureStore in this version of RTK.

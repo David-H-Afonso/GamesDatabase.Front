@@ -79,8 +79,28 @@
 		"themeLight": "Light",
 		"themeDark": "Dark",
 		"language": "Language",
+		"account": "Account",
 		"langEn": "English",
-		"langEs": "Español"
+		"langEs": "Español",
+		"search": "Search",
+		"commandSearch": "Search and commands"
+	},
+	"command": {
+		"placeholder": "Search games, go to a page, or run a command…",
+		"goto": "Go to",
+		"actions": "Actions",
+		"games": "Games",
+		"settings": "Settings",
+		"toggleTheme": "Toggle light / dark theme",
+		"langEn": "Language: English",
+		"langEs": "Language: Español",
+		"searchLibrary": "Search the library for “{{query}}”",
+		"createGame": "Add a game",
+		"empty": "No results",
+		"searching": "Searching…",
+		"hintNavigate": "Navigate",
+		"hintSelect": "Select",
+		"hintClose": "Close"
 	},
 	"errors": {
 		"somethingWrong": "Something went wrong",

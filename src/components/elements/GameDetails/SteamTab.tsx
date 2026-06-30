@@ -28,7 +28,7 @@ export const SteamTab = ({ game }: Props) => {
 		loadAchievementsAndAutoSync()
 		loadDateSuggestion(controller.signal)
 		return () => controller.abort()
-	}, [game.id]) // eslint-disable-line react-hooks/exhaustive-deps
+	}, [game.id])
 
 	const loadAchievementsAndAutoSync = async () => {
 		setAchievementsLoading(true)

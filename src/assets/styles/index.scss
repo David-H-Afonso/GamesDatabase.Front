@@ -10,6 +10,17 @@ html.preload * {
 	animation: none !important;
 }
 
+// Header height (drives the bar's minimum height).
+:root {
+	--header-height: 64px;
+}
+
+@media (max-width: 768px) {
+	:root {
+		--header-height: 56px;
+	}
+}
+
 // Global reset and base styles
 * {
 	margin: 0;

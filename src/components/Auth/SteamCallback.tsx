@@ -68,7 +68,7 @@ export const SteamCallback = () => {
 		return () => {
 			cancelled = true
 		}
-	}, []) // eslint-disable-line react-hooks/exhaustive-deps
+	}, [])
 
 	return (
 		<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>

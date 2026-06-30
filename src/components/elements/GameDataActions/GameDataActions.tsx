@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import SelectiveExportModal from '@/components/Home/components/SelectiveExportModal'
 import SelectiveImportModal from '@/components/Home/components/SelectiveImportModal'
@@ -16,7 +16,11 @@ const DataActionsIcon = () => (
 	</svg>
 )
 
-const GameDataActions: React.FC = () => {
+interface GameDataActionsProps {
+	renderTrigger?: (toggle: () => void, open: boolean) => React.ReactNode
+}
+
+const GameDataActions: React.FC<GameDataActionsProps> = ({ renderTrigger }) => {
 	const { t } = useTranslation()
 	const dispatch = useAppDispatch()
 	const [exportOpen, setExportOpen] = useState(false)
@@ -27,6 +31,15 @@ const GameDataActions: React.FC = () => {
 	const handleImportComplete = () => {
 		dispatch(triggerGamesRefresh())
 	}
+
+	useEffect(() => {
+		if (!menuOpen) return
+		const onKey = (e: KeyboardEvent) => {
+			if (e.key === 'Escape') setMenuOpen(false)
+		}
+		window.addEventListener('keydown', onKey)
+		return () => window.removeEventListener('keydown', onKey)
+	}, [menuOpen])
 
 	const openExport = () => {
 		setMenuOpen(false)
@@ -41,15 +54,20 @@ const GameDataActions: React.FC = () => {
 	return (
 		<>
 			<div className='game-data-actions'>
-				<button
-					ref={btnRef}
-					className='game-data-actions__btn'
-					title={t('game.dataActions.title')}
-					onClick={() => setMenuOpen((v) => !v)}
-					aria-haspopup='true'
-					aria-expanded={menuOpen}>
-					<DataActionsIcon />
-				</button>
+				{renderTrigger ? (
+					renderTrigger(() => setMenuOpen((v) => !v), menuOpen)
+				) : (
+					<button
+						ref={btnRef}
+						className='game-data-actions__btn'
+						title={t('game.dataActions.title')}
+						aria-label={t('game.dataActions.title')}
+						onClick={() => setMenuOpen((v) => !v)}
+						aria-haspopup='true'
+						aria-expanded={menuOpen}>
+						<DataActionsIcon />
+					</button>
+				)}
 				{menuOpen && (
 					<>
 						<div className='game-data-actions__backdrop' onClick={() => setMenuOpen(false)} />

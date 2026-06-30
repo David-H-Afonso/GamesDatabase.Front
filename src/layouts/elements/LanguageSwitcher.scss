@@ -7,33 +7,31 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 5px;
-		padding: 0 0.45rem 0 0.5rem;
-		height: 36px;
-		background: $color-bg-secondary;
-		border: 1px solid $color-border-primary;
-		border-radius: 8px;
-		color: $color-text-secondary;
+		height: 40px;
+		padding: 0 0.5rem;
+		background: var(--control-bg);
+		border: 1px solid var(--control-border);
+		border-radius: 10px;
+		color: var(--control-text);
 		cursor: pointer;
-		transition: all 0.2s;
-
-		[data-theme='dark'] & {
-			background: rgba(255, 255, 255, 0.05);
-			border-color: rgba(255, 255, 255, 0.12);
-		}
+		transition:
+			background 0.2s,
+			border-color 0.2s;
+		@include focus-ring;
 
 		svg:first-child {
-			border-radius: 2px;
 			display: block;
+			border-radius: 2px;
 		}
 
 		&:hover {
-			background: $color-bg-tertiary;
-			border-color: $color-primary;
+			background: var(--control-hover-bg);
+			border-color: var(--control-hover-border);
 		}
 	}
 
 	&__chevron {
-		color: $color-text-tertiary;
+		color: var(--text-tertiary);
 		flex-shrink: 0;
 	}
 
@@ -48,35 +46,29 @@
 		top: calc(100% + 6px);
 		right: 0;
 		z-index: 100;
-		min-width: 130px;
-		background: $color-bg-primary;
-		border: 1px solid $color-border-primary;
-		border-radius: 10px;
-		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+		min-width: 150px;
+		margin: 0;
 		padding: 0.35rem;
 		list-style: none;
-		margin: 0;
+		background: var(--menu-bg);
+		border: 1px solid var(--menu-border);
+		border-radius: 10px;
+		box-shadow: var(--menu-shadow);
 		display: flex;
 		flex-direction: column;
 		gap: 0.1rem;
-
-		[data-theme='dark'] & {
-			background: #1e2330;
-			border-color: rgba(255, 255, 255, 0.12);
-			box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55);
-		}
 	}
 
 	&__option {
 		display: flex;
 		align-items: center;
 		gap: 0.55rem;
-		padding: 0.45rem 0.75rem;
+		padding: 0.5rem 0.75rem;
 		border-radius: 7px;
-		cursor: pointer;
 		font-size: 0.875rem;
 		font-weight: 500;
-		color: $color-text-primary;
+		color: var(--text-primary);
+		cursor: pointer;
 		transition: background 0.15s;
 
 		svg {
@@ -85,15 +77,11 @@
 		}
 
 		&:hover {
-			background: $color-bg-secondary;
-
-			[data-theme='dark'] & {
-				background: rgba(255, 255, 255, 0.07);
-			}
+			background: var(--control-hover-bg);
 		}
 
 		&--active {
-			color: $color-primary;
+			color: var(--primary);
 			font-weight: 600;
 		}
 	}

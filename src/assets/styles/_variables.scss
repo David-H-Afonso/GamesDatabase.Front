@@ -46,6 +46,8 @@ $space-2xl: 3rem; // 48px
 // =============================================================================
 
 $container-max-width: 1200px;
+// Max content width for the header
+$header-max-width: 1600px;
 
 $breakpoint-sm: 640px;
 $breakpoint-md: 768px;
@@ -94,6 +96,9 @@ $z-toast: 1100;
 $transition-fast: 0.15s ease;
 $transition-base: 0.2s ease;
 $transition-slow: 0.3s ease;
+
+// Easing for menus and indicators
+$ease-premium: cubic-bezier(0.16, 1, 0.3, 1);
 
 // =============================================================================
 // COLOR SYSTEM - Shared colors across components
@@ -156,3 +161,15 @@ $input-bg: var(--input-bg);
 $input-border: var(--input-border);
 $input-text: var(--input-text);
 $interactive: var(--interactive);
+
+// =============================================================================
+// MIXINS
+// =============================================================================
+
+// Visible keyboard focus ring.
+@mixin focus-ring($offset: 2px) {
+	&:focus-visible {
+		outline: 2px solid var(--focus-ring);
+		outline-offset: $offset;
+	}
+}

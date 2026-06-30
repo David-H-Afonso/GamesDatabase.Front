@@ -21,7 +21,8 @@
 		<!-- Apply theme IMMEDIATELY before any rendering to prevent FOUC -->
 		<script>
 			;(function () {
-				const theme = localStorage.getItem('theme') || 'oscuro'
+				var saved = localStorage.getItem('theme')
+				var theme = saved === 'light' || saved === 'dark' || saved === 'steam' ? saved : window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 				document.documentElement.setAttribute('data-theme', theme)
 				// Add a class to prevent transitions on initial load
 				document.documentElement.classList.add('preload')

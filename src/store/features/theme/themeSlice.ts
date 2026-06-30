@@ -32,7 +32,7 @@ const themeSlice = createSlice({
 	initialState,
 	reducers: {
 		setTheme: (state, action: PayloadAction<string>) => {
-			if (state.availableThemes.includes(action.payload)) {
+			if ((AVAILABLE_THEMES as readonly string[]).includes(action.payload)) {
 				state.currentTheme = action.payload
 
 				// Apply theme to document immediately
@@ -54,6 +54,9 @@ const themeSlice = createSlice({
 			}
 		},
 		initializeTheme: (state) => {
+			// Re-sync with the source of truth in case persisted state predates a new theme.
+			state.availableThemes = [...AVAILABLE_THEMES]
+
 			// Get theme from localStorage or system preference
 			let themeToSet = 'dark' // default fallback
 

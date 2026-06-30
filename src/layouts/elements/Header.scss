@@ -1,188 +1,470 @@
 @use '@/assets/styles' as *;
 
 .app-header {
-	background: var(--header-background);
-	border-bottom: 1px solid var(--border);
-	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+	position: static;
+	background: var(--header-bg);
+	border-bottom: 1px solid var(--header-border);
 
-	[data-theme='dark'] & {
-		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-		box-shadow: 0 2px 16px rgba(0, 0, 0, 0.6);
+	&__inner {
+		display: grid;
+		grid-template-columns: 1fr auto 1fr;
+		align-items: center;
+		gap: $space-md;
+		min-height: var(--header-height);
+		max-width: $header-max-width;
+		margin: 0 auto;
+		padding: 0 $space-md;
+
+		@media (max-width: $breakpoint-md) {
+			gap: $space-sm;
+			padding: 0 $space-sm;
+		}
 	}
 
-	&-container {
+	// Brand
+	&__brand {
+		grid-column: 1;
+		justify-self: start;
+		display: inline-flex;
 		align-items: center;
-		display: flex;
-		justify-content: space-between;
-		padding: 1rem 1.5rem;
-		margin: 0 auto;
+		gap: $space-sm;
+		min-width: 0;
+		text-decoration: none;
+		border-radius: 10px;
+		@include focus-ring;
 
-		a {
-			text-decoration: none;
-			color: $color-text-primary;
-			transition: all 0.2s;
+		&-mark {
+			height: 32px;
+			width: auto;
+			flex-shrink: 0;
+
+			@media (max-width: $breakpoint-md) {
+				height: 28px;
+			}
 		}
 
-		.header-logo {
-			font-weight: 600;
-			font-size: 1.5rem;
+		&-text {
+			font-weight: 700;
+			font-size: 1.3rem;
 			line-height: 1;
-			color: $color-text-primary;
-			transition: color 0.2s;
-			display: flex;
-			align-items: center;
-
-			&:hover {
-				color: $color-primary;
-			}
-
-			@media (max-width: 768px) {
-				display: none;
-			}
-		}
-
-		.header-logo-icon {
-			display: none;
-
-			@media (max-width: 768px) {
-				display: flex;
-				align-items: center;
-
-				img {
-					height: 40px;
-					width: auto;
-				}
-			}
-		}
-
-		.sr-only {
-			position: absolute;
-			width: 1px;
-			height: 1px;
-			padding: 0;
-			margin: -1px;
-			overflow: hidden;
-			clip: rect(0, 0, 0, 0);
+			letter-spacing: -0.01em;
 			white-space: nowrap;
-			border-width: 0;
-		}
+			color: var(--text-primary);
+			transition: color 0.2s $ease-premium;
 
-		&-navigation {
-			display: flex;
-			align-items: center;
-			gap: 1.5rem;
-
-			@media (max-width: 768px) {
-				display: none;
+			@media (max-width: $breakpoint-md) {
+				font-size: 1.1rem;
 			}
-
-			.nav-link {
-				padding: 0.25rem 0;
-				color: $color-text-muted;
-				font-size: 0.9rem;
-				font-weight: 500;
-				transition: all 0.2s;
-				border-bottom: 2px solid transparent;
-				position: relative;
-
-				&:hover {
-					color: $color-text-secondary;
-				}
-
-				&.active {
-					color: $color-text-primary;
-					border-bottom-color: $color-primary;
-				}
+			@media (max-width: 380px) {
+				font-size: 1rem;
 			}
 		}
 
-		&-quick-actions {
-			display: flex;
-			align-items: center;
-			gap: 0.75rem;
-
-			@media (max-width: 768px) {
-				display: none;
-			}
-
-			.header-user-menu {
-				display: flex;
-				align-items: center;
-				gap: 0.5rem;
-				padding-left: 0.75rem;
-				border-left: 1px solid $color-border-primary;
-
-				[data-theme='dark'] & {
-					border-left-color: rgba(255, 255, 255, 0.1);
-				}
-
-				.header-user-icon {
-					color: $color-text-muted;
-					flex-shrink: 0;
-				}
-
-				.header-username {
-					font-size: 0.9rem;
-					font-weight: 500;
-					color: $color-text-secondary;
-				}
-
-				.btn-logout-icon {
-					display: inline-flex;
-					align-items: center;
-					justify-content: center;
-					width: 34px;
-					height: 34px;
-					padding: 0;
-					background: transparent;
-					border: 1.5px solid transparent;
-					border-radius: 8px;
-					color: #ef4444;
-					cursor: pointer;
-					transition: all 0.2s;
-					flex-shrink: 0;
-
-					&:hover {
-						background: rgba(239, 68, 68, 0.1);
-						border-color: #ef4444;
-					}
-				}
-			}
+		&:hover &-text {
+			color: var(--primary);
 		}
+	}
 
-		&-mobile-actions {
+	// Animated underline nav
+	&__nav {
+		grid-column: 2;
+		justify-self: center;
+		align-self: stretch;
+		position: relative;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.15rem;
+
+		@media (max-width: ($breakpoint-md - 1px)) {
 			display: none;
-			align-items: center;
-			gap: 0.75rem;
+		}
+	}
 
-			@media (max-width: 768px) {
-				display: flex;
-			}
+	&__nav-link {
+		display: inline-flex;
+		align-items: center;
+		height: 100%;
+		padding: 0 0.85rem;
+		border-radius: 8px 8px 0 0;
+		font-size: 0.9rem;
+		font-weight: 500;
+		color: var(--text-muted);
+		text-decoration: none;
+		white-space: nowrap;
+		transition: color 0.18s $ease-premium;
+		@include focus-ring($offset: -3px);
+
+		&:hover {
+			color: var(--text-primary);
 		}
 
-		.header-burger-btn {
+		&.is-active {
+			color: var(--primary);
+			font-weight: 600;
+		}
+	}
+
+	&__nav-indicator {
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		height: 2px;
+		border-radius: 2px 2px 0 0;
+		background: var(--primary);
+		pointer-events: none;
+		transition:
+			transform 0.28s $ease-premium,
+			width 0.28s $ease-premium,
+			opacity 0.2s ease;
+		will-change: transform, width;
+
+		@media (prefers-reduced-motion: reduce) {
+			transition: none;
+		}
+	}
+
+	// Actions
+	&__actions {
+		grid-column: 3;
+		justify-self: end;
+		min-width: 0;
+		display: flex;
+		align-items: center;
+	}
+
+	&__desk {
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+
+		@media (max-width: ($breakpoint-lg - 1px)) {
+			display: none;
+		}
+	}
+
+	&__compact {
+		display: none;
+		align-items: center;
+		gap: $space-sm;
+
+		@media (max-width: ($breakpoint-lg - 1px)) {
 			display: flex;
-			flex-direction: column;
-			justify-content: space-around;
-			width: 28px;
-			height: 24px;
-			background: transparent;
-			border: none;
-			cursor: pointer;
+		}
+	}
+
+	// Command/search trigger
+	&__cmdk {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.45rem;
+		height: 36px;
+		padding: 0 0.5rem;
+		background: var(--control-bg);
+		border: 1px solid var(--control-border);
+		border-radius: 10px;
+		color: var(--text-tertiary);
+		cursor: pointer;
+		transition:
+			background 0.18s $ease-premium,
+			border-color 0.18s $ease-premium,
+			color 0.18s $ease-premium;
+		@include focus-ring;
+
+		&:hover {
+			background: var(--control-hover-bg);
+			border-color: var(--control-hover-border);
+			color: var(--text-secondary);
+		}
+
+		&-text {
+			font-size: 0.875rem;
+			font-weight: 500;
+		}
+
+		&-kbd {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			height: 20px;
+			padding: 0 6px;
+			font-family: inherit;
+			font-size: 0.7rem;
+			font-weight: 600;
+			color: var(--text-tertiary);
+			background: color-mix(in srgb, var(--text-tertiary) 12%, transparent);
+			border-radius: 5px;
+		}
+
+		@media (max-width: ($breakpoint-xl - 1px)) {
 			padding: 0;
-			z-index: 10;
+			width: 36px;
+			justify-content: center;
+
+			&-text,
+			&-kbd {
+				display: none;
+			}
+		}
+	}
+
+	// Add Game split button
+	&__split {
+		display: inline-flex;
+		align-items: stretch;
+		height: 36px;
+		border-radius: 10px;
+		background: var(--cta-gradient);
+		box-shadow: 0 4px 14px -4px var(--cta-glow);
+
+		.game-data-actions {
+			display: flex;
+		}
+	}
+
+	&__split-main {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		height: 36px;
+		padding: 0 0.8rem;
+		background: transparent;
+		border: none;
+		border-radius: 10px 0 0 10px;
+		color: #fff;
+		font-size: 0.875rem;
+		font-weight: 600;
+		white-space: nowrap;
+		cursor: pointer;
+		transition: background 0.18s $ease-premium;
+		@include focus-ring($offset: -2px);
+
+		svg {
+			flex-shrink: 0;
+		}
+
+		&:hover {
+			background: rgba(255, 255, 255, 0.14);
+		}
+
+		&:active {
+			background: rgba(0, 0, 0, 0.08);
+		}
+	}
+
+	&__split-toggle {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 30px;
+		height: 36px;
+		padding: 0;
+		background: transparent;
+		border: none;
+		border-left: 1px solid var(--cta-divider);
+		border-radius: 0 10px 10px 0;
+		color: #fff;
+		cursor: pointer;
+		transition: background 0.18s $ease-premium;
+		@include focus-ring($offset: -2px);
+
+		&:hover {
+			background: rgba(255, 255, 255, 0.14);
+		}
+
+		&:active {
+			background: rgba(0, 0, 0, 0.08);
+		}
+	}
+
+	// User menu
+	&__user {
+		position: relative;
+	}
+
+	&__user-trigger {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.45rem;
+		height: 36px;
+		padding: 0 0.4rem;
+		background: transparent;
+		border: none;
+		border-radius: 9px;
+		color: var(--control-text);
+		cursor: pointer;
+		transition: background 0.18s $ease-premium;
+		@include focus-ring;
+
+		&:hover {
+			background: var(--control-hover-bg);
+		}
+	}
+
+	&__avatar {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 26px;
+		height: 26px;
+		border-radius: 50%;
+		background: var(--segment-bg);
+		color: var(--text-secondary);
+		flex-shrink: 0;
+
+		&--lg {
+			width: 34px;
+			height: 34px;
+		}
+	}
+
+	&__username {
+		max-width: 150px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		font-size: 0.875rem;
+		font-weight: 600;
+		color: var(--text-secondary);
+	}
+
+	&__chevron {
+		color: var(--text-tertiary);
+		flex-shrink: 0;
+	}
+
+	&__backdrop {
+		position: fixed;
+		inset: 0;
+		z-index: 99;
+	}
+
+	&__user-menu {
+		position: absolute;
+		top: calc(100% + 8px);
+		right: 0;
+		z-index: 100;
+		width: 256px;
+		padding: 0.5rem;
+		background: var(--menu-bg);
+		border: 1px solid var(--menu-border);
+		border-radius: 12px;
+		box-shadow: var(--menu-shadow);
+		animation: app-header-pop 0.16s $ease-premium;
+
+		@media (prefers-reduced-motion: reduce) {
+			animation: none;
+		}
+	}
+
+	@keyframes app-header-pop {
+		from {
+			opacity: 0;
+			transform: translateY(-6px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	&__user-info {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		padding: 0.4rem 0.5rem 0.65rem;
+		margin-bottom: 0.35rem;
+		border-bottom: 1px solid var(--header-border);
+	}
+
+	&__user-name {
+		font-weight: 600;
+		font-size: 0.9rem;
+		color: var(--text-primary);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	&__menu-controls {
+		padding: 0.35rem 0.4rem 0.25rem;
+	}
+
+	&__menu-divider {
+		height: 1px;
+		margin: 0.35rem 0;
+		background: var(--header-border);
+	}
+
+	&__logout {
+		display: flex;
+		align-items: center;
+		gap: 0.55rem;
+		width: 100%;
+		padding: 0.55rem 0.6rem;
+		background: transparent;
+		border: none;
+		border-radius: 8px;
+		color: var(--text-secondary);
+		font-size: 0.875rem;
+		font-weight: 500;
+		text-align: left;
+		cursor: pointer;
+		transition:
+			background 0.15s ease,
+			color 0.15s ease;
+		@include focus-ring($offset: -2px);
+
+		svg {
+			color: var(--danger);
+			flex-shrink: 0;
+		}
+
+		&:hover {
+			background: var(--danger-bg);
+			color: var(--danger);
+		}
+	}
+
+	// Burger
+	&__burger {
+		display: inline-flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 5px;
+		width: 44px;
+		height: 44px;
+		padding: 0;
+		background: transparent;
+		border: none;
+		border-radius: 10px;
+		cursor: pointer;
+		transition: background 0.2s ease;
+		@include focus-ring;
+
+		span {
+			width: 20px;
+			height: 2px;
+			border-radius: 2px;
+			background: var(--text-primary);
+			transition: background 0.2s ease;
+		}
+
+		&:hover {
+			background: var(--control-hover-bg);
 
 			span {
-				width: 28px;
-				height: 3px;
-				background: $color-text-primary;
-				border-radius: 2px;
-				transition: all 0.3s ease;
+				background: var(--primary);
 			}
+		}
+	}
 
-			&:hover span {
-				background: $color-primary;
-			}
+	@media (max-width: 419px) {
+		.app-header__split-label {
+			display: none;
+		}
+		.app-header__split-main {
+			padding: 0 0.7rem;
 		}
 	}
 }

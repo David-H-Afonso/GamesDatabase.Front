@@ -1,25 +1,25 @@
-// Dark Theme - Elegant & Professional
-// CSS Custom Properties for dark theme
+// Steam Theme — desaturated blue-gray surfaces (opt-in via the theme selector)
+// CSS Custom Properties for the Steam theme
 
-[data-theme='dark'] {
-	--border-color-light: #444;
-	--surface: #1a1d26;
-	--surface-light: #111319;
-	--surface-hover: #1e2335;
-	--surface-elevated: #111827;
+[data-theme='steam'] {
+	--border-color-light: #2c3a47;
+	--surface: #1f2a36;
+	--surface-light: #16202b;
+	--surface-hover: #26323f;
+	--surface-elevated: #26323f;
 	--box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
 
-	// Background & Surface — original dark blue-black tones
-	--bg-primary: #111319;
-	--bg-secondary: #0d0f17;
-	--bg-tertiary: #1a1d26;
+	// Background & Surface — Steam-inspired desaturated blue-gray
+	--bg-primary: #1a2531;
+	--bg-secondary: #15202a;
+	--bg-tertiary: #26323f;
 
 	// Text Colors
 	--text-primary: var(--gray-900);
 	--text-secondary: var(--gray-600);
 	--text-tertiary: var(--gray-500);
-	--text-muted: #9ca3af; // fixed: readable medium-gray on dark backgrounds
-	--text-disabled: #6b7280; // fixed: was too dark (var gray-300 = #52525b)
+	--text-muted: #9ca3af;
+	--text-disabled: #6b7280;
 	--text-inverse: var(--gray-50);
 
 	// Brand Colors
@@ -27,7 +27,7 @@
 	--primary-hover: #2563eb;
 	--primary-light: #1e3a8a;
 
-	// Neutrals - Inverted for dark theme
+	// Neutrals - Inverted for dark surfaces
 	--white: #ffffff;
 	--black: #000000;
 	--gray-50: #18181b;
@@ -41,7 +41,7 @@
 	--gray-800: #f4f4f5;
 	--gray-900: #fafafa;
 
-	// Semantic Colors (adjusted for dark theme)
+	// Semantic Colors
 	--success: #10b981;
 	--success-light: #064e3b;
 	--warning: #f59e0b;
@@ -52,10 +52,10 @@
 	--info-light: #164e63;
 
 	// Border & Divider
-	--border: #2a2d3a;
-	--border-light: #1f2232;
-	--border-hover: #4b5563;
-	--divider: #2a2d3a;
+	--border: #2c3a47;
+	--border-light: #223040;
+	--border-hover: #3f5366;
+	--divider: #2c3a47;
 
 	// Interactive Elements
 	--interactive: var(--primary);
@@ -64,8 +64,8 @@
 	--interactive-disabled: var(--gray-400);
 
 	// Input & Form Elements
-	--input-bg: #1a1d26;
-	--input-border: #2a2d3a;
+	--input-bg: #16212c;
+	--input-border: #2c3a47;
 	--input-border-focus: var(--primary);
 	--input-text: var(--text-primary);
 	--input-placeholder: var(--gray-500);
@@ -77,20 +77,20 @@
 	--card-shadow-hover: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
 
 	// Header specific
-	--header-background: #111319;
+	--header-background: #18232f;
 	--header-text: var(--text-primary);
 	--primary-color: var(--primary);
 	--primary-color-alpha: rgba(59, 130, 246, 0.2);
 	--primary-color-dark: var(--primary-hover);
 	--text-color: var(--text-primary);
 
-	// Background gradient system (premium dark ambience)
-	--bg-main: #0b0d11;
+	// Ambience
+	--bg-main: #131c25;
 	--bg-radial-blue: rgba(50, 120, 255, 0.28);
 	--bg-radial-green: rgba(30, 210, 160, 0.2);
 
 	// Header & control tokens
-	--header-bg: #111319;
+	--header-bg: #18232f;
 	--header-border: rgba(255, 255, 255, 0.08);
 	--header-shadow: 0 2px 16px rgba(0, 0, 0, 0.55);
 	--control-bg: rgba(255, 255, 255, 0.05);
@@ -101,7 +101,7 @@
 	--segment-bg: rgba(255, 255, 255, 0.04);
 	--segment-active-bg: rgba(255, 255, 255, 0.12);
 	--segment-active-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
-	--menu-bg: #1e2330;
+	--menu-bg: #1f2a36;
 	--menu-border: rgba(255, 255, 255, 0.12);
 	--menu-shadow: 0 14px 36px -8px rgba(0, 0, 0, 0.6);
 	--focus-ring: rgba(96, 165, 250, 0.65);

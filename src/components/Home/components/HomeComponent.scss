@@ -7,9 +7,29 @@
 	font-family: $font-family;
 
 	[data-theme='dark'] & {
-		background:
-			radial-gradient(70vw 60vh at 15% 5%, rgba(50, 120, 255, 0.28), transparent 60%), radial-gradient(60vw 55vh at 85% 0%, rgba(30, 210, 160, 0.2), transparent 55%), #0b0d11;
-		background-attachment: fixed;
+		background-color: var(--bg-primary);
+		background-image:
+			url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='170' height='170'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.45'/%3E%3C/svg%3E"),
+			radial-gradient(66vw 52vh at 13% 0%, rgba(50, 120, 255, 0.14), transparent 60%),
+			radial-gradient(58vw 48vh at 87% 1%, rgba(30, 210, 160, 0.1), transparent 55%);
+		background-repeat: repeat, no-repeat, no-repeat;
+		background-size:
+			170px 170px,
+			auto,
+			auto;
+		background-blend-mode: soft-light, normal, normal;
+	}
+
+	[data-theme='steam'] & {
+		background-color: var(--bg-primary);
+		background-image:
+			url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='170' height='170'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E"),
+			radial-gradient(130vw 70vh at 50% -18%, rgba(26, 159, 255, 0.07), transparent 70%);
+		background-repeat: repeat, no-repeat;
+		background-size:
+			170px 170px,
+			auto;
+		background-blend-mode: soft-light, normal;
 	}
 	max-width: 100%;
 	overflow-x: hidden;

@@ -9,10 +9,9 @@
 	--box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
 
 	// Background & Surface
-	// bg-primary: slightly cool-gray page background so surfaces (white) pop
-	--bg-primary: #f1f5f9;
-	--bg-secondary: #e9edf5;
-	--bg-tertiary: #e0e6f0;
+	--bg-primary: #e7ebf3;
+	--bg-secondary: #dde4ee;
+	--bg-tertiary: #d3dbe8;
 
 	// Text Colors — higher contrast for readability
 	--text-primary: #0f172a;
@@ -70,17 +69,43 @@
 	--input-text: var(--text-primary);
 	--input-placeholder: var(--gray-400);
 
-	// Cards & Components — white cards over gray page background
+	// Cards & Components
 	--card-bg: #ffffff;
 	--card-border: var(--border-light);
-	--card-shadow: 0 1px 4px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.05);
-	--card-shadow-hover: 0 4px 10px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+	--card-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 20px -12px rgba(15, 23, 42, 0.14);
+	--card-shadow-hover: 0 2px 6px rgba(15, 23, 42, 0.07), 0 16px 30px -14px rgba(15, 23, 42, 0.2);
 
-	// Header — stays white to visually separate from page background
-	--header-background: #ffffff;
+	// Header
+	--header-background: #d9e1ed;
 	--header-text: var(--text-primary);
 	--primary-color: var(--primary);
 	--primary-color-alpha: rgba(37, 99, 235, 0.15);
 	--primary-color-dark: var(--primary-hover);
 	--text-color: var(--text-primary);
+
+	// Header & control tokens
+	--header-bg: #d9e1ed;
+	--header-border: #c7d2e2;
+	--header-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 10px 24px -20px rgba(15, 23, 42, 0.45);
+	--control-bg: #eef2f8;
+	--control-border: #cbd5e1;
+	--control-hover-bg: #e2e8f0;
+	--control-hover-border: #94a3b8;
+	--control-text: #334155;
+	--segment-bg: #eef2f8;
+	--segment-active-bg: #ffffff;
+	--segment-active-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+	--menu-bg: #ffffff;
+	--menu-border: #e2e8f0;
+	--menu-shadow: 0 12px 32px -8px rgba(15, 23, 42, 0.22);
+	--focus-ring: rgba(37, 99, 235, 0.55);
+	--toggle-icon: #b45309;
+	--danger: #dc2626;
+	--danger-bg: rgba(220, 38, 38, 0.1);
+
+	// Primary CTA accent
+	--cta-gradient: linear-gradient(135deg, #1a9fff 0%, #1059c9 100%);
+	--cta-gradient-hover: linear-gradient(135deg, #0e90f5 0%, #0d4fbf 100%);
+	--cta-glow: rgba(26, 159, 255, 0.4);
+	--cta-divider: rgba(255, 255, 255, 0.32);
 }

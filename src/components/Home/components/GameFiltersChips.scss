@@ -1,11 +1,13 @@
 ﻿@use '@/assets/styles' as *;
 
 .game-filters-chips {
-	background: $color-bg-primary;
+	background: var(--surface);
 	border-radius: 16px;
 	padding: 16px 18px 18px;
 	margin-bottom: 24px;
-	box-shadow: 0 20px 45px rgba(0, 0, 0, 0.7);
+	box-shadow:
+		0 1px 3px rgba(15, 23, 42, 0.05),
+		0 14px 30px -16px rgba(15, 23, 42, 0.16);
 	border: 1px solid $color-border-tertiary;
 	display: flex;
 	flex-direction: column;
@@ -14,7 +16,7 @@
 	[data-theme='dark'] & {
 		background: rgba(255, 255, 255, 0.04);
 		border: 1px solid rgba(255, 255, 255, 0.12);
-		box-shadow: 0 20px 45px rgba(0, 0, 0, 0.5);
+		box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.45);
 	}
 
 	&__selection {
@@ -531,7 +533,7 @@
 		background: $color-bg-surface;
 		border-radius: 14px;
 		border: 1px solid $color-border-secondary;
-		box-shadow: 0 18px 40px rgba(0, 0, 0, 0.85);
+		box-shadow: var(--menu-shadow);
 		padding: 14px 16px;
 		min-width: 280px;
 		max-width: 420px;
@@ -541,7 +543,6 @@
 		[data-theme='dark'] & {
 			background: rgba(255, 255, 255, 0.05);
 			border: 1px solid rgba(255, 255, 255, 0.12);
-			box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6);
 			backdrop-filter: blur(10px);
 		}
 

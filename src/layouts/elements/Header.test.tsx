@@ -8,7 +8,10 @@ vi.mock('./ThemeSelector.scss', () => ({}))
 vi.mock('./MobileMenu.scss', () => ({}))
 vi.mock('@/assets/svgs/user.svg?react', () => ({ default: () => <svg data-testid='user-icon' /> }))
 vi.mock('@/assets/pngs/logo.png', () => ({ default: 'logo.png' }))
-vi.mock('@/components/elements/CreateGame/CreateGame', () => ({ default: () => <div data-testid='create-game' /> }))
+vi.mock('@/components/elements/CreateGame/CreateGame', async () => {
+	const { forwardRef } = await import('react')
+	return { default: forwardRef(() => <div data-testid='create-game' />) }
+})
 vi.mock('@/components/elements/GameDataActions/GameDataActions', () => ({ default: () => <div data-testid='game-data-actions' /> }))
 
 const adminState = {
@@ -77,6 +80,7 @@ describe('Header', () => {
 	it('dispatches logoutUser and navigates to /login on logout click', async () => {
 		const user = userEvent.setup()
 		const { store } = renderWithProviders(<Header />, { preloadedState: adminState as any })
+		await user.click(screen.getByRole('button', { name: 'Cuenta' }))
 		await user.click(screen.getByTitle('Cerrar sesión'))
 		expect(store.getState().auth.isAuthenticated).toBe(false)
 	})

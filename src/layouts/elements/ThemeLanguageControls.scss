@@ -1,0 +1,154 @@
+@use '@/assets/styles' as *;
+
+.tl-controls {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.tl-control {
+	&__label {
+		display: block;
+		margin-bottom: 0.35rem;
+		font-size: 0.7rem;
+		font-weight: 600;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: var(--text-tertiary);
+	}
+}
+
+.tl-select {
+	position: relative;
+
+	&__trigger {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+		width: 100%;
+		padding: 0.5rem 0.6rem;
+		background: var(--segment-bg);
+		border: 1px solid var(--control-border);
+		border-radius: 9px;
+		color: var(--text-primary);
+		font-size: 0.85rem;
+		font-weight: 500;
+		cursor: pointer;
+		transition:
+			background 0.15s ease,
+			border-color 0.15s ease;
+		@include focus-ring($offset: 1px);
+
+		&:hover {
+			background: var(--control-hover-bg);
+			border-color: var(--control-hover-border);
+		}
+	}
+
+	&__current {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	&__icon {
+		display: inline-flex;
+		color: var(--text-secondary);
+		flex-shrink: 0;
+	}
+
+	&__chevron {
+		color: var(--text-tertiary);
+		flex-shrink: 0;
+		transition: transform 0.18s $ease-premium;
+
+		&.is-open {
+			transform: rotate(180deg);
+		}
+	}
+
+	&__menu {
+		position: absolute;
+		top: calc(100% + 5px);
+		left: 0;
+		right: 0;
+		z-index: 5;
+		display: flex;
+		flex-direction: column;
+		gap: 1px;
+		padding: 0.3rem;
+		background: var(--menu-bg);
+		border: 1px solid var(--menu-border);
+		border-radius: 10px;
+		box-shadow: var(--menu-shadow);
+		animation: tl-menu-pop 0.14s $ease-premium;
+
+		@media (prefers-reduced-motion: reduce) {
+			animation: none;
+		}
+	}
+
+	@keyframes tl-menu-pop {
+		from {
+			opacity: 0;
+			transform: translateY(-4px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	&__option {
+		display: flex;
+		align-items: center;
+		gap: 0.55rem;
+		width: 100%;
+		padding: 0.5rem 0.55rem;
+		background: transparent;
+		border: none;
+		border-radius: 7px;
+		color: var(--text-secondary);
+		font-size: 0.85rem;
+		font-weight: 500;
+		text-align: left;
+		cursor: pointer;
+		transition:
+			background 0.12s ease,
+			color 0.12s ease;
+		@include focus-ring($offset: -2px);
+
+		&-label {
+			flex: 1;
+			min-width: 0;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+
+		&:hover {
+			background: var(--control-hover-bg);
+			color: var(--text-primary);
+		}
+
+		&.is-active {
+			color: var(--primary);
+			font-weight: 600;
+
+			.tl-select__icon {
+				color: var(--primary);
+			}
+		}
+	}
+
+	&__check {
+		display: inline-flex;
+		color: var(--primary);
+		flex-shrink: 0;
+	}
+}

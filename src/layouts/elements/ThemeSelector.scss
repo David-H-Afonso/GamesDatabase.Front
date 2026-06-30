@@ -1,35 +1,30 @@
-@use 'sass:color';
 @use '@/assets/styles' as *;
 
 .theme-selector {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	width: 36px;
-	height: 36px;
+	width: 40px;
+	height: 40px;
 	padding: 0;
-	background: $color-bg-secondary;
-	border: 1px solid $color-border-primary;
-	border-radius: 8px;
-	color: #f8c400; // light mode: sun yellow
+	background: var(--control-bg);
+	border: 1px solid var(--control-border);
+	border-radius: 10px;
+	color: var(--toggle-icon);
 	cursor: pointer;
-	transition: all 0.2s;
-
-	[data-theme='dark'] & {
-		background: rgba(255, 255, 255, 0.05);
-		border-color: rgba(255, 255, 255, 0.12);
-		// dark mode: moon is blue
-		color: #7bb8f5;
-	}
+	transition:
+		background 0.2s,
+		border-color 0.2s,
+		color 0.2s,
+		transform 0.1s;
+	@include focus-ring;
 
 	&:hover {
-		background: $color-bg-tertiary;
-		border-color: $color-primary;
-		color: color.adjust(#f8c400, $lightness: -10%);
+		background: var(--control-hover-bg);
+		border-color: var(--control-hover-border);
+	}
 
-		[data-theme='dark'] & {
-			color: #a8d4ff;
-			border-color: #7bb8f5;
-		}
+	&:active {
+		transform: translateY(1px);
 	}
 }
