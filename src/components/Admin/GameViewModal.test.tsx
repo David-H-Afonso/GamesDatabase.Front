@@ -5,29 +5,44 @@ import { renderWithProviders as render } from '@/test/utils/renderWithProviders'
 const mockCreateGameView = vi.fn().mockResolvedValue({ id: 1 })
 const mockUpdateGameView = vi.fn().mockResolvedValue(undefined)
 
+// IMPORTANT: these loader fns must keep a STABLE identity across renders.
+// The component's mount effect lists them as dependencies, so returning a fresh
+// vi.fn() on every render would re-run the effect every render, and its async
+// setReplayTypes() would schedule another render → infinite loop. That loop
+// starves the microtask queue and makes the first awaited interaction hang.
+const mockLoadActiveStatuses = vi.fn()
+const mockLoadActivePlatforms = vi.fn()
+const mockLoadActivePlayedStatus = vi.fn()
+const mockLoadActivePlayWith = vi.fn()
+
 vi.mock('@/hooks', () => ({
 	useGameViews: () => ({
 		createGameView: mockCreateGameView,
 		updateGameView: mockUpdateGameView,
 	}),
+	useGamePlatform: () => ({
+		activeItems: [{ id: 1, name: 'PC' }],
+		loadActivePlatforms: mockLoadActivePlatforms,
+	}),
+	useGamePlayedStatus: () => ({
+		activeItems: [{ id: 1, name: 'Finished' }],
+		fetchActiveList: mockLoadActivePlayedStatus,
+	}),
+	useGamePlayWith: () => ({
+		activeOptions: [{ id: 1, name: 'Solo' }],
+		fetchActiveOptions: mockLoadActivePlayWith,
+	}),
+}))
+
+// The component imports useGameStatus from its concrete module, not from '@/hooks',
+// so it must be mocked separately (with a stable loader to avoid the render loop).
+vi.mock('@/hooks/useGameStatus/useGameStatus', () => ({
 	useGameStatus: () => ({
 		activeStatuses: [
 			{ id: 1, name: 'Playing' },
 			{ id: 2, name: 'Completed' },
 		],
-		loadActiveStatuses: vi.fn(),
-	}),
-	useGamePlatform: () => ({
-		activeItems: [{ id: 1, name: 'PC' }],
-		loadActivePlatforms: vi.fn(),
-	}),
-	useGamePlayedStatus: () => ({
-		activeItems: [{ id: 1, name: 'Finished' }],
-		fetchActiveList: vi.fn(),
-	}),
-	useGamePlayWith: () => ({
-		activeOptions: [{ id: 1, name: 'Solo' }],
-		fetchActiveOptions: vi.fn(),
+		loadActiveStatuses: mockLoadActiveStatuses,
 	}),
 }))
 
@@ -116,15 +131,17 @@ describe('GameViewModal', () => {
 		const C = await loadComponent()
 		const user = userEvent.setup()
 		render(<C onClose={mockOnClose} onSave={mockOnSave} />)
-		await user.click(screen.getByText('Agregar Grupo'))
-		expect(screen.queryByText('No hay filtros configurados')).not.toBeInTheDocument()
+		const before = screen.getAllByText('Sin filtros en este grupo').length
+		await user.click(screen.getByText('Añadir Grupo'))
+		expect(screen.getAllByText('Sin filtros en este grupo')).toHaveLength(before + 1)
 	})
 
 	it('adds a sorting rule', async () => {
 		const C = await loadComponent()
 		const user = userEvent.setup()
 		render(<C onClose={mockOnClose} onSave={mockOnSave} />)
-		await user.click(screen.getByText('Agregar Ordenamiento'))
-		expect(screen.queryByText('No hay ordenamientos configurados')).not.toBeInTheDocument()
+		expect(screen.getByText('Sin ordenaciones configuradas')).toBeInTheDocument()
+		await user.click(screen.getByText('Añadir Ordenación'))
+		expect(screen.queryByText('Sin ordenaciones configuradas')).not.toBeInTheDocument()
 	})
 })

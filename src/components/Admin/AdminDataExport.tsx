@@ -37,6 +37,11 @@ interface PotentialDuplicate {
 interface OrphanFolder {
 	folderName: string
 	fullPath: string
+	reason?: string
+	createdAt?: string
+	modifiedAt?: string
+	sizeBytes?: number
+	fileCount?: number
 }
 
 interface MissingGameFolder {
@@ -260,6 +265,19 @@ Statistics:
 		const hours = Math.floor(minutes / 60)
 		const mins = minutes % 60
 		return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`
+	}
+
+	const formatBytes = (bytes?: number) => {
+		if (bytes === null || bytes === undefined) return 'Tamaño desconocido'
+		if (bytes < 1024) return `${bytes} B`
+		const units = ['KB', 'MB', 'GB', 'TB']
+		let value = bytes / 1024
+		let unitIndex = 0
+		while (value >= 1024 && unitIndex < units.length - 1) {
+			value /= 1024
+			unitIndex++
+		}
+		return `${value.toFixed(value >= 10 || unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`
 	}
 
 	const getDuplicateGroupKey = (group: DatabaseDuplicateGroup) =>
@@ -546,6 +564,25 @@ Statistics:
 												<dt>Actualizado</dt>
 												<dd>{formatOptionalDate(game.updatedAt)}</dd>
 											</div>
+											<div>
+												<dt>Carpeta</dt>
+												<dd title={game.folderPath || undefined}>
+													{game.folderName || 'Sin carpeta'}
+													{game.filesystemChecked ? (game.folderExists ? ' ✅' : ' ❌') : ''}
+												</dd>
+											</div>
+											<div>
+												<dt>Exportado</dt>
+												<dd>{game.isExported ? formatOptionalDate(game.lastExportedAt) : 'No exportado'}</dd>
+											</div>
+											<div>
+												<dt>Imágenes export</dt>
+												<dd>{`logo ${game.logoDownloaded ? '✅' : '❌'} · cover ${game.coverDownloaded ? '✅' : '❌'}`}</dd>
+											</div>
+											<div>
+												<dt>Cambios sin exportar</dt>
+												<dd>{game.modifiedSinceExport ? 'Sí' : 'No'}</dd>
+											</div>
 										</dl>
 									</div>
 								</article>
@@ -786,6 +823,13 @@ Statistics:
 													<span>
 														<strong>{orphan.folderName}</strong>
 														<code>{orphan.fullPath}</code>
+														{orphan.reason && <small className='orphan-folder-list__reason'>⚠️ {orphan.reason}</small>}
+														<small className='orphan-folder-list__meta'>
+															<span>📦 {formatBytes(orphan.sizeBytes)}</span>
+															{typeof orphan.fileCount === 'number' && <span>🗂️ {orphan.fileCount} archivo(s)</span>}
+															<span>🕒 Creada: {formatOptionalDate(orphan.createdAt)}</span>
+															<span>✏️ Modificada: {formatOptionalDate(orphan.modifiedAt)}</span>
+														</small>
 													</span>
 												</label>
 												<button

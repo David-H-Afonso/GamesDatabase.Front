@@ -102,4 +102,115 @@ describe('AdminDataExport', () => {
 		expect(screen.getByText(/Sincronizar con Red/)).toBeInTheDocument()
 		Object.defineProperty(globalThis, 'location', { value: originalLocation, writable: true })
 	})
+
+	const makeDuplicateGroupResult = () => ({
+		totalGamesInDatabase: 2,
+		duplicateGroups: [
+			{
+				normalizedKey: '1|2',
+				matchType: 'exact',
+				confidence: 100,
+				reason: 'Coincidencia exacta: mismo título normalizado o el mismo Steam App ID.',
+				games: [
+					{
+						id: 1,
+						name: 'God of War',
+						platformName: 'PC',
+						folderName: 'God_of_War',
+						folderPath: '/share/1/Games/God_of_War',
+						folderExists: true,
+						filesystemChecked: true,
+						isExported: true,
+						lastExportedAt: '2026-01-01T00:00:00Z',
+						logoDownloaded: true,
+						coverDownloaded: true,
+						createdAt: '2025-01-01',
+						updatedAt: '2025-02-01',
+					},
+					{
+						id: 2,
+						name: 'GOD OF WAR',
+						platformName: 'PC',
+						folderName: 'GOD_OF_WAR',
+						folderExists: false,
+						filesystemChecked: true,
+						isExported: false,
+					},
+				],
+			},
+		],
+	})
+
+	it('lists orphan folders with reason, size and delete action', async () => {
+		const { analyzeFolders } = await import('@/services/DataExportService')
+		vi.mocked(analyzeFolders).mockResolvedValueOnce({
+			totalGamesInDatabase: 3,
+			totalFoldersInFilesystem: 4,
+			difference: 1,
+			potentialDuplicates: [],
+			orphanFolders: [
+				{
+					folderName: 'Old_Game',
+					fullPath: '/share/1/Games/Old_Game',
+					reason: 'La carpeta existe en el almacenamiento pero su nombre no coincide con ningún juego de la base de datos.',
+					createdAt: '2025-01-01T00:00:00Z',
+					modifiedAt: '2025-02-01T00:00:00Z',
+					sizeBytes: 10_485_760,
+					fileCount: 12,
+				},
+			],
+			missingGameFolders: [],
+			databaseDuplicates: { totalGamesInDatabase: 3, duplicateGroups: [] },
+		})
+
+		const C = await loadComponent()
+		const user = userEvent.setup()
+		render(<C />)
+		await user.click(screen.getByText(/Analizar Carpetas/))
+
+		expect(await screen.findByText('Old_Game')).toBeInTheDocument()
+		expect(screen.getByText(/no coincide con ningún juego/)).toBeInTheDocument()
+		expect(screen.getByText(/10 MB/)).toBeInTheDocument()
+		expect(screen.getByText(/12 archivo/)).toBeInTheDocument()
+		expect(screen.getByText('Borrar')).toBeInTheDocument()
+	})
+
+	it('shows duplicate comparison with folder and export status', async () => {
+		const { analyzeDatabaseDuplicates } = await import('@/services/DataExportService')
+		vi.mocked(analyzeDatabaseDuplicates).mockResolvedValueOnce(makeDuplicateGroupResult())
+
+		const C = await loadComponent()
+		const user = userEvent.setup()
+		render(<C />)
+		await user.click(screen.getByText(/Buscar Duplicados/))
+
+		expect(await screen.findByText('God of War')).toBeInTheDocument()
+		expect(screen.getByText('GOD OF WAR')).toBeInTheDocument()
+		// Folder association is shown per duplicate record
+		expect(screen.getByText(/God_of_War/)).toBeInTheDocument()
+		// Export status labels rendered
+		expect(screen.getAllByText('Exportado').length).toBeGreaterThan(0)
+		expect(screen.getByText('No exportado')).toBeInTheDocument()
+		// One delete button per record + dismiss action
+		expect(screen.getAllByText('Borrar este')).toHaveLength(2)
+		expect(screen.getByText(/Descartar falso positivo/)).toBeInTheDocument()
+	})
+
+	it('deletes a duplicate game only after confirmation', async () => {
+		const { analyzeDatabaseDuplicates, deleteDuplicateGame } = await import('@/services/DataExportService')
+		vi.mocked(analyzeDatabaseDuplicates).mockResolvedValueOnce(makeDuplicateGroupResult())
+		const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
+
+		const C = await loadComponent()
+		const user = userEvent.setup()
+		render(<C />)
+		await user.click(screen.getByText(/Buscar Duplicados/))
+		await screen.findByText('God of War')
+
+		await user.click(screen.getAllByText('Borrar este')[0])
+
+		expect(confirmSpy).toHaveBeenCalled()
+		expect(deleteDuplicateGame).toHaveBeenCalledWith(1)
+		confirmSpy.mockRestore()
+	})
 })

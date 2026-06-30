@@ -22,6 +22,15 @@ export interface DatabaseDuplicateGameDetails {
 	steamPlaytimeForever?: number
 	createdAt?: string
 	updatedAt?: string
+	modifiedSinceExport?: boolean
+	folderName?: string
+	folderPath?: string
+	folderExists?: boolean
+	filesystemChecked?: boolean
+	isExported?: boolean
+	lastExportedAt?: string
+	logoDownloaded?: boolean
+	coverDownloaded?: boolean
 }
 
 export interface DatabaseDuplicateGroup {
@@ -193,6 +202,11 @@ export const analyzeFolders = async (): Promise<{
 	orphanFolders: Array<{
 		folderName: string
 		fullPath: string
+		reason?: string
+		createdAt?: string
+		modifiedAt?: string
+		sizeBytes?: number
+		fileCount?: number
 	}>
 	missingGameFolders: Array<{
 		gameId: number

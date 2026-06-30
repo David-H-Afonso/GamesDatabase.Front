@@ -870,6 +870,20 @@
 					overflow-wrap: anywhere;
 				}
 			}
+
+			&__reason {
+				color: #d9a527;
+				font-size: 0.76rem;
+				overflow-wrap: anywhere;
+			}
+
+			&__meta {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 4px 12px;
+				color: var(--text-secondary);
+				font-size: 0.74rem;
+			}
 		}
 
 		.duplicate-group-card {
