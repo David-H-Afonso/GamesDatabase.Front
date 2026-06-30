@@ -849,7 +849,8 @@
 			"logoAlt": "Logo de {{name}}",
 			"providerIcon": "Ícono de {{provider}}",
 			"steamPerfect": "Todos los logros de Steam completados",
-			"fullCompletionTitle": "Juego completado al 100%"
+			"fullCompletionTitle": "Juego completado al 100%",
+			"scoreEmpty": "Sin puntuación"
 		},
 		"details": {
 			"title": "Detalles del juego: {{name}}",

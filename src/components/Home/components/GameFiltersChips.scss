@@ -299,6 +299,7 @@
 		align-items: center;
 		justify-content: center;
 		min-width: 36px;
+		margin-right: 6px;
 
 		&:hover {
 			border-color: $color-border-hover;
@@ -309,6 +310,15 @@
 		&:active {
 			transform: scale(0.95);
 		}
+	}
+
+	&__sort-icon {
+		display: block;
+		transition: transform 0.2s ease;
+	}
+
+	&__sort-direction.is-descending &__sort-icon {
+		transform: rotate(180deg);
 	}
 
 	&__view-toggle {
@@ -445,15 +455,6 @@
 			display: none;
 
 			@media (max-width: 600px) {
-				display: flex;
-			}
-		}
-
-		// View selector: show when hidden from top
-		&-view {
-			display: none;
-
-			@media (max-width: 974px) {
 				display: flex;
 			}
 		}
@@ -717,10 +718,13 @@
 			input {
 				min-width: 0;
 			}
+		}
 
-			// Hide view selector in mobile
-			&--view {
-				display: none;
+		// Keep the view selector reachable in mobile as a compact, label-less control
+		&__field--view {
+			.game-filters-chips__select-view {
+				min-width: 0;
+				max-width: 150px;
 			}
 		}
 
@@ -765,7 +769,7 @@
 	}
 
 	@media (max-width: 974px) {
-		&__top-right &__field--view {
+		&__top-right &__field--view label {
 			display: none;
 		}
 	}

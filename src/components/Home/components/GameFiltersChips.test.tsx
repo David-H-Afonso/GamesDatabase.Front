@@ -180,6 +180,17 @@ describe('GameFiltersChips', () => {
 		expect(onSortChange).toHaveBeenCalledWith('name', true)
 	})
 
+	it('marks the sort direction button as descending when sortDescending is true', async () => {
+		const GameFiltersChips = await loadGameFiltersChips()
+		const { container } = renderWithProviders(<GameFiltersChips filters={{ sortDescending: true }} onFiltersChange={vi.fn()} onSearchChange={vi.fn()} onSortChange={vi.fn()} />, {
+			preloadedState: defaultState,
+		})
+
+		const dirBtn = container.querySelector('.game-filters-chips__sort-direction')
+		expect(dirBtn).toHaveClass('is-descending')
+		expect(screen.getByTitle('Descending')).toBeInTheDocument()
+	})
+
 	it('shows selection controls when selectedCount > 0', async () => {
 		const onDeselectAll = vi.fn()
 		const onBulkEdit = vi.fn()

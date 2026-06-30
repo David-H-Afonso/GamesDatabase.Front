@@ -846,7 +846,8 @@
 			"logoAlt": "{{name}} logo",
 			"providerIcon": "{{provider}} icon",
 			"steamPerfect": "All Steam achievements completed",
-			"fullCompletionTitle": "Game 100% completed"
+			"fullCompletionTitle": "Game 100% completed",
+			"scoreEmpty": "No score"
 		},
 		"details": {
 			"title": "Game details: {{name}}",

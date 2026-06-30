@@ -29,6 +29,7 @@ const RowView: FC<RowViewProps> = (props) => {
 	const { game, openDetails, playWithColors, gameStatusColor, platformColor, playedStatusColor, onFieldUpdate, isSelected = false, onSelect, deselectAll } = props
 	const { t } = useTranslation()
 	const [activeSelector, setActiveSelector] = useState<'status' | 'platform' | 'playWith' | 'playStatus' | null>(null)
+	const [logoFailed, setLogoFailed] = useState(false)
 
 	// opciones de selects
 	const { activeStatuses: statusOptions } = useAppSelector((state) => state.gameStatus)
@@ -140,7 +141,7 @@ const RowView: FC<RowViewProps> = (props) => {
 	const releasedText = formatToLocaleDate(game.released) || dash
 	const startedText = formatToLocaleDate(game.started) || dash
 	const finishedText = formatToLocaleDate(game.finished) || dash
-	const hasLogo = Boolean(game.logo)
+	const hasLogo = Boolean(game.logo) && !logoFailed
 	const hasCompletedSteamAchievements = Boolean(game.steamAchievementsTotal && game.steamAchievementsTotal > 0 && game.steamAchievementsUnlocked === game.steamAchievementsTotal)
 	const isPerfectCompletion = hasCompletedSteamAchievements || Boolean(game.isManuallyCompleted)
 
@@ -221,6 +222,7 @@ const RowView: FC<RowViewProps> = (props) => {
 						quality='low'
 						loading={isPriority ? 'eager' : 'lazy'}
 						fetchPriority={isPriority ? 'high' : undefined}
+						onError={() => setLogoFailed(true)}
 						width={32}
 						height={32}
 					/>

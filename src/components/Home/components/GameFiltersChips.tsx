@@ -29,6 +29,24 @@ interface Props {
 
 type PopoverKey = 'platform' | 'playWith' | 'status' | 'playedStatus' | 'grades' | 'years' | 'replay' | 'duration' | 'steam' | 'price' | 'criticProvider' | 'excluded' | 'pageSize'
 
+const SortDirectionButton: React.FC<{ descending: boolean; title: string; onToggle: () => void }> = ({ descending, title, onToggle }) => (
+	<button type='button' className={'game-filters-chips__sort-direction' + (descending ? ' is-descending' : '')} onClick={onToggle} title={title} aria-label={title}>
+		<svg
+			className='game-filters-chips__sort-icon'
+			width='14'
+			height='14'
+			viewBox='0 0 24 24'
+			fill='none'
+			stroke='currentColor'
+			strokeWidth='2.5'
+			strokeLinecap='round'
+			strokeLinejoin='round'
+			aria-hidden='true'>
+			<polyline points='6 15 12 9 18 15' />
+		</svg>
+	</button>
+)
+
 const GameFiltersChips: React.FC<Props> = ({
 	filters,
 	onFiltersChange,
@@ -466,13 +484,11 @@ const GameFiltersChips: React.FC<Props> = ({
 							<option value='updatedat'>{t('home.filters.fieldUpdatedAt')}</option>
 							<option value='steamPlaytimeForever'>{t('home.filters.fieldSteamPlaytime')}</option>
 						</select>
-						<button
-							type='button'
-							className='game-filters-chips__sort-direction'
-							onClick={() => onSortChange(filters.sortBy || 'name', !filters.sortDescending)}
-							title={filters.sortDescending ? t('home.sorting.descending') : t('home.sorting.ascending')}>
-							{filters.sortDescending ? '\u2193' : '\u2191'}
-						</button>
+						<SortDirectionButton
+							descending={!!filters.sortDescending}
+							title={filters.sortDescending ? t('home.sorting.descending') : t('home.sorting.ascending')}
+							onToggle={() => onSortChange(filters.sortBy || 'name', !filters.sortDescending)}
+						/>
 					</div>
 
 					{onSelectAll && (
@@ -540,20 +556,6 @@ const GameFiltersChips: React.FC<Props> = ({
 							</div>
 						)}
 
-						{onViewChange && (
-							<div className='game-filters-chips__moved-controls-view game-filters-chips__field game-filters-chips__field--inline'>
-								<label>{t('home.view')}</label>
-								<select aria-label={t('home.view')} className='game-filters-chips__select-view' value={currentView} onChange={(e) => onViewChange(e.target.value)}>
-									<option value='default'>{t('home.viewDefault')}</option>
-									{publicGameViews.map((view) => (
-										<option key={view.id} value={view.name}>
-											{view.name}
-										</option>
-									))}
-								</select>
-							</div>
-						)}
-
 						<div className='game-filters-chips__moved-controls-sort game-filters-chips__field game-filters-chips__field--inline'>
 							<label>{t('home.filters.sortBy')}</label>
 							<select
@@ -579,13 +581,11 @@ const GameFiltersChips: React.FC<Props> = ({
 								<option value='updatedat'>{t('home.filters.fieldUpdatedAt')}</option>
 								<option value='steamPlaytimeForever'>{t('home.filters.fieldSteamPlaytime')}</option>
 							</select>
-							<button
-								type='button'
-								className='game-filters-chips__sort-direction'
-								onClick={() => onSortChange(filters.sortBy || 'name', !filters.sortDescending)}
-								title={filters.sortDescending ? t('home.sorting.descending') : t('home.sorting.ascending')}>
-								{filters.sortDescending ? '↓' : '↑'}
-							</button>
+							<SortDirectionButton
+								descending={!!filters.sortDescending}
+								title={filters.sortDescending ? t('home.sorting.descending') : t('home.sorting.ascending')}
+								onToggle={() => onSortChange(filters.sortBy || 'name', !filters.sortDescending)}
+							/>
 						</div>
 					</div>
 

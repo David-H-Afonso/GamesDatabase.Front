@@ -325,9 +325,11 @@
 						border-radius: 5px;
 						gap: 5px;
 						font-family: monospace;
+						align-items: center;
 						justify-content: center;
 						width: 100%;
 						max-width: 90px;
+						min-height: 1.5em;
 						font-size: 0.9rem;
 					}
 				}

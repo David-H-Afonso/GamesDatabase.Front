@@ -186,6 +186,18 @@ describe('CardView', () => {
 		expect(screen.getByRole('group', { name: /Score: 7 \/ 10/ })).toBeInTheDocument()
 	})
 
+	it('renders the score icon and an empty score box when score is null', async () => {
+		const CardView = await loadComponent()
+		const game = createGame({ score: undefined })
+		const { container } = renderWithProviders(<CardView game={game} openDetails={mockOpenDetails} playWithColors={[]} gameStatusColor='#4CAF50' platformColor='#2196F3' />, {
+			preloadedState: preloadedState as any,
+		})
+		const scoreBox = container.querySelector('.game-card-score-value')
+		expect(scoreBox).toBeInTheDocument()
+		expect(scoreBox?.textContent).toBe('')
+		expect(scoreBox?.closest('.game-card-score')?.querySelector('svg')).toBeInTheDocument()
+	})
+
 	it('renders platform badge when platformName provided', async () => {
 		const CardView = await loadComponent()
 		const game = createGame({ platformName: 'PC' })

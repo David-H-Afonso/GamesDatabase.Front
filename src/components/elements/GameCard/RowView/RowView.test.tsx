@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { fireEvent, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test/utils/renderWithProviders'
 import { createGame, resetIdCounter } from '@/test/factories'
@@ -79,7 +79,7 @@ vi.mock('@/components/elements/EditableMultiSelect/EditableMultiSelect', () => (
 	EditableMultiSelect: () => <div data-testid='editable-multi-select' />,
 }))
 vi.mock('@/components/elements/OptimizedImage/OptimizedImage', () => ({
-	default: ({ alt }: { alt: string }) => <img alt={alt} data-testid='optimized-image' />,
+	default: ({ alt, onError }: { alt: string; onError?: () => void }) => <img alt={alt} data-testid='optimized-image' onError={onError} />,
 }))
 vi.mock('@/components/elements/PortalDropdown/PortalDropdown', () => ({
 	PortalDropdown: ({ children }: { children: React.ReactNode }) => <div data-testid='portal-dropdown'>{children}</div>,
@@ -230,5 +230,19 @@ describe('RowView', () => {
 		})
 		await user.click(screen.getByText('Hades'))
 		expect(mockOpenDetails).toHaveBeenCalledWith(game)
+	})
+
+	it('hides the logo without adding a fallback box when it fails to load', async () => {
+		const RowView = await loadComponent()
+		const game = createGame({ name: 'Broken Logo', logo: 'https://example.com/logo.png' })
+		const { container } = renderWithProviders(
+			<RowView game={game} openDetails={mockOpenDetails} playWithColors={[]} gameStatusColor='#4CAF50' platformColor='#2196F3' playedStatusColor='#9C27B0' />,
+			{ preloadedState: preloadedState as any }
+		)
+		const logo = screen.getByTestId('optimized-image')
+		fireEvent.error(logo)
+		expect(screen.queryByTestId('optimized-image')).not.toBeInTheDocument()
+		expect(container.querySelector('.optimized-image-error')).toBeNull()
+		expect(screen.getByText('Broken Logo')).toBeInTheDocument()
 	})
 })
