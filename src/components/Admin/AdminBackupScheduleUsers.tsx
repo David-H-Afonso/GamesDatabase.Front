@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getAdminUserSchedules, updateAdminUserSchedule, runAdminUserBackupNow } from '@/services/BackupScheduleService'
 import type { UserBackupScheduleDto, UpdateBackupScheduleRequest } from '@/services/BackupScheduleService'
-import './AdminBackupSchedule.scss'
+import './AdminBackupScheduleUsers.scss'
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i)
 const MINUTES = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55]

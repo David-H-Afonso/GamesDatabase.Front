@@ -62,7 +62,7 @@ describe('AdminReplayTypes', () => {
 		const user = userEvent.setup()
 		render(<C />)
 		await vi.waitFor(() => expect(screen.getByText('New Game+')).toBeInTheDocument())
-		const editButtons = screen.getAllByText('Editar')
+		const editButtons = screen.getAllByRole('button', { name: 'Editar' })
 		await user.click(editButtons[0])
 		expect(screen.getByDisplayValue('New Game+')).toBeInTheDocument()
 	})
@@ -74,22 +74,22 @@ describe('AdminReplayTypes', () => {
 		vi.spyOn(globalThis, 'confirm').mockReturnValue(true)
 		render(<C />)
 		await vi.waitFor(() => expect(screen.getByText('New Game+')).toBeInTheDocument())
-		const deleteButtons = screen.getAllByText('Eliminar')
+		const deleteButtons = screen.getAllByRole('button', { name: 'Eliminar' })
 		await user.click(deleteButtons[0])
 		expect(deleteGameReplayType).toHaveBeenCalledWith(1)
 		vi.restoreAllMocks()
 	})
 
-	it('shows pagination info', async () => {
+	it('hides pagination when there is a single page', async () => {
 		const C = await loadComponent()
 		render(<C />)
-		await vi.waitFor(() => expect(screen.getByText(/Página 1 de 1/)).toBeInTheDocument())
+		await vi.waitFor(() => expect(screen.getByText('New Game+')).toBeInTheDocument())
+		expect(screen.queryByText(/Página/)).not.toBeInTheDocument()
 	})
 
-	it('shows loading state initially', async () => {
+	it('shows the loading skeleton initially', async () => {
 		const C = await loadComponent()
 		render(<C />)
-		// The loading state appears briefly before the async data loads
-		expect(screen.getByText('Cargando...')).toBeInTheDocument()
+		expect(document.querySelector('.data-table__skeleton')).not.toBeNull()
 	})
 })

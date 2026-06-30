@@ -74,7 +74,7 @@ describe('AdminStatus', () => {
 		const C = await loadComponent()
 		const user = userEvent.setup()
 		renderWithProviders(<C />)
-		const editButtons = screen.getAllByText('Editar')
+		const editButtons = screen.getAllByRole('button', { name: 'Editar' })
 		await user.click(editButtons[0])
 		expect(screen.getByText('Editar Estado')).toBeInTheDocument()
 		expect(screen.getByDisplayValue('Playing')).toBeInTheDocument()
@@ -85,7 +85,7 @@ describe('AdminStatus', () => {
 		const user = userEvent.setup()
 		vi.spyOn(globalThis, 'confirm').mockReturnValue(true)
 		renderWithProviders(<C />)
-		const deleteButtons = screen.getAllByText('Eliminar')
+		const deleteButtons = screen.getAllByRole('button', { name: 'Eliminar' })
 		await user.click(deleteButtons[0])
 		expect(mockDeleteStatus).toHaveBeenCalledWith(1)
 		vi.restoreAllMocks()
@@ -107,17 +107,17 @@ describe('AdminStatus', () => {
 		expect(mockLoadStatuses).toHaveBeenCalled()
 	})
 
-	it('shows pagination info', async () => {
+	it('hides pagination when there is a single page', async () => {
 		const C = await loadComponent()
 		renderWithProviders(<C />)
-		expect(screen.getByText(/Página 1 de 1/)).toBeInTheDocument()
+		expect(screen.queryByText(/Página/)).not.toBeInTheDocument()
 	})
 
 	it('submits update form', async () => {
 		const C = await loadComponent()
 		const user = userEvent.setup()
 		renderWithProviders(<C />)
-		const editButtons = screen.getAllByText('Editar')
+		const editButtons = screen.getAllByRole('button', { name: 'Editar' })
 		await user.click(editButtons[0])
 		const nameInput = screen.getByDisplayValue('Playing')
 		await user.clear(nameInput)
@@ -131,7 +131,7 @@ describe('AdminStatus', () => {
 		const user = userEvent.setup()
 		vi.spyOn(globalThis, 'confirm').mockReturnValue(false)
 		renderWithProviders(<C />)
-		const deleteButtons = screen.getAllByText('Eliminar')
+		const deleteButtons = screen.getAllByRole('button', { name: 'Eliminar' })
 		await user.click(deleteButtons[0])
 		expect(mockDeleteStatus).not.toHaveBeenCalled()
 		vi.restoreAllMocks()

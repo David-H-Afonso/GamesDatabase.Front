@@ -2,12 +2,14 @@ import { Outlet, NavLink } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAppSelector } from '@/store/hooks'
 import { selectIsAdmin } from '@/store/features/auth/selector'
+import { ADMIN_TABS } from './config/adminTabs'
 import './AdminLayout.scss'
 import { Header } from '@/layouts/elements/Header'
 
 export const AdminLayout = () => {
 	const { t } = useTranslation()
 	const isAdmin = useAppSelector(selectIsAdmin)
+	const tabs = ADMIN_TABS.filter((tab) => !tab.adminOnly || isAdmin)
 
 	return (
 		<div className='admin-layout'>
@@ -16,46 +18,12 @@ export const AdminLayout = () => {
 				<div className='admin-sidebar'>
 					<h2>{t('admin.sidebarTitle')}</h2>
 					<nav className='admin-nav'>
-						{isAdmin && (
-							<NavLink to='/admin/users' className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
-								{t('admin.nav.users')}
+						{tabs.map((tab) => (
+							<NavLink key={tab.path} to={tab.to} className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
+								<span className='nav-link__icon'>{tab.icon}</span>
+								{t(tab.labelKey)}
 							</NavLink>
-						)}
-						<NavLink to='/admin/platforms' className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
-							{t('admin.nav.platforms')}
-						</NavLink>
-						<NavLink to='/admin/status' className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
-							{t('admin.nav.status')}
-						</NavLink>
-						<NavLink to='/admin/play-with' className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
-							{t('admin.nav.playWith')}
-						</NavLink>
-						<NavLink to='/admin/played-status' className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
-							{t('admin.nav.playedStatus')}
-						</NavLink>
-						<NavLink to='/admin/replay-types' className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
-							{t('admin.nav.replayTypes')}
-						</NavLink>
-						<NavLink to='/admin/data-export' className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
-							{t('admin.nav.importExport')}
-						</NavLink>
-						<NavLink to='/admin/game-views' className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
-							{t('admin.nav.gameViews')}
-						</NavLink>
-						<NavLink to='/admin/audit-log' className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
-							{t('admin.nav.audit')}
-						</NavLink>
-						{isAdmin && (
-							<NavLink to='/admin/backup-schedule-users' className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
-								{t('admin.nav.backupScheduleUsers')}
-							</NavLink>
-						)}
-						<NavLink to='/admin/preferences' className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
-							{t('admin.nav.preferences')}
-						</NavLink>
-						<NavLink to='/admin/steam' className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
-							Steam
-						</NavLink>
+						))}
 					</nav>
 					<div className='admin-build-info'>
 						<span>
