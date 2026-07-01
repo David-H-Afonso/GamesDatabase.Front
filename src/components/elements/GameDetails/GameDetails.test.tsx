@@ -394,9 +394,9 @@ describe('GameDetails', () => {
 		expect(syncSpy).toHaveBeenCalledWith(steamGame.id)
 	})
 
-	it('keeps logo cleared and shows a toast when both the new and previous logos are broken', async () => {
+	it('restores the previous logo unconditionally even when CDN is unreachable', async () => {
 		vi.useRealTimers()
-		imageShouldLoad = false // all images fail – simulates a logo.png that 404s
+		imageShouldLoad = false // simulates CDN hiccup / network failure
 		const syncSpy = vi.spyOn(steamService, 'syncGame').mockResolvedValue({} as any)
 		mockFetchGameDetails.mockResolvedValueOnce({ ...steamGame, logo: '' })
 
@@ -406,9 +406,9 @@ describe('GameDetails', () => {
 		await user.click(screen.getByLabelText('Refresh logo from Steam'))
 
 		expect(await screen.findByRole('status')).toHaveTextContent(/load the Steam logo/)
-		// Previous logo is also broken → must NOT be restored; null is better than a permanent 404
-		await waitFor(() => expect(mockUpdateGameById).toHaveBeenCalledWith(steamGame.id, { logo: null }))
-		expect(mockUpdateGameById).not.toHaveBeenCalledWith(steamGame.id, { logo: steamGame.logo })
+		// Previous logo must ALWAYS be restored regardless of whether it currently loads.
+		// A transient CDN failure must not silently discard the user's existing logo URL.
+		await waitFor(() => expect(mockUpdateGameById).toHaveBeenCalledWith(steamGame.id, { logo: steamGame.logo }))
 		expect(syncSpy).toHaveBeenCalledWith(steamGame.id)
 	})
 

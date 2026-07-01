@@ -20,7 +20,12 @@ import { SteamTab } from './SteamTab'
 
 type DetailTab = 'info' | 'replays' | 'history' | 'steam'
 
-const getSteamCoverUrl = (appId: number) => `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/header.jpg`
+// Steam migrated the primary CDN from Cloudflare to Akamai around 2025.
+// Try Cloudflare first (still works for older games), fall back to Akamai.
+const STEAM_COVER_CDNS = (appId: number): string[] => [
+	`https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/header.jpg`,
+	`https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${appId}/header.jpg`,
+]
 
 const preloadImage = (url: string) =>
 	new Promise<boolean>((resolve) => {
@@ -88,18 +93,14 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 			const refreshed = await fetchGameDetails(game.id)
 			const nextLogo = refreshed?.logo
 			if (nextLogo && (await preloadImage(nextLogo))) {
-				// New logo found and loads successfully
+				// New logo found and confirmed to load
 				setGame(refreshed)
 			} else {
-				// Sync returned nothing usable.
-				// Only restore the previous logo if it still actually loads – if the previous URL
-				// was already a 404 (e.g. a logo.png that doesn't exist for this game) restoring
-				// it would just put back a permanently broken image, so in that case we leave the
-				// logo cleared (null is better than a broken URL the user can never escape).
-				const prevStillLoads = previousLogo ? await preloadImage(previousLogo) : false
-				if (prevStillLoads) {
-					await saveField('logo', previousLogo!)
-				}
+				// Nothing usable found – restore whatever the user had before.
+				// Do NOT check whether the previous URL still loads here: a transient CDN hiccup
+				// would cause us to silently discard a valid logo. Restoring a stale/broken URL
+				// is preferable because it remains visible to the user and they can try again.
+				await saveField('logo', previousLogo ?? null)
 				setToast({ message: t('game.details.refreshLogoFailed'), type: 'error' })
 			}
 		} finally {
@@ -110,9 +111,16 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 	const refreshSteamCover = async () => {
 		if (!game.steamAppId || steamImgLoading !== null) return
 		setSteamImgLoading('cover')
-		const url = getSteamCoverUrl(game.steamAppId)
-		if (await preloadImage(url)) {
-			await saveField('cover', url)
+		// Try each CDN in order; save the first URL that actually loads
+		let foundUrl: string | null = null
+		for (const url of STEAM_COVER_CDNS(game.steamAppId)) {
+			if (await preloadImage(url)) {
+				foundUrl = url
+				break
+			}
+		}
+		if (foundUrl) {
+			await saveField('cover', foundUrl)
 		} else {
 			setToast({ message: t('game.details.refreshCoverFailed'), type: 'error' })
 		}
