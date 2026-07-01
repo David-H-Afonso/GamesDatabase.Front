@@ -377,7 +377,7 @@ describe('GameDetails', () => {
 		expect(mockUpdateGameById).not.toHaveBeenCalled()
 	})
 
-	it('accepts cleared logo state and shows a toast when Steam returns no logo', async () => {
+	it('restores the previous logo and shows a toast when Steam returns no valid logo', async () => {
 		vi.useRealTimers()
 		imageShouldLoad = true
 		const syncSpy = vi.spyOn(steamService, 'syncGame').mockResolvedValue({} as any)
@@ -389,8 +389,24 @@ describe('GameDetails', () => {
 		await user.click(screen.getByLabelText('Refresh logo from Steam'))
 
 		expect(await screen.findByRole('status')).toHaveTextContent(/load the Steam logo/)
-		// Only the initial clear should have been saved – the previous (broken) logo must NOT be
-		// restored because no-logo is better than keeping a broken URL.
+		// Previous logo still loads → restore it so the user does not lose working data
+		await waitFor(() => expect(mockUpdateGameById).toHaveBeenCalledWith(steamGame.id, { logo: steamGame.logo }))
+		expect(syncSpy).toHaveBeenCalledWith(steamGame.id)
+	})
+
+	it('keeps logo cleared and shows a toast when both the new and previous logos are broken', async () => {
+		vi.useRealTimers()
+		imageShouldLoad = false // all images fail – simulates a logo.png that 404s
+		const syncSpy = vi.spyOn(steamService, 'syncGame').mockResolvedValue({} as any)
+		mockFetchGameDetails.mockResolvedValueOnce({ ...steamGame, logo: '' })
+
+		const { GameDetails } = await import('./GameDetails')
+		renderWithProviders(<GameDetails game={steamGame} closeDetails={vi.fn()} />, { preloadedState: defaultState })
+
+		await user.click(screen.getByLabelText('Refresh logo from Steam'))
+
+		expect(await screen.findByRole('status')).toHaveTextContent(/load the Steam logo/)
+		// Previous logo is also broken → must NOT be restored; null is better than a permanent 404
 		await waitFor(() => expect(mockUpdateGameById).toHaveBeenCalledWith(steamGame.id, { logo: null }))
 		expect(mockUpdateGameById).not.toHaveBeenCalledWith(steamGame.id, { logo: steamGame.logo })
 		expect(syncSpy).toHaveBeenCalledWith(steamGame.id)

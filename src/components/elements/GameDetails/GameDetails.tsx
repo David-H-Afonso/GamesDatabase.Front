@@ -90,14 +90,16 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 			if (nextLogo && (await preloadImage(nextLogo))) {
 				// New logo found and loads successfully
 				setGame(refreshed)
-			} else if (nextLogo) {
-				// Backend returned a URL but the browser can't load it – restore whatever was there before
-				await saveField('logo', previousLogo ?? null)
-				setToast({ message: t('game.details.refreshLogoFailed'), type: 'error' })
 			} else {
-				// Backend found no logo at all – accept the cleared state (no logo is better than
-				// a broken URL), but still inform the user that no icon was found
-				if (refreshed) setGame(refreshed)
+				// Sync returned nothing usable.
+				// Only restore the previous logo if it still actually loads – if the previous URL
+				// was already a 404 (e.g. a logo.png that doesn't exist for this game) restoring
+				// it would just put back a permanently broken image, so in that case we leave the
+				// logo cleared (null is better than a broken URL the user can never escape).
+				const prevStillLoads = previousLogo ? await preloadImage(previousLogo) : false
+				if (prevStillLoads) {
+					await saveField('logo', previousLogo!)
+				}
 				setToast({ message: t('game.details.refreshLogoFailed'), type: 'error' })
 			}
 		} finally {
