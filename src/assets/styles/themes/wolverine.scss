@@ -1,0 +1,241 @@
+// Wolverine Themes - classic yellow/blue and a darker modern variant
+
+[data-theme='wolverine-classic'] {
+	--border-color-light: #b58f18;
+	--border-color: #b58f18;
+	--bg-hover: #f2d348;
+	--surface: #f6dc63;
+	--surface-light: rgba(8, 18, 44, 0.86);
+	--surface-hover: #f2d348;
+	--surface-elevated: #ffe57f;
+	--box-shadow: 0 10px 24px rgba(53, 35, 3, 0.24);
+
+	// Background & Surface - classic suit balance: dominant yellow, blue/black accents
+	--bg-primary: #f0c82d;
+	--bg-secondary: #e2b41e;
+	--bg-tertiary: #d7a814;
+
+	// Text Colors
+	--text-primary: #0d1732;
+	--text-secondary: #10224b;
+	--text-tertiary: #18356c;
+	--text-muted: #3e3f31;
+	--text-disabled: #756d45;
+	--text-inverse: #fff8d4;
+
+	// Brand Colors - blue carries the secondary suit color
+	--primary: #1b4699;
+	--primary-hover: #2559bc;
+	--primary-light: #bdd3ff;
+
+	// Neutrals
+	--white: #ffffff;
+	--black: #000000;
+	--gray-50: #fffbed;
+	--gray-100: #fff3c2;
+	--gray-200: #f7df78;
+	--gray-300: #e9c94b;
+	--gray-400: #c8a428;
+	--gray-500: #8f7420;
+	--gray-600: #5a4a18;
+	--gray-700: #243768;
+	--gray-800: #15264f;
+	--gray-900: #0d1732;
+
+	// Semantic Colors
+	--success: #0d8f57;
+	--success-light: #cff4df;
+	--warning: #9a6b00;
+	--warning-light: #fff0b0;
+	--error: #c52337;
+	--error-light: #ffd8de;
+	--info: #1f5fd1;
+	--info-light: #d9e6ff;
+
+	// Border & Divider
+	--border: #c49a1e;
+	--border-light: #ddba42;
+	--border-hover: #1f4da7;
+	--divider: #d4ad35;
+
+	// Interactive Elements
+	--interactive: var(--primary);
+	--interactive-hover: var(--primary-hover);
+	--interactive-active: #102c62;
+	--interactive-disabled: #8f8351;
+
+	// Input & Form Elements
+	--input-bg: #ffe88d;
+	--input-border: #b58f18;
+	--input-border-focus: var(--primary);
+	--input-text: var(--text-primary);
+	--input-placeholder: #6d6031;
+
+	// Cards & Components
+	--card-bg: #102d65;
+	--card-border: #214fa8;
+	--card-text: #fff2a3;
+	--card-muted-text: #d3dcff;
+	--card-border-color-light: rgba(255, 219, 86, 0.34);
+	--card-shadow: 0 1px 3px rgba(40, 28, 2, 0.18), 0 10px 28px -16px rgba(19, 49, 114, 0.18);
+	--card-shadow-hover: 0 10px 24px -12px rgba(40, 28, 2, 0.28), 0 0 0 1px rgba(27, 70, 153, 0.16);
+
+	// Header specific
+	--header-background: #f7d543;
+	--header-text: var(--text-primary);
+	--primary-color: var(--primary);
+	--primary-color-alpha: rgba(27, 70, 153, 0.16);
+	--primary-color-dark: #12367a;
+	--text-color: var(--text-primary);
+
+	// Ambience
+	--bg-main: #e0b31c;
+	--bg-radial-blue: rgba(27, 70, 153, 0.16);
+	--bg-radial-green: rgba(0, 0, 0, 0.1);
+
+	// Header & control tokens
+	--header-bg: #f7d543;
+	--header-border: rgba(13, 23, 50, 0.14);
+	--header-shadow: 0 2px 18px rgba(51, 35, 3, 0.18);
+	--control-bg: rgba(255, 248, 211, 0.48);
+	--control-border: rgba(13, 23, 50, 0.14);
+	--control-hover-bg: rgba(255, 248, 211, 0.72);
+	--control-hover-border: rgba(27, 70, 153, 0.26);
+	--control-text: #10224b;
+	--segment-bg: rgba(255, 247, 201, 0.55);
+	--segment-active-bg: rgba(27, 70, 153, 0.12);
+	--segment-active-shadow: 0 1px 2px rgba(53, 35, 3, 0.14);
+	--menu-bg: #ffe57f;
+	--menu-border: rgba(13, 23, 50, 0.12);
+	--menu-shadow: 0 16px 38px -10px rgba(45, 30, 3, 0.24);
+	--focus-ring: rgba(27, 70, 153, 0.38);
+	--toggle-icon: #18356c;
+	--danger: #c52337;
+	--danger-bg: rgba(197, 35, 55, 0.12);
+
+	// Primary CTA accent
+	--cta-gradient: linear-gradient(135deg, #214fa8 0%, #102d65 100%);
+	--cta-gradient-hover: linear-gradient(135deg, #2f63c7 0%, #163a81 100%);
+	--cta-glow: rgba(27, 70, 153, 0.24);
+	--cta-divider: rgba(255, 255, 255, 0.34);
+}
+
+[data-theme='wolverine-modern'] {
+	--border-color-light: #7c5926;
+	--border-color: #7c5926;
+	--bg-hover: #e8bf56;
+	--surface: #efc663;
+	--surface-light: rgba(47, 24, 11, 0.84);
+	--surface-hover: #e8bf56;
+	--surface-elevated: #f6d27a;
+	--box-shadow: 0 10px 24px rgba(56, 28, 11, 0.24);
+
+	// Background & Surface - brown suit comics palette with warm mustard and deep brown shadows
+	--bg-primary: #cf9d34;
+	--bg-secondary: #bf8626;
+	--bg-tertiary: #a96a1d;
+
+	// Text Colors
+	--text-primary: #2b170d;
+	--text-secondary: #3b2114;
+	--text-tertiary: #583322;
+	--text-muted: #5e4632;
+	--text-disabled: #80654c;
+	--text-inverse: #fff3cf;
+
+	// Brand Colors - chocolate brown and dark ink accents from the costume
+	--primary: #4c251a;
+	--primary-hover: #673225;
+	--primary-light: #efcfaa;
+
+	// Neutrals
+	--white: #ffffff;
+	--black: #000000;
+	--gray-50: #fff6df;
+	--gray-100: #fbe6b0;
+	--gray-200: #efc46b;
+	--gray-300: #d39a37;
+	--gray-400: #ae7422;
+	--gray-500: #7f4d22;
+	--gray-600: #5a321d;
+	--gray-700: #442518;
+	--gray-800: #341b12;
+	--gray-900: #24120c;
+
+	// Semantic Colors
+	--success: #1f8b59;
+	--success-light: #d6f4e6;
+	--warning: #935600;
+	--warning-light: #fde8a5;
+	--error: #b8292a;
+	--error-light: #ffd9d6;
+	--info: #2c6a91;
+	--info-light: #d9eef6;
+
+	// Border & Divider
+	--border: #94662a;
+	--border-light: #bb8736;
+	--border-hover: #4c251a;
+	--divider: #b88231;
+
+	// Interactive Elements
+	--interactive: var(--primary);
+	--interactive-hover: var(--primary-hover);
+	--interactive-active: #341910;
+	--interactive-disabled: #8e7150;
+
+	// Input & Form Elements
+	--input-bg: #f6d797;
+	--input-border: #94662a;
+	--input-border-focus: var(--primary);
+	--input-text: var(--text-primary);
+	--input-placeholder: #76543b;
+
+	// Cards & Components
+	--card-bg: #4a2418;
+	--card-border: #77472c;
+	--card-text: #f7e0a0;
+	--card-muted-text: #d5c090;
+	--card-border-color-light: rgba(247, 214, 136, 0.26);
+	--card-shadow: 0 1px 3px rgba(56, 28, 11, 0.2), 0 10px 28px -16px rgba(76, 37, 26, 0.22);
+	--card-shadow-hover: 0 10px 24px -12px rgba(56, 28, 11, 0.3), 0 0 0 1px rgba(239, 198, 99, 0.16);
+
+	// Header specific
+	--header-background: #d9ab45;
+	--header-text: var(--text-primary);
+	--primary-color: var(--primary);
+	--primary-color-alpha: rgba(76, 37, 26, 0.14);
+	--primary-color-dark: #341910;
+	--text-color: var(--text-primary);
+
+	// Ambience
+	--bg-main: #b2771d;
+	--bg-radial-blue: rgba(56, 34, 23, 0.12);
+	--bg-radial-green: rgba(255, 236, 175, 0.2);
+
+	// Header & control tokens
+	--header-bg: #d9ab45;
+	--header-border: rgba(43, 23, 13, 0.14);
+	--header-shadow: 0 2px 18px rgba(56, 28, 11, 0.18);
+	--control-bg: rgba(255, 244, 209, 0.46);
+	--control-border: rgba(43, 23, 13, 0.14);
+	--control-hover-bg: rgba(255, 244, 209, 0.68);
+	--control-hover-border: rgba(76, 37, 26, 0.24);
+	--control-text: #3b2114;
+	--segment-bg: rgba(255, 242, 189, 0.52);
+	--segment-active-bg: rgba(76, 37, 26, 0.1);
+	--segment-active-shadow: 0 1px 2px rgba(56, 28, 11, 0.12);
+	--menu-bg: #f4cf73;
+	--menu-border: rgba(43, 23, 13, 0.12);
+	--menu-shadow: 0 16px 38px -10px rgba(56, 28, 11, 0.24);
+	--focus-ring: rgba(76, 37, 26, 0.34);
+	--toggle-icon: #4c251a;
+	--danger: #b8292a;
+	--danger-bg: rgba(184, 41, 42, 0.12);
+
+	// Primary CTA accent
+	--cta-gradient: linear-gradient(135deg, #4c251a 0%, #2a140e 100%);
+	--cta-gradient-hover: linear-gradient(135deg, #673225 0%, #341910 100%);
+	--cta-glow: rgba(76, 37, 26, 0.24);
+	--cta-divider: rgba(255, 255, 255, 0.28);
+}

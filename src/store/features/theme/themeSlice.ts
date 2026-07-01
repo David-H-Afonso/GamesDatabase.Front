@@ -1,14 +1,14 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import type { ThemeState } from '@/models/store/ThemeState'
 import type { ViewMode } from '@/models/ViewMode'
-import { AVAILABLE_THEMES } from '@/assets/styles/themes/AVAILABLE_THEMES'
+import { AVAILABLE_THEMES, normalizeThemeKey } from '@/assets/styles/themes/AVAILABLE_THEMES'
 
 // Function to get initial theme
 const getInitialTheme = (): string => {
 	if (typeof window === 'undefined') return 'light'
 
 	try {
-		const savedTheme = localStorage.getItem('theme')
+		const savedTheme = normalizeThemeKey(localStorage.getItem('theme'))
 		if (savedTheme && AVAILABLE_THEMES.includes(savedTheme as any)) {
 			return savedTheme
 		}
@@ -32,12 +32,14 @@ const themeSlice = createSlice({
 	initialState,
 	reducers: {
 		setTheme: (state, action: PayloadAction<string>) => {
-			if ((AVAILABLE_THEMES as readonly string[]).includes(action.payload)) {
-				state.currentTheme = action.payload
+			const normalizedTheme = normalizeThemeKey(action.payload)
+
+			if (normalizedTheme && (AVAILABLE_THEMES as readonly string[]).includes(normalizedTheme)) {
+				state.currentTheme = normalizedTheme
 
 				// Apply theme to document immediately
 				if (typeof document !== 'undefined') {
-					document.documentElement.setAttribute('data-theme', action.payload)
+					document.documentElement.setAttribute('data-theme', normalizedTheme)
 				}
 			} else {
 				console.warn(`Attempted to set unavailable theme: ${action.payload}`)
@@ -61,7 +63,7 @@ const themeSlice = createSlice({
 			let themeToSet = 'dark' // default fallback
 
 			if (typeof window !== 'undefined') {
-				const savedTheme = localStorage.getItem('theme')
+				const savedTheme = normalizeThemeKey(localStorage.getItem('theme'))
 				const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
 
 				if (savedTheme && state.availableThemes.includes(savedTheme)) {

@@ -20,9 +20,16 @@ Object.defineProperty(globalThis, 'matchMedia', {
 const initialState = themeReducer(undefined, { type: '@@INIT' })
 
 describe('themeSlice — initial state', () => {
-	it('availableThemes contains light and dark', () => {
+	it('availableThemes contains every registered theme', () => {
 		expect(initialState.availableThemes).toContain('light')
 		expect(initialState.availableThemes).toContain('dark')
+		expect(initialState.availableThemes).toContain('steam')
+		expect(initialState.availableThemes).toContain('wolverine-classic')
+		expect(initialState.availableThemes).toContain('wolverine-modern')
+		expect(initialState.availableThemes).toContain('gta-v')
+		expect(initialState.availableThemes).toContain('gta-iv')
+		expect(initialState.availableThemes).toContain('gta-vice-city')
+		expect(initialState.availableThemes).toContain('gta-vi')
 	})
 
 	it('cardStyle defaults to card', () => {
@@ -55,6 +62,11 @@ describe('themeSlice — setTheme', () => {
 		const current = state.currentTheme
 		const next = themeReducer(state, setTheme('neon-pink'))
 		expect(next.currentTheme).toBe(current)
+	})
+
+	it('maps legacy theme aliases to registered variants', () => {
+		const next = themeReducer({ ...state, availableThemes: [...initialState.availableThemes] }, setTheme('wolverine'))
+		expect(next.currentTheme).toBe('wolverine-classic')
 	})
 })
 
@@ -97,6 +109,12 @@ describe('themeSlice — initializeTheme', () => {
 		localStorage.setItem('theme', 'dark')
 		const next = themeReducer({ ...initialState, availableThemes: ['light', 'dark'] }, initializeTheme())
 		expect(next.currentTheme).toBe('dark')
+	})
+
+	it('maps legacy savedTheme values from localStorage', () => {
+		localStorage.setItem('theme', 'gta')
+		const next = themeReducer({ ...initialState, availableThemes: [...initialState.availableThemes] }, initializeTheme())
+		expect(next.currentTheme).toBe('gta-vice-city')
 	})
 
 	it('falls back to dark when localStorage is empty and no system preference', () => {

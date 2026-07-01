@@ -2,6 +2,8 @@
 @use './light.scss';
 @use './dark.scss';
 @use './steam.scss';
+@use './wolverine.scss';
+@use './gta.scss';
 
 // Default theme - applies when no data-theme is set or as fallback
 :root {

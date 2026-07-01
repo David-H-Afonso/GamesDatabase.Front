@@ -1,0 +1,469 @@
+// GTA Themes - V, Vice City, and VI inspired palettes
+
+[data-theme='gta-v'] {
+	--border-color-light: #3d564f;
+	--border-color: #3d564f;
+	--bg-hover: #1d2f2a;
+	--surface: #16231f;
+	--surface-light: #101613;
+	--surface-hover: #1d2f2a;
+	--surface-elevated: #21352f;
+	--box-shadow: 0 12px 28px rgba(7, 12, 11, 0.52);
+
+	// Background & Surface - Los Santos dusk: asphalt, palm green, sunset smog
+	--bg-primary: #0d1312;
+	--bg-secondary: #090d0d;
+	--bg-tertiary: #131b19;
+
+	// Text Colors
+	--text-primary: #edf0e8;
+	--text-secondary: #d5dccf;
+	--text-tertiary: #b7c5ba;
+	--text-muted: #95a39d;
+	--text-disabled: #68726f;
+	--text-inverse: #0f1715;
+
+	// Brand Colors
+	--primary: #58c47f;
+	--primary-hover: #78d896;
+	--primary-light: #224336;
+
+	// Neutrals
+	--white: #ffffff;
+	--black: #000000;
+	--gray-50: #121714;
+	--gray-100: #1d2723;
+	--gray-200: #2f3a37;
+	--gray-300: #44534f;
+	--gray-400: #60746c;
+	--gray-500: #95aba0;
+	--gray-600: #c9d8d0;
+	--gray-700: #dbe5df;
+	--gray-800: #eaf0eb;
+	--gray-900: #f6faf7;
+
+	// Semantic Colors
+	--success: #52dc9f;
+	--success-light: #123f33;
+	--warning: #dfad61;
+	--warning-light: #50361b;
+	--error: #f87171;
+	--error-light: #5e1f22;
+	--info: #6bd5ff;
+	--info-light: #173f5a;
+
+	// Border & Divider
+	--border: #30423d;
+	--border-light: #22312d;
+	--border-hover: #5a7e72;
+	--divider: #30423d;
+
+	// Interactive Elements
+	--interactive: var(--primary);
+	--interactive-hover: var(--primary-hover);
+	--interactive-active: #3f8f61;
+	--interactive-disabled: #607768;
+
+	// Input & Form Elements
+	--input-bg: #121b19;
+	--input-border: #30423d;
+	--input-border-focus: var(--primary);
+	--input-text: var(--text-primary);
+	--input-placeholder: #81a28d;
+
+	// Cards & Components
+	--card-bg: var(--surface);
+	--card-border: #22312d;
+	--card-shadow: 0 1px 3px rgba(0, 0, 0, 0.36), 0 12px 32px -18px rgba(88, 196, 127, 0.18);
+	--card-shadow-hover: 0 12px 28px -14px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(221, 160, 89, 0.14);
+
+	// Header specific
+	--header-background: #111816;
+	--header-text: var(--text-primary);
+	--primary-color: var(--primary);
+	--primary-color-alpha: rgba(88, 196, 127, 0.2);
+	--primary-color-dark: #3f8f61;
+	--text-color: var(--text-primary);
+
+	// Ambience
+	--bg-main: #070d0b;
+	--bg-radial-blue: rgba(93, 184, 207, 0.12);
+	--bg-radial-green: rgba(88, 196, 127, 0.2);
+
+	// Header & control tokens
+	--header-bg: #101916;
+	--header-border: rgba(255, 255, 255, 0.08);
+	--header-shadow: 0 2px 20px rgba(0, 0, 0, 0.6);
+	--control-bg: rgba(255, 255, 255, 0.05);
+	--control-border: rgba(88, 196, 127, 0.16);
+	--control-hover-bg: rgba(255, 255, 255, 0.09);
+	--control-hover-border: rgba(221, 160, 89, 0.26);
+	--control-text: #d7e7de;
+	--segment-bg: rgba(255, 255, 255, 0.04);
+	--segment-active-bg: rgba(88, 196, 127, 0.16);
+	--segment-active-shadow: 0 1px 2px rgba(0, 0, 0, 0.46);
+	--menu-bg: #122721;
+	--menu-border: rgba(88, 196, 127, 0.14);
+	--menu-shadow: 0 16px 38px -10px rgba(0, 0, 0, 0.66);
+	--focus-ring: rgba(88, 196, 127, 0.45);
+	--toggle-icon: #78d896;
+	--danger: #f87171;
+	--danger-bg: rgba(248, 113, 113, 0.14);
+
+	// Primary CTA accent
+	--cta-gradient: linear-gradient(135deg, #58c47f 0%, #2d8f75 100%);
+	--cta-gradient-hover: linear-gradient(135deg, #78d896 0%, #46a58a 100%);
+	--cta-glow: rgba(88, 196, 127, 0.32);
+	--cta-divider: rgba(255, 255, 255, 0.24);
+}
+
+[data-theme='gta-iv'] {
+	--border-color-light: #5a5b60;
+	--border-color: #5a5b60;
+	--bg-hover: #2a2c31;
+	--surface: #222429;
+	--surface-light: #121316;
+	--surface-hover: #2a2c31;
+	--surface-elevated: #30333a;
+	--box-shadow: 0 12px 28px rgba(5, 6, 8, 0.6);
+
+	// Background & Surface - Liberty City concrete and taxi-amber accents
+	--bg-primary: #141518;
+	--bg-secondary: #0e0f12;
+	--bg-tertiary: #1b1d21;
+
+	// Text Colors
+	--text-primary: #f0f1f3;
+	--text-secondary: #d2d5da;
+	--text-tertiary: #b1b7c0;
+	--text-muted: #878c95;
+	--text-disabled: #656973;
+	--text-inverse: #111215;
+
+	// Brand Colors
+	--primary: #d6a247;
+	--primary-hover: #e4b76d;
+	--primary-light: #4a3a24;
+
+	// Neutrals
+	--white: #ffffff;
+	--black: #000000;
+	--gray-50: #151619;
+	--gray-100: #1f2126;
+	--gray-200: #31343b;
+	--gray-300: #474b54;
+	--gray-400: #6a707c;
+	--gray-500: #989fac;
+	--gray-600: #c9ced6;
+	--gray-700: #dde1e7;
+	--gray-800: #ebedf1;
+	--gray-900: #f6f7f9;
+
+	// Semantic Colors
+	--success: #4ebd8d;
+	--success-light: #173c31;
+	--warning: #d6a247;
+	--warning-light: #4a3a24;
+	--error: #e06b6b;
+	--error-light: #572326;
+	--info: #71b8f5;
+	--info-light: #1f3f57;
+
+	// Border & Divider
+	--border: #464950;
+	--border-light: #353840;
+	--border-hover: #6b707c;
+	--divider: #464950;
+
+	// Interactive Elements
+	--interactive: var(--primary);
+	--interactive-hover: var(--primary-hover);
+	--interactive-active: #9d7332;
+	--interactive-disabled: #676a71;
+
+	// Input & Form Elements
+	--input-bg: #1b1d22;
+	--input-border: #464950;
+	--input-border-focus: var(--primary);
+	--input-text: var(--text-primary);
+	--input-placeholder: #81858f;
+
+	// Cards & Components
+	--card-bg: var(--surface);
+	--card-border: #353840;
+	--card-shadow: 0 1px 3px rgba(0, 0, 0, 0.42), 0 12px 34px -18px rgba(214, 162, 71, 0.16);
+	--card-shadow-hover: 0 12px 28px -14px rgba(0, 0, 0, 0.56), 0 0 0 1px rgba(214, 162, 71, 0.14);
+
+	// Header specific
+	--header-background: #17181c;
+	--header-text: var(--text-primary);
+	--primary-color: var(--primary);
+	--primary-color-alpha: rgba(214, 162, 71, 0.18);
+	--primary-color-dark: #b98737;
+	--text-color: var(--text-primary);
+
+	// Ambience
+	--bg-main: #0d0e11;
+	--bg-radial-blue: rgba(120, 130, 148, 0.14);
+	--bg-radial-green: rgba(214, 162, 71, 0.14);
+
+	// Header & control tokens
+	--header-bg: #17181c;
+	--header-border: rgba(255, 255, 255, 0.08);
+	--header-shadow: 0 2px 20px rgba(0, 0, 0, 0.66);
+	--control-bg: rgba(255, 255, 255, 0.05);
+	--control-border: rgba(214, 162, 71, 0.16);
+	--control-hover-bg: rgba(255, 255, 255, 0.08);
+	--control-hover-border: rgba(214, 162, 71, 0.28);
+	--control-text: #dde1e7;
+	--segment-bg: rgba(255, 255, 255, 0.04);
+	--segment-active-bg: rgba(214, 162, 71, 0.14);
+	--segment-active-shadow: 0 1px 2px rgba(0, 0, 0, 0.48);
+	--menu-bg: #222429;
+	--menu-border: rgba(214, 162, 71, 0.14);
+	--menu-shadow: 0 16px 38px -10px rgba(0, 0, 0, 0.7);
+	--focus-ring: rgba(214, 162, 71, 0.42);
+	--toggle-icon: #e4b76d;
+	--danger: #e06b6b;
+	--danger-bg: rgba(224, 107, 107, 0.14);
+
+	// Primary CTA accent
+	--cta-gradient: linear-gradient(135deg, #d6a247 0%, #8c6a36 100%);
+	--cta-gradient-hover: linear-gradient(135deg, #e4b76d 0%, #a47d42 100%);
+	--cta-glow: rgba(214, 162, 71, 0.32);
+	--cta-divider: rgba(255, 255, 255, 0.24);
+}
+
+[data-theme='gta-vice-city'] {
+	--border-color-light: #5c3f75;
+	--border-color: #5c3f75;
+	--bg-hover: #342149;
+	--surface: #2a183b;
+	--surface-light: #170f24;
+	--surface-hover: #342149;
+	--surface-elevated: #3a2351;
+	--box-shadow: 0 12px 28px rgba(10, 5, 18, 0.52);
+
+	// Background & Surface - neon sunset palette inspired by Vice City cover art
+	--bg-primary: #160f22;
+	--bg-secondary: #100a19;
+	--bg-tertiary: #241531;
+
+	// Text Colors
+	--text-primary: #ffe8f6;
+	--text-secondary: #ffc9e8;
+	--text-tertiary: #f4a7d5;
+	--text-muted: #c98abb;
+	--text-disabled: #7c6382;
+	--text-inverse: #1a1024;
+
+	// Brand Colors
+	--primary: #ff62c0;
+	--primary-hover: #ff8ad2;
+	--primary-light: #5b1f5e;
+
+	// Neutrals
+	--white: #ffffff;
+	--black: #000000;
+	--gray-50: #1b1021;
+	--gray-100: #2a1630;
+	--gray-200: #44214e;
+	--gray-300: #62316e;
+	--gray-400: #8a4f91;
+	--gray-500: #c277bc;
+	--gray-600: #e3acd5;
+	--gray-700: #f4c9e6;
+	--gray-800: #ffd7ef;
+	--gray-900: #ffeff9;
+
+	// Semantic Colors
+	--success: #4de2c5;
+	--success-light: #123f43;
+	--warning: #ffb15c;
+	--warning-light: #61361b;
+	--error: #ff6b88;
+	--error-light: #5c1830;
+	--info: #61d9ff;
+	--info-light: #163f5f;
+
+	// Border & Divider
+	--border: #4e3363;
+	--border-light: #3a2351;
+	--border-hover: #8951aa;
+	--divider: #4e3363;
+
+	// Interactive Elements
+	--interactive: var(--primary);
+	--interactive-hover: var(--primary-hover);
+	--interactive-active: #ff9a56;
+	--interactive-disabled: #7c6382;
+
+	// Input & Form Elements
+	--input-bg: #20122d;
+	--input-border: #4e3363;
+	--input-border-focus: #61d9ff;
+	--input-text: var(--text-primary);
+	--input-placeholder: #b179ab;
+
+	// Cards & Components
+	--card-bg: var(--surface);
+	--card-border: #3a2351;
+	--card-shadow: 0 1px 3px rgba(0, 0, 0, 0.36), 0 12px 32px -18px rgba(255, 98, 192, 0.24);
+	--card-shadow-hover: 0 12px 28px -14px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(97, 217, 255, 0.14);
+
+	// Header specific
+	--header-background: #1a1128;
+	--header-text: var(--text-primary);
+	--primary-color: var(--primary);
+	--primary-color-alpha: rgba(255, 98, 192, 0.2);
+	--primary-color-dark: #ff8a56;
+	--text-color: var(--text-primary);
+
+	// Ambience
+	--bg-main: #0c0914;
+	--bg-radial-blue: rgba(97, 217, 255, 0.22);
+	--bg-radial-green: rgba(255, 129, 98, 0.2);
+
+	// Header & control tokens
+	--header-bg: #1a1128;
+	--header-border: rgba(255, 255, 255, 0.08);
+	--header-shadow: 0 2px 20px rgba(0, 0, 0, 0.6);
+	--control-bg: rgba(255, 255, 255, 0.06);
+	--control-border: rgba(255, 138, 210, 0.18);
+	--control-hover-bg: rgba(255, 255, 255, 0.1);
+	--control-hover-border: rgba(97, 217, 255, 0.26);
+	--control-text: #ffd7ef;
+	--segment-bg: rgba(255, 255, 255, 0.05);
+	--segment-active-bg: rgba(255, 98, 192, 0.16);
+	--segment-active-shadow: 0 1px 2px rgba(0, 0, 0, 0.46);
+	--menu-bg: #241531;
+	--menu-border: rgba(255, 138, 210, 0.16);
+	--menu-shadow: 0 16px 38px -10px rgba(0, 0, 0, 0.66);
+	--focus-ring: rgba(97, 217, 255, 0.5);
+	--toggle-icon: #ff9ad8;
+	--danger: #ff6b88;
+	--danger-bg: rgba(255, 107, 136, 0.14);
+
+	// Primary CTA accent
+	--cta-gradient: linear-gradient(135deg, #ff62c0 0%, #ff9a56 100%);
+	--cta-gradient-hover: linear-gradient(135deg, #ff84cf 0%, #ffb46c 100%);
+	--cta-glow: rgba(255, 98, 192, 0.4);
+	--cta-divider: rgba(255, 255, 255, 0.26);
+}
+
+[data-theme='gta-vi'] {
+	--border-color-light: #6d527c;
+	--border-color: #6d527c;
+	--bg-hover: #3a2848;
+	--surface: #2c1d39;
+	--surface-light: #1a1124;
+	--surface-hover: #3a2848;
+	--surface-elevated: #432a54;
+	--box-shadow: 0 12px 30px rgba(12, 6, 20, 0.54);
+
+	// Background & Surface - pastel sunset skyline inspired by GTA VI promo art
+	--bg-primary: #15101f;
+	--bg-secondary: #100b17;
+	--bg-tertiary: #241731;
+
+	// Text Colors
+	--text-primary: #ffe9f4;
+	--text-secondary: #ffd1e6;
+	--text-tertiary: #f7afcf;
+	--text-muted: #d39ab7;
+	--text-disabled: #826b81;
+	--text-inverse: #1a1022;
+
+	// Brand Colors
+	--primary: #ff8a8f;
+	--primary-hover: #ffb07e;
+	--primary-light: #673056;
+
+	// Neutrals
+	--white: #ffffff;
+	--black: #000000;
+	--gray-50: #1c1321;
+	--gray-100: #2a1830;
+	--gray-200: #44244d;
+	--gray-300: #603767;
+	--gray-400: #8d5e8d;
+	--gray-500: #c487b3;
+	--gray-600: #e8b7d6;
+	--gray-700: #f7cee5;
+	--gray-800: #ffdded;
+	--gray-900: #fff0f7;
+
+	// Semantic Colors
+	--success: #51dfc8;
+	--success-light: #124043;
+	--warning: #ffc17a;
+	--warning-light: #694021;
+	--error: #ff708f;
+	--error-light: #611b34;
+	--info: #89d7ff;
+	--info-light: #1b4661;
+
+	// Border & Divider
+	--border: #5a426c;
+	--border-light: #432a54;
+	--border-hover: #9c6eb2;
+	--divider: #5a426c;
+
+	// Interactive Elements
+	--interactive: var(--primary);
+	--interactive-hover: var(--primary-hover);
+	--interactive-active: #67c9f0;
+	--interactive-disabled: #826b81;
+
+	// Input & Form Elements
+	--input-bg: #21142b;
+	--input-border: #5a426c;
+	--input-border-focus: #89d7ff;
+	--input-text: var(--text-primary);
+	--input-placeholder: #b785ac;
+
+	// Cards & Components
+	--card-bg: var(--surface);
+	--card-border: #432a54;
+	--card-shadow: 0 1px 3px rgba(0, 0, 0, 0.36), 0 12px 34px -18px rgba(255, 138, 143, 0.24);
+	--card-shadow-hover: 0 12px 28px -14px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(137, 215, 255, 0.16);
+
+	// Header specific
+	--header-background: #1b1227;
+	--header-text: var(--text-primary);
+	--primary-color: var(--primary);
+	--primary-color-alpha: rgba(255, 138, 143, 0.22);
+	--primary-color-dark: #ff9f68;
+	--text-color: var(--text-primary);
+
+	// Ambience
+	--bg-main: #0d0914;
+	--bg-radial-blue: rgba(137, 215, 255, 0.24);
+	--bg-radial-green: rgba(255, 165, 112, 0.24);
+
+	// Header & control tokens
+	--header-bg: #1b1227;
+	--header-border: rgba(255, 255, 255, 0.08);
+	--header-shadow: 0 2px 20px rgba(0, 0, 0, 0.6);
+	--control-bg: rgba(255, 255, 255, 0.06);
+	--control-border: rgba(255, 176, 126, 0.18);
+	--control-hover-bg: rgba(255, 255, 255, 0.1);
+	--control-hover-border: rgba(137, 215, 255, 0.28);
+	--control-text: #ffdfef;
+	--segment-bg: rgba(255, 255, 255, 0.05);
+	--segment-active-bg: rgba(255, 138, 143, 0.16);
+	--segment-active-shadow: 0 1px 2px rgba(0, 0, 0, 0.46);
+	--menu-bg: #241731;
+	--menu-border: rgba(255, 176, 126, 0.16);
+	--menu-shadow: 0 16px 38px -10px rgba(0, 0, 0, 0.66);
+	--focus-ring: rgba(137, 215, 255, 0.52);
+	--toggle-icon: #ffb6c3;
+	--danger: #ff708f;
+	--danger-bg: rgba(255, 112, 143, 0.14);
+
+	// Primary CTA accent
+	--cta-gradient: linear-gradient(135deg, #ff8a8f 0%, #ffb07e 100%);
+	--cta-gradient-hover: linear-gradient(135deg, #ffa2aa 0%, #ffc48d 100%);
+	--cta-glow: rgba(255, 138, 143, 0.42);
+	--cta-divider: rgba(255, 255, 255, 0.26);
+}

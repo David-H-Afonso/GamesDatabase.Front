@@ -105,10 +105,13 @@ const OptimizedImage: React.FC<OptimizedImageProps> = (props) => {
 
 	const optimizedSrc = getOptimizedSrc(src)
 
-	// If URL is invalid, show error immediately
 	useEffect(() => {
 		if (!optimizedSrc && src) {
 			setHasError(true)
+			setIsLoaded(false)
+		} else {
+			setHasError(false)
+			setIsLoaded(false)
 		}
 	}, [optimizedSrc, src])
 

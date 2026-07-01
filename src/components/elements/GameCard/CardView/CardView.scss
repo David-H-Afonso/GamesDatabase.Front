@@ -1,12 +1,13 @@
 .game-card-view-container {
-	background: var(--surface);
+	background: var(--card-bg, var(--surface));
 	border-radius: 18px;
-	border: 1px solid rgba(0, 0, 0, 0.1);
+	border: 1px solid var(--card-border, rgba(0, 0, 0, 0.1));
 	box-shadow: var(--card-shadow);
 	cursor: pointer;
+	color: var(--card-text, inherit);
 
 	[data-theme='dark'] & {
-		background: rgba(255, 255, 255, 0.05);
+		background: var(--card-bg, rgba(255, 255, 255, 0.05));
 		border-radius: 18px;
 		box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
 	}
@@ -49,12 +50,17 @@
 	}
 
 	&-hideOverflow {
+		overflow: hidden;
+		border-radius: inherit;
+		background: inherit;
+		color: inherit;
+
 		.game-card-header {
 			height: 200px;
 			position: relative;
 			width: 100%;
 			backdrop-filter: brightness(0.65);
-			border-radius: 20px 20px 0 0;
+			border-radius: 18px 18px 0 0;
 
 			.game-card-cover {
 				filter: brightness(0.75);
@@ -63,7 +69,7 @@
 				position: absolute;
 				width: 100%;
 				z-index: 1;
-				border-radius: 20px 20px 0 0;
+				border-radius: 18px 18px 0 0;
 			}
 
 			&-score {
@@ -268,6 +274,8 @@
 			height: 100px;
 			padding: 15px;
 			justify-content: space-between;
+			background: var(--card-bg, var(--surface));
+			color: var(--card-text, var(--text-primary));
 
 			.game-card-duration {
 				display: flex;
@@ -281,6 +289,7 @@
 					justify-content: space-between;
 					width: 100%;
 					border: 1px solid var(--border-color-light);
+					border-color: var(--card-border-color-light, var(--border-color-light));
 					border-radius: 12px;
 					gap: 5px;
 					padding: 3px 10px;
@@ -322,6 +331,7 @@
 					.game-card-score-value {
 						display: flex;
 						border: 1px solid var(--border-color-light);
+						border-color: var(--card-border-color-light, var(--border-color-light));
 						border-radius: 5px;
 						gap: 5px;
 						font-family: monospace;
@@ -367,7 +377,7 @@
 
 					p {
 						font-size: 0.78rem;
-						color: var(--text-secondary);
+						color: var(--card-muted-text, var(--text-secondary));
 					}
 				}
 			}

@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { setTheme } from '@/store/features/theme/themeSlice'
-import { AVAILABLE_THEMES } from '@/assets/styles/themes/AVAILABLE_THEMES'
+import { getThemeFamilyKey, normalizeThemeKey, THEME_FAMILIES, THEME_VARIANTS_BY_FAMILY } from '@/assets/styles/themes/AVAILABLE_THEMES'
 import './ThemeLanguageControls.scss'
 
 const LANGUAGES: ReadonlyArray<{ code: string; label: string }> = [
@@ -39,6 +39,24 @@ const SteamIcon = () => (
 	</svg>
 )
 
+const ClawIcon = () => (
+	<svg width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.9' strokeLinecap='round' strokeLinejoin='round' aria-hidden='true'>
+		<path d='M8 4 6.5 20' />
+		<path d='M12 3l-1 18' />
+		<path d='M16 4l1.5 16' />
+	</svg>
+)
+
+const PalmIcon = () => (
+	<svg width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round' strokeLinejoin='round' aria-hidden='true'>
+		<path d='M12 21V10' />
+		<path d='M12 13c0-4 2.5-7 6-9' />
+		<path d='M12 15c0-4-2.5-7-6-9' />
+		<path d='M12 11c2 0 3.8-1 5-2.6' />
+		<path d='M12 12c-2 0-3.8-1-5-2.6' />
+	</svg>
+)
+
 const ChevronIcon = ({ className }: { className?: string }) => (
 	<svg className={className} width='12' height='12' viewBox='0 0 12 8' fill='none' aria-hidden='true'>
 		<path d='M1.5 2.5 6 6l4.5-3.5' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round' strokeLinejoin='round' />
@@ -51,15 +69,22 @@ const CheckIcon = () => (
 	</svg>
 )
 
-const themeIcon = (key: string) => (key === 'light' ? <SunIcon /> : key === 'dark' ? <MoonIcon /> : key === 'steam' ? <SteamIcon /> : <PaletteIcon />)
+const themeIcon = (key: string) => {
+	if (key === 'light') return <SunIcon />
+	if (key === 'dark') return <MoonIcon />
+	if (key === 'steam') return <SteamIcon />
+	if (key.startsWith('wolverine')) return <ClawIcon />
+	if (key.startsWith('gta')) return <PalmIcon />
+	return <PaletteIcon />
+}
 
 export const ThemeLanguageControls: React.FC = () => {
 	const { t, i18n } = useTranslation()
 	const dispatch = useAppDispatch()
-	const currentTheme = useAppSelector((s) => s.theme?.currentTheme) ?? 'dark'
+	const currentTheme = normalizeThemeKey(useAppSelector((s) => s.theme?.currentTheme) ?? 'dark') ?? 'dark'
 	const currentLang = i18n.resolvedLanguage ?? 'en'
 
-	const [open, setOpen] = useState<null | 'theme' | 'lang'>(null)
+	const [open, setOpen] = useState<null | 'theme' | 'variant' | 'lang'>(null)
 	const ref = useRef<HTMLDivElement>(null)
 
 	useEffect(() => {
@@ -71,7 +96,24 @@ export const ThemeLanguageControls: React.FC = () => {
 		return () => document.removeEventListener('mousedown', onDown)
 	}, [open])
 
-	const themeLabel = (key: string) => (key === 'light' ? t('nav.themeLight') : key === 'dark' ? t('nav.themeDark') : key.charAt(0).toUpperCase() + key.slice(1))
+	const themeLabels: Record<string, string> = {
+		light: t('nav.themeLight'),
+		dark: t('nav.themeDark'),
+		steam: t('nav.themeSteam'),
+		wolverine: t('nav.themeWolverine'),
+		'wolverine-classic': t('nav.themeWolverineClassic'),
+		'wolverine-modern': t('nav.themeWolverineModern'),
+		gta: t('nav.themeGta'),
+		'gta-v': t('nav.themeGtaV'),
+		'gta-iv': t('nav.themeGtaIv'),
+		'gta-vice-city': t('nav.themeViceCity'),
+		'gta-vi': t('nav.themeGtaVi'),
+	}
+	const themeLabel = (key: string) => themeLabels[key] ?? key.charAt(0).toUpperCase() + key.slice(1)
+	const currentThemeFamily = getThemeFamilyKey(currentTheme) ?? 'dark'
+	const currentVariants = THEME_VARIANTS_BY_FAMILY[currentThemeFamily] ?? [currentTheme]
+	const hasVariants = currentVariants.length > 1
+	const currentThemeSummary = hasVariants ? `${themeLabel(currentThemeFamily)} · ${themeLabel(currentTheme)}` : themeLabel(currentThemeFamily)
 	const currentLanguage = LANGUAGES.find((l) => currentLang.startsWith(l.code)) ?? LANGUAGES[0]
 
 	return (
@@ -81,27 +123,27 @@ export const ThemeLanguageControls: React.FC = () => {
 				<div className='tl-select'>
 					<button type='button' className='tl-select__trigger' aria-haspopup='listbox' aria-expanded={open === 'theme'} onClick={() => setOpen(open === 'theme' ? null : 'theme')}>
 						<span className='tl-select__current'>
-							<span className='tl-select__icon'>{themeIcon(currentTheme)}</span>
-							{themeLabel(currentTheme)}
+							<span className='tl-select__icon'>{themeIcon(currentThemeFamily)}</span>
+							{currentThemeSummary}
 						</span>
 						<ChevronIcon className={`tl-select__chevron${open === 'theme' ? ' is-open' : ''}`} />
 					</button>
 					{open === 'theme' && (
 						<div className='tl-select__menu' role='listbox' aria-label={t('nav.theme')}>
-							{AVAILABLE_THEMES.map((key) => (
+							{THEME_FAMILIES.map(({ key, defaultTheme }) => (
 								<button
 									key={key}
 									type='button'
 									role='option'
-									aria-selected={currentTheme === key}
-									className={`tl-select__option${currentTheme === key ? ' is-active' : ''}`}
+									aria-selected={currentThemeFamily === key}
+									className={`tl-select__option${currentThemeFamily === key ? ' is-active' : ''}`}
 									onClick={() => {
-										dispatch(setTheme(key))
+										dispatch(setTheme(currentThemeFamily === key ? currentTheme : defaultTheme))
 										setOpen(null)
 									}}>
 									<span className='tl-select__icon'>{themeIcon(key)}</span>
 									<span className='tl-select__option-label'>{themeLabel(key)}</span>
-									{currentTheme === key && (
+									{currentThemeFamily === key && (
 										<span className='tl-select__check'>
 											<CheckIcon />
 										</span>
@@ -112,6 +154,45 @@ export const ThemeLanguageControls: React.FC = () => {
 					)}
 				</div>
 			</div>
+
+			{hasVariants && (
+				<div className='tl-control'>
+					<span className='tl-control__label'>{t('nav.themeVariant')}</span>
+					<div className='tl-select'>
+						<button type='button' className='tl-select__trigger' aria-haspopup='listbox' aria-expanded={open === 'variant'} onClick={() => setOpen(open === 'variant' ? null : 'variant')}>
+							<span className='tl-select__current'>
+								<span className='tl-select__icon'>{themeIcon(currentTheme)}</span>
+								{themeLabel(currentTheme)}
+							</span>
+							<ChevronIcon className={`tl-select__chevron${open === 'variant' ? ' is-open' : ''}`} />
+						</button>
+						{open === 'variant' && (
+							<div className='tl-select__menu' role='listbox' aria-label={t('nav.themeVariant')}>
+								{currentVariants.map((key) => (
+									<button
+										key={key}
+										type='button'
+										role='option'
+										aria-selected={currentTheme === key}
+										className={`tl-select__option${currentTheme === key ? ' is-active' : ''}`}
+										onClick={() => {
+											dispatch(setTheme(key))
+											setOpen(null)
+										}}>
+										<span className='tl-select__icon'>{themeIcon(key)}</span>
+										<span className='tl-select__option-label'>{themeLabel(key)}</span>
+										{currentTheme === key && (
+											<span className='tl-select__check'>
+												<CheckIcon />
+											</span>
+										)}
+									</button>
+								))}
+							</div>
+						)}
+					</div>
+				</div>
+			)}
 
 			<div className='tl-control'>
 				<span className='tl-control__label'>{t('nav.language')}</span>
