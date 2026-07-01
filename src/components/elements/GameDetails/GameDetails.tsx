@@ -80,22 +80,18 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 		const previousLogo = game.logo
 		setSteamImgLoading('logo')
 		try {
-			// Clear current icon so backend re-resolves it (community icon → API hash icon)
 			await saveField('logo', null)
-			await steamService.syncGame(game.id)
-			const refreshed = await fetchGameDetails(game.id)
-			const nextLogo = refreshed?.logo
-			if (nextLogo && (await preloadImage(nextLogo))) {
-				// New logo found and confirmed to load
-				setGame(refreshed)
-			} else {
-				// Nothing usable found – restore whatever the user had before.
-				// Do NOT check whether the previous URL still loads here: a transient CDN hiccup
-				// would cause us to silently discard a valid logo. Restoring a stale/broken URL
-				// is preferable because it remains visible to the user and they can try again.
-				await saveField('logo', previousLogo ?? null)
-				setToast({ message: t('game.details.refreshLogoFailed'), type: 'error' })
+			let refreshed: Game | undefined
+			for (let attempt = 0; attempt < 3; attempt++) {
+				await steamService.syncGame(game.id)
+				refreshed = await fetchGameDetails(game.id)
+				if (refreshed?.logo && (await preloadImage(refreshed.logo))) {
+					setGame(refreshed)
+					return
+				}
 			}
+			await saveField('logo', previousLogo ?? null)
+			setToast({ message: t('game.details.refreshLogoFailed'), type: 'error' })
 		} finally {
 			setSteamImgLoading(null)
 		}
@@ -177,7 +173,15 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 		let payloadValue: any = value
 
 		// Handle numeric fields (all optional)
-		if (field === 'critic' || field === 'grade' || field === 'story' || field === 'completion' || field === 'score' || field === 'steamAppId' || field === 'manualPlaytimeMinutes') {
+		if (
+			field === 'critic' ||
+			field === 'grade' ||
+			field === 'story' ||
+			field === 'completion' ||
+			field === 'score' ||
+			field === 'steamAppId' ||
+			field === 'manualPlaytimeMinutes'
+		) {
 			if (value === '' || value === null || typeof value === 'undefined') {
 				payloadValue = null
 				formik.setFieldValue(field as any, undefined)
