@@ -32,6 +32,8 @@ vi.mock('../AdminUsers', () => ({ default: () => <div>AdminUsers</div> }))
 vi.mock('../AdminPreferences', () => ({ AdminPreferences: () => <div>AdminPreferences</div> }))
 vi.mock('../AdminReplayTypes', () => ({ default: () => <div>AdminReplayTypes</div> }))
 vi.mock('../AdminAuditLog', () => ({ AdminAuditLog: () => <div>AdminAuditLog</div> }))
+vi.mock('../AdminBackupScheduleUsers', () => ({ default: () => <div>AdminBackupScheduleUsers</div> }))
+vi.mock('../AdminSteam', () => ({ AdminSteam: () => <div>AdminSteam</div> }))
 
 describe('Admin container', () => {
 	it('renders AdminLayout', async () => {

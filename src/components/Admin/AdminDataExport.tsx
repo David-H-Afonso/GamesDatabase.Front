@@ -78,6 +78,7 @@ export const AdminDataExport: React.FC = () => {
 	const [showImageUrlPicker, setShowImageUrlPicker] = useState(false)
 	const [selectedPreset, setSelectedPreset] = useState<string>('')
 	const [customImageBaseUrl, setCustomImageBaseUrl] = useState('')
+	const [showInstructions, setShowInstructions] = useState(false)
 	const [applyingImageUrls, setApplyingImageUrls] = useState(false)
 	const [selectedOrphanFolders, setSelectedOrphanFolders] = useState<string[]>([])
 	const [deletingFolders, setDeletingFolders] = useState<string[]>([])
@@ -621,6 +622,64 @@ Statistics:
 				</div>
 			)}
 
+			{/* Instructions Section */}
+			<div className='section instructions-section'>
+				<div className='section-toolbar'>
+					<h2>{t('admin.dataExport.instructionsTitle')}</h2>
+					<button className='btn btn-secondary btn-compact' onClick={() => setShowInstructions((value) => !value)}>
+						{showInstructions ? t('admin.dataExport.instrHide') : t('admin.dataExport.instrShow')}
+					</button>
+				</div>
+				{showInstructions && <div className='instructions-content'>
+					<div className='instruction-item'>
+						<h3>{t('admin.dataExport.instrExportTitle')}</h3>
+						<ul>
+							<li>{t('admin.dataExport.instrExport1')}</li>
+							<li>{t('admin.dataExport.instrExport2')}</li>
+							<li>{t('admin.dataExport.instrExport3')}</li>
+							<li>{t('admin.dataExport.instrExport4')}</li>
+							<li>{t('admin.dataExport.instrExport5')}</li>
+						</ul>
+					</div>
+
+					<div className='instruction-item'>
+						<h3>{t('admin.dataExport.instrImportTitle')}</h3>
+						<ul>
+							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrImport1') }} />
+							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrImport2') }} />
+							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrImport3') }} />
+							<li>{t('admin.dataExport.instrImport4')}</li>
+							<li>{t('admin.dataExport.instrImport5')}</li>
+							<li>{t('admin.dataExport.instrImport6')}</li>
+						</ul>
+					</div>
+
+					<div className='instruction-item'>
+						<h3>{t('admin.dataExport.instrUseCasesTitle')}</h3>
+						<ul>
+							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrUseCase1') }} />
+							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrUseCase2') }} />
+							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrUseCase3') }} />
+							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrUseCase4') }} />
+							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrUseCase5') }} />
+						</ul>
+					</div>
+
+					<div className='instruction-item warning-item'>
+						<h3>{t('admin.dataExport.instrNotesTitle')}</h3>
+						<ul>
+							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrNote1') }} />
+							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrNote2') }} />
+							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrNote3') }} />
+							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrNote4') }} />
+							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrNote5') }} />
+							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrNote6') }} />
+							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrNote7') }} />
+						</ul>
+					</div>
+				</div>}
+			</div>
+
 			<div className='export-import-sections'>
 				{/* Full Database Export/Import Section */}
 				<div className='section full-export-section highlight-section'>
@@ -942,58 +1001,6 @@ Statistics:
 				</div>
 			</div>
 
-			{/* Instructions Section */}
-			<div className='section instructions-section'>
-				<h2>{t('admin.dataExport.instructionsTitle')}</h2>
-				<div className='instructions-content'>
-					<div className='instruction-item'>
-						<h3>{t('admin.dataExport.instrExportTitle')}</h3>
-						<ul>
-							<li>{t('admin.dataExport.instrExport1')}</li>
-							<li>{t('admin.dataExport.instrExport2')}</li>
-							<li>{t('admin.dataExport.instrExport3')}</li>
-							<li>{t('admin.dataExport.instrExport4')}</li>
-							<li>{t('admin.dataExport.instrExport5')}</li>
-						</ul>
-					</div>
-
-					<div className='instruction-item'>
-						<h3>{t('admin.dataExport.instrImportTitle')}</h3>
-						<ul>
-							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrImport1') }} />
-							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrImport2') }} />
-							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrImport3') }} />
-							<li>{t('admin.dataExport.instrImport4')}</li>
-							<li>{t('admin.dataExport.instrImport5')}</li>
-							<li>{t('admin.dataExport.instrImport6')}</li>
-						</ul>
-					</div>
-
-					<div className='instruction-item'>
-						<h3>{t('admin.dataExport.instrUseCasesTitle')}</h3>
-						<ul>
-							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrUseCase1') }} />
-							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrUseCase2') }} />
-							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrUseCase3') }} />
-							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrUseCase4') }} />
-							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrUseCase5') }} />
-						</ul>
-					</div>
-
-					<div className='instruction-item warning-item'>
-						<h3>{t('admin.dataExport.instrNotesTitle')}</h3>
-						<ul>
-							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrNote1') }} />
-							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrNote2') }} />
-							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrNote3') }} />
-							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrNote4') }} />
-							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrNote5') }} />
-							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrNote6') }} />
-							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrNote7') }} />
-						</ul>
-					</div>
-				</div>
-			</div>
 			<ConfirmDialog
 				isOpen={confirmDialog !== null}
 				title={confirmDialog?.title ?? ''}

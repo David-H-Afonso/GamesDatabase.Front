@@ -101,15 +101,13 @@ describe('BulkEditModal', () => {
 		expect(onClose).toHaveBeenCalledOnce()
 	})
 
-	it('alerts when saving with no changes', async () => {
+	it('shows a warning toast when saving with no changes', async () => {
 		const BulkEditModal = await loadComponent()
 		const user = userEvent.setup()
-		const alertSpy = vi.spyOn(globalThis, 'alert').mockImplementation(() => {})
 		render(<BulkEditModal isOpen={true} onClose={onClose} selectedCount={3} onSave={onSave} />)
 		await user.click(screen.getByText('Save Changes'))
-		expect(alertSpy).toHaveBeenCalledWith('No changes to save')
+		expect(await screen.findByText('No hay cambios que guardar')).toBeInTheDocument()
 		expect(onSave).not.toHaveBeenCalled()
-		alertSpy.mockRestore()
 	})
 
 	it('calls onSave with selected status', async () => {

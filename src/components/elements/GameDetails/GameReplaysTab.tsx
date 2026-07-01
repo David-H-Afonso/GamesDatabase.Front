@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getReplaysByGameId, createGameReplay, updateGameReplay, deleteGameReplay } from '@/services/GameReplayService'
 import { getActiveGameReplayTypes, getSpecialGameReplayType } from '@/services/GameReplayTypeService'
+import { ConfirmDialog } from '@/components/elements'
 import type { GameReplay, GameReplayCreateDto } from '@/models/api/GameReplay'
 import type { GameReplayType } from '@/models/api/GameReplayType'
 import { formatToLocaleDate } from '@/utils'
@@ -34,6 +35,7 @@ export const GameReplaysTab: React.FC<Props> = ({ gameId }) => {
 	const [editingReplay, setEditingReplay] = useState<GameReplay | null>(null)
 	const [formData, setFormData] = useState<GameReplayCreateDto>(emptyForm())
 	const [saving, setSaving] = useState(false)
+	const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null)
 
 	const loadReplays = useCallback(async () => {
 		setLoading(true)
@@ -113,8 +115,12 @@ export const GameReplaysTab: React.FC<Props> = ({ gameId }) => {
 		}
 	}
 
-	const handleDelete = async (id: number) => {
-		if (!window.confirm(t('game.replays.confirmDelete'))) return
+	const handleDelete = (id: number) => setDeleteTargetId(id)
+
+	const confirmDelete = async () => {
+		if (deleteTargetId === null) return
+		const id = deleteTargetId
+		setDeleteTargetId(null)
 		try {
 			await deleteGameReplay(gameId, id)
 			setReplays((prev) => prev.filter((r) => r.id !== id))
@@ -241,6 +247,16 @@ export const GameReplaysTab: React.FC<Props> = ({ gameId }) => {
 					</form>
 				</div>
 			)}
+
+			<ConfirmDialog
+				isOpen={deleteTargetId !== null}
+				title={t('common.confirmDeleteTitle')}
+				message={t('game.replays.confirmDelete')}
+				variant='danger'
+				confirmLabel={t('common.delete')}
+				onConfirm={confirmDelete}
+				onCancel={() => setDeleteTargetId(null)}
+			/>
 		</div>
 	)
 }

@@ -10,12 +10,12 @@ describe('formatToLocaleDate', () => {
 		expect(result).not.toBe('Invalid Date')
 	})
 
-	it('returns "N/A" for undefined', () => {
-		expect(formatToLocaleDate()).toBe('N/A')
+	it('returns an empty string for undefined', () => {
+		expect(formatToLocaleDate()).toBe('')
 	})
 
-	it('returns "N/A" for empty string', () => {
-		expect(formatToLocaleDate('')).toBe('N/A')
+	it('returns an empty string for empty string', () => {
+		expect(formatToLocaleDate('')).toBe('')
 	})
 
 	it('does not throw for an invalid date string', () => {
