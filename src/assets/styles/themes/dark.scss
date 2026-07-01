@@ -3,6 +3,8 @@
 
 [data-theme='dark'] {
 	--border-color-light: #444;
+	--border-color: #444; // alias used by SteamTab, ReorderButtons, AdminSteam*, Login divider
+	--bg-hover: #1e2335; // alias for row/item hover backgrounds (= --surface-hover)
 	--surface: #1a1d26;
 	--surface-light: #111319;
 	--surface-hover: #1e2335;

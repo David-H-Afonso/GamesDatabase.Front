@@ -64,60 +64,51 @@ vi.mock('@/components/elements/ReorderButtons/ReorderButtons', () => ({
 
 vi.mock('./AdminGameViews.scss', () => ({}))
 
-async function loadComponent() {
-	const mod = await import('./AdminGameViews')
-	return mod.AdminGameViews
-}
+// Static import so the first test does not pay the ESM transform cost against testTimeout.
+import { AdminGameViews } from './AdminGameViews'
 
 describe('AdminGameViews', () => {
 	beforeEach(() => vi.clearAllMocks())
 
-	it('renders heading', async () => {
-		const C = await loadComponent()
-		render(<C />)
+	it('renders heading', () => {
+		render(<AdminGameViews />)
 		expect(screen.getByText('Gestión de Vistas de Juego')).toBeInTheDocument()
 	})
 
-	it('renders game views in table', async () => {
-		const C = await loadComponent()
-		render(<C />)
+	it('renders game views in table', () => {
+		render(<AdminGameViews />)
 		expect(screen.getByText('My View')).toBeInTheDocument()
 		expect(screen.getByText('Another View')).toBeInTheDocument()
 	})
 
-	it('renders table headers', async () => {
-		const C = await loadComponent()
-		render(<C />)
+	it('renders table headers', () => {
+		render(<AdminGameViews />)
 		expect(screen.getByText('Nombre')).toBeInTheDocument()
 		expect(screen.getByText('Acciones')).toBeInTheDocument()
 	})
 
-	it('has search input', async () => {
-		const C = await loadComponent()
-		render(<C />)
+	it('has search input', () => {
+		render(<AdminGameViews />)
 		expect(screen.getByPlaceholderText('Buscar vistas...')).toBeInTheDocument()
 	})
 
 	it('opens modal when clicking Nueva Vista', async () => {
-		const C = await loadComponent()
 		const user = userEvent.setup()
-		render(<C />)
+		render(<AdminGameViews />)
 		await user.click(screen.getByText('Nueva Vista'))
 		expect(screen.getByTestId('game-view-modal')).toBeInTheDocument()
 	})
 
 	it('opens templates panel on button click', async () => {
-		const C = await loadComponent()
 		const user = userEvent.setup()
-		render(<C />)
+		render(<AdminGameViews />)
 		await user.click(screen.getByText(/Plantillas/))
 		expect(screen.getByTestId('view-templates')).toBeInTheDocument()
 	})
 
 	it('calls deleteGameView on confirm', async () => {
-		const C = await loadComponent()
 		const user = userEvent.setup()
-		render(<C />)
+		render(<AdminGameViews />)
 		const deleteButtons = screen.getAllByRole('button', { name: 'Eliminar' })
 		await user.click(deleteButtons[0])
 		const dialog = screen.getByRole('alertdialog')
@@ -126,9 +117,8 @@ describe('AdminGameViews', () => {
 	})
 
 	it('does not delete when confirm is cancelled', async () => {
-		const C = await loadComponent()
 		const user = userEvent.setup()
-		render(<C />)
+		render(<AdminGameViews />)
 		const deleteButtons = screen.getAllByRole('button', { name: 'Eliminar' })
 		await user.click(deleteButtons[0])
 		const dialog = screen.getByRole('alertdialog')
@@ -136,29 +126,25 @@ describe('AdminGameViews', () => {
 		expect(mockDeleteGameView).not.toHaveBeenCalled()
 	})
 
-	it('loads game views on mount', async () => {
-		const C = await loadComponent()
-		render(<C />)
+	it('loads game views on mount', () => {
+		render(<AdminGameViews />)
 		expect(mockLoadGameViews).toHaveBeenCalled()
 	})
 
 	it('shows import panel on toggle', async () => {
-		const C = await loadComponent()
 		const user = userEvent.setup()
-		render(<C />)
+		render(<AdminGameViews />)
 		await user.click(screen.getByText(/Importar Vista/))
 		expect(screen.getByPlaceholderText(/name.*Mi Vista/)).toBeInTheDocument()
 	})
 
-	it('renders reorder buttons for each view', async () => {
-		const C = await loadComponent()
-		render(<C />)
+	it('renders reorder buttons for each view', () => {
+		render(<AdminGameViews />)
 		expect(screen.getAllByTestId('reorder-buttons')).toHaveLength(2)
 	})
 
-	it('renders a drag handle per view for reordering', async () => {
-		const C = await loadComponent()
-		render(<C />)
+	it('renders a drag handle per view for reordering', () => {
+		render(<AdminGameViews />)
 		expect(screen.getAllByRole('button', { name: 'Arrastra para reordenar' })).toHaveLength(2)
 	})
 })

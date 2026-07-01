@@ -19,6 +19,11 @@
 	width: 100%;
 	border-bottom: 1px solid var(--border-color-light);
 
+	[data-theme='light'] & {
+		background: var(--surface);
+		box-shadow: var(--card-shadow);
+	}
+
 	[data-theme='dark'] & {
 		background: rgba(255, 255, 255, 0.05);
 		box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
@@ -129,10 +134,10 @@
 
 		.badge {
 			backdrop-filter: brightness(0.65);
-			background-color: #ccc;
+			background-color: var(--control-bg); // token-driven fallback; usually overridden by inline style
 			border-radius: 50px;
-			border: 1px solid #999;
-			color: #fff;
+			border: 1px solid var(--border);
+			color: var(--text-primary); // readable in light and dark; ~white in dark, dark in light
 			display: block;
 			font-weight: 600;
 			max-width: 100%;

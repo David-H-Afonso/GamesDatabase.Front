@@ -35,9 +35,11 @@ vi.mock('../AdminAuditLog', () => ({ AdminAuditLog: () => <div>AdminAuditLog</di
 vi.mock('../AdminBackupScheduleUsers', () => ({ default: () => <div>AdminBackupScheduleUsers</div> }))
 vi.mock('../AdminSteam', () => ({ AdminSteam: () => <div>AdminSteam</div> }))
 
+// Static import so the first test does not pay the ESM transform cost against testTimeout.
+import Admin from './Admin'
+
 describe('Admin container', () => {
-	it('renders AdminLayout', async () => {
-		const Admin = (await import('./Admin')).default
+	it('renders AdminLayout', () => {
 		render(
 			<MemoryRouter initialEntries={['/platforms']}>
 				<Admin />
@@ -46,8 +48,7 @@ describe('Admin container', () => {
 		expect(screen.getByTestId('admin-layout')).toBeInTheDocument()
 	})
 
-	it('renders AdminPlatforms at /platforms route', async () => {
-		const Admin = (await import('./Admin')).default
+	it('renders AdminPlatforms at /platforms route', () => {
 		render(
 			<MemoryRouter initialEntries={['/platforms']}>
 				<Admin />
@@ -56,8 +57,7 @@ describe('Admin container', () => {
 		expect(screen.getByText('AdminPlatforms')).toBeInTheDocument()
 	})
 
-	it('renders AdminUsers route for admin users', async () => {
-		const Admin = (await import('./Admin')).default
+	it('renders AdminUsers route for admin users', () => {
 		render(
 			<MemoryRouter initialEntries={['/users']}>
 				<Admin />

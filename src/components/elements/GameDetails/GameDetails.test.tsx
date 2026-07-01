@@ -377,7 +377,7 @@ describe('GameDetails', () => {
 		expect(mockUpdateGameById).not.toHaveBeenCalled()
 	})
 
-	it('restores the previous logo and shows a toast when Steam returns no valid logo', async () => {
+	it('accepts cleared logo state and shows a toast when Steam returns no logo', async () => {
 		vi.useRealTimers()
 		imageShouldLoad = true
 		const syncSpy = vi.spyOn(steamService, 'syncGame').mockResolvedValue({} as any)
@@ -389,7 +389,10 @@ describe('GameDetails', () => {
 		await user.click(screen.getByLabelText('Refresh logo from Steam'))
 
 		expect(await screen.findByRole('status')).toHaveTextContent(/load the Steam logo/)
-		await waitFor(() => expect(mockUpdateGameById).toHaveBeenCalledWith(steamGame.id, { logo: steamGame.logo }))
+		// Only the initial clear should have been saved – the previous (broken) logo must NOT be
+		// restored because no-logo is better than keeping a broken URL.
+		await waitFor(() => expect(mockUpdateGameById).toHaveBeenCalledWith(steamGame.id, { logo: null }))
+		expect(mockUpdateGameById).not.toHaveBeenCalledWith(steamGame.id, { logo: steamGame.logo })
 		expect(syncSpy).toHaveBeenCalledWith(steamGame.id)
 	})
 

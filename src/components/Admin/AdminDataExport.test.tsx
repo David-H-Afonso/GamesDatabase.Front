@@ -32,51 +32,43 @@ vi.mock('@/hooks/useGames', () => ({
 
 vi.mock('./AdminDataExport.scss', () => ({}))
 
-async function loadComponent() {
-	const mod = await import('./AdminDataExport')
-	return mod.AdminDataExport
-}
+// Static import so the first test does not pay the ESM transform cost against testTimeout.
+import { AdminDataExport } from './AdminDataExport'
 
 describe('AdminDataExport', () => {
 	beforeEach(() => vi.clearAllMocks())
 
-	it('renders main heading', async () => {
-		const C = await loadComponent()
-		render(<C />)
+	it('renders main heading', () => {
+		render(<AdminDataExport />)
 		expect(screen.getByText('Importar/Exportar')).toBeInTheDocument()
 	})
 
-	it('renders export section', async () => {
-		const C = await loadComponent()
-		render(<C />)
+	it('renders export section', () => {
+		render(<AdminDataExport />)
 		expect(screen.getByText(/Exportar Base de Datos Completa/)).toBeInTheDocument()
 		expect(screen.getByText(/Exportar CSV/)).toBeInTheDocument()
 	})
 
-	it('renders import section', async () => {
-		const C = await loadComponent()
-		render(<C />)
+	it('renders import section', () => {
+		render(<AdminDataExport />)
 		expect(screen.getByText(/Importar Base de Datos Completa/)).toBeInTheDocument()
 	})
 
-	it('renders duplicates section', async () => {
-		const C = await loadComponent()
-		render(<C />)
+	it('renders duplicates section', () => {
+		render(<AdminDataExport />)
 		expect(screen.getByText(/Duplicados en Base de Datos/)).toBeInTheDocument()
 		expect(screen.getByText(/Buscar Duplicados/)).toBeInTheDocument()
 	})
 
-	it('renders instructions section', async () => {
-		const C = await loadComponent()
-		render(<C />)
+	it('renders instructions section', () => {
+		render(<AdminDataExport />)
 		expect(screen.getByText(/Instrucciones y Casos de Uso/)).toBeInTheDocument()
 	})
 
 	it('exports CSV when clicking export button', async () => {
 		const { exportFullDatabase, downloadBlob } = await import('@/services/DataExportService')
-		const C = await loadComponent()
 		const user = userEvent.setup()
-		render(<C />)
+		render(<AdminDataExport />)
 		await user.click(screen.getByText(/Exportar CSV/))
 		expect(exportFullDatabase).toHaveBeenCalled()
 		await vi.waitFor(() => expect(downloadBlob).toHaveBeenCalled())
@@ -84,21 +76,19 @@ describe('AdminDataExport', () => {
 
 	it('searches for duplicates when clicking button', async () => {
 		const { analyzeDatabaseDuplicates } = await import('@/services/DataExportService')
-		const C = await loadComponent()
 		const user = userEvent.setup()
-		render(<C />)
+		render(<AdminDataExport />)
 		await user.click(screen.getByText(/Buscar Duplicados/))
 		expect(analyzeDatabaseDuplicates).toHaveBeenCalled()
 	})
 
-	it('shows network sync section on localhost', async () => {
+	it('shows network sync section on localhost', () => {
 		const originalLocation = globalThis.location
 		Object.defineProperty(globalThis, 'location', {
 			value: { ...originalLocation, hostname: 'localhost' },
 			writable: true,
 		})
-		const C = await loadComponent()
-		render(<C />)
+		render(<AdminDataExport />)
 		expect(screen.getByText(/Sincronizar con Red/)).toBeInTheDocument()
 		Object.defineProperty(globalThis, 'location', { value: originalLocation, writable: true })
 	})
@@ -163,9 +153,8 @@ describe('AdminDataExport', () => {
 			databaseDuplicates: { totalGamesInDatabase: 3, duplicateGroups: [] },
 		})
 
-		const C = await loadComponent()
 		const user = userEvent.setup()
-		render(<C />)
+		render(<AdminDataExport />)
 		await user.click(screen.getByText(/Analizar Carpetas/))
 
 		expect(await screen.findByText('Old_Game')).toBeInTheDocument()
@@ -179,9 +168,8 @@ describe('AdminDataExport', () => {
 		const { analyzeDatabaseDuplicates } = await import('@/services/DataExportService')
 		vi.mocked(analyzeDatabaseDuplicates).mockResolvedValueOnce(makeDuplicateGroupResult())
 
-		const C = await loadComponent()
 		const user = userEvent.setup()
-		render(<C />)
+		render(<AdminDataExport />)
 		await user.click(screen.getByText(/Buscar Duplicados/))
 
 		expect(await screen.findByText('God of War')).toBeInTheDocument()
@@ -200,9 +188,8 @@ describe('AdminDataExport', () => {
 		const { analyzeDatabaseDuplicates, deleteDuplicateGame } = await import('@/services/DataExportService')
 		vi.mocked(analyzeDatabaseDuplicates).mockResolvedValueOnce(makeDuplicateGroupResult())
 
-		const C = await loadComponent()
 		const user = userEvent.setup()
-		render(<C />)
+		render(<AdminDataExport />)
 		await user.click(screen.getByText(/Buscar Duplicados/))
 		await screen.findByText('God of War')
 
@@ -218,9 +205,8 @@ describe('AdminDataExport', () => {
 		const { analyzeDatabaseDuplicates, deleteDuplicateGame } = await import('@/services/DataExportService')
 		vi.mocked(analyzeDatabaseDuplicates).mockResolvedValueOnce(makeDuplicateGroupResult())
 
-		const C = await loadComponent()
 		const user = userEvent.setup()
-		render(<C />)
+		render(<AdminDataExport />)
 		await user.click(screen.getByText(/Buscar Duplicados/))
 		await screen.findByText('God of War')
 

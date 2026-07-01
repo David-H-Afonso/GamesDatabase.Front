@@ -82,15 +82,22 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 		const previousLogo = game.logo
 		setSteamImgLoading('logo')
 		try {
-			// Clear current icon so backend re-resolves it (community icon → API hash → fallback)
+			// Clear current icon so backend re-resolves it (community icon → API hash icon)
 			await saveField('logo', null)
 			await steamService.syncGame(game.id)
 			const refreshed = await fetchGameDetails(game.id)
 			const nextLogo = refreshed?.logo
 			if (nextLogo && (await preloadImage(nextLogo))) {
+				// New logo found and loads successfully
 				setGame(refreshed)
-			} else {
+			} else if (nextLogo) {
+				// Backend returned a URL but the browser can't load it – restore whatever was there before
 				await saveField('logo', previousLogo ?? null)
+				setToast({ message: t('game.details.refreshLogoFailed'), type: 'error' })
+			} else {
+				// Backend found no logo at all – accept the cleared state (no logo is better than
+				// a broken URL), but still inform the user that no icon was found
+				if (refreshed) setGame(refreshed)
 				setToast({ message: t('game.details.refreshLogoFailed'), type: 'error' })
 			}
 		} finally {
