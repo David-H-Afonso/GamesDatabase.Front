@@ -20,13 +20,6 @@ import { SteamTab } from './SteamTab'
 
 type DetailTab = 'info' | 'replays' | 'history' | 'steam'
 
-// Steam migrated the primary CDN from Cloudflare to Akamai around 2025.
-// Try Cloudflare first (still works for older games), fall back to Akamai.
-const STEAM_COVER_CDNS = (appId: number): string[] => [
-	`https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/header.jpg`,
-	`https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${appId}/header.jpg`,
-]
-
 const preloadImage = (url: string) =>
 	new Promise<boolean>((resolve) => {
 		const img = new Image()
@@ -110,21 +103,27 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 
 	const refreshSteamCover = async () => {
 		if (!game.steamAppId || steamImgLoading !== null) return
+		const previousCover = game.cover
 		setSteamImgLoading('cover')
-		// Try each CDN in order; save the first URL that actually loads
-		let foundUrl: string | null = null
-		for (const url of STEAM_COVER_CDNS(game.steamAppId)) {
-			if (await preloadImage(url)) {
-				foundUrl = url
-				break
+		try {
+			// Resolve the cover through the backend (Steam appdetails) instead of guessing a CDN
+			// URL client-side. Newer games serve headers from a content-hashed path
+			// (…/store_item_assets/steam/apps/{id}/{hash}/header.jpg) that cannot be constructed
+			// without the hash, so a hardcoded /apps/{id}/header.jpg would 404.
+			await saveField('cover', null)
+			await steamService.syncGame(game.id)
+			const refreshed = await fetchGameDetails(game.id)
+			const nextCover = refreshed?.cover
+			if (nextCover && (await preloadImage(nextCover))) {
+				setGame(refreshed)
+			} else {
+				// Nothing usable resolved – restore whatever the user had before
+				await saveField('cover', previousCover ?? null)
+				setToast({ message: t('game.details.refreshCoverFailed'), type: 'error' })
 			}
+		} finally {
+			setSteamImgLoading(null)
 		}
-		if (foundUrl) {
-			await saveField('cover', foundUrl)
-		} else {
-			setToast({ message: t('game.details.refreshCoverFailed'), type: 'error' })
-		}
-		setSteamImgLoading(null)
 	}
 
 	// Formik to manage fields locally and validate critic/grade

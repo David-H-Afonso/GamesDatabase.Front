@@ -353,28 +353,38 @@ describe('GameDetails', () => {
 		expect(screen.queryByLabelText('Unlock to edit the Steam App ID')).not.toBeInTheDocument()
 	})
 
-	it('refreshes the cover from Steam when the candidate image loads', async () => {
+	it('refreshes the cover from Steam when the backend resolves a loadable image', async () => {
 		vi.useRealTimers()
 		imageShouldLoad = true
+		const syncSpy = vi.spyOn(steamService, 'syncGame').mockResolvedValue({} as any)
+		mockFetchGameDetails.mockResolvedValueOnce({ ...steamGame, cover: 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/570/abc123/header.jpg' })
+
 		const { GameDetails } = await import('./GameDetails')
 		renderWithProviders(<GameDetails game={steamGame} closeDetails={vi.fn()} />, { preloadedState: defaultState })
 
 		await user.click(screen.getAllByLabelText('Refresh cover from Steam')[0])
 
-		await waitFor(() => expect(mockUpdateGameById).toHaveBeenCalledWith(steamGame.id, { cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/570/header.jpg' }))
+		// Cover is resolved by the backend (real hashed URL), not constructed client-side
+		await waitFor(() => expect(mockUpdateGameById).toHaveBeenCalledWith(steamGame.id, { cover: null }))
+		expect(syncSpy).toHaveBeenCalledWith(steamGame.id)
 		expect(screen.queryByRole('status')).not.toBeInTheDocument()
 	})
 
-	it('keeps the previous cover and shows a toast when the Steam cover does not load', async () => {
+	it('restores the previous cover and shows a toast when the backend returns no valid cover', async () => {
 		vi.useRealTimers()
 		imageShouldLoad = false
+		const syncSpy = vi.spyOn(steamService, 'syncGame').mockResolvedValue({} as any)
+		mockFetchGameDetails.mockResolvedValueOnce({ ...steamGame, cover: '' })
+
 		const { GameDetails } = await import('./GameDetails')
 		renderWithProviders(<GameDetails game={steamGame} closeDetails={vi.fn()} />, { preloadedState: defaultState })
 
 		await user.click(screen.getAllByLabelText('Refresh cover from Steam')[0])
 
 		expect(await screen.findByRole('status')).toHaveTextContent(/load the Steam cover/)
-		expect(mockUpdateGameById).not.toHaveBeenCalled()
+		// Previous cover must be restored so the user does not lose working data
+		await waitFor(() => expect(mockUpdateGameById).toHaveBeenCalledWith(steamGame.id, { cover: steamGame.cover }))
+		expect(syncSpy).toHaveBeenCalledWith(steamGame.id)
 	})
 
 	it('restores the previous logo and shows a toast when Steam returns no valid logo', async () => {
