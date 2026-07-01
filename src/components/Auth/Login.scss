@@ -210,11 +210,10 @@
 	}
 }
 
-// Dark mode adjustments
-@media (prefers-color-scheme: dark) {
-	.login-card {
-		box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-	}
+// Dark mode adjustments — follow the app theme, not the OS setting
+[data-theme='dark'] .login-card,
+[data-theme='steam'] .login-card {
+	box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
 }
 
 .login-divider {

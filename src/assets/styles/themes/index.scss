@@ -9,6 +9,55 @@
 	@extend [data-theme='light'];
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Compatibility aliases
+// A number of components reference historical / off-system custom-property names
+// (e.g. --color-*, --bg-hover, --border-color, --accent-primary) that were never
+// defined in any theme, so they fell back to hardcoded DARK literals and rendered
+// dark even in light mode. These aliases bridge those names to the canonical
+// theme tokens. Because they indirect through var(), they resolve against
+// whichever [data-theme] is active on <html> — fixing light, dark and steam at
+// once, with no per-component edits.
+// (Intentionally NOT aliased: --success-bg/--error-bg/--warning-bg — they are
+//  used inconsistently as both subtle alert backgrounds and solid button fills.)
+// ─────────────────────────────────────────────────────────────────────────────
+:root {
+	// Surface / background
+	--background: var(--bg-primary);
+	--background-secondary: var(--bg-secondary);
+	--background-tertiary: var(--bg-tertiary);
+	--bg-hover: var(--surface-hover);
+	--input-bg-hover: var(--surface-hover);
+
+	// Borders
+	--border-color: var(--border);
+	--border-primary: var(--border);
+
+	// Accent
+	--accent: var(--primary);
+	--accent-primary: var(--primary);
+	--primary-bg-subtle: var(--primary-light);
+
+	// --color-* vocabulary bridge
+	--color-background: var(--bg-primary);
+	--color-surface: var(--surface);
+	--color-surface-2: var(--bg-secondary);
+	--color-bg-panel: var(--bg-secondary);
+	--color-bg-soft: var(--bg-tertiary);
+	--color-bg-sub: var(--bg-tertiary);
+	--color-bg-input: var(--input-bg);
+	--color-input-background: var(--input-bg);
+	--color-bg-hover: var(--surface-hover);
+	--color-border: var(--border);
+	--color-border-light: var(--border-light);
+	--color-text: var(--text-primary);
+	--color-text-secondary: var(--text-secondary);
+	--color-text-muted: var(--text-muted);
+	--color-accent: var(--primary);
+	--color-primary: var(--primary);
+	--color-error: var(--error);
+}
+
 // Theme transition for smooth switching
 * {
 	transition:
