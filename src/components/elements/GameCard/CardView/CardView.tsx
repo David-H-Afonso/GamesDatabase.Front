@@ -344,5 +344,11 @@ const CardView: FC<CardViewProps> = (props) => {
 
 // Memoize CardView to prevent unnecessary re-renders
 export default memo(CardView, (prevProps, nextProps) => {
-	return prevProps.game.id === nextProps.game.id && prevProps.game.updatedAt === nextProps.game.updatedAt && prevProps.isSelected === nextProps.isSelected
+	return (
+		prevProps.game.id === nextProps.game.id &&
+		prevProps.game.updatedAt === nextProps.game.updatedAt &&
+		prevProps.game.logo === nextProps.game.logo &&
+		prevProps.game.cover === nextProps.game.cover &&
+		prevProps.isSelected === nextProps.isSelected
+	)
 })
