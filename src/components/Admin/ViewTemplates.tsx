@@ -1,7 +1,14 @@
-import React, { useState } from 'react'
+import React, { useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { GameViewCreateDto } from '@/models/api/GameView'
 import { FilterField, FilterOperator, SortField, SortDirection, CombineWith } from '@/models/api/GameView'
+import TrophyIcon from '@/assets/svgs/trophy.svg?react'
+import GamepadIcon from '@/assets/svgs/gamepad.svg?react'
+import StarIcon from '@/assets/svgs/star.svg?react'
+import ChartIcon from '@/assets/svgs/chart.svg?react'
+import CalendarIcon from '@/assets/svgs/calendar-days.svg?react'
+import SparklesIcon from '@/assets/svgs/sparkles.svg?react'
+import ChevronLeftIcon from '@/assets/svgs/chevron-left.svg?react'
 
 // ─── Template definitions ─────────────────────────────────────────────────────
 
@@ -9,7 +16,7 @@ interface ViewTemplate {
 	id: string
 	name: string
 	description: string
-	icon: string
+	icon: ReactNode
 	params: TemplateParam[]
 	generate: (values: Record<string, string>) => GameViewCreateDto
 }
@@ -29,7 +36,7 @@ const VIEW_TEMPLATES: ViewTemplate[] = [
 		id: 'goty',
 		name: 'GOTY',
 		description: 'Juegos lanzados en el año seleccionado que hayas jugado o rejugado ese año. Ordenados por nota relevante.',
-		icon: '🏆',
+		icon: <TrophyIcon aria-hidden='true' />,
 		params: [{ key: 'year', label: 'Año', type: 'year', defaultValue: String(currentYear) }],
 		generate: ({ year }) => {
 			const y = year || String(currentYear)
@@ -68,7 +75,7 @@ const VIEW_TEMPLATES: ViewTemplate[] = [
 		id: 'played-year',
 		name: 'Jugados en año',
 		description: 'Todos los juegos que empezaste o terminaste en el año seleccionado, incluyendo rejugadas.',
-		icon: '🎮',
+		icon: <GamepadIcon aria-hidden='true' />,
 		params: [
 			{ key: 'year', label: 'Año', type: 'year', defaultValue: String(currentYear) },
 			{
@@ -124,7 +131,7 @@ const VIEW_TEMPLATES: ViewTemplate[] = [
 		id: 'best-score',
 		name: 'Mejores por Score',
 		description: 'Ranking de juegos ordenados por la puntuación auto-generada (Score), de mayor a menor.',
-		icon: '⭐',
+		icon: <StarIcon aria-hidden='true' />,
 		params: [],
 		generate: () => ({
 			name: 'Mejores por Score',
@@ -148,7 +155,7 @@ const VIEW_TEMPLATES: ViewTemplate[] = [
 		id: 'best-grade',
 		name: 'Mejores por Nota',
 		description: 'Ranking de juegos ordenados por tu nota personal, de mayor a menor.',
-		icon: '📊',
+		icon: <ChartIcon aria-hidden='true' />,
 		params: [],
 		generate: () => ({
 			name: 'Mejores por Nota',
@@ -172,7 +179,7 @@ const VIEW_TEMPLATES: ViewTemplate[] = [
 		id: 'released-year',
 		name: 'Lanzados en año',
 		description: 'Juegos o rejugadas lanzados en el año seleccionado, sin importar si los jugaste o no.',
-		icon: '📅',
+		icon: <CalendarIcon aria-hidden='true' />,
 		params: [{ key: 'year', label: 'Año', type: 'year', defaultValue: String(currentYear) }],
 		generate: ({ year }) => {
 			const y = year || String(currentYear)
@@ -202,7 +209,7 @@ const VIEW_TEMPLATES: ViewTemplate[] = [
 		id: 'recently-added',
 		name: 'Añadidos recientemente',
 		description: 'Los últimos juegos que has añadido a tu base de datos, ordenados por fecha de creación.',
-		icon: '🆕',
+		icon: <SparklesIcon aria-hidden='true' />,
 		params: [],
 		generate: () => ({
 			name: 'Añadidos recientemente',
@@ -363,7 +370,7 @@ const ViewTemplateSelector: React.FC<ViewTemplateSelectorProps> = ({ onCreateFro
 						{error && <p className='template-error'>{error}</p>}
 						<div className='template-actions'>
 							<button className='btn btn-secondary' onClick={handleBack} disabled={creating}>
-								← {t('common.back')}
+								<ChevronLeftIcon aria-hidden='true' /> {t('common.back')}
 							</button>
 							<button className='btn btn-primary' onClick={handleCreate} disabled={creating}>
 								{creating ? t('admin.viewTemplates.creating') : t('admin.viewTemplates.createView')}

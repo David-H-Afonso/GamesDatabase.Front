@@ -403,3 +403,78 @@
 		margin-top: 2rem;
 	}
 }
+
+// Modal bodies render through the shared Modal portal (outside .admin-users),
+// so their content styles live at the top level.
+.admin-users-modal {
+	.form-group {
+		margin-bottom: 1.5rem;
+
+		label {
+			display: block;
+			margin-bottom: 0.5rem;
+			color: var(--text-primary);
+			font-weight: 500;
+		}
+
+		input,
+		select {
+			width: 100%;
+			padding: 0.75rem;
+			border: 1px solid var(--border-primary);
+			border-radius: 4px;
+			background: var(--bg-secondary);
+			color: var(--text-primary);
+			font-size: 1rem;
+
+			&:focus {
+				outline: none;
+				border-color: var(--primary);
+			}
+		}
+
+		small {
+			display: block;
+			margin-top: 0.5rem;
+			color: var(--text-tertiary);
+			font-size: 0.875rem;
+		}
+	}
+
+	.warning-text {
+		margin-bottom: 1rem;
+		color: var(--text-primary);
+		font-size: 1.1rem;
+	}
+
+	.warning-box {
+		background: rgba(244, 67, 54, 0.1);
+		border: 2px solid rgba(244, 67, 54, 0.3);
+		border-radius: 8px;
+		padding: 1rem;
+		margin-bottom: 1rem;
+
+		p {
+			margin: 0 0 0.5rem 0;
+			color: #f44336;
+			font-weight: 600;
+		}
+
+		ul {
+			margin: 0;
+			padding-left: 1.5rem;
+			color: var(--text-primary);
+
+			li {
+				margin: 0.25rem 0;
+			}
+		}
+	}
+
+	.modal-actions {
+		display: flex;
+		justify-content: flex-end;
+		gap: 1rem;
+		margin-top: 2rem;
+	}
+}

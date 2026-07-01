@@ -26,6 +26,14 @@
 	display: flex;
 	flex-direction: column;
 	animation: modalSlideIn 0.2s ease-out;
+
+	&:focus {
+		outline: none;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		animation: none;
+	}
 }
 
 .modal-header {
@@ -65,9 +73,9 @@
 			color: $color-text-primary;
 		}
 
-		&:focus {
-			outline: none;
-			box-shadow: 0 0 0 2px $color-primary;
+		&:focus-visible {
+			outline: 2px solid $color-primary;
+			outline-offset: 2px;
 		}
 	}
 }

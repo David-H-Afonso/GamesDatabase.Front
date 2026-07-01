@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Modal } from '@/components/elements'
 import { userService } from '@/services/UserService'
 import { useAppSelector } from '@/store/hooks'
 import { selectCurrentUser } from '@/store/features/auth/selector'
@@ -170,7 +171,9 @@ export const AdminUsers = () => {
 			{/* Toast Notification */}
 			{toast && (
 				<div className={`toast toast-${toast.type}`}>
-					<span className='toast-icon'>{toast.type === 'success' ? '✓' : '!'}</span>
+					<svg className='toast-icon' viewBox='0 0 24 24' width='18' height='18' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round' aria-hidden='true'>
+						{toast.type === 'success' ? <path d='M20 6 9 17l-5-5' /> : <path d='M12 8v4M12 16h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z' />}
+					</svg>
 					{toast.message}
 				</div>
 			)}
@@ -223,7 +226,7 @@ export const AdminUsers = () => {
 								<tr key={user.id}>
 									<td>
 										{user.username}
-										{user.id === currentUser?.id && <span className='badge badge-info'>You</span>}
+										{user.id === currentUser?.id && <span className='badge badge-info'>{t('users.badgeYou')}</span>}
 									</td>
 									<td>
 										<span className={`badge badge-${user.role === 'Admin' ? 'admin' : 'standard'}`}>{user.role}</span>
@@ -251,122 +254,89 @@ export const AdminUsers = () => {
 			)}
 
 			{/* Create/Edit User Modal */}
-			{isModalOpen && (
-				<div className='modal-overlay' onClick={handleCloseModal}>
-					<div className='modal-content' onClick={(e) => e.stopPropagation()}>
-						<div className='modal-header'>
-							<h2>{editingUser ? t('admin.users.editTitle') : t('admin.users.createTitle')}</h2>
-							<button className='modal-close' onClick={handleCloseModal}>
-								×
-							</button>
-						</div>
-
-						<form onSubmit={handleSubmit}>
-							<div className='form-group'>
-								<label>{t('admin.users.usernameLabel')}</label>
-								<input type='text' value={formData.username} onChange={(e) => setFormData({ ...formData, username: e.target.value })} required />
-							</div>
-
-							{!editingUser && (
-								<div className='form-group'>
-									<label>{t('admin.users.passwordLabel')}</label>
-									<input
-										type='password'
-										value={formData.password || ''}
-										onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-										placeholder={t('admin.users.passwordPlaceholder')}
-									/>
-								</div>
-							)}
-
-							<div className='form-group'>
-								<label>{t('admin.users.roleLabel')}</label>
-								<select value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}>
-									<option value='Standard'>{t('admin.users.roleStandard')}</option>
-									<option value='Admin'>{t('admin.users.roleAdmin')}</option>
-								</select>
-							</div>
-
-							<div className='modal-actions'>
-								<button type='button' className='btn btn-secondary' onClick={handleCloseModal} disabled={actionLoading}>
-									{t('admin.crud.cancel')}
-								</button>
-								<button type='submit' className='btn btn-primary' disabled={actionLoading}>
-									{actionLoading ? t('common.saving') : editingUser ? t('admin.crud.update') : t('admin.crud.create')}
-								</button>
-							</div>
-						</form>
+			<Modal isOpen={isModalOpen} onClose={handleCloseModal} title={editingUser ? t('admin.users.editTitle') : t('admin.users.createTitle')} maxWidth='500px'>
+				<form onSubmit={handleSubmit} className='admin-users-modal'>
+					<div className='form-group'>
+						<label>{t('admin.users.usernameLabel')}</label>
+						<input type='text' value={formData.username} onChange={(e) => setFormData({ ...formData, username: e.target.value })} required />
 					</div>
-				</div>
-			)}
+
+					{!editingUser && (
+						<div className='form-group'>
+							<label>{t('admin.users.passwordLabel')}</label>
+							<input
+								type='password'
+								value={formData.password || ''}
+								onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+								placeholder={t('admin.users.passwordPlaceholder')}
+							/>
+						</div>
+					)}
+
+					<div className='form-group'>
+						<label>{t('admin.users.roleLabel')}</label>
+						<select value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}>
+							<option value='Standard'>{t('admin.users.roleStandard')}</option>
+							<option value='Admin'>{t('admin.users.roleAdmin')}</option>
+						</select>
+					</div>
+
+					<div className='modal-actions'>
+						<button type='button' className='btn btn-secondary' onClick={handleCloseModal} disabled={actionLoading}>
+							{t('admin.crud.cancel')}
+						</button>
+						<button type='submit' className='btn btn-primary' disabled={actionLoading}>
+							{actionLoading ? t('common.saving') : editingUser ? t('admin.crud.update') : t('admin.crud.create')}
+						</button>
+					</div>
+				</form>
+			</Modal>
 
 			{/* Delete Confirmation Modal */}
-			{deleteConfirm && (
-				<div className='modal-overlay' onClick={() => setDeleteConfirm(null)}>
-					<div className='modal-content modal-confirm' onClick={(e) => e.stopPropagation()}>
-						<div className='modal-header'>
-							<h2>{t('admin.users.confirmTitle')}</h2>
-							<button className='modal-close' onClick={() => setDeleteConfirm(null)}>
-								×
-							</button>
-						</div>
+			<Modal isOpen={deleteConfirm !== null} onClose={() => setDeleteConfirm(null)} title={t('admin.users.confirmTitle')} maxWidth='600px'>
+				<div className='admin-users-modal'>
+					<p className='warning-text'>{deleteConfirm ? t('admin.users.deleteWarning', { username: deleteConfirm.username }) : ''}</p>
+					<div className='warning-box'>
+						<p>
+							<strong>{t('admin.users.deleteWarning2')}</strong>
+						</p>
+						<ul>
+							<li>{t('admin.users.deleteWarning3')}</li>
+							<li>{t('admin.users.deleteWarning4')}</li>
+							<li>{t('admin.users.deleteWarning5')}</li>
+						</ul>
+					</div>
 
-						<div className='modal-body'>
-							<p className='warning-text'>{t('admin.users.deleteWarning', { username: deleteConfirm.username })}</p>
-							<div className='warning-box'>
-								<p>
-									<strong>{t('admin.users.deleteWarning2')}</strong>
-								</p>
-								<ul>
-									<li>{t('admin.users.deleteWarning3')}</li>
-									<li>{t('admin.users.deleteWarning4')}</li>
-									<li>{t('admin.users.deleteWarning5')}</li>
-								</ul>
-							</div>
-						</div>
-
-						<div className='modal-actions'>
-							<button type='button' className='btn btn-secondary' onClick={() => setDeleteConfirm(null)} disabled={actionLoading}>
-								{t('admin.crud.cancel')}
-							</button>
-							<button type='button' className='btn btn-danger' onClick={handleDeleteConfirm} disabled={actionLoading}>
-								{actionLoading ? t('admin.users.deleting') : t('admin.users.deleteBtn')}
-							</button>
-						</div>
+					<div className='modal-actions'>
+						<button type='button' className='btn btn-secondary' onClick={() => setDeleteConfirm(null)} disabled={actionLoading}>
+							{t('admin.crud.cancel')}
+						</button>
+						<button type='button' className='btn btn-danger' onClick={handleDeleteConfirm} disabled={actionLoading}>
+							{actionLoading ? t('admin.users.deleting') : t('admin.users.deleteBtn')}
+						</button>
 					</div>
 				</div>
-			)}
+			</Modal>
 
 			{/* Change Password Modal */}
-			{isPasswordModalOpen && (
-				<div className='modal-overlay' onClick={() => setIsPasswordModalOpen(false)}>
-					<div className='modal-content' onClick={(e) => e.stopPropagation()}>
-						<div className='modal-header'>
-							<h2>{t('admin.users.changePasswordTitle')}</h2>
-							<button className='modal-close' onClick={() => setIsPasswordModalOpen(false)}>
-								×
-							</button>
-						</div>
-
-						<form onSubmit={handleChangePassword}>
-							<div className='form-group'>
-								<label>{t('admin.users.newPasswordLabel')}</label>
-								<input type='password' value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder={t('admin.users.newPasswordPlaceholder')} />
-								<small>{t('admin.users.passwordSmallHint')}</small>
-							</div>
-
-							<div className='modal-actions'>
-								<button type='button' className='btn btn-secondary' onClick={() => setIsPasswordModalOpen(false)} disabled={actionLoading}>
-									{t('admin.crud.cancel')}
-								</button>
-								<button type='submit' className='btn btn-primary' disabled={actionLoading}>
-									{actionLoading ? t('common.saving') : t('admin.users.changePasswordBtn')}
-								</button>
-							</div>
-						</form>
+			<Modal isOpen={isPasswordModalOpen} onClose={() => setIsPasswordModalOpen(false)} title={t('admin.users.changePasswordTitle')} maxWidth='500px'>
+				<form onSubmit={handleChangePassword} className='admin-users-modal'>
+					<div className='form-group'>
+						<label>{t('admin.users.newPasswordLabel')}</label>
+						<input type='password' value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder={t('admin.users.newPasswordPlaceholder')} />
+						<small>{t('admin.users.passwordSmallHint')}</small>
 					</div>
-				</div>
-			)}
+
+					<div className='modal-actions'>
+						<button type='button' className='btn btn-secondary' onClick={() => setIsPasswordModalOpen(false)} disabled={actionLoading}>
+							{t('admin.crud.cancel')}
+						</button>
+						<button type='submit' className='btn btn-primary' disabled={actionLoading}>
+							{actionLoading ? t('common.saving') : t('admin.users.changePasswordBtn')}
+						</button>
+					</div>
+				</form>
+			</Modal>
 		</div>
 	)
 }
