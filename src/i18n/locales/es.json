@@ -623,6 +623,8 @@
 			"confirmDeleteDuplicateGame": "Se borrará \"{{name}}\" (#{{id}}) de la base de datos. Esta acción no se puede deshacer.",
 			"confirmDismissDuplicateGroup": "Se descartará este grupo como falso positivo. No volverá a aparecer en el análisis de duplicados.",
 			"instructionsTitle": "Instrucciones y Casos de Uso",
+			"instrShow": "Mostrar",
+			"instrHide": "Ocultar",
 			"instrExportTitle": "Exportar Base de Datos",
 			"instrExport1": "Descarga TODO: juegos + catálogos (Platforms, Status, PlayWith, PlayedStatus)",
 			"instrExport2": "Incluye colores, orden personalizado y configuración de cada catálogo",

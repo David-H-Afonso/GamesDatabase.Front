@@ -46,7 +46,7 @@ const CardView: FC<CardViewProps> = (props) => {
 	const userScoreProvider = useAppSelector((state) => state.auth.user?.scoreProvider ?? 'Metacritic') as CriticProvider
 	const showPriceComparisonIcon = useAppSelector((state) => state.auth.user?.showPriceComparisonIcon ?? false)
 
-	const released = formatToLocaleDate(game.released)
+	const released = formatToLocaleDate(game.released) || t('game.card.na')
 
 	// Use per-game provider if set, otherwise fall back to user preference
 	const effectiveProvider = resolveEffectiveProvider(game.criticProvider as CriticProvider | undefined, userScoreProvider)

@@ -30,6 +30,14 @@ describe('EditableField', () => {
 		expect(screen.getByText('Score: 80')).toBeInTheDocument()
 	})
 
+	it('shows placeholder (not empty formatter output) when value is empty and a formatter is provided', () => {
+		// Mirrors GameDetails date fields: formatToLocaleDate('') returns '' for
+		// missing dates, so the field must fall back to the placeholder instead of
+		// rendering a blank value.
+		render(<EditableField {...defaultProps} value={undefined} formatter={(v) => (v ? String(v) : '')} />)
+		expect(screen.getByText('Enter value')).toBeInTheDocument()
+	})
+
 	// ── Entering edit mode ─────────────────────────────────────────────────────
 
 	it('shows a text input after clicking the display value', async () => {

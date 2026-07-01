@@ -620,6 +620,8 @@
 			"confirmDeleteDuplicateGame": "\"{{name}}\" (#{{id}}) will be deleted from the database. This action cannot be undone.",
 			"confirmDismissDuplicateGroup": "This group will be dismissed as a false positive. It will no longer appear in the duplicate analysis.",
 			"instructionsTitle": "Instructions & Use Cases",
+			"instrShow": "Show",
+			"instrHide": "Hide",
 			"instrExportTitle": "Export Database",
 			"instrExport1": "Downloads EVERYTHING: games + catalogs (Platforms, Status, PlayWith, PlayedStatus)",
 			"instrExport2": "Includes colors, custom order, and configuration for each catalog",

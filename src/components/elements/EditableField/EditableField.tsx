@@ -102,7 +102,7 @@ export const EditableField: React.FC<EditableFieldProps> = ({
 							setIsEditing(true)
 						}
 					}}>
-					{formatter ? formatter(value) : hasValue ? String(value) : placeholder}
+					{hasValue ? (formatter ? formatter(value) : String(value)) : placeholder}
 				</span>
 			)}
 		</div>
