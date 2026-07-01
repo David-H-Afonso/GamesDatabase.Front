@@ -31,6 +31,10 @@ const RowView: FC<RowViewProps> = (props) => {
 	const [activeSelector, setActiveSelector] = useState<'status' | 'platform' | 'playWith' | 'playStatus' | null>(null)
 	const [logoFailed, setLogoFailed] = useState(false)
 
+	useEffect(() => {
+		setLogoFailed(false)
+	}, [game.logo])
+
 	// opciones de selects
 	const { activeStatuses: statusOptions } = useAppSelector((state) => state.gameStatus)
 	const { platforms, activePlatforms } = useAppSelector((state) => state.gamePlatform)
