@@ -101,8 +101,7 @@ describe('GameHistoryTab', () => {
 		expect(mockDeleteHistoryEntry).toHaveBeenCalledWith(1, 1)
 	})
 
-	it('clears all history after confirmation', async () => {
-		vi.spyOn(globalThis, 'confirm').mockReturnValue(true)
+	it('clears all history after confirming in the dialog', async () => {
 		const { GameHistoryTab } = await import('./GameHistoryTab')
 		renderWithProviders(<GameHistoryTab gameId={1} />)
 
@@ -111,9 +110,24 @@ describe('GameHistoryTab', () => {
 		})
 
 		await user.click(screen.getByText('Limpiar todo'))
+		await user.click(screen.getByRole('button', { name: 'Eliminar' }))
 
 		expect(mockClearGameHistory).toHaveBeenCalledWith(1)
-		vi.mocked(globalThis.confirm).mockRestore()
+	})
+
+	it('does not clear history when the confirmation is cancelled', async () => {
+		const { GameHistoryTab } = await import('./GameHistoryTab')
+		renderWithProviders(<GameHistoryTab gameId={1} />)
+
+		await waitFor(() => {
+			expect(screen.getByText('Limpiar todo')).toBeInTheDocument()
+		})
+
+		await user.click(screen.getByText('Limpiar todo'))
+		await user.click(screen.getByRole('button', { name: 'Cancelar' }))
+
+		expect(mockClearGameHistory).not.toHaveBeenCalled()
+		expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
 	})
 
 	it('does not show "Borrar todo" when no entries', async () => {

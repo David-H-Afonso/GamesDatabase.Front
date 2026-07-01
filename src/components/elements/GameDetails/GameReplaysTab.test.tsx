@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test/utils/renderWithProviders'
 
@@ -144,8 +144,7 @@ describe('GameReplaysTab', () => {
 		expect(screen.getByText('Save changes')).toBeInTheDocument()
 	})
 
-	it('deletes a replay after confirmation', async () => {
-		vi.spyOn(globalThis, 'confirm').mockReturnValue(true)
+	it('deletes a replay after confirming in the dialog', async () => {
 		const { GameReplaysTab } = await import('./GameReplaysTab')
 		renderWithProviders(<GameReplaysTab gameId={1} />)
 
@@ -154,9 +153,26 @@ describe('GameReplaysTab', () => {
 		})
 
 		await user.click(screen.getByText('Delete'))
+		const dialog = screen.getByRole('alertdialog')
+		await user.click(within(dialog).getByRole('button', { name: 'Delete' }))
 
 		expect(mockDeleteGameReplay).toHaveBeenCalledWith(1, 1)
-		vi.mocked(globalThis.confirm).mockRestore()
+	})
+
+	it('does not delete a replay when the confirmation is cancelled', async () => {
+		const { GameReplaysTab } = await import('./GameReplaysTab')
+		renderWithProviders(<GameReplaysTab gameId={1} />)
+
+		await waitFor(() => {
+			expect(screen.getByText('Delete')).toBeInTheDocument()
+		})
+
+		await user.click(screen.getByText('Delete'))
+		const dialog = screen.getByRole('alertdialog')
+		await user.click(within(dialog).getByRole('button', { name: 'Cancel' }))
+
+		expect(mockDeleteGameReplay).not.toHaveBeenCalled()
+		expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
 	})
 
 	it('closes form when Cancelar is clicked', async () => {

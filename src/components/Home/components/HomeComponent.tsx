@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, lazy, Suspense } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Button, GameCard, GameCardSkeleton } from '@/components/elements'
+import { Button, GameCard, GameCardSkeleton, ConfirmDialog, Toast } from '@/components/elements'
 import { useGames, useGameViews } from '@/hooks'
 import { useAppSelector, useAppDispatch } from '@/store/hooks'
 import { setCardStyle, setViewMode } from '@/store/features/theme/themeSlice'
@@ -47,6 +47,8 @@ const HomeComponent = () => {
 	const [bulkEditOpen, setBulkEditOpen] = useState(false)
 	const [exportModalOpen, setExportModalOpen] = useState(false)
 	const [exportPreSelected, setExportPreSelected] = useState<Array<{ id: number; name: string }>>([])
+	const [pendingDelete, setPendingDelete] = useState<{ kind: 'bulk' } | { kind: 'single'; id: number } | null>(null)
+	const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
 	const filtersRef = useRef(filters)
 	useEffect(() => {
 		filtersRef.current = filters
@@ -172,11 +174,21 @@ const HomeComponent = () => {
 		else setSelectedGames(games.map((g) => g.id))
 	}
 
-	const handleBulkDelete = async () => {
-		if (!window.confirm(t('home.confirmDeleteSelected'))) return
+	const handleBulkDelete = () => setPendingDelete({ kind: 'bulk' })
+
+	const handleDeleteGame = (id: number) => setPendingDelete({ kind: 'single', id })
+
+	const confirmDelete = async () => {
+		if (!pendingDelete) return
+		const target = pendingDelete
+		setPendingDelete(null)
 		try {
-			await Promise.all(selectedGames.map((id) => deleteGameById(id)))
-			setSelectedGames([])
+			if (target.kind === 'bulk') {
+				await Promise.all(selectedGames.map((id) => deleteGameById(id)))
+				setSelectedGames([])
+			} else {
+				await deleteGameById(target.id)
+			}
 			fetchGamesList(filters)
 		} catch (err) {
 			console.error('Error deleting games', err)
@@ -216,16 +228,6 @@ const HomeComponent = () => {
 		)
 	}
 
-	const handleDeleteGame = async (id: number) => {
-		if (!window.confirm(t('home.confirmDeleteGame'))) return
-		try {
-			await deleteGameById(id)
-			fetchGamesList(filters)
-		} catch (err) {
-			console.error('Error deleting game', err)
-		}
-	}
-
 	const handleBulkEdit = async (updates: BulkEditData) => {
 		try {
 			const result = await bulkUpdateGamesById({
@@ -235,7 +237,7 @@ const HomeComponent = () => {
 
 			// Type assertion since we know the shape of the result
 			const bulkResult = result as { updatedCount: number; totalRequested: number }
-			alert(t('home.bulkUpdateSuccess', { updated: bulkResult.updatedCount, total: bulkResult.totalRequested }))
+			setToast({ message: t('home.bulkUpdateSuccess', { updated: bulkResult.updatedCount, total: bulkResult.totalRequested }), type: 'success' })
 			setSelectedGames([])
 			setBulkEditOpen(false)
 			await refreshGames(filters)
@@ -333,6 +335,17 @@ const HomeComponent = () => {
 				<BulkEditModal isOpen={bulkEditOpen} onClose={() => setBulkEditOpen(false)} selectedCount={selectedGames.length} onSave={handleBulkEdit} />
 			</Suspense>
 			<SelectiveExportModal isOpen={exportModalOpen} onClose={() => setExportModalOpen(false)} preSelectedGames={exportPreSelected} />
+
+			<ConfirmDialog
+				isOpen={pendingDelete !== null}
+				title={t('common.confirmDeleteTitle')}
+				message={pendingDelete?.kind === 'bulk' ? t('home.confirmDeleteSelected') : t('home.confirmDeleteGame')}
+				variant='danger'
+				confirmLabel={t('common.delete')}
+				onConfirm={confirmDelete}
+				onCancel={() => setPendingDelete(null)}
+			/>
+			<Toast isOpen={toast !== null} message={toast?.message ?? ''} type={toast?.type} onClose={() => setToast(null)} />
 		</div>
 	)
 }

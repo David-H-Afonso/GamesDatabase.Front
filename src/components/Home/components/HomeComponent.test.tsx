@@ -120,6 +120,19 @@ vi.mock('@/components/elements', () => ({
 			</button>
 		</div>
 	),
+	ConfirmDialog: ({ isOpen, message, onConfirm, onCancel }: any) =>
+		isOpen ? (
+			<div role='alertdialog'>
+				<p>{message}</p>
+				<button data-testid='confirm-cancel' onClick={onCancel}>
+					Cancel
+				</button>
+				<button data-testid='confirm-ok' onClick={onConfirm}>
+					Confirm
+				</button>
+			</div>
+		) : null,
+	Toast: ({ isOpen, message }: any) => (isOpen ? <div role='status'>{message}</div> : null),
 }))
 
 const defaultState: Partial<RootState> = {
@@ -244,27 +257,43 @@ describe('HomeComponent', () => {
 		})
 	})
 
-	it('calls deleteGameById with confirm when delete button is clicked', async () => {
+	it('deletes a game after confirming in the dialog', async () => {
 		const user = userEvent.setup()
-		vi.spyOn(globalThis, 'confirm').mockReturnValue(true)
 		const HomeComponent = await loadHomeComponent()
 		renderWithProviders(<HomeComponent />, { preloadedState: defaultState })
 
 		await user.click(screen.getByTestId('delete-1'))
+		expect(screen.getByRole('alertdialog')).toBeInTheDocument()
 
-		expect(globalThis.confirm).toHaveBeenCalled()
+		await user.click(screen.getByTestId('confirm-ok'))
+
 		expect(mockDeleteGameById).toHaveBeenCalledWith(1)
 	})
 
-	it('does not delete game when confirm is cancelled', async () => {
+	it('does not delete a game when the confirmation is cancelled', async () => {
 		const user = userEvent.setup()
-		vi.spyOn(globalThis, 'confirm').mockReturnValue(false)
 		const HomeComponent = await loadHomeComponent()
 		renderWithProviders(<HomeComponent />, { preloadedState: defaultState })
 
 		await user.click(screen.getByTestId('delete-1'))
+		await user.click(screen.getByTestId('confirm-cancel'))
 
 		expect(mockDeleteGameById).not.toHaveBeenCalled()
+		expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
+	})
+
+	it('bulk deletes the selected games after confirming in the dialog', async () => {
+		const user = userEvent.setup()
+		const HomeComponent = await loadHomeComponent()
+		renderWithProviders(<HomeComponent />, { preloadedState: defaultState })
+
+		await user.click(screen.getByTestId('select-1'))
+		await user.click(screen.getByTestId('bulk-delete'))
+		expect(screen.getByRole('alertdialog')).toBeInTheDocument()
+
+		await user.click(screen.getByTestId('confirm-ok'))
+
+		expect(mockDeleteGameById).toHaveBeenCalledWith(1)
 	})
 
 	it('renders row header columns when cardStyle is row', async () => {

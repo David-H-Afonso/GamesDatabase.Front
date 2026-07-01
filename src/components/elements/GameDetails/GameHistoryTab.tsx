@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getHistoryByGameId, deleteHistoryEntry, clearGameHistory } from '@/services/GameHistoryService'
+import { ConfirmDialog } from '@/components/elements'
 import type { GameHistoryEntry } from '@/models/api/GameHistoryEntry'
 import './GameHistoryTab.scss'
 
@@ -18,6 +19,7 @@ export const GameHistoryTab: React.FC<Props> = ({ gameId }) => {
 	const { t } = useTranslation()
 	const [entries, setEntries] = useState<GameHistoryEntry[]>([])
 	const [loading, setLoading] = useState(false)
+	const [confirmClearOpen, setConfirmClearOpen] = useState(false)
 
 	const load = useCallback(async () => {
 		setLoading(true)
@@ -44,8 +46,10 @@ export const GameHistoryTab: React.FC<Props> = ({ gameId }) => {
 		}
 	}
 
-	const handleClearAll = async () => {
-		if (!window.confirm(t('game.history.confirmClearAll'))) return
+	const handleClearAll = () => setConfirmClearOpen(true)
+
+	const confirmClearAll = async () => {
+		setConfirmClearOpen(false)
 		try {
 			await clearGameHistory(gameId)
 			setEntries([])
@@ -139,6 +143,16 @@ export const GameHistoryTab: React.FC<Props> = ({ gameId }) => {
 					))}
 				</ul>
 			)}
+
+			<ConfirmDialog
+				isOpen={confirmClearOpen}
+				title={t('common.confirmDeleteTitle')}
+				message={t('game.history.confirmClearAll')}
+				variant='danger'
+				confirmLabel={t('common.delete')}
+				onConfirm={confirmClearAll}
+				onCancel={() => setConfirmClearOpen(false)}
+			/>
 		</div>
 	)
 }

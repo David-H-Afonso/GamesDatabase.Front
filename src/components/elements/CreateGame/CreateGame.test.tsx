@@ -44,7 +44,24 @@ vi.mock('@/components/elements', () => ({
 				{children}
 			</div>
 		) : null,
-	GameDetails: () => <div data-testid='game-details' />,
+	GameDetails: ({ onDelete, game }: any) => (
+		<div data-testid='game-details'>
+			<button data-testid='game-details-delete' onClick={() => onDelete?.(game)}>
+				Delete
+			</button>
+		</div>
+	),
+	ConfirmDialog: ({ isOpen, onConfirm, onCancel }: any) =>
+		isOpen ? (
+			<div role='alertdialog'>
+				<button data-testid='confirm-cancel' onClick={onCancel}>
+					Cancel
+				</button>
+				<button data-testid='confirm-ok' onClick={onConfirm}>
+					Confirm
+				</button>
+			</div>
+		) : null,
 }))
 
 vi.mock('./CreateGame.scss', () => ({}))
@@ -135,6 +152,39 @@ describe('CreateGame', () => {
 		await waitFor(() => {
 			expect(mockCreateNewGame).toHaveBeenCalledWith(expect.objectContaining({ name: 'Elden Ring' }))
 		})
+	})
+
+	it('asks for confirmation before deleting the created game and deletes on confirm', async () => {
+		mockCreateNewGame.mockResolvedValue({ id: 99, name: 'Elden Ring' })
+		const CreateGame = await loadCreateGame()
+		const { user, modal } = await openCreateModal(CreateGame)
+
+		await user.type(within(modal).getByPlaceholderText('Título del juego'), 'Elden Ring')
+		await user.click(within(modal).getByRole('button', { name: 'Añadir Juego' }))
+
+		await waitFor(() => expect(screen.getByTestId('game-details')).toBeInTheDocument())
+
+		await user.click(screen.getByTestId('game-details-delete'))
+		expect(screen.getByRole('alertdialog')).toBeInTheDocument()
+		await user.click(screen.getByTestId('confirm-ok'))
+
+		expect(mockDeleteGameById).toHaveBeenCalledWith(99)
+	})
+
+	it('does not delete the created game when the confirmation is cancelled', async () => {
+		mockCreateNewGame.mockResolvedValue({ id: 99, name: 'Elden Ring' })
+		const CreateGame = await loadCreateGame()
+		const { user, modal } = await openCreateModal(CreateGame)
+
+		await user.type(within(modal).getByPlaceholderText('Título del juego'), 'Elden Ring')
+		await user.click(within(modal).getByRole('button', { name: 'Añadir Juego' }))
+
+		await waitFor(() => expect(screen.getByTestId('game-details')).toBeInTheDocument())
+
+		await user.click(screen.getByTestId('game-details-delete'))
+		await user.click(screen.getByTestId('confirm-cancel'))
+
+		expect(mockDeleteGameById).not.toHaveBeenCalled()
 	})
 
 	it('shows submit button text for multiple games', async () => {
