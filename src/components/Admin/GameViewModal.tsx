@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Modal } from '@/components/elements'
 import { useGameViews, useGamePlatform, useGamePlayedStatus, useGamePlayWith } from '@/hooks'
 import { useGameStatus } from '@/hooks/useGameStatus/useGameStatus'
 import type { GameView, GameViewCreateDto, ViewFilter, ViewSort, FilterGroup } from '@/models/api/GameView'
@@ -261,7 +262,17 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 						const out: any = { ...f }
 
 						// Date-like fields -> YYYY-MM-DD
-						if ([FilterField.Released, FilterField.Started, FilterField.Finished, FilterField.ReleaseDate, FilterField.ReplayStarted, FilterField.ReplayFinished, FilterField.ReplayReleased].includes(f.field as any)) {
+						if (
+							[
+								FilterField.Released,
+								FilterField.Started,
+								FilterField.Finished,
+								FilterField.ReleaseDate,
+								FilterField.ReplayStarted,
+								FilterField.ReplayFinished,
+								FilterField.ReplayReleased,
+							].includes(f.field as any)
+						) {
 							if (f.value === '' || f.value === null || f.value === undefined) {
 								out.value = null
 							} else if (Array.isArray(f.value)) {
@@ -407,7 +418,15 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 		// Numeric fields (StatusId, PlatformId, etc.) - ONLY Equals/NotEquals supported
 		const NUMERIC_ID_FIELDS = [FilterField.StatusId, FilterField.PlatformId, FilterField.PlayWithId, FilterField.PlayedStatusId, FilterField.SteamAppId, FilterField.ReplayTypeId]
 		// Numeric score fields - may support more operators
-		const NUMERIC_SCORE_FIELDS = [FilterField.Score, FilterField.Grade, FilterField.Critic, FilterField.Story, FilterField.Completion, FilterField.SteamPlaytimeForever, FilterField.ReplayGrade]
+		const NUMERIC_SCORE_FIELDS = [
+			FilterField.Score,
+			FilterField.Grade,
+			FilterField.Critic,
+			FilterField.Story,
+			FilterField.Completion,
+			FilterField.SteamPlaytimeForever,
+			FilterField.ReplayGrade,
+		]
 		// Date fields - ONLY Equals/GreaterThanOrEqual/LessThanOrEqual supported
 		const DATE_FIELDS = [
 			FilterField.Released,
@@ -611,180 +630,176 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 	}
 
 	return (
-		<div className='game-view-modal' onClick={onClose}>
-			<div className='modal-content' onClick={(e) => e.stopPropagation()}>
-				<div className='modal-header'>
-					<h2>{gameView ? t('admin.gameViews.editView') : t('admin.gameViews.newView')}</h2>
-					<button className='close-btn' onClick={onClose}>
-						×
-					</button>
-				</div>
-
-				<div className='modal-body'>
-					<div className='form-group'>
-						<label>{t('common.name')} *</label>
-						<input type='text' value={formData.name} onChange={(e) => handleInputChange('name', e.target.value)} placeholder={t('game.viewNamePlaceholder')} />
-					</div>
-
-					<div className='configuration-section'>
-						<div className='section-header'>
-							<h3>{t('game.filters.title')}</h3>
-							<button className='add-btn' onClick={addFilterGroup}>
-								{t('game.filters.addGroup')}
-							</button>
-						</div>
-
-						{filterGroups.length > 1 && (
-							<div className='global-combine'>
-								<label>{t('game.filters.combineGroups')}:</label>
-								<select value={groupCombineWith} onChange={(e) => setGroupCombineWith(e.target.value as CombineWith)}>
-									<option value={CombineWith.And}>{t('game.filters.combineAnd')} (AND)</option>
-									<option value={CombineWith.Or}>{t('game.filters.combineOr')} (OR)</option>
-								</select>
-							</div>
-						)}
-
-						{filterGroups.length === 0 ? (
-							<div className='no-items'>{t('game.filters.noFilters')}</div>
-						) : (
-							filterGroups.map((group, groupIndex) => (
-								<div key={groupIndex} className='filter-group'>
-									<div className='group-header'>
-										<h4>
-											{t('game.filters.group')} {groupIndex + 1}
-										</h4>
-										{group.filters.length > 1 && (
-											<>
-												<label>{t('game.filters.combineWith')}:</label>
-												<select value={group.combineWith} onChange={(e) => updateFilterGroup(groupIndex, 'combineWith', e.target.value)}>
-													<option value={CombineWith.And}>{t('game.filters.combineAnd')}</option>
-													<option value={CombineWith.Or}>{t('game.filters.combineOr')}</option>
-												</select>
-											</>
-										)}
-										{filterGroups.length > 1 && (
-											<button className='remove-group-btn' onClick={() => removeFilterGroup(groupIndex)} title={t('game.filters.removeGroup')}>
-												×
-											</button>
-										)}
-									</div>
-
-									<div className='group-filters'>
-										{group.filters.length === 0 ? (
-											<div className='no-filters-in-group'>
-												<p>{t('game.filters.noFiltersInGroup')}</p>
-												<button className='add-first-filter-btn' onClick={() => addFilter(groupIndex)}>
-													{t('game.filters.addFilter')}
-												</button>
-											</div>
-										) : (
-											group.filters.map((filter, filterIndex) => (
-												<div key={filterIndex} className='filter-item'>
-													<select
-														value={isReplayField(filter.field) ? 'ReplayGroup' : filter.field}
-														onChange={(e) => {
-															const val = e.target.value
-															updateFilter(groupIndex, filterIndex, 'field', val === 'ReplayGroup' ? FilterField.ReplayStarted : val)
-														}}>
-														{getFieldOptions().map((option) => (
-															<option key={option.value} value={option.value}>
-																{option.label}
-															</option>
-														))}
-													</select>
-													{isReplayField(filter.field) && (
-														<select value={filter.field} onChange={(e) => updateFilter(groupIndex, filterIndex, 'field', e.target.value)}>
-															{getReplaySubOptions().map((opt) => (
-																<option key={opt.value} value={opt.value}>
-																	{opt.label}
-																</option>
-															))}
-														</select>
-													)}
-													<select value={filter.operator} onChange={(e) => updateFilter(groupIndex, filterIndex, 'operator', e.target.value)}>
-														{getOperatorsForField(filter.field).map((option) => (
-															<option key={option.value} value={option.value}>
-																{option.label}
-															</option>
-														))}
-													</select>
-													{renderValueInput(filter, groupIndex, filterIndex)}
-													<button className='remove-btn' onClick={() => removeFilter(groupIndex, filterIndex)} title={t('game.filters.removeFilter')}>
-														×
-													</button>
-												</div>
-											))
-										)}
-										{group.filters.length > 0 && (
-											<button className='add-filter-btn' onClick={() => addFilter(groupIndex)}>
-												{t('game.filters.addFilter')}
-											</button>
-										)}
-									</div>
-								</div>
-							))
-						)}
-					</div>
-
-					<div className='configuration-section'>
-						<div className='section-header'>
-							<h3>{t('game.sorting.title')}</h3>
-							<button className='add-btn' onClick={addSort}>
-								{t('game.sorting.addSort')}
-							</button>
-						</div>
-						{sorting.length === 0 ? (
-							<div className='no-items'>{t('game.sorting.noSorts')}</div>
-						) : (
-							sorting.map((sort, index) => (
-								<div key={index} className='sort-item'>
-									<div className='sort-order'>
-										<button className='order-btn' onClick={() => moveSort(index, Math.max(0, index - 1))} disabled={index === 0} title={t('game.sorting.moveUp')}>
-											<svg width='12' height='12' viewBox='0 0 12 12' fill='none' xmlns='http://www.w3.org/2000/svg'>
-												<path d='M6 3L2 7h8L6 3z' fill='currentColor' />
-											</svg>
-										</button>
-										<span className='order-number'>{index + 1}</span>
-										<button
-											className='order-btn'
-											onClick={() => moveSort(index, Math.min(sorting.length - 1, index + 1))}
-											disabled={index === sorting.length - 1}
-											title={t('game.sorting.moveDown')}>
-											<svg width='12' height='12' viewBox='0 0 12 12' fill='none' xmlns='http://www.w3.org/2000/svg'>
-												<path d='M6 9L2 5h8L6 9z' fill='currentColor' />
-											</svg>
-										</button>
-									</div>
-									<select value={sort.field} onChange={(e) => updateSort(index, 'field', e.target.value)}>
-										{getSortFieldOptions().map((option) => (
-											<option key={option.value} value={option.value}>
-												{option.label}
-											</option>
-										))}
-									</select>
-									<select value={sort.direction} onChange={(e) => updateSort(index, 'direction', e.target.value)}>
-										<option value={SortDirection.Ascending}>{t('game.sorting.ascending')}</option>
-										<option value={SortDirection.Descending}>{t('game.sorting.descending')}</option>
-									</select>
-									<button className='remove-btn' onClick={() => removeSort(index)}>
-										×
-									</button>
-								</div>
-							))
-						)}
-					</div>
-				</div>
-
-				<div className='modal-actions'>
+		<Modal
+			isOpen
+			onClose={onClose}
+			title={gameView ? t('admin.gameViews.editView') : t('admin.gameViews.newView')}
+			maxWidth='900px'
+			footer={
+				<>
 					<button className='btn btn-secondary' onClick={onClose}>
 						{t('common.cancel')}
 					</button>
 					<button className='btn btn-primary' onClick={handleSave} disabled={loading || !formData.name.trim()}>
 						{loading ? t('common.saving') : t('common.save')}
 					</button>
+				</>
+			}>
+			<div className='game-view-modal-body'>
+				<div className='form-group'>
+					<label>{t('common.name')} *</label>
+					<input type='text' value={formData.name} onChange={(e) => handleInputChange('name', e.target.value)} placeholder={t('game.viewNamePlaceholder')} />
+				</div>
+
+				<div className='configuration-section'>
+					<div className='section-header'>
+						<h3>{t('game.filters.title')}</h3>
+						<button className='add-btn' onClick={addFilterGroup}>
+							{t('game.filters.addGroup')}
+						</button>
+					</div>
+
+					{filterGroups.length > 1 && (
+						<div className='global-combine'>
+							<label>{t('game.filters.combineGroups')}:</label>
+							<select value={groupCombineWith} onChange={(e) => setGroupCombineWith(e.target.value as CombineWith)}>
+								<option value={CombineWith.And}>{t('game.filters.combineAnd')} (AND)</option>
+								<option value={CombineWith.Or}>{t('game.filters.combineOr')} (OR)</option>
+							</select>
+						</div>
+					)}
+
+					{filterGroups.length === 0 ? (
+						<div className='no-items'>{t('game.filters.noFilters')}</div>
+					) : (
+						filterGroups.map((group, groupIndex) => (
+							<div key={groupIndex} className='filter-group'>
+								<div className='group-header'>
+									<h4>
+										{t('game.filters.group')} {groupIndex + 1}
+									</h4>
+									{group.filters.length > 1 && (
+										<>
+											<label>{t('game.filters.combineWith')}:</label>
+											<select value={group.combineWith} onChange={(e) => updateFilterGroup(groupIndex, 'combineWith', e.target.value)}>
+												<option value={CombineWith.And}>{t('game.filters.combineAnd')}</option>
+												<option value={CombineWith.Or}>{t('game.filters.combineOr')}</option>
+											</select>
+										</>
+									)}
+									{filterGroups.length > 1 && (
+										<button className='remove-group-btn' onClick={() => removeFilterGroup(groupIndex)} title={t('game.filters.removeGroup')}>
+											×
+										</button>
+									)}
+								</div>
+
+								<div className='group-filters'>
+									{group.filters.length === 0 ? (
+										<div className='no-filters-in-group'>
+											<p>{t('game.filters.noFiltersInGroup')}</p>
+											<button className='add-first-filter-btn' onClick={() => addFilter(groupIndex)}>
+												{t('game.filters.addFilter')}
+											</button>
+										</div>
+									) : (
+										group.filters.map((filter, filterIndex) => (
+											<div key={filterIndex} className='filter-item'>
+												<select
+													value={isReplayField(filter.field) ? 'ReplayGroup' : filter.field}
+													onChange={(e) => {
+														const val = e.target.value
+														updateFilter(groupIndex, filterIndex, 'field', val === 'ReplayGroup' ? FilterField.ReplayStarted : val)
+													}}>
+													{getFieldOptions().map((option) => (
+														<option key={option.value} value={option.value}>
+															{option.label}
+														</option>
+													))}
+												</select>
+												{isReplayField(filter.field) && (
+													<select value={filter.field} onChange={(e) => updateFilter(groupIndex, filterIndex, 'field', e.target.value)}>
+														{getReplaySubOptions().map((opt) => (
+															<option key={opt.value} value={opt.value}>
+																{opt.label}
+															</option>
+														))}
+													</select>
+												)}
+												<select value={filter.operator} onChange={(e) => updateFilter(groupIndex, filterIndex, 'operator', e.target.value)}>
+													{getOperatorsForField(filter.field).map((option) => (
+														<option key={option.value} value={option.value}>
+															{option.label}
+														</option>
+													))}
+												</select>
+												{renderValueInput(filter, groupIndex, filterIndex)}
+												<button className='remove-btn' onClick={() => removeFilter(groupIndex, filterIndex)} title={t('game.filters.removeFilter')}>
+													×
+												</button>
+											</div>
+										))
+									)}
+									{group.filters.length > 0 && (
+										<button className='add-filter-btn' onClick={() => addFilter(groupIndex)}>
+											{t('game.filters.addFilter')}
+										</button>
+									)}
+								</div>
+							</div>
+						))
+					)}
+				</div>
+
+				<div className='configuration-section'>
+					<div className='section-header'>
+						<h3>{t('game.sorting.title')}</h3>
+						<button className='add-btn' onClick={addSort}>
+							{t('game.sorting.addSort')}
+						</button>
+					</div>
+					{sorting.length === 0 ? (
+						<div className='no-items'>{t('game.sorting.noSorts')}</div>
+					) : (
+						sorting.map((sort, index) => (
+							<div key={index} className='sort-item'>
+								<div className='sort-order'>
+									<button className='order-btn' onClick={() => moveSort(index, Math.max(0, index - 1))} disabled={index === 0} title={t('game.sorting.moveUp')}>
+										<svg width='12' height='12' viewBox='0 0 12 12' fill='none' xmlns='http://www.w3.org/2000/svg'>
+											<path d='M6 3L2 7h8L6 3z' fill='currentColor' />
+										</svg>
+									</button>
+									<span className='order-number'>{index + 1}</span>
+									<button
+										className='order-btn'
+										onClick={() => moveSort(index, Math.min(sorting.length - 1, index + 1))}
+										disabled={index === sorting.length - 1}
+										title={t('game.sorting.moveDown')}>
+										<svg width='12' height='12' viewBox='0 0 12 12' fill='none' xmlns='http://www.w3.org/2000/svg'>
+											<path d='M6 9L2 5h8L6 9z' fill='currentColor' />
+										</svg>
+									</button>
+								</div>
+								<select value={sort.field} onChange={(e) => updateSort(index, 'field', e.target.value)}>
+									{getSortFieldOptions().map((option) => (
+										<option key={option.value} value={option.value}>
+											{option.label}
+										</option>
+									))}
+								</select>
+								<select value={sort.direction} onChange={(e) => updateSort(index, 'direction', e.target.value)}>
+									<option value={SortDirection.Ascending}>{t('game.sorting.ascending')}</option>
+									<option value={SortDirection.Descending}>{t('game.sorting.descending')}</option>
+								</select>
+								<button className='remove-btn' onClick={() => removeSort(index)}>
+									×
+								</button>
+							</div>
+						))
+					)}
 				</div>
 			</div>
-		</div>
+		</Modal>
 	)
 }
 

@@ -65,7 +65,7 @@ describe('ViewTemplates', () => {
 		const user = userEvent.setup()
 		render(<C onCreateFromTemplate={mockOnCreate} onClose={mockOnClose} />)
 		await user.click(screen.getByText('GOTY'))
-		await user.click(screen.getByText('← Volver'))
+		await user.click(screen.getByText('Volver'))
 		expect(screen.getByText('Crear desde plantilla')).toBeInTheDocument()
 	})
 
@@ -107,7 +107,7 @@ describe('ViewTemplates', () => {
 		)
 
 		mockOnCreate.mockClear()
-		await user.click(screen.getByText('← Volver'))
+		await user.click(screen.getByText('Volver'))
 		await user.click(screen.getByText('Jugados en Año'))
 		await user.click(screen.getByText('Crear Vista'))
 		expect(mockOnCreate).toHaveBeenLastCalledWith(
@@ -124,7 +124,7 @@ describe('ViewTemplates', () => {
 		)
 
 		mockOnCreate.mockClear()
-		await user.click(screen.getByText('← Volver'))
+		await user.click(screen.getByText('Volver'))
 		await user.click(screen.getByText('Lanzados en Año'))
 		await user.click(screen.getByText('Crear Vista'))
 		expect(mockOnCreate).toHaveBeenLastCalledWith(

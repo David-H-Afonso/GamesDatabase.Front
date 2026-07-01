@@ -295,7 +295,13 @@
 			}
 
 			&__icon {
-				font-size: 1.5rem;
+				display: inline-flex;
+				color: var(--primary);
+
+				svg {
+					width: 1.5rem;
+					height: 1.5rem;
+				}
 			}
 
 			&__name {
@@ -323,7 +329,13 @@
 			gap: 0.75rem;
 
 			&__icon {
-				font-size: 1.75rem;
+				display: inline-flex;
+				color: var(--primary);
+
+				svg {
+					width: 1.75rem;
+					height: 1.75rem;
+				}
 			}
 
 			strong {
@@ -403,6 +415,11 @@
 		.template-actions {
 			display: flex;
 			gap: 0.5rem;
+
+			.btn svg {
+				width: 1rem;
+				height: 1rem;
+			}
 		}
 	}
 }

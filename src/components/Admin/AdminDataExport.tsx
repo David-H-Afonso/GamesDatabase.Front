@@ -624,7 +624,7 @@ Statistics:
 			<div className='export-import-sections'>
 				{/* Full Database Export/Import Section */}
 				<div className='section full-export-section highlight-section'>
-					<h2>🗄️ {t('admin.dataExport.dbSectionTitle')}</h2>
+					<h2>{t('admin.dataExport.dbSectionTitle')}</h2>
 					<p className='section-description'>{t('admin.dataExport.dbSectionDesc')}</p>
 
 					<div className='action-group'>
@@ -632,18 +632,18 @@ Statistics:
 							<h3>{t('admin.dataExport.exportDbTitle')}</h3>
 							<p>{t('admin.dataExport.exportDbDesc')}</p>
 							<button className='btn btn-primary btn-large' onClick={handleExportFullDatabase} disabled={loading}>
-								{loading ? `⏳ ${t('admin.dataExport.exporting')}` : `📥 ${t('admin.dataExport.exportBtn')}`}
+								{loading ? t('admin.dataExport.exporting') : t('admin.dataExport.exportBtn')}
 							</button>
 						</div>
 
 						<div className='action-item'>
 							<h3>{t('admin.dataExport.importDbTitle')}</h3>
 							<p>{t('admin.dataExport.importDbDesc')}</p>
-							<small className='help-text'>⚠️ {t('admin.dataExport.importDbHint')}</small>
+							<small className='help-text'>{t('admin.dataExport.importDbHint')}</small>
 							<div className='file-input-container'>
 								<input type='file' accept='.csv' onChange={handleImportFullDatabase} disabled={loading} id='csv-full-import' className='file-input' />
 								<label htmlFor='csv-full-import' className='file-input-label btn btn-success btn-large'>
-									{loading ? `⏳ ${t('admin.dataExport.importing')}` : `📤 ${t('admin.dataExport.importBtn')}`}
+									{loading ? t('admin.dataExport.importing') : t('admin.dataExport.importBtn')}
 								</label>
 							</div>
 						</div>
@@ -686,7 +686,7 @@ Statistics:
 
 				{/* Network Sync Section */}
 				<div className='section network-sync-section'>
-					<h2>🌐 {t('admin.dataExport.networkSyncTitle')}</h2>
+					<h2>{t('admin.dataExport.networkSyncTitle')}</h2>
 					<p className='section-description'>{t('admin.dataExport.networkSyncDesc')}</p>
 
 					<div className='action-group'>
@@ -694,7 +694,7 @@ Statistics:
 							<h3>{t('admin.dataExport.syncFullTitle')}</h3>
 							<p>{t('admin.dataExport.syncFullDesc')}</p>
 							<button className='btn btn-success btn-large' onClick={() => handleSyncToNetwork(true)} disabled={loading}>
-								{loading ? `⏳ ${t('admin.dataExport.syncing')}` : `🌐 ${t('admin.dataExport.syncFullBtn')}`}
+								{loading ? t('admin.dataExport.syncing') : t('admin.dataExport.syncFullBtn')}
 							</button>
 						</div>
 
@@ -702,25 +702,25 @@ Statistics:
 							<h3>{t('admin.dataExport.syncPartialTitle')}</h3>
 							<p>{t('admin.dataExport.syncPartialDesc')}</p>
 							<button className='btn btn-secondary btn-large' onClick={() => handleSyncToNetwork(false)} disabled={loading}>
-								{loading ? `⏳ ${t('admin.dataExport.syncing')}` : `🌐 ${t('admin.dataExport.syncPartialBtn')}`}
+								{loading ? t('admin.dataExport.syncing') : t('admin.dataExport.syncPartialBtn')}
 							</button>
 						</div>
 					</div>
 				</div>
 
 				<div className='section folder-analysis-section'>
-					<h2>📁 {t('admin.dataExport.folderAnalysisTitle')}</h2>
+					<h2>{t('admin.dataExport.folderAnalysisTitle')}</h2>
 					<p className='section-description'>{t('admin.dataExport.folderAnalysisDesc')}</p>
 
 					<div className='action-group'>
 						<button className='btn btn-primary btn-large' onClick={handleAnalyzeFolders} disabled={analyzingFolders}>
-							{analyzingFolders ? `⏳ ${t('common.analyzing')}` : `🔍 ${t('admin.dataExport.analyzeFolders')}`}
+							{analyzingFolders ? t('common.analyzing') : t('admin.dataExport.analyzeFolders')}
 						</button>
 						<button className={`btn btn-info btn-large${showImageUrlPicker ? ' active' : ''}`} onClick={() => setShowImageUrlPicker((v) => !v)} disabled={applyingImageUrls}>
-							{`🔄 ${t('admin.dataExport.updateImageUrls')} ${showImageUrlPicker ? '▲' : '▼'}`}
+							{`${t('admin.dataExport.updateImageUrls')} ${showImageUrlPicker ? '▲' : '▼'}`}
 						</button>
 						<button className='btn btn-danger btn-large' onClick={handleClearImageCache} disabled={clearingCache}>
-							{clearingCache ? `⏳ ${t('common.clearing')}` : `🗑️ ${t('admin.dataExport.clearImageCache')}`}
+							{clearingCache ? t('common.clearing') : t('admin.dataExport.clearImageCache')}
 						</button>
 					</div>
 
@@ -764,7 +764,7 @@ Statistics:
 							)}
 
 							<button className='btn btn-info btn-large image-url-picker__apply-btn' onClick={handleUpdateImageUrls} disabled={applyingImageUrls || !effectiveImageBaseUrl}>
-								{applyingImageUrls ? `⏳ ${t('admin.dataExport.imageUrlApplying')}` : `✅ ${t('admin.dataExport.imageUrlApplyBtn')}`}
+								{applyingImageUrls ? t('admin.dataExport.imageUrlApplying') : t('admin.dataExport.imageUrlApplyBtn')}
 							</button>
 						</div>
 					)}
@@ -772,7 +772,7 @@ Statistics:
 					{analysisResult && (
 						<div className='analysis-results'>
 							<div className='analysis-summary'>
-								<h3>📊 {t('admin.dataExport.summary')}</h3>
+								<h3>{t('admin.dataExport.summary')}</h3>
 								<div className='summary-grid'>
 									<div className='summary-item'>
 										<span className='summary-label'>{t('admin.dataExport.gamesInDb')}:</span>
@@ -794,7 +794,7 @@ Statistics:
 
 							{analysisResult.potentialDuplicates.length > 0 && (
 								<div className='duplicates-section'>
-									<h3>🔍 {t('admin.dataExport.potentialDuplicates', { count: analysisResult.potentialDuplicates.length })}</h3>
+									<h3>{t('admin.dataExport.potentialDuplicates', { count: analysisResult.potentialDuplicates.length })}</h3>
 									{analysisResult.potentialDuplicates.map((dup, idx) => (
 										<div key={idx} className='duplicate-item'>
 											<div className='duplicate-header'>
@@ -817,7 +817,7 @@ Statistics:
 								<div className='orphans-section'>
 									<div className='section-toolbar'>
 										<div>
-											<h3>📂 {t('admin.dataExport.orphanFolders', { count: analysisResult.orphanFolders.length })}</h3>
+											<h3>{t('admin.dataExport.orphanFolders', { count: analysisResult.orphanFolders.length })}</h3>
 											<p className='section-note'>{t('admin.dataExport.orphanFoldersNote')}</p>
 										</div>
 										<button
@@ -835,12 +835,12 @@ Statistics:
 													<span>
 														<strong>{orphan.folderName}</strong>
 														<code>{orphan.fullPath}</code>
-														{orphan.reason && <small className='orphan-folder-list__reason'>⚠️ {orphan.reason}</small>}
+														{orphan.reason && <small className='orphan-folder-list__reason'>{orphan.reason}</small>}
 														<small className='orphan-folder-list__meta'>
-															<span>📦 {formatBytes(orphan.sizeBytes)}</span>
-															{typeof orphan.fileCount === 'number' && <span>🗂️ {orphan.fileCount} archivo(s)</span>}
-															<span>🕒 Creada: {formatOptionalDate(orphan.createdAt)}</span>
-															<span>✏️ Modificada: {formatOptionalDate(orphan.modifiedAt)}</span>
+															<span>{formatBytes(orphan.sizeBytes)}</span>
+															{typeof orphan.fileCount === 'number' && <span>{orphan.fileCount} archivo(s)</span>}
+															<span>Creada: {formatOptionalDate(orphan.createdAt)}</span>
+															<span>Modificada: {formatOptionalDate(orphan.modifiedAt)}</span>
 														</small>
 													</span>
 												</label>
@@ -858,7 +858,7 @@ Statistics:
 
 							{(analysisResult.missingGameFolders?.length ?? 0) > 0 && (
 								<div className='missing-folders-section'>
-									<h3>🧩 Juegos sin carpeta ({analysisResult.missingGameFolders.length})</h3>
+									<h3>Juegos sin carpeta ({analysisResult.missingGameFolders.length})</h3>
 									<p className='section-note'>Estos juegos existen en la base de datos, pero no tienen la carpeta esperada en disco.</p>
 									<ul className='missing-folder-list'>
 										{analysisResult.missingGameFolders.map((missing) => (
@@ -878,7 +878,7 @@ Statistics:
 
 							{(analysisResult.databaseDuplicates?.duplicateGroups.length ?? 0) > 0 && (
 								<div className='duplicates-section'>
-									<h3>🔁 {t('admin.dataExport.dbDuplicates', { count: analysisResult.databaseDuplicates!.duplicateGroups.length })}</h3>
+									<h3>{t('admin.dataExport.dbDuplicates', { count: analysisResult.databaseDuplicates!.duplicateGroups.length })}</h3>
 									{analysisResult.databaseDuplicates!.duplicateGroups.map(renderDuplicateGroup)}
 								</div>
 							)}
@@ -889,7 +889,7 @@ Statistics:
 								analysisResult.difference === 0 &&
 								(analysisResult.databaseDuplicates?.duplicateGroups.length ?? 0) === 0 && (
 									<div className='analysis-success'>
-										<h3>✅ {t('admin.dataExport.allCorrect')}</h3>
+										<h3>{t('admin.dataExport.allCorrect')}</h3>
 										<p>{t('admin.dataExport.allCorrectDesc')}</p>
 									</div>
 								)}
@@ -899,19 +899,19 @@ Statistics:
 
 				{/* Database Duplicates Section - visible to all authenticated users */}
 				<div className='section folder-analysis-section'>
-					<h2>🔁 {t('admin.dataExport.dbDuplicatesTitle')}</h2>
+					<h2>{t('admin.dataExport.dbDuplicatesTitle')}</h2>
 					<p className='section-description'>{t('admin.dataExport.dbDuplicatesDesc')}</p>
 
 					<div className='action-group'>
 						<button className='btn btn-primary btn-large' onClick={handleAnalyzeDatabaseDuplicates} disabled={analyzingDbDuplicates}>
-							{analyzingDbDuplicates ? `⏳ ${t('common.analyzing')}` : `🔁 ${t('admin.dataExport.findDuplicates')}`}
+							{analyzingDbDuplicates ? t('common.analyzing') : t('admin.dataExport.findDuplicates')}
 						</button>
 					</div>
 
 					{dbDuplicatesResult && (
 						<div className='analysis-results'>
 							<div className='analysis-summary'>
-								<h3>📊 {t('admin.dataExport.summary')}</h3>
+								<h3>{t('admin.dataExport.summary')}</h3>
 								<div className='summary-grid'>
 									<div className='summary-item'>
 										<span className='summary-label'>{t('admin.dataExport.gamesInDb')}:</span>
@@ -926,14 +926,14 @@ Statistics:
 
 							{dbDuplicatesResult.duplicateGroups.length > 0 && (
 								<div className='duplicates-section'>
-									<h3>🔍 {t('admin.dataExport.duplicatesFound', { count: dbDuplicatesResult.duplicateGroups.length })}</h3>
+									<h3>{t('admin.dataExport.duplicatesFound', { count: dbDuplicatesResult.duplicateGroups.length })}</h3>
 									{dbDuplicatesResult.duplicateGroups.map(renderDuplicateGroup)}
 								</div>
 							)}
 
 							{dbDuplicatesResult.duplicateGroups.length === 0 && (
 								<div className='analysis-success'>
-									<h3>✅ {t('admin.dataExport.noDuplicates')}</h3>
+									<h3>{t('admin.dataExport.noDuplicates')}</h3>
 									<p>{t('admin.dataExport.noDuplicatesDesc')}</p>
 								</div>
 							)}
@@ -944,10 +944,10 @@ Statistics:
 
 			{/* Instructions Section */}
 			<div className='section instructions-section'>
-				<h2>📚 {t('admin.dataExport.instructionsTitle')}</h2>
+				<h2>{t('admin.dataExport.instructionsTitle')}</h2>
 				<div className='instructions-content'>
 					<div className='instruction-item'>
-						<h3>📥 {t('admin.dataExport.instrExportTitle')}</h3>
+						<h3>{t('admin.dataExport.instrExportTitle')}</h3>
 						<ul>
 							<li>{t('admin.dataExport.instrExport1')}</li>
 							<li>{t('admin.dataExport.instrExport2')}</li>
@@ -958,7 +958,7 @@ Statistics:
 					</div>
 
 					<div className='instruction-item'>
-						<h3>📤 {t('admin.dataExport.instrImportTitle')}</h3>
+						<h3>{t('admin.dataExport.instrImportTitle')}</h3>
 						<ul>
 							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrImport1') }} />
 							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrImport2') }} />
@@ -970,7 +970,7 @@ Statistics:
 					</div>
 
 					<div className='instruction-item'>
-						<h3>💡 {t('admin.dataExport.instrUseCasesTitle')}</h3>
+						<h3>{t('admin.dataExport.instrUseCasesTitle')}</h3>
 						<ul>
 							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrUseCase1') }} />
 							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrUseCase2') }} />
@@ -981,7 +981,7 @@ Statistics:
 					</div>
 
 					<div className='instruction-item warning-item'>
-						<h3>⚠️ {t('admin.dataExport.instrNotesTitle')}</h3>
+						<h3>{t('admin.dataExport.instrNotesTitle')}</h3>
 						<ul>
 							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrNote1') }} />
 							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrNote2') }} />
