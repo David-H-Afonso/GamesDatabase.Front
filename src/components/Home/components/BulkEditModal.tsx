@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useGamePlatform, useGamePlayWith, useGamePlayedStatus } from '@/hooks'
 import { useGameStatus } from '@/hooks/useGameStatus/useGameStatus'
+import { Toast } from '@/components/elements'
 import './BulkEditModal.scss'
 
 interface Props {
@@ -19,6 +21,7 @@ export interface BulkEditData {
 }
 
 const BulkEditModal: React.FC<Props> = ({ isOpen, onClose, selectedCount, onSave }) => {
+	const { t } = useTranslation()
 	const { fetchActiveStatusList } = useGameStatus()
 	const { fetchList: fetchPlatforms } = useGamePlatform()
 	const { fetchOptions: fetchPlayWithList } = useGamePlayWith()
@@ -36,6 +39,7 @@ const BulkEditModal: React.FC<Props> = ({ isOpen, onClose, selectedCount, onSave
 	const [playedStatusOptions, setPlayedStatusOptions] = useState<{ value: number; label: string }[]>([])
 
 	const [isSaving, setIsSaving] = useState(false)
+	const [toast, setToast] = useState<{ message: string; type: 'warning' | 'error' } | null>(null)
 
 	useEffect(() => {
 		if (!isOpen) return
@@ -79,7 +83,7 @@ const BulkEditModal: React.FC<Props> = ({ isOpen, onClose, selectedCount, onSave
 		if (isCheaperByKey !== undefined) updates.isCheaperByKey = isCheaperByKey
 
 		if (Object.keys(updates).length === 0) {
-			alert('No changes to save')
+			setToast({ message: t('home.bulk.alertNoChanges'), type: 'warning' })
 			return
 		}
 
@@ -89,7 +93,7 @@ const BulkEditModal: React.FC<Props> = ({ isOpen, onClose, selectedCount, onSave
 			handleClose()
 		} catch (err) {
 			console.error('Error saving bulk edit', err)
-			alert('Error saving changes')
+			setToast({ message: t('home.bulk.alertError'), type: 'error' })
 		} finally {
 			setIsSaving(false)
 		}
@@ -203,6 +207,7 @@ const BulkEditModal: React.FC<Props> = ({ isOpen, onClose, selectedCount, onSave
 					</button>
 				</div>
 			</div>
+			<Toast isOpen={toast !== null} message={toast?.message ?? ''} type={toast?.type} onClose={() => setToast(null)} />
 		</div>
 	)
 }

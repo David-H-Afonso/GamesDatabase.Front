@@ -1,7 +1,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Game, GameCreateDto } from '@/models/api/Game'
-import { Modal, GameDetails } from '@/components/elements'
+import { Modal, GameDetails, ConfirmDialog } from '@/components/elements'
 import { useGames } from '@/hooks/useGames'
 import { useGameStatus } from '@/hooks'
 import { steamService } from '@/services'
@@ -175,6 +175,7 @@ const CreateGame = forwardRef<CreateGameHandle, CreateGameProps>(({ className, r
 	const [createdGameId, setCreatedGameId] = useState<number | null>(null)
 	const [createdGameFallback, setCreatedGameFallback] = useState<Game | null>(null)
 	const [isDetailsOpen, setIsDetailsOpen] = useState(false)
+	const [deleteTarget, setDeleteTarget] = useState<Game | null>(null)
 	const [lastAddedRowId, setLastAddedRowId] = useState<string | null>(null)
 	const [lastSteamSearchEnabled, setLastSteamSearchEnabled] = useState(false)
 	const [touchedRows, setTouchedRows] = useState<Set<string>>(new Set())
@@ -324,6 +325,16 @@ const CreateGame = forwardRef<CreateGameHandle, CreateGameProps>(({ className, r
 		setIsModalOpen(false)
 		setIsSubmitting(false)
 		resetRows()
+	}
+
+	const confirmDeleteCreatedGame = async () => {
+		if (!deleteTarget) return
+		const target = deleteTarget
+		setDeleteTarget(null)
+		await deleteGameById(target.id)
+		setIsDetailsOpen(false)
+		setCreatedGameFallback(null)
+		setCreatedGameId(null)
 	}
 
 	const addRow = () => {
@@ -725,15 +736,19 @@ const CreateGame = forwardRef<CreateGameHandle, CreateGameProps>(({ className, r
 						setCreatedGameFallback(null)
 						setCreatedGameId(null)
 					}}
-					onDelete={async (game) => {
-						if (!window.confirm(t('home.confirmDeleteGame'))) return
-						await deleteGameById(game.id)
-						setIsDetailsOpen(false)
-						setCreatedGameFallback(null)
-						setCreatedGameId(null)
-					}}
+					onDelete={(game) => setDeleteTarget(game)}
 				/>
 			)}
+
+			<ConfirmDialog
+				isOpen={deleteTarget !== null}
+				title={t('common.confirmDeleteTitle')}
+				message={t('home.confirmDeleteGame')}
+				variant='danger'
+				confirmLabel={t('common.delete')}
+				onConfirm={confirmDeleteCreatedGame}
+				onCancel={() => setDeleteTarget(null)}
+			/>
 
 			{renderTrigger ? (
 				renderTrigger(openAddGameModal)
