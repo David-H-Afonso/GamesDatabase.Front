@@ -26,6 +26,7 @@ export type ConfigurableGameProperty =
 	| 'finished'
 	| 'comment'
 	| 'logo'
+	| 'hero'
 	| 'cover'
 	| 'isCheaperByKey'
 	| 'keyStoreUrl'
@@ -127,7 +128,8 @@ export const GAME_PROPERTY_FIELDS: PropertyFieldMeta[] = [
 	{ key: 'finished', label: 'Finished Date', inputType: 'date', canCleanOnImport: true, canCustomOnImport: true, canCleanOnExport: true },
 	{ key: 'comment', label: 'Comment', inputType: 'text', canCleanOnImport: true, canCustomOnImport: true, canCleanOnExport: true },
 	{ key: 'logo', label: 'Logo URL', inputType: 'none', canCleanOnImport: true, canCustomOnImport: false, canCleanOnExport: true },
-	{ key: 'cover', label: 'Cover URL', inputType: 'none', canCleanOnImport: true, canCustomOnImport: false, canCleanOnExport: true },
+	{ key: 'hero', label: 'Hero URL', inputType: 'none', canCleanOnImport: true, canCustomOnImport: false, canCleanOnExport: true },
+	{ key: 'cover', label: 'Cover Art URL', inputType: 'none', canCleanOnImport: true, canCustomOnImport: false, canCleanOnExport: true },
 	{ key: 'isCheaperByKey', label: 'Cheaper by Key', inputType: 'boolean', canCleanOnImport: true, canCustomOnImport: true, canCleanOnExport: true },
 	{ key: 'keyStoreUrl', label: 'Key Store URL', inputType: 'text', canCleanOnImport: true, canCustomOnImport: true, canCleanOnExport: true },
 	{ key: 'steamAppId', label: 'Steam AppID', inputType: 'number', canCleanOnImport: true, canCustomOnImport: true, canCleanOnExport: true },

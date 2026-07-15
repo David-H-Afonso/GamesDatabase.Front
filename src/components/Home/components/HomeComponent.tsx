@@ -7,12 +7,14 @@ import { setCardStyle, setViewMode } from '@/store/features/theme/themeSlice'
 import { setFilters as setGamesFilters, clearGamesRefresh } from '@/store/features/games/gamesSlice'
 import { selectGamesFilters, selectNeedsRefresh } from '@/store/features/games/selector'
 import type { GameQueryParameters } from '@/models/api/Game'
+import { steamService } from '@/services'
 import type { BulkEditData } from './BulkEditModal'
 import GameFiltersChips from './GameFiltersChips'
 import SelectiveExportModal from './SelectiveExportModal'
 import './HomeComponent.scss'
 
 const BulkEditModal = lazy(() => import('./BulkEditModal'))
+type BulkImageField = 'logo' | 'hero' | 'cover'
 
 const rowHeaderColumns = [
 	{ className: 'gr-status', labelKey: 'home.columns.status', sortBy: 'status' },
@@ -32,7 +34,7 @@ const rowHeaderColumns = [
 ] as const
 
 const HomeComponent = () => {
-	const { games, error, loading, pagination, fetchGamesList, refreshGames, deleteGameById, bulkUpdateGamesById } = useGames()
+	const { games, error, loading, pagination, fetchGamesList, refreshGames, deleteGameById, bulkUpdateGamesById, updateGameById } = useGames()
 	const { publicGameViews, loadPublicGameViews } = useGameViews()
 
 	const { t } = useTranslation()
@@ -49,6 +51,7 @@ const HomeComponent = () => {
 	const [exportPreSelected, setExportPreSelected] = useState<Array<{ id: number; name: string }>>([])
 	const [pendingDelete, setPendingDelete] = useState<{ kind: 'bulk' } | { kind: 'single'; id: number } | null>(null)
 	const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
+	const [bulkImageRefreshing, setBulkImageRefreshing] = useState(false)
 	const filtersRef = useRef(filters)
 	useEffect(() => {
 		filtersRef.current = filters
@@ -247,6 +250,38 @@ const HomeComponent = () => {
 		}
 	}
 
+	const handleBulkRefreshImages = async (field: BulkImageField) => {
+		if (bulkImageRefreshing) return
+		const selectedSteamGames = games.filter((game: any) => selectedGames.includes(game.id) && game.steamAppId)
+		if (selectedSteamGames.length === 0) {
+			setToast({ message: t('home.bulkImageRefreshNoSteam'), type: 'error' })
+			return
+		}
+
+		setBulkImageRefreshing(true)
+		try {
+			const results = await Promise.allSettled(
+				selectedSteamGames.map(async (game: any) => {
+					await updateGameById(game.id, { [field]: null } as any)
+					await steamService.syncGame(game.id)
+				})
+			)
+			const updated = results.filter((result) => result.status === 'fulfilled').length
+			const failed = results.length - updated
+			setToast({
+				message: t(failed > 0 ? 'home.bulkImageRefreshPartial' : 'home.bulkImageRefreshSuccess', { updated, total: selectedSteamGames.length, field: t(`home.imageFields.${field}`) }),
+				type: failed > 0 ? 'error' : 'success',
+			})
+			setSelectedGames([])
+			await refreshGames(filters)
+		} catch (err) {
+			console.error('Error refreshing selected images', err)
+			setToast({ message: t('home.bulkImageRefreshError'), type: 'error' })
+		} finally {
+			setBulkImageRefreshing(false)
+		}
+	}
+
 	return (
 		<div className='home-component'>
 			{viewError && (
@@ -280,8 +315,10 @@ const HomeComponent = () => {
 					onSelectAll={handleSelectAll}
 					onDeselectAll={() => setSelectedGames([])}
 					onBulkDelete={handleBulkDelete}
-					onBulkEdit={() => setBulkEditOpen(true)}
-					onBulkExport={() => {
+						onBulkEdit={() => setBulkEditOpen(true)}
+						onBulkRefreshImages={handleBulkRefreshImages}
+						bulkImagesDisabled={bulkImageRefreshing}
+						onBulkExport={() => {
 						const preSelected = games.filter((g: any) => selectedGames.includes(g.id)).map((g: any) => ({ id: g.id as number, name: g.name as string }))
 						setExportPreSelected(preSelected)
 						setExportModalOpen(true)

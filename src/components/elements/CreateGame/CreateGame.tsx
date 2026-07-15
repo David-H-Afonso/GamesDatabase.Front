@@ -40,6 +40,7 @@ type SteamGameRow = {
 	cheaperBy?: CheaperBy
 	showExtraFields?: boolean
 	source: 'library' | 'store'
+	heroUrl?: string
 	coverUrl?: string
 	iconUrl?: string
 	price?: string
@@ -53,6 +54,7 @@ type SteamSuggestion = {
 	appId: number
 	name: string
 	source: 'library' | 'store'
+	heroUrl?: string
 	coverUrl?: string
 	iconUrl?: string
 	price?: string
@@ -91,6 +93,7 @@ const createManualRow = (statusId: RowStatusId, steamSearchEnabled = false): Man
 })
 
 const getSteamHeaderImageUrl = (appId: number) => `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${appId}/header.jpg`
+const getSteamLibraryCoverUrl = (appId: number) => `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${appId}/library_600x900.jpg`
 
 const scoreSteamMatch = (name: string, query: string) => {
 	const normalizedName = name.toLowerCase()
@@ -111,7 +114,8 @@ const getLibrarySuggestions = (library: SteamLibraryGame[], query: string, selec
 			appId: game.appId,
 			name: game.name,
 			source: 'library',
-			coverUrl: getSteamHeaderImageUrl(game.appId),
+			heroUrl: getSteamHeaderImageUrl(game.appId),
+			coverUrl: getSteamLibraryCoverUrl(game.appId),
 			iconUrl: game.iconUrl,
 			playtimeForever: game.playtimeForever,
 			gdbGameId: game.gdbGameId,
@@ -120,9 +124,11 @@ const getLibrarySuggestions = (library: SteamLibraryGame[], query: string, selec
 }
 
 const applyStoreCoversToLibrarySuggestions = (librarySuggestions: SteamSuggestion[], storeResults: SteamStoreSearchResult[]) => {
+	const storeHeroByAppId = new Map(storeResults.filter((game) => game.heroUrl || game.coverUrl).map((game) => [game.appId, game.heroUrl ?? game.coverUrl]))
 	const storeCoverByAppId = new Map(storeResults.filter((game) => game.coverUrl).map((game) => [game.appId, game.coverUrl]))
 	return librarySuggestions.map((suggestion) => ({
 		...suggestion,
+		heroUrl: storeHeroByAppId.get(suggestion.appId) ?? suggestion.heroUrl,
 		coverUrl: storeCoverByAppId.get(suggestion.appId) ?? suggestion.coverUrl,
 	}))
 }
@@ -145,8 +151,9 @@ const getStoreSuggestions = (
 				appId: game.appId,
 				name: game.name,
 				source: 'store',
-				coverUrl: game.coverUrl,
-				iconUrl: game.coverUrl,
+				heroUrl: game.heroUrl ?? game.coverUrl,
+				coverUrl: game.heroUrl ? game.coverUrl : undefined,
+				iconUrl: game.heroUrl ?? game.coverUrl,
 				price: game.price,
 				metascore: game.metascore,
 				gdbGameId: libraryGame?.gdbGameId,
@@ -397,6 +404,7 @@ const CreateGame = forwardRef<CreateGameHandle, CreateGameProps>(({ className, r
 			cheaperBy: row.cheaperBy,
 			showExtraFields: row.showExtraFields,
 			source: suggestion.source,
+			heroUrl: suggestion.heroUrl,
 			coverUrl: suggestion.coverUrl,
 			iconUrl: suggestion.iconUrl,
 			price: suggestion.price,
@@ -482,7 +490,8 @@ const CreateGame = forwardRef<CreateGameHandle, CreateGameProps>(({ className, r
 						importSteamGames({
 							games: steamRows.map((row) => ({
 								appId: row.appId,
-								logoUrl: row.source === 'library' ? (row.iconUrl ?? row.coverUrl) : undefined,
+								logoUrl: row.source === 'library' ? (row.iconUrl ?? row.heroUrl) : undefined,
+								heroUrl: row.heroUrl,
 								coverUrl: row.coverUrl,
 							})),
 							createMissing: true,
@@ -583,7 +592,7 @@ const CreateGame = forwardRef<CreateGameHandle, CreateGameProps>(({ className, r
 								disabled={disabled}
 								title={disabled ? t('game.createModal.alreadyInGdb', { name: suggestion.gdbGameName }) : undefined}>
 								<span className='steam-suggestion__image'>
-									{suggestion.coverUrl || suggestion.iconUrl ? <img src={suggestion.coverUrl ?? suggestion.iconUrl} alt='' loading='lazy' /> : <img src={STEAM_ICON_URL} alt='' />}
+									{suggestion.heroUrl || suggestion.coverUrl || suggestion.iconUrl ? <img src={suggestion.heroUrl ?? suggestion.coverUrl ?? suggestion.iconUrl} alt='' loading='lazy' /> : <img src={STEAM_ICON_URL} alt='' />}
 								</span>
 								<span className='steam-suggestion__content'>
 									<span className='steam-suggestion__name'>{suggestion.name}</span>
@@ -674,7 +683,7 @@ const CreateGame = forwardRef<CreateGameHandle, CreateGameProps>(({ className, r
 	const renderSteamRow = (row: SteamGameRow) => (
 		<div key={row.id} className='add-game-row add-game-row--steam'>
 			<div className='add-game-row__steam-art'>
-				{row.coverUrl || row.iconUrl ? <img src={row.coverUrl ?? row.iconUrl} alt='' loading='lazy' /> : <img src={STEAM_ICON_URL} alt='' />}
+				{row.heroUrl || row.coverUrl || row.iconUrl ? <img src={row.heroUrl ?? row.coverUrl ?? row.iconUrl} alt='' loading='lazy' /> : <img src={STEAM_ICON_URL} alt='' />}
 			</div>
 			<div className='add-game-row__steam-info'>
 				<div className='add-game-row__steam-title'>

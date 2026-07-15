@@ -313,7 +313,8 @@ describe('CreateGame', () => {
 					{
 						appId: 1569580,
 						logoUrl: 'https://cdn.example/icon.jpg',
-						coverUrl: expect.stringContaining('/steam/apps/1569580/header.jpg'),
+						heroUrl: expect.stringContaining('/steam/apps/1569580/header.jpg'),
+						coverUrl: expect.stringContaining('/steam/apps/1569580/library_600x900.jpg'),
 					},
 				],
 				createMissing: true,

@@ -19,7 +19,7 @@ export const useTheme = () => {
 			const savedTheme = localStorage.getItem('theme')
 			if (savedTheme) dispatch(setTheme(savedTheme))
 			const savedCardStyle = localStorage.getItem('cardStyle')
-			if (savedCardStyle === 'card' || savedCardStyle === 'row' || savedCardStyle === 'tile') {
+			if (savedCardStyle === 'card' || savedCardStyle === 'row' || savedCardStyle === 'cover') {
 				dispatch(setCardStyle(savedCardStyle))
 			}
 

@@ -17,6 +17,9 @@ vi.mock('react-i18next', () => ({
 				'home.chips.bulkDelete': 'Delete',
 				'home.chips.bulkEdit': 'Edit',
 				'home.chips.bulkExport': 'Export',
+				'home.chips.bulkImageField': 'Image to refresh',
+				'home.chips.bulkImages': 'Refresh image',
+				'home.chips.bulkImagesRefreshing': 'Refreshing...',
 				'home.chips.deselect': 'Deselect',
 				'home.chips.searchLabel': 'Search',
 				'home.chips.selected': '{{count}} selected',
@@ -71,6 +74,9 @@ vi.mock('react-i18next', () => ({
 				'home.filters.years': 'Years',
 				'home.columns.comment': 'Comment',
 				'home.columns.finished': 'Finished',
+				'home.imageFields.cover': 'Cover art',
+				'home.imageFields.hero': 'Hero',
+				'home.imageFields.logo': 'Logo',
 				'home.searchPlaceholder': 'Search games…',
 				'home.selectAll': 'Select all',
 				'home.sorting.ascending': 'Ascending',
@@ -271,6 +277,20 @@ describe('GameFiltersChips', () => {
 
 		await user.click(screen.getByText('Export'))
 		expect(onBulkExport).toHaveBeenCalledOnce()
+	})
+
+	it('calls onBulkRefreshImages with the selected image field', async () => {
+		const onBulkRefreshImages = vi.fn()
+		const GameFiltersChips = await loadGameFiltersChips()
+		renderWithProviders(
+			<GameFiltersChips filters={defaultFilters} onFiltersChange={vi.fn()} onSearchChange={vi.fn()} onSortChange={vi.fn()} selectedCount={2} onBulkRefreshImages={onBulkRefreshImages} />,
+			{ preloadedState: defaultState }
+		)
+
+		await user.selectOptions(screen.getByLabelText('Image to refresh'), 'hero')
+		await user.click(screen.getByText('Refresh image'))
+
+		expect(onBulkRefreshImages).toHaveBeenCalledWith('hero')
 	})
 
 	it('renders "Seleccionar todos" button when onSelectAll provided', async () => {

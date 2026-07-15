@@ -357,6 +357,23 @@
 		}
 	}
 
+	&-games-cover {
+		--cover-card-width: 180px;
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(var(--cover-card-width), var(--cover-card-width)));
+		gap: 28px 22px;
+		align-items: start;
+		justify-content: center;
+		justify-items: stretch;
+		width: 100%;
+		max-width: 100%;
+
+		@media (max-width: 520px) {
+			--cover-card-width: 145px;
+			gap: 22px 14px;
+		}
+	}
+
 	&-games-row {
 		--game-row-gap: 14px;
 		--game-row-select-width: 24px;

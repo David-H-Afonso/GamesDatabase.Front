@@ -8,6 +8,7 @@ export interface Game {
 	finished?: string // ISO date string
 	grade?: number // 0-100
 	id: number
+	hero?: string
 	logo?: string
 	name: string
 	platformId?: number
@@ -58,6 +59,9 @@ export interface GameCreateDto {
 	comment?: string
 	playWithIds?: number[] // Changed to array
 	playedStatusId?: number
+	logo?: string
+	hero?: string
+	cover?: string
 	isCheaperByKey?: boolean
 	keyStoreUrl?: string
 	steamAppId?: number
@@ -132,7 +136,7 @@ export interface GameQueryParameters extends QueryParameters {
 	excludeStatusIds?: number[]
 	// Filter by price comparison
 	isCheaperByKey?: boolean
-	// Show incomplete games (Not Fulfilled, no cover, no logo, or no platform)
+	// Show incomplete games (Not Fulfilled, no hero, no logo, or no platform)
 	showIncomplete?: boolean
 	// Filter by critic provider
 	criticProvider?: string

@@ -115,6 +115,34 @@
 		}
 	}
 
+	&__selection-image-refresh {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+	}
+
+	&__selection-select {
+		min-height: 32px;
+		padding: 7px 26px 7px 10px;
+		border-radius: 8px;
+		border: 1px solid $color-border-primary;
+		background: $color-bg-secondary;
+		color: $color-text-secondary;
+		font-size: 12px;
+		font-weight: 500;
+		cursor: pointer;
+
+		[data-theme='dark'] & {
+			background: rgba(255, 255, 255, 0.05);
+			border-color: rgba(255, 255, 255, 0.12);
+		}
+
+		&:disabled {
+			cursor: not-allowed;
+			opacity: 0.65;
+		}
+	}
+
 	&__top {
 		display: flex;
 		justify-content: space-between;

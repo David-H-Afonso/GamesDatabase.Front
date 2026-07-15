@@ -125,7 +125,7 @@ describe('useTheme', () => {
 		})
 
 		// cardStyle should remain at default, not 'invalid-style'
-		expect(['card', 'row', 'tile']).toContain(result.current.cardStyle)
+		expect(['card', 'row', 'cover']).toContain(result.current.cardStyle)
 	})
 
 	it('ignores invalid viewMode value from localStorage', () => {

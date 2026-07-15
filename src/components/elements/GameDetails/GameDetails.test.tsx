@@ -103,6 +103,7 @@ const mockGame: Game = {
 	completion: 80,
 	score: 92,
 	logo: 'https://example.com/logo.png',
+	hero: 'https://example.com/hero.png',
 	cover: 'https://example.com/cover.png',
 	comment: 'Excellent game',
 	isCheaperByKey: true,
@@ -208,12 +209,12 @@ describe('GameDetails', () => {
 		expect(closeDetails).toHaveBeenCalledOnce()
 	})
 
-	it('renders cover and logo images when provided', async () => {
+	it('renders hero and logo images when provided', async () => {
 		const { GameDetails } = await import('./GameDetails')
 		renderWithProviders(<GameDetails game={mockGame} closeDetails={vi.fn()} />, { preloadedState: defaultState })
 
 		expect(screen.getByAltText('Dark Souls logo')).toBeInTheDocument()
-		expect(screen.getByAltText('Dark Souls cover')).toBeInTheDocument()
+		expect(screen.getByAltText('Dark Souls hero image')).toBeInTheDocument()
 	})
 
 	it('renders Key URL field when isCheaperByKey is set', async () => {
@@ -247,11 +248,11 @@ describe('GameDetails', () => {
 		expect(screen.queryByAltText('Dark Souls logo')).not.toBeInTheDocument()
 	})
 
-	it('does not render cover when game.cover is empty', async () => {
+	it('falls back to cover in the hero area when game.hero is empty', async () => {
 		const { GameDetails } = await import('./GameDetails')
-		renderWithProviders(<GameDetails game={{ ...mockGame, cover: '' }} closeDetails={vi.fn()} />, { preloadedState: defaultState })
+		renderWithProviders(<GameDetails game={{ ...mockGame, hero: '' }} closeDetails={vi.fn()} />, { preloadedState: defaultState })
 
-		expect(screen.queryByAltText('Dark Souls cover')).not.toBeInTheDocument()
+		expect(screen.getByAltText('Dark Souls hero image')).toBeInTheDocument()
 	})
 
 	it('renders editable fields for the game', async () => {
@@ -353,37 +354,37 @@ describe('GameDetails', () => {
 		expect(screen.queryByLabelText('Unlock to edit the Steam App ID')).not.toBeInTheDocument()
 	})
 
-	it('refreshes the cover from Steam when the backend resolves a loadable image', async () => {
+	it('refreshes the hero from Steam when the backend resolves a loadable image', async () => {
 		vi.useRealTimers()
 		imageShouldLoad = true
 		const syncSpy = vi.spyOn(steamService, 'syncGame').mockResolvedValue({} as any)
-		mockFetchGameDetails.mockResolvedValueOnce({ ...steamGame, cover: 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/570/abc123/header.jpg' })
+		mockFetchGameDetails.mockResolvedValueOnce({ ...steamGame, hero: 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/570/abc123/header.jpg' })
 
 		const { GameDetails } = await import('./GameDetails')
 		renderWithProviders(<GameDetails game={steamGame} closeDetails={vi.fn()} />, { preloadedState: defaultState })
 
-		await user.click(screen.getAllByLabelText('Refresh cover from Steam')[0])
+		await user.click(screen.getAllByLabelText('Refresh hero from Steam')[0])
 
-		// Cover is resolved by the backend (real hashed URL), not constructed client-side
-		await waitFor(() => expect(mockUpdateGameById).toHaveBeenCalledWith(steamGame.id, { cover: null }))
+		// Hero is resolved by the backend (real hashed URL), not constructed client-side
+		await waitFor(() => expect(mockUpdateGameById).toHaveBeenCalledWith(steamGame.id, { hero: null }))
 		expect(syncSpy).toHaveBeenCalledWith(steamGame.id)
 		expect(screen.queryByRole('status')).not.toBeInTheDocument()
 	})
 
-	it('restores the previous cover and shows a toast when the backend returns no valid cover', async () => {
+	it('restores the previous hero and shows a toast when the backend returns no valid hero', async () => {
 		vi.useRealTimers()
 		imageShouldLoad = false
 		const syncSpy = vi.spyOn(steamService, 'syncGame').mockResolvedValue({} as any)
-		mockFetchGameDetails.mockResolvedValueOnce({ ...steamGame, cover: '' })
+		mockFetchGameDetails.mockResolvedValueOnce({ ...steamGame, hero: '' })
 
 		const { GameDetails } = await import('./GameDetails')
 		renderWithProviders(<GameDetails game={steamGame} closeDetails={vi.fn()} />, { preloadedState: defaultState })
 
-		await user.click(screen.getAllByLabelText('Refresh cover from Steam')[0])
+		await user.click(screen.getAllByLabelText('Refresh hero from Steam')[0])
 
-		expect(await screen.findByRole('status')).toHaveTextContent(/load the Steam cover/)
-		// Previous cover must be restored so the user does not lose working data
-		await waitFor(() => expect(mockUpdateGameById).toHaveBeenCalledWith(steamGame.id, { cover: steamGame.cover }))
+		expect(await screen.findByRole('status')).toHaveTextContent(/load the Steam hero/)
+		// Previous hero must be restored so the user does not lose working data
+		await waitFor(() => expect(mockUpdateGameById).toHaveBeenCalledWith(steamGame.id, { hero: steamGame.hero }))
 		expect(syncSpy).toHaveBeenCalledWith(steamGame.id)
 	})
 

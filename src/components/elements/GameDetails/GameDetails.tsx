@@ -40,7 +40,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 	const [game, setGame] = useState(gameProp)
 	const [isClosing, setIsClosing] = useState(false)
 	const [activeTab, setActiveTab] = useState<DetailTab>('info')
-	const [steamImgLoading, setSteamImgLoading] = useState<'logo' | 'cover' | null>(null)
+	const [steamImgLoading, setSteamImgLoading] = useState<'logo' | 'hero' | 'cover' | null>(null)
 	const [steamIdLocked, setSteamIdLocked] = useState(() => gameProp.steamAppId != null)
 	const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
 	const { updateGameById, fetchGameDetails } = useGames()
@@ -57,6 +57,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 	const { playedStatuses: playedStatusOptions } = useAppSelector((state) => state.gamePlayedStatus)
 	const { playWithOptions } = useAppSelector((state) => state.gamePlayWith)
 	const scoreProvider = useAppSelector((state) => state.auth.user?.scoreProvider ?? 'Metacritic') as CriticProvider
+	const heroSrc = game.hero || game.cover
 
 	// Options for price comparison (Where's Key)
 	const priceComparisonOptions = [
@@ -97,15 +98,36 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 		}
 	}
 
+	const refreshSteamHero = async () => {
+		if (!game.steamAppId || steamImgLoading !== null) return
+		const previousHero = game.hero
+		setSteamImgLoading('hero')
+		try {
+			// Resolve the Steam header through the backend instead of guessing a CDN
+			// URL client-side. Newer games serve headers from a content-hashed path
+			// (…/store_item_assets/steam/apps/{id}/{hash}/header.jpg) that cannot be constructed
+			// without the hash, so a hardcoded /apps/{id}/header.jpg would 404.
+			await saveField('hero', null)
+			await steamService.syncGame(game.id)
+			const refreshed = await fetchGameDetails(game.id)
+			const nextHero = refreshed?.hero
+			if (nextHero && (await preloadImage(nextHero))) {
+				setGame(refreshed)
+			} else {
+				// Nothing usable resolved – restore whatever the user had before
+				await saveField('hero', previousHero ?? null)
+				setToast({ message: t('game.details.refreshHeroFailed'), type: 'error' })
+			}
+		} finally {
+			setSteamImgLoading(null)
+		}
+	}
+
 	const refreshSteamCover = async () => {
 		if (!game.steamAppId || steamImgLoading !== null) return
 		const previousCover = game.cover
 		setSteamImgLoading('cover')
 		try {
-			// Resolve the cover through the backend (Steam appdetails) instead of guessing a CDN
-			// URL client-side. Newer games serve headers from a content-hashed path
-			// (…/store_item_assets/steam/apps/{id}/{hash}/header.jpg) that cannot be constructed
-			// without the hash, so a hardcoded /apps/{id}/header.jpg would 404.
 			await saveField('cover', null)
 			await steamService.syncGame(game.id)
 			const refreshed = await fetchGameDetails(game.id)
@@ -113,7 +135,6 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 			if (nextCover && (await preloadImage(nextCover))) {
 				setGame(refreshed)
 			} else {
-				// Nothing usable resolved – restore whatever the user had before
 				await saveField('cover', previousCover ?? null)
 				setToast({ message: t('game.details.refreshCoverFailed'), type: 'error' })
 			}
@@ -140,6 +161,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 			grade: game.grade ?? undefined,
 			playWithIds: game.playWithIds ?? [],
 			logo: game.logo ?? '',
+			hero: game.hero ?? '',
 			cover: game.cover ?? '',
 			comment: game.comment ?? '',
 			isCheaperByKey: game.isCheaperByKey ?? undefined,
@@ -204,7 +226,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 			}
 		}
 		// Handle optional string fields (can be cleared)
-		else if (field === 'logo' || field === 'cover' || field === 'comment' || field === 'keyStoreUrl' || field === 'released' || field === 'started' || field === 'finished') {
+		else if (field === 'logo' || field === 'hero' || field === 'cover' || field === 'comment' || field === 'keyStoreUrl' || field === 'released' || field === 'started' || field === 'finished') {
 			if (value === '' || value === null || typeof value === 'undefined') {
 				payloadValue = null
 				formik.setFieldValue(field as any, '')
@@ -313,21 +335,21 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 			<div className='game-details-content'>
 				<div
 					className='game-details-content-cover'
-					style={{ cursor: game.cover ? 'default' : 'pointer', position: 'relative' }}
+					style={{ cursor: heroSrc ? 'default' : 'pointer', position: 'relative' }}
 					onClick={() => {
-						searchGoogleImage(game.name, 'cover')
+						searchGoogleImage(game.name, 'header')
 					}}>
-					{game.cover && (
+					{heroSrc && (
 						<div style={{ width: '100%' }}>
 							<OptimizedImage
-								src={game.cover}
-								alt={t('game.card.coverAlt', { name: game.name })}
+								src={heroSrc}
+								alt={t('game.card.heroAlt', { name: game.name })}
 								className='game-details__cover'
 								quality='high'
 								loading='eager'
 								width={600}
 								height={350}
-								imageUnavailableText={t('game.details.fieldCover')}
+								imageUnavailableText={t('game.details.fieldHero')}
 							/>
 						</div>
 					)}
@@ -336,11 +358,11 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 							className='game-details-cover-steam-refresh'
 							onClick={(e) => {
 								e.stopPropagation()
-								void refreshSteamCover()
+								void refreshSteamHero()
 							}}
 							disabled={steamImgLoading !== null}
-							aria-label={t('game.details.refreshSteamCover')}
-							title={t('game.details.refreshSteamCover')}>
+							aria-label={t('game.details.refreshSteamHero')}
+							title={t('game.details.refreshSteamHero')}>
 							↺
 						</button>
 					)}
@@ -569,7 +591,31 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 									<h3
 										className='clickable'
 										onClick={() => {
-											searchGoogleImage(formik.values.name, 'cover')
+											searchGoogleImage(formik.values.name, 'header')
+										}}>
+										{t('game.details.fieldHero')}
+										{game.steamAppId && (
+											<button
+												className='steam-img-refresh'
+												onClick={(e) => {
+													e.stopPropagation()
+													void refreshSteamHero()
+												}}
+												disabled={steamImgLoading !== null}
+												aria-label={t('game.details.refreshSteamHero')}
+												title={t('game.details.refreshSteamHero')}>
+												↺
+											</button>
+										)}
+									</h3>
+									<EditableField value={formik.values.hero} type='text' onSave={(value) => saveField('hero', value)} placeholder={t('game.details.placeholderHero')} />
+								</div>
+
+								<div className='game-details-content-infoList-item'>
+									<h3
+										className='clickable'
+										onClick={() => {
+											searchGoogleImage(formik.values.name, 'cover art')
 										}}>
 										{t('game.details.fieldCover')}
 										{game.steamAppId && (

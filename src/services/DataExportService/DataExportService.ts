@@ -17,6 +17,7 @@ export interface DatabaseDuplicateGameDetails {
 	story?: number
 	completion?: number
 	logo?: string
+	hero?: string
 	cover?: string
 	steamAppId?: number
 	steamPlaytimeForever?: number
@@ -30,6 +31,7 @@ export interface DatabaseDuplicateGameDetails {
 	isExported?: boolean
 	lastExportedAt?: string
 	logoDownloaded?: boolean
+	heroDownloaded?: boolean
 	coverDownloaded?: boolean
 }
 

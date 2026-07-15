@@ -51,7 +51,15 @@ const mockFetchGamesList = vi.fn().mockResolvedValue(undefined)
 const mockRefreshGames = vi.fn().mockResolvedValue(undefined)
 const mockDeleteGameById = vi.fn().mockResolvedValue(undefined)
 const mockBulkUpdateGamesById = vi.fn().mockResolvedValue({ updatedCount: 2, totalRequested: 2 })
+const mockUpdateGameById = vi.fn().mockResolvedValue(undefined)
 const mockLoadPublicGameViews = vi.fn().mockResolvedValue(undefined)
+const mockSteamService = vi.hoisted(() => ({
+	syncGame: vi.fn().mockResolvedValue({}),
+}))
+
+vi.mock('@/services', () => ({
+	steamService: mockSteamService,
+}))
 
 vi.mock('@/hooks', () => ({
 	useGames: () => ({
@@ -62,6 +70,7 @@ vi.mock('@/hooks', () => ({
 		refreshGames: mockRefreshGames,
 		deleteGameById: mockDeleteGameById,
 		bulkUpdateGamesById: mockBulkUpdateGamesById,
+		updateGameById: mockUpdateGameById,
 	}),
 	useGameViews: () => ({
 		publicGameViews: [],
@@ -99,6 +108,9 @@ vi.mock('./GameFiltersChips', () => ({
 			</button>
 			<button data-testid='bulk-edit' onClick={props.onBulkEdit}>
 				Bulk Edit
+			</button>
+			<button data-testid='bulk-refresh-cover' onClick={() => props.onBulkRefreshImages?.('cover')} disabled={props.bulkImagesDisabled}>
+				Bulk Refresh Cover
 			</button>
 			<span data-testid='selected-count'>{props.selectedCount}</span>
 		</div>
@@ -294,6 +306,24 @@ describe('HomeComponent', () => {
 		await user.click(screen.getByTestId('confirm-ok'))
 
 		expect(mockDeleteGameById).toHaveBeenCalledWith(1)
+	})
+
+	it('bulk refreshes the selected Steam cover images', async () => {
+		const user = userEvent.setup()
+		currentGames = [
+			{ id: 1, name: 'Dark Souls', statusId: 1, platformId: 1, steamAppId: 570 },
+			{ id: 2, name: 'Offline Game', statusId: 2, platformId: 2 },
+		]
+		const HomeComponent = await loadHomeComponent()
+		renderWithProviders(<HomeComponent />, { preloadedState: defaultState })
+
+		await user.click(screen.getByTestId('select-1'))
+		await user.click(screen.getByTestId('select-2'))
+		await user.click(screen.getByTestId('bulk-refresh-cover'))
+
+		await waitFor(() => expect(mockUpdateGameById).toHaveBeenCalledWith(1, { cover: null }))
+		expect(mockSteamService.syncGame).toHaveBeenCalledWith(1)
+		expect(mockUpdateGameById).not.toHaveBeenCalledWith(2, expect.anything())
 	})
 
 	it('renders row header columns when cardStyle is row', async () => {

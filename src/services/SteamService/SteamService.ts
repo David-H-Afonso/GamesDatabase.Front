@@ -80,6 +80,7 @@ export interface SteamImportRequest {
 export interface SteamImportGameRequest {
 	appId: number
 	logoUrl?: string
+	heroUrl?: string
 	coverUrl?: string
 }
 
@@ -95,6 +96,7 @@ export interface SteamMatchSuggestion {
 export interface SteamStoreSearchResult {
 	appId: number
 	name: string
+	heroUrl?: string
 	coverUrl?: string
 	logoUrl?: string
 	price?: string
@@ -214,7 +216,7 @@ class SteamService {
 		return customFetch<SteamStoreSearchResult[]>(`${base.storeSearch}?q=${encodeURIComponent(query)}`)
 	}
 
-	async addStoreGame(appId: number, assets?: { logoUrl?: string; coverUrl?: string }): Promise<SteamImportedGame> {
+	async addStoreGame(appId: number, assets?: { logoUrl?: string; heroUrl?: string; coverUrl?: string }): Promise<SteamImportedGame> {
 		return customFetch<SteamImportedGame>(base.storeAdd, {
 			method: 'POST',
 			body: { appId, ...assets },
