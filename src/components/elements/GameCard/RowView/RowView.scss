@@ -63,10 +63,10 @@
 
 	&-perfect-badge {
 		flex: 0 0 auto;
-		border: 1px solid rgba(255, 239, 176, 0.88);
+		border: 1px solid var(--completion-badge-border, rgba(255, 239, 176, 0.88));
 		border-radius: 999px;
-		background: linear-gradient(135deg, #f8d46a, #b7791f);
-		color: #241604;
+		background: var(--completion-badge-bg, linear-gradient(135deg, #f8d46a, #b7791f));
+		color: var(--completion-badge-text, #241604);
 		font-family: monospace;
 		font-size: 0.72rem;
 		font-weight: 800;

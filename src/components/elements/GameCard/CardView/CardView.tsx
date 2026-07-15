@@ -1,5 +1,5 @@
 import type { Game } from '@/models/api/Game'
-import { useState, memo, type FC } from 'react'
+import { useLayoutEffect, useRef, useState, memo, type FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import './CardView.scss'
 import { DEFAULT_PLATFORM_ICON, STEAM_PLATFORM_ICON, formatPlaytime, formatToLocaleDate, useClickOutside, getMetacriticColor } from '@/utils'
@@ -14,6 +14,7 @@ import OpenCriticIcon from '@/assets/svgs/opencritic.svg?react'
 import SteamDBIcon from '@/assets/svgs/steamdb.svg?react'
 import KeyIcon from '@/assets/svgs/key.svg?react'
 import StoreIcon from '@/assets/svgs/store.svg?react'
+import PortalDropdown from '../../PortalDropdown'
 import { getCriticScoreUrl, resolveEffectiveProvider, type CriticProvider } from '@/helpers/criticScoreHelper'
 
 interface CardViewProps {
@@ -78,6 +79,47 @@ const CardView: FC<CardViewProps> = (props) => {
 		setActiveSelector(null)
 	})
 
+	const statusBtnRef = useRef<HTMLSpanElement | null>(null)
+	const platformBtnRef = useRef<HTMLSpanElement | null>(null)
+	const playWithBtnRef = useRef<HTMLSpanElement | null>(null)
+	const [statusPortalStyle, setStatusPortalStyle] = useState<React.CSSProperties | undefined>()
+	const [platformPortalStyle, setPlatformPortalStyle] = useState<React.CSSProperties | undefined>()
+	const [playWithPortalStyle, setPlayWithPortalStyle] = useState<React.CSSProperties | undefined>()
+
+	const computePortalStyle = (btn: HTMLElement | null, gap = -12, maxHeight = 300) => {
+		if (!btn) return undefined
+		const rect = btn.getBoundingClientRect()
+		const viewportHeight = window.innerHeight || document.documentElement.clientHeight
+		const spaceBelow = viewportHeight - rect.bottom - gap
+		const spaceAbove = rect.top - gap
+		const placeDown = spaceBelow >= 160 || spaceBelow >= spaceAbove
+		const left = rect.left + window.scrollX
+		const minWidth = Math.max(150, rect.width)
+		if (placeDown) {
+			return {
+				position: 'absolute',
+				left: `${left}px`,
+				top: `${rect.bottom + window.scrollY + gap}px`,
+				minWidth: `${minWidth}px`,
+				maxHeight: `${Math.max(0, Math.min(maxHeight, spaceBelow))}px`,
+			} as React.CSSProperties
+		}
+		return {
+			position: 'absolute',
+			left: `${left}px`,
+			top: `${rect.top + window.scrollY - gap}px`,
+			minWidth: `${minWidth}px`,
+			transform: 'translateY(-100%)',
+			maxHeight: `${Math.max(0, Math.min(maxHeight, spaceAbove))}px`,
+		} as React.CSSProperties
+	}
+
+	useLayoutEffect(() => {
+		if (activeSelector === 'status') setStatusPortalStyle(computePortalStyle(statusBtnRef.current))
+		if (activeSelector === 'platform') setPlatformPortalStyle(computePortalStyle(platformBtnRef.current))
+		if (activeSelector === 'playWith') setPlayWithPortalStyle(computePortalStyle(playWithBtnRef.current))
+	}, [activeSelector])
+
 	const closeActionMenu = (callback: () => void) => {
 		deselectAll?.()
 		callback()
@@ -86,7 +128,11 @@ const CardView: FC<CardViewProps> = (props) => {
 	const handleBadgeClick = (e: React.MouseEvent, selectorType: 'status' | 'platform' | 'playWith') => {
 		e.preventDefault()
 		e.stopPropagation()
-		setActiveSelector(activeSelector === selectorType ? null : selectorType)
+		const nextSelector = activeSelector === selectorType ? null : selectorType
+		if (nextSelector === 'status') setStatusPortalStyle(computePortalStyle(e.currentTarget as HTMLElement))
+		if (nextSelector === 'platform') setPlatformPortalStyle(computePortalStyle(e.currentTarget as HTMLElement))
+		if (nextSelector === 'playWith') setPlayWithPortalStyle(computePortalStyle(e.currentTarget as HTMLElement))
+		setActiveSelector(nextSelector)
 	}
 
 	const handleFieldUpdate = async (field: string, value: number | number[] | undefined) => {
@@ -213,7 +259,7 @@ const CardView: FC<CardViewProps> = (props) => {
 							<h3 className='game-card-title' title={game.name}>
 								{game.name}
 							</h3>
-							<div className='game-card-tags' ref={statusRef} onClick={(e) => e.stopPropagation()}>
+							<div className='game-card-tags' onClick={(e) => e.stopPropagation()}>
 								<div className='game-card-tag-container'>
 									<span
 										title={game.statusName || t('game.card.noStatus')}
@@ -222,20 +268,23 @@ const CardView: FC<CardViewProps> = (props) => {
 											backgroundColor: `${gameStatusColor}44`,
 											borderColor: `${gameStatusColor}99`,
 										}}
-										onClick={(e) => handleBadgeClick(e, 'status')}>
+										onClick={(e) => handleBadgeClick(e, 'status')}
+										ref={statusBtnRef}>
 										{game.statusName}
 									</span>
 									{activeSelector === 'status' && (
-										<div className='game-card-tag-selector'>
-											<EditableSelect
-												value={game.statusId}
-												displayValue={game.statusName}
-												options={statusOptions}
-												onSave={(value) => handleFieldUpdate('statusId', value)}
-												placeholder={t('game.details.selectStatus')}
-												dropdownOnly
-											/>
-										</div>
+										<PortalDropdown style={statusPortalStyle} contentRef={statusRef} onClick={(e) => e.stopPropagation()}>
+											<div className='game-card-tag-selector game-card-tag-selector--portal'>
+												<EditableSelect
+													value={game.statusId}
+													displayValue={game.statusName}
+													options={statusOptions}
+													onSave={(value) => handleFieldUpdate('statusId', value)}
+													placeholder={t('game.details.selectStatus')}
+													dropdownOnly
+												/>
+											</div>
+										</PortalDropdown>
 									)}
 								</div>
 								{game.platformName && (
@@ -247,20 +296,23 @@ const CardView: FC<CardViewProps> = (props) => {
 												backgroundColor: `${platformColor}44`,
 												borderColor: `${platformColor}99`,
 											}}
-											onClick={(e) => handleBadgeClick(e, 'platform')}>
+											onClick={(e) => handleBadgeClick(e, 'platform')}
+											ref={platformBtnRef}>
 											{game.platformName}
 										</span>
 										{activeSelector === 'platform' && (
-											<div className='game-card-tag-selector' ref={platformRef}>
-												<EditableSelect
-													value={game.platformId}
-													displayValue={game.platformName}
-													options={platformOptions}
-													onSave={(value) => handleFieldUpdate('platformId', value)}
-													placeholder={t('game.details.selectPlatform')}
-													dropdownOnly
-												/>
-											</div>
+											<PortalDropdown style={platformPortalStyle} contentRef={platformRef} onClick={(e) => e.stopPropagation()}>
+												<div className='game-card-tag-selector game-card-tag-selector--portal'>
+													<EditableSelect
+														value={game.platformId}
+														displayValue={game.platformName}
+														options={platformOptions}
+														onSave={(value) => handleFieldUpdate('platformId', value)}
+														placeholder={t('game.details.selectPlatform')}
+														dropdownOnly
+													/>
+												</div>
+											</PortalDropdown>
 										)}
 									</div>
 								)}
@@ -273,20 +325,23 @@ const CardView: FC<CardViewProps> = (props) => {
 												backgroundColor: `${playWithColors[0] || '#333'}44`,
 												borderColor: `${playWithColors[0] || '#333'}99`,
 											}}
-											onClick={(e) => handleBadgeClick(e, 'playWith')}>
+											onClick={(e) => handleBadgeClick(e, 'playWith')}
+											ref={playWithBtnRef}>
 											{formatMultipleNames(game.playWithNames)}
 										</span>
 										{activeSelector === 'playWith' && (
-											<div className='game-card-tag-selector' ref={playWithRef}>
-												<EditableMultiSelect
-													values={game.playWithIds || []}
-													displayValues={game.playWithNames || []}
-													options={playWithOptions}
-													onSave={(values) => handleFieldUpdate('playWithIds', values)}
-													placeholder={t('game.details.selectPlayWith')}
-													dropdownOnly
-												/>
-											</div>
+											<PortalDropdown style={playWithPortalStyle} contentRef={playWithRef} onClick={(e) => e.stopPropagation()}>
+												<div className='game-card-tag-selector game-card-tag-selector--portal'>
+													<EditableMultiSelect
+														values={game.playWithIds || []}
+														displayValues={game.playWithNames || []}
+														options={playWithOptions}
+														onSave={(values) => handleFieldUpdate('playWithIds', values)}
+														placeholder={t('game.details.selectPlayWith')}
+														dropdownOnly
+													/>
+												</div>
+											</PortalDropdown>
 										)}
 									</div>
 								)}
@@ -307,10 +362,7 @@ const CardView: FC<CardViewProps> = (props) => {
 						</div>
 					</div>
 					<div className='game-card-metadata' role='group' aria-label={t('game.card.gameMeta')}>
-						<div
-							className='game-card-score'
-							role='group'
-							aria-label={game.score != null ? t('game.card.scoreDisplay', { score: game.score }) : t('game.card.scoreEmpty')}>
+						<div className='game-card-score' role='group' aria-label={game.score != null ? t('game.card.scoreDisplay', { score: game.score }) : t('game.card.scoreEmpty')}>
 							<ScoreIcon width={20} height={20} color='#9ca3af' title={t('game.card.scoreIcon')} focusable={false} />
 							<div className='game-card-score-value'>
 								<p>{game.score != null ? `${game.score} / 10` : ''}</p>

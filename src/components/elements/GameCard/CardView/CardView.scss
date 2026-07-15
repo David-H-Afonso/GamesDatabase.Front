@@ -26,10 +26,9 @@
 	}
 
 	&--steam-complete {
-		border-color: #d8a536;
+		border-color: transparent;
 		box-shadow:
-			0 0 0 1px rgba(216, 165, 54, 0.9),
-			0 12px 30px rgba(216, 165, 54, 0.2),
+			0 12px 30px var(--completion-card-glow, rgba(216, 165, 54, 0.2)),
 			var(--box-shadow) !important;
 
 		&::before {
@@ -38,14 +37,30 @@
 			inset: 0;
 			border-radius: inherit;
 			pointer-events: none;
-			background: linear-gradient(135deg, rgba(255, 233, 158, 0.24), transparent 28%, transparent 68%, rgba(216, 165, 54, 0.2));
+			background: linear-gradient(
+				135deg,
+				var(--completion-card-wash-start, rgba(255, 233, 158, 0.24)),
+				transparent 28%,
+				transparent 68%,
+				var(--completion-card-wash-end, rgba(216, 165, 54, 0.2))
+			);
 			z-index: 3;
+		}
+
+		&::after {
+			content: '';
+			position: absolute;
+			inset: 0;
+			border: 2px solid var(--completion-card-border, #d8a536);
+			border-radius: inherit;
+			box-shadow: inset 0 0 0 1px var(--completion-card-inner-border, rgba(255, 233, 158, 0.24));
+			pointer-events: none;
+			z-index: 6;
 		}
 	}
 
 	// Allow children to overflow the card when a selector is open
 	&.is-open {
-		overflow: visible;
 		z-index: 50; // raise stacking context when open
 	}
 
@@ -54,6 +69,7 @@
 		border-radius: inherit;
 		background: inherit;
 		color: inherit;
+		height: 100%;
 
 		.game-card-header {
 			height: 200px;
@@ -203,6 +219,23 @@
 							z-index: 1000;
 							min-width: 150px;
 
+							&--portal {
+								position: static;
+
+								.editable-select__dropdown,
+								.editable-multi-select__dropdown {
+									top: 0;
+									background: var(--card-dropdown-bg, var(--bg-primary));
+									border-color: var(--card-dropdown-border, var(--border-color-light));
+									box-shadow: var(--card-dropdown-shadow, 0 4px 12px rgba(0, 0, 0, 0.15));
+								}
+
+								.editable-select__option:hover,
+								.editable-multi-select__option:hover {
+									background: var(--card-dropdown-option-hover, var(--bg-secondary));
+								}
+							}
+
 							.editable-select {
 								min-width: 150px;
 
@@ -230,10 +263,10 @@
 				right: 14px;
 				bottom: 12px;
 				z-index: 4;
-				border: 1px solid rgba(255, 239, 176, 0.88);
+				border: 1px solid var(--completion-badge-border, rgba(255, 239, 176, 0.88));
 				border-radius: 999px;
-				background: linear-gradient(135deg, #f8d46a, #b7791f);
-				color: #241604;
+				background: var(--completion-badge-bg, linear-gradient(135deg, #f8d46a, #b7791f));
+				color: var(--completion-badge-text, #241604);
 				font-family: monospace;
 				font-size: 0.72rem;
 				font-weight: 800;
@@ -418,5 +451,23 @@
 				}
 			}
 		}
+	}
+}
+
+.game-card-tag-selector--portal {
+	position: static;
+
+	.editable-select__dropdown,
+	.editable-multi-select__dropdown {
+		top: 0;
+		background: var(--card-dropdown-bg, var(--bg-primary));
+		border-color: var(--card-dropdown-border, var(--border-color-light));
+		box-shadow: var(--card-dropdown-shadow, 0 4px 12px rgba(0, 0, 0, 0.15));
+		color: var(--card-text, var(--text-primary));
+	}
+
+	.editable-select__option:hover,
+	.editable-multi-select__option:hover {
+		background: var(--card-dropdown-option-hover, var(--bg-secondary));
 	}
 }

@@ -79,6 +79,18 @@
 	--card-border-color-light: rgba(255, 219, 86, 0.34);
 	--card-shadow: 0 1px 3px rgba(40, 28, 2, 0.18), 0 10px 28px -16px rgba(19, 49, 114, 0.18);
 	--card-shadow-hover: 0 10px 24px -12px rgba(40, 28, 2, 0.28), 0 0 0 1px rgba(27, 70, 153, 0.16);
+	--completion-card-border: #a7f3ff;
+	--completion-card-inner-border: rgba(255, 255, 255, 0.42);
+	--completion-card-glow: rgba(62, 201, 255, 0.28);
+	--completion-card-wash-start: rgba(167, 243, 255, 0.16);
+	--completion-card-wash-end: rgba(62, 201, 255, 0.18);
+	--completion-badge-bg: linear-gradient(135deg, #effdff 0%, #a7f3ff 46%, #60a5fa 100%);
+	--completion-badge-border: rgba(255, 255, 255, 0.9);
+	--completion-badge-text: #071a37;
+	--card-dropdown-bg: #102d65;
+	--card-dropdown-border: rgba(167, 243, 255, 0.46);
+	--card-dropdown-shadow: 0 18px 36px -14px rgba(5, 18, 46, 0.58), 0 0 0 1px rgba(255, 255, 255, 0.08);
+	--card-dropdown-option-hover: rgba(167, 243, 255, 0.12);
 
 	// Header specific
 	--header-background: #f7d543;
@@ -199,6 +211,18 @@
 	--card-border-color-light: rgba(247, 214, 136, 0.26);
 	--card-shadow: 0 1px 3px rgba(56, 28, 11, 0.2), 0 10px 28px -16px rgba(76, 37, 26, 0.22);
 	--card-shadow-hover: 0 10px 24px -12px rgba(56, 28, 11, 0.3), 0 0 0 1px rgba(239, 198, 99, 0.16);
+	--completion-card-border: #d9f7ff;
+	--completion-card-inner-border: rgba(255, 255, 255, 0.36);
+	--completion-card-glow: rgba(157, 219, 255, 0.24);
+	--completion-card-wash-start: rgba(217, 247, 255, 0.12);
+	--completion-card-wash-end: rgba(157, 219, 255, 0.16);
+	--completion-badge-bg: linear-gradient(135deg, #fffaf0 0%, #d9f7ff 48%, #a7c7e7 100%);
+	--completion-badge-border: rgba(255, 255, 255, 0.88);
+	--completion-badge-text: #24120c;
+	--card-dropdown-bg: #4a2418;
+	--card-dropdown-border: rgba(217, 247, 255, 0.36);
+	--card-dropdown-shadow: 0 18px 36px -14px rgba(36, 18, 12, 0.58), 0 0 0 1px rgba(255, 255, 255, 0.08);
+	--card-dropdown-option-hover: rgba(217, 247, 255, 0.1);
 
 	// Header specific
 	--header-background: #d9ab45;
