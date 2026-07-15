@@ -98,9 +98,8 @@ export default defineConfig({
 			// become relative paths — Vite must proxy them to the API which serves
 			// ImageProxyController at /game-images.
 			'/game-images': {
-				target: 'https://localhost:7245',
+				target: 'http://localhost:5011',
 				changeOrigin: true,
-				secure: false, // allow self-signed cert in dev
 			},
 		},
 	},
