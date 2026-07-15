@@ -167,6 +167,7 @@ const CardView: FC<CardViewProps> = (props) => {
 	const hasPlaytime = effectivePlaytime != null && effectivePlaytime > 0
 	const playtimeIcon = hasManualPlaytime ? platformLogo || DEFAULT_PLATFORM_ICON : STEAM_PLATFORM_ICON
 	const playtimeIconAlt = hasManualPlaytime ? game.platformName || t('game.details.fieldPlatform') : 'Steam'
+	const heroSrc = game.hero || game.cover
 	const playtimeTitle = hasManualPlaytime
 		? t('game.details.platformPlaytimeTooltip', { platform: game.platformName || t('game.details.fieldPlatform') })
 		: t('game.details.steamPlaytimeTooltip')
@@ -188,10 +189,10 @@ const CardView: FC<CardViewProps> = (props) => {
 			}}>
 			<div className='game-card-view-container-hideOverflow'>
 				<div className='game-card-header'>
-					{game.cover && (
+					{heroSrc && (
 						<OptimizedImage
-							src={game.cover}
-							alt={t('game.card.coverAlt', { name: game.name })}
+							src={heroSrc}
+							alt={t('game.card.heroAlt', { name: game.name })}
 							className='game-card-cover'
 							quality='medium'
 							loading={isPriority ? 'eager' : 'lazy'}
@@ -400,7 +401,8 @@ export default memo(CardView, (prevProps, nextProps) => {
 		prevProps.game.id === nextProps.game.id &&
 		prevProps.game.updatedAt === nextProps.game.updatedAt &&
 		prevProps.game.logo === nextProps.game.logo &&
-		prevProps.game.cover === nextProps.game.cover &&
+	prevProps.game.hero === nextProps.game.hero &&
+	prevProps.game.cover === nextProps.game.cover &&
 		prevProps.isSelected === nextProps.isSelected
 	)
 })

@@ -519,6 +519,7 @@ export const AdminSteamImport = () => {
 		try {
 			const storeGame = storeResults.find((game) => game.appId === appId)
 			const result = await steamService.addStoreGame(appId, {
+				heroUrl: storeGame?.heroUrl ?? storeGame?.coverUrl,
 				coverUrl: storeGame?.coverUrl,
 			})
 			setStoreAdded((prev) => new Map(prev).set(appId, result.action === 'created' ? 'created' : result.action === 'linked' ? 'exists' : 'error'))
@@ -847,7 +848,7 @@ export const AdminSteamImport = () => {
 								const inGdb = addedState === 'created' || alreadyInLibrary || addedState === 'exists'
 								return (
 									<div key={game.appId} className={`store-card${inGdb ? ' store-card--added' : ''}`}>
-										<div className='store-card-cover'>{game.coverUrl && <img src={game.coverUrl} alt={game.name} loading='lazy' />}</div>
+										<div className='store-card-cover'>{(game.heroUrl || game.coverUrl) && <img src={game.heroUrl ?? game.coverUrl} alt={game.name} loading='lazy' />}</div>
 										<div className='store-card-info'>
 											<span className='store-card-name'>{game.name}</span>
 											<span className='store-card-appid'>App {game.appId}</span>

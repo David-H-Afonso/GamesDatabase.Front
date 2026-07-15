@@ -80,7 +80,7 @@ const themeSlice = createSlice({
 				document.documentElement.setAttribute('data-theme', themeToSet)
 			}
 		},
-		setCardStyle: (state, action: PayloadAction<'card' | 'row' | 'tile'>) => {
+		setCardStyle: (state, action: PayloadAction<'card' | 'row' | 'cover'>) => {
 			state.cardStyle = action.payload
 		},
 		setViewMode: (state, action: PayloadAction<ViewMode>) => {

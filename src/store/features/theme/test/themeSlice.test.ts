@@ -162,9 +162,9 @@ describe('themeSlice — setCardStyle / setViewMode / reset', () => {
 		expect(next.cardStyle).toBe('row')
 	})
 
-	it('setCardStyle to tile', () => {
-		const next = themeReducer(initialState, setCardStyle('tile'))
-		expect(next.cardStyle).toBe('tile')
+	it('setCardStyle to cover', () => {
+		const next = themeReducer(initialState, setCardStyle('cover'))
+		expect(next.cardStyle).toBe('cover')
 	})
 
 	it('setViewMode updates viewMode', () => {

@@ -5,12 +5,13 @@ import { selectGameById } from '@/store/features/games'
 import { useGamePlatform, useGamePlayedStatus, useGamePlayWith, useGames, useGameStatus } from '@/hooks'
 import { GameDetails } from '@/components/elements'
 import CardView from './CardView/CardView'
+import CoverView from './CoverView/CoverView'
 import RowView from './RowView/RowView'
 
 interface Props {
 	game: Game
 	onDelete?: (game: Game) => void
-	variant?: 'card' | 'row' | 'tile'
+	variant?: 'card' | 'row' | 'cover'
 	isSelected?: boolean
 	onSelect?: (gameId: number, isSelected: boolean) => void
 	deselectAll?: () => void
@@ -92,6 +93,21 @@ const GameCardComponent: FC<Props> = (props) => {
 						isSelected={isSelected}
 						deselectAll={props.deselectAll}
 						index={props.index}
+					/>
+				</div>
+			)}
+
+			{variant === 'cover' && (
+				<div className='game-card' key={isSelected ? 'selected' : 'unselected'}>
+					<CoverView
+						game={game}
+						openDetails={openDetails}
+						onSelect={onSelect}
+						isSelected={isSelected}
+						index={props.index}
+						gameStatusColor={gameStatus?.color}
+						playWithColors={playWithColors}
+						onFieldUpdate={handleFieldUpdate}
 					/>
 				</div>
 			)}

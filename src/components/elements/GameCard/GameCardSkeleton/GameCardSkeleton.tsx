@@ -2,7 +2,7 @@ import type { FC } from 'react'
 import './GameCardSkeleton.scss'
 
 interface Props {
-	variant?: 'card' | 'row' | 'tile'
+	variant?: 'card' | 'row' | 'cover'
 	index?: number
 }
 
@@ -24,7 +24,7 @@ const GameCardSkeleton: FC<Props> = ({ variant = 'card', index = 0 }) => {
 		)
 	}
 
-	// card and tile variants share the same card skeleton shape
+	// card and cover variants share the same skeleton shape
 	return (
 		<div className='gc-skeleton gc-skeleton--card' style={{ animationDelay: delay }}>
 			<div className='gc-skeleton__cover' />

@@ -51,6 +51,7 @@ export const FilterField = {
 	ReleaseDate: 'ReleaseDate',
 	Description: 'Description',
 	Logo: 'Logo',
+	Hero: 'Hero',
 	Cover: 'Cover',
 	// Campos de rejugadas
 	ReplayStarted: 'ReplayStarted',

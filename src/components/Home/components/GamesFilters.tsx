@@ -262,7 +262,7 @@ const GamesFilters: React.FC<Props> = ({ value, onChange, isOpen = true, onClear
 					/>
 					<span style={{ fontSize: '13px', fontWeight: 'bold' }}>Show Incomplete Games</span>
 				</label>
-				<div style={{ fontSize: '11px', color: '#888', marginLeft: '24px', marginTop: '2px' }}>(Not Fulfilled, no cover, no logo, or no platform)</div>
+				<div style={{ fontSize: '11px', color: '#888', marginLeft: '24px', marginTop: '2px' }}>(Not Fulfilled, no hero, no logo, or no platform)</div>
 			</div>
 
 			<div className='gf-row gf-row--compact'>

@@ -511,7 +511,7 @@ Statistics:
 							{group.games.map((game) => (
 								<article key={game.id} className='duplicate-game-card'>
 									<div className='duplicate-game-card__media'>
-										{game.cover || game.logo ? <img src={game.cover || game.logo} alt='' loading='lazy' /> : <span>{game.name.slice(0, 2).toUpperCase()}</span>}
+										{game.hero || game.cover || game.logo ? <img src={game.hero || game.cover || game.logo} alt='' loading='lazy' /> : <span>{game.name.slice(0, 2).toUpperCase()}</span>}
 									</div>
 									<div className='duplicate-game-card__content'>
 										<div className='duplicate-game-card__top'>
@@ -590,7 +590,7 @@ Statistics:
 											</div>
 											<div>
 												<dt>Imágenes export</dt>
-												<dd>{`logo ${game.logoDownloaded ? '✅' : '❌'} · cover ${game.coverDownloaded ? '✅' : '❌'}`}</dd>
+												<dd>{`logo ${game.logoDownloaded ? '✅' : '❌'} · hero ${game.heroDownloaded ? '✅' : '❌'} · cover ${game.coverDownloaded ? '✅' : '❌'}`}</dd>
 											</div>
 											<div>
 												<dt>Cambios sin exportar</dt>

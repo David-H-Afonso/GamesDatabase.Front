@@ -13,8 +13,8 @@ interface Props {
 	onFiltersChange: (partial: Partial<GameQueryParameters>) => void
 	onSearchChange: (search: string) => void
 	onSortChange: (sortBy: string, sortDescending: boolean) => void
-	viewMode?: 'card' | 'row' | 'tile'
-	onViewModeChange?: (mode: 'card' | 'row' | 'tile') => void
+	viewMode?: 'card' | 'row' | 'cover'
+	onViewModeChange?: (mode: 'card' | 'row' | 'cover') => void
 	publicGameViews?: Array<{ id: number; name: string }>
 	currentView?: string
 	onViewChange?: (viewName: string) => void
@@ -23,6 +23,8 @@ interface Props {
 	onDeselectAll?: () => void
 	onBulkDelete?: () => void
 	onBulkEdit?: () => void
+	onBulkRefreshImages?: (field: 'logo' | 'hero' | 'cover') => void
+	bulkImagesDisabled?: boolean
 	/** Open the Export modal for the currently selected games */
 	onBulkExport?: () => void
 }
@@ -62,10 +64,13 @@ const GameFiltersChips: React.FC<Props> = ({
 	onDeselectAll,
 	onBulkDelete,
 	onBulkEdit,
+	onBulkRefreshImages,
+	bulkImagesDisabled = false,
 	onBulkExport,
 }) => {
 	const [openPopover, setOpenPopover] = useState<PopoverKey | null>(null)
 	const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
+	const [bulkImageField, setBulkImageField] = useState<'logo' | 'hero' | 'cover'>('cover')
 	const { t } = useTranslation()
 	const popoverRef = useRef<HTMLDivElement | null>(null)
 	const chipsContainerRef = useRef<HTMLDivElement | null>(null)
@@ -423,6 +428,23 @@ const GameFiltersChips: React.FC<Props> = ({
 							{t('home.chips.bulkEdit')}
 						</button>
 					)}
+					{onBulkRefreshImages && (
+						<div className='game-filters-chips__selection-image-refresh'>
+							<select
+								className='game-filters-chips__selection-select'
+								value={bulkImageField}
+								onChange={(event) => setBulkImageField(event.target.value as 'logo' | 'hero' | 'cover')}
+								disabled={bulkImagesDisabled}
+								aria-label={t('home.chips.bulkImageField')}>
+								<option value='cover'>{t('home.imageFields.cover')}</option>
+								<option value='hero'>{t('home.imageFields.hero')}</option>
+								<option value='logo'>{t('home.imageFields.logo')}</option>
+							</select>
+							<button type='button' className='game-filters-chips__selection-btn' onClick={() => onBulkRefreshImages(bulkImageField)} disabled={bulkImagesDisabled}>
+								{bulkImagesDisabled ? t('home.chips.bulkImagesRefreshing') : t('home.chips.bulkImages')}
+							</button>
+						</div>
+					)}
 					{onBulkDelete && (
 						<button type='button' className='game-filters-chips__selection-btn game-filters-chips__selection-btn--danger' onClick={onBulkDelete}>
 							{t('home.chips.bulkDelete')}
@@ -521,6 +543,9 @@ const GameFiltersChips: React.FC<Props> = ({
 							<button type='button' className={'game-filters-chips__view-btn' + (viewMode === 'row' ? ' is-active' : '')} onClick={() => onViewModeChange('row')}>
 								{t('home.viewRow')}
 							</button>
+							<button type='button' className={'game-filters-chips__view-btn' + (viewMode === 'cover' ? ' is-active' : '')} onClick={() => onViewModeChange('cover')}>
+								{t('home.viewCover')}
+							</button>
 						</div>
 					)}
 
@@ -552,6 +577,9 @@ const GameFiltersChips: React.FC<Props> = ({
 								</button>
 								<button type='button' className={'game-filters-chips__view-btn' + (viewMode === 'row' ? ' is-active' : '')} onClick={() => onViewModeChange('row')}>
 									{t('home.viewRow')}
+								</button>
+								<button type='button' className={'game-filters-chips__view-btn' + (viewMode === 'cover' ? ' is-active' : '')} onClick={() => onViewModeChange('cover')}>
+									{t('home.viewCover')}
 								</button>
 							</div>
 						)}
