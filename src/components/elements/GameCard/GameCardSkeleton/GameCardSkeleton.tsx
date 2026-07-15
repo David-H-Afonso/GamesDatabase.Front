@@ -24,9 +24,8 @@ const GameCardSkeleton: FC<Props> = ({ variant = 'card', index = 0 }) => {
 		)
 	}
 
-	// card and cover variants share the same skeleton shape
 	return (
-		<div className='gc-skeleton gc-skeleton--card' style={{ animationDelay: delay }}>
+		<div className={`gc-skeleton gc-skeleton--${variant === 'cover' ? 'cover' : 'card'}`} style={{ animationDelay: delay }}>
 			<div className='gc-skeleton__cover' />
 			<div className='gc-skeleton__body'>
 				<div className='gc-skeleton__bone gc-skeleton__bone--title' />
