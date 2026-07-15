@@ -13,6 +13,7 @@ import {
 	deleteDuplicateGame,
 	dismissDuplicateGames,
 	updateImageUrls,
+	copyCoverToHero,
 	clearImageCache,
 	selectiveExportGames,
 	selectiveImportGames,
@@ -187,6 +188,13 @@ describe('DataExportService', () => {
 			mockFetch.mockResolvedValue({ totalGames: 10, updatedGames: 3 })
 			const result = await updateImageUrls()
 			expect(result.updatedGames).toBe(3)
+		})
+
+		it('copyCoverToHero calls POST without overwriting by default', async () => {
+			mockFetch.mockResolvedValue({ totalGames: 10, updatedGames: 4, skippedExistingHero: 6 })
+			const result = await copyCoverToHero()
+			expect(result.updatedGames).toBe(4)
+			expect(mockFetch).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({ method: 'POST', params: { overwrite: false } }))
 		})
 
 		it('clearImageCache calls POST', async () => {

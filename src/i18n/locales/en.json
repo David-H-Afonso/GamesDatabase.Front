@@ -660,7 +660,13 @@
 			"instrNote5": "<strong>Colors:</strong> Hexadecimal format with # (e.g. #2a475e)",
 			"instrNote6": "<strong>Score:</strong> Calculated automatically, no need to include it in the CSV",
 			"instrNote7": "<strong>Boolean values:</strong> True/False for IsActive, IsDefault, etc.",
-			"imageUrlsResult": "Updated {{updated}} of {{total}} games. Skipped: {{skipped}}. Already correct: {{correct}}. No images found: {{noImages}}."
+			"imageUrlsResult": "Updated {{updated}} of {{total}} games. Skipped: {{skipped}}. Already correct: {{correct}}. No images found: {{noImages}}.",
+			"copyCoverToHero": "Copy Cover to Hero",
+			"copyCoverToHeroRunning": "Copying...",
+			"copyCoverToHeroConfirmTitle": "Confirm image repair",
+			"copyCoverToHeroConfirm": "This action will copy Cover to Hero for your user's games that have Cover and do not have Hero. It does not modify games that already have Hero. Use it only to repair legacy data.",
+			"copyCoverToHeroResult": "Copied Cover to Hero in {{updated}} of {{total}} games. No Cover: {{noCover}}. Already had Hero: {{existingHero}}. Already correct: {{correct}}.",
+			"copyCoverToHeroError": "Error copying Cover to Hero"
 		},
 		"audit": {
 			"title": "Audit",

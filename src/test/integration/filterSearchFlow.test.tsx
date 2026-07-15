@@ -120,6 +120,7 @@ vi.mock('@/environments', () => ({
 				analyzeFolders: '/DataExport/analyze-folders',
 				analyzeDuplicateGames: '/DataExport/analyze-duplicate-games',
 				updateImageUrls: '/DataExport/update-image-urls',
+				copyCoverToHero: '/DataExport/copy-cover-to-hero',
 				clearImageCache: '/DataExport/clear-image-cache',
 			},
 		},

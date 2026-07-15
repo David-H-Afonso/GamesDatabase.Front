@@ -13,6 +13,7 @@ import {
 	dismissDuplicateGames,
 	type DatabaseDuplicateGameDetails,
 	updateImageUrls,
+	copyCoverToHero,
 	clearImageCache,
 } from '@/services/DataExportService'
 import { useGames } from '@/hooks/useGames'
@@ -80,6 +81,7 @@ export const AdminDataExport: React.FC = () => {
 	const [customImageBaseUrl, setCustomImageBaseUrl] = useState('')
 	const [showInstructions, setShowInstructions] = useState(false)
 	const [applyingImageUrls, setApplyingImageUrls] = useState(false)
+	const [copyingCoverToHero, setCopyingCoverToHero] = useState(false)
 	const [selectedOrphanFolders, setSelectedOrphanFolders] = useState<string[]>([])
 	const [deletingFolders, setDeletingFolders] = useState<string[]>([])
 	const [expandedDuplicateGroups, setExpandedDuplicateGroups] = useState<string[]>([])
@@ -485,6 +487,32 @@ Statistics:
 		}
 	}
 
+	const handleCopyCoverToHero = async () => {
+		const confirmed = await askConfirm(t('admin.dataExport.copyCoverToHeroConfirmTitle'), t('admin.dataExport.copyCoverToHeroConfirm'))
+		if (!confirmed) return
+
+		try {
+			setCopyingCoverToHero(true)
+			const result = await copyCoverToHero(false)
+			showMessage(
+				t('admin.dataExport.copyCoverToHeroResult', {
+					updated: result.updatedGames,
+					total: result.totalGames,
+					noCover: result.skippedNoCover,
+					existingHero: result.skippedExistingHero,
+					correct: result.alreadyCorrect,
+				}),
+				'success'
+			)
+			await refreshGames(filters)
+		} catch (error) {
+			console.error('Copy Cover to Hero error:', error)
+			showMessage(error instanceof Error ? error.message : t('admin.dataExport.copyCoverToHeroError'), 'error')
+		} finally {
+			setCopyingCoverToHero(false)
+		}
+	}
+
 	const renderDuplicateGroup = (group: DatabaseDuplicateGroup, idx: number) => {
 		const groupKey = getDuplicateGroupKey(group) || `group-${idx}`
 		const expanded = expandedDuplicateGroups.includes(groupKey)
@@ -780,6 +808,9 @@ Statistics:
 						</button>
 						<button className='btn btn-danger btn-large' onClick={handleClearImageCache} disabled={clearingCache}>
 							{clearingCache ? t('common.clearing') : t('admin.dataExport.clearImageCache')}
+						</button>
+						<button className='btn btn-danger btn-large' onClick={handleCopyCoverToHero} disabled={copyingCoverToHero}>
+							{copyingCoverToHero ? t('admin.dataExport.copyCoverToHeroRunning') : t('admin.dataExport.copyCoverToHero')}
 						</button>
 					</div>
 

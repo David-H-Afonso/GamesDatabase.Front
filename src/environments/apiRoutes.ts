@@ -73,6 +73,7 @@ export const apiRoutes = {
 		deleteDuplicateGame: (id: number) => `/DataExport/duplicate-games/${id}`,
 		dismissDuplicateGames: '/DataExport/duplicate-games/dismiss',
 		updateImageUrls: '/DataExport/update-image-urls',
+		copyCoverToHero: '/DataExport/copy-cover-to-hero',
 		clearImageCache: '/DataExport/clear-image-cache',
 	},
 
