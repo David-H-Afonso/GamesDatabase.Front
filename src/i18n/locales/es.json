@@ -663,13 +663,7 @@
 			"instrNote5": "<strong>Colores:</strong> Formato hexadecimal con # (ej: #2a475e)",
 			"instrNote6": "<strong>Score:</strong> Se calcula automáticamente, no es necesario incluirlo en el CSV",
 			"instrNote7": "<strong>Valores booleanos:</strong> True/False para IsActive, IsDefault, etc.",
-			"imageUrlsResult": "Actualizados {{updated}} de {{total}} juegos. Omitidos: {{skipped}}. Ya correctos: {{correct}}. Sin imágenes: {{noImages}}.",
-			"copyCoverToHero": "Copiar Cover a Hero",
-			"copyCoverToHeroRunning": "Copiando...",
-			"copyCoverToHeroConfirmTitle": "Confirmar reparación de imágenes",
-			"copyCoverToHeroConfirm": "Esta acción copiará Cover a Hero para los juegos de tu usuario que tienen Cover y no tienen Hero. No modifica juegos que ya tengan Hero. Úsala solo para reparar datos legacy.",
-			"copyCoverToHeroResult": "Cover copiado a Hero en {{updated}} de {{total}} juegos. Sin Cover: {{noCover}}. Ya tenían Hero: {{existingHero}}. Ya correctos: {{correct}}.",
-			"copyCoverToHeroError": "Error al copiar Cover a Hero"
+			"imageUrlsResult": "Actualizados {{updated}} de {{total}} juegos. Omitidos: {{skipped}}. Ya correctos: {{correct}}. Sin imágenes: {{noImages}}."
 		},
 		"audit": {
 			"title": "Auditoría",

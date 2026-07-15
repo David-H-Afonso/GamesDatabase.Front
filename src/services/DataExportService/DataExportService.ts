@@ -307,26 +307,6 @@ export const updateImageUrls = async (
 	})
 }
 
-export const copyCoverToHero = async (
-	overwrite = false
-): Promise<{
-	totalGames: number
-	updatedGames: number
-	skippedNoCover: number
-	skippedExistingHero: number
-	alreadyCorrect: number
-	message: string
-}> => {
-	const endpoint = environment.apiRoutes.dataExport.copyCoverToHero
-
-	return await customFetch(endpoint, {
-		method: 'POST',
-		params: { overwrite },
-		baseURL: environment.baseUrl,
-		timeout: environment.api?.timeout,
-	})
-}
-
 /**
  * Clears the image proxy cache (_proxy_cache directory) on the server.
  * @returns Result with count of deleted files
