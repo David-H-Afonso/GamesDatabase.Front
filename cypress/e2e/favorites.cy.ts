@@ -99,7 +99,7 @@ describe('Favorites journeys', () => {
 			expect(req.body.name).to.eq('Favoritos (nota)')
 			expect(req.body.configuration.filterGroups[0].filters[0]).to.deep.include({ field: 'Favorite', operator: 'Equals', value: true })
 			expect(req.body.configuration.sorting[0]).to.deep.include({ field: 'Favorite', direction: 'Descending', order: 1 })
-			expect(req.body.configuration.sorting[1]).to.deep.include({ field: 'EffectiveGrade', direction: 'Descending', order: 2 })
+			expect(req.body.configuration.sorting[1]).to.deep.include({ field: 'Grade', direction: 'Descending', order: 2 })
 			req.reply({ statusCode: 201, body: { id: 10, ...req.body } })
 		}).as('createFavoriteView')
 

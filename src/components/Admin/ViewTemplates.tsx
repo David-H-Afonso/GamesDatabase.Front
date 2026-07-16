@@ -55,7 +55,7 @@ const VIEW_TEMPLATES: ViewTemplate[] = [
 				sortMode === 'released'
 					? { field: SortField.EffectiveReleased, direction: SortDirection.Descending, order: 2 }
 					: sortMode === 'grade'
-						? { field: SortField.EffectiveGrade, direction: SortDirection.Descending, order: 2 }
+						? { field: SortField.Grade, direction: SortDirection.Descending, order: 2 }
 						: { field: SortField.Name, direction: SortDirection.Ascending, order: 2 }
 
 			return {
