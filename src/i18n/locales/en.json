@@ -392,6 +392,7 @@
 				}
 			},
 			"templates": {
+				"favorites": { "name": "Favorites", "desc": "Games marked as favorites. You can sort after favorites by name, release date, or grade." },
 				"goty": { "name": "GOTY", "desc": "Games released in the selected year that you played or replayed that year. Sorted by relevant grade." },
 				"played-year": { "name": "Played Year", "desc": "All games you started or finished in the selected year, including replays. Sort by relevant date or relevant grade." },
 				"best-score": { "name": "Best Score", "desc": "Games ranked by auto-generated score, highest first." },
@@ -875,7 +876,9 @@
 			"providerIcon": "{{provider}} icon",
 			"steamPerfect": "All Steam achievements completed",
 			"fullCompletionTitle": "Game 100% completed",
-			"scoreEmpty": "No score"
+			"scoreEmpty": "No score",
+			"markFavorite": "Mark as favorite",
+			"removeFavorite": "Remove from favorites"
 		},
 		"details": {
 			"title": "Game details: {{name}}",
@@ -899,6 +902,7 @@
 			"fieldHero": "Hero image",
 			"fieldCover": "Cover art",
 			"fieldCheaper": "Cheaper",
+			"fieldFavorite": "Favorite",
 			"fieldKeyUrl": "Key URL",
 			"fieldComment": "Comment",
 			"manuallyCompleted": "Achievements",
@@ -933,6 +937,7 @@
 			"selectCriticLogo": "Use default",
 			"selectPlayWith": "Select options",
 			"selectCheaper": "Not set",
+			"selectFavorite": "Select favorite state",
 			"criticDefault": "Default",
 			"criticMetacritic": "Metacritic",
 			"criticOpenCritic": "OpenCritic",
@@ -1128,6 +1133,9 @@
 			"allPrices": "All Prices",
 			"cheaperByKey": "Cheaper by Key",
 			"cheaperInStore": "Cheaper in Store",
+			"favorite": "Favorite",
+			"onlyFavorites": "Favorites",
+			"withoutFavorites": "Not favorites",
 			"withSteam": "Linked to Steam",
 			"withoutSteam": "Not linked to Steam",
 			"duration": "Duration",
@@ -1344,10 +1352,10 @@
 			"perModeCustom": "Custom Value",
 			"perModeAsStored": "As Stored",
 			"customClearedExportDesc1": "Clears personal fields (",
-			"customClearedExportFields": "Started, Finished, Grade, Comment, Status, Play With",
+			"customClearedExportFields": "Started, Finished, Grade, Comment, Status, Play With, Manual Playtime, Favorite",
 			"customClearedExportDesc2": ") and keeps all other fields as stored. Useful for sharing a clean copy.",
 			"customClearedImportDesc1": "Ignores personal fields from the CSV (",
-			"customClearedImportFields": "Started, Finished, Grade, Comment, Status, Play With",
+			"customClearedImportFields": "Started, Finished, Grade, Comment, Status, Play With, Manual Playtime, Favorite",
 			"customClearedImportDesc2": ") and keeps all other values as imported. Status falls back to ",
 			"customClearedImportFallback": "Not Fulfilled",
 			"customClearedImportDesc3": ".",
@@ -1385,7 +1393,8 @@
 				"steamPlaytimeForever": "Steam Playtime (total minutes)",
 				"steamPlaytime2Weeks": "Steam Playtime (2 weeks, minutes)",
 				"steamLastSynced": "Steam Last Sync",
-				"manualPlaytimeMinutes": "Manual Playtime (minutes)"
+				"manualPlaytimeMinutes": "Manual Playtime (minutes)",
+				"favorite": "Favorite"
 			}
 		},
 		"view": "View",
@@ -1409,6 +1418,7 @@
 			"grade": "Grade",
 			"years": "Years",
 			"price": "Price",
+			"favorite": "Favorite",
 			"withSteam": "Linked to Steam",
 			"withoutSteam": "Not linked to Steam",
 			"duration": "Duration",
@@ -1442,6 +1452,7 @@
 			"fieldUpdatedAt": "Last Modified",
 			"fieldSteamAppId": "Steam AppID",
 			"fieldSteamPlaytime": "Played hours",
+			"fieldFavorite": "Favorite",
 			"opEquals": "Equals",
 			"opNotEquals": "Not equals",
 			"opContains": "Contains",

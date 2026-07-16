@@ -98,12 +98,27 @@ Cypress.Commands.add('mockApiRoutes', () => {
 
 	// Catalog (active lists)
 	cy.fixture('catalog.json').then((catalog) => {
-		cy.intercept('GET', `${API}/gamestatus/active`, catalog.statuses).as('getStatuses')
+		const paged = (data: unknown[]) => ({
+			data,
+			page: 1,
+			pageSize: 200,
+			totalCount: data.length,
+			totalPages: 1,
+			hasNextPage: false,
+			hasPreviousPage: false,
+		})
+
+		cy.intercept('GET', `${API}/gamestatus*`, paged(catalog.statuses)).as('getAllStatuses')
 		cy.intercept('GET', `${API}/gamestatus/special`, catalog.specialStatuses).as('getSpecialStatuses')
+		cy.intercept('GET', `${API}/gamestatus/active`, catalog.statuses).as('getStatuses')
+		cy.intercept('GET', `${API}/gameplatforms*`, paged(catalog.platforms)).as('getAllPlatforms')
 		cy.intercept('GET', `${API}/gameplatforms/active`, catalog.platforms).as('getPlatforms')
 	})
+	cy.intercept('GET', `${API}/gameplaywith*`, { data: [], page: 1, pageSize: 200, totalCount: 0, totalPages: 1, hasNextPage: false, hasPreviousPage: false }).as('getAllPlayWith')
 	cy.intercept('GET', `${API}/gameplaywith/active`, []).as('getPlayWith')
+	cy.intercept('GET', `${API}/gameplayedstatus*`, { data: [], page: 1, pageSize: 200, totalCount: 0, totalPages: 1, hasNextPage: false, hasPreviousPage: false }).as('getAllPlayedStatus')
 	cy.intercept('GET', `${API}/gameplayedstatus/active`, []).as('getPlayedStatus')
+	cy.intercept('GET', `${API}/gamereplaytypes*`, { data: [], page: 1, pageSize: 200, totalCount: 0, totalPages: 1, hasNextPage: false, hasPreviousPage: false }).as('getAllReplayTypes')
 	cy.intercept('GET', `${API}/gamereplaytypes/active`, []).as('getReplayTypes')
 
 	// Game views — must return an array, NOT a paged object

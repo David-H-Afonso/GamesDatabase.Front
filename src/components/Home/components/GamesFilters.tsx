@@ -228,6 +228,19 @@ const GamesFilters: React.FC<Props> = ({ value, onChange, isOpen = true, onClear
 			</select>
 
 			<select
+				aria-label='Favorite filter'
+				value={value.favorite === true ? 'true' : value.favorite === false ? 'false' : ''}
+				onChange={(e) => {
+					const val = e.target.value
+					update({ favorite: val === '' ? undefined : val === 'true' })
+				}}
+				className='gf-select'>
+				<option value=''>All Favorites</option>
+				<option value='true'>Favorites</option>
+				<option value='false'>Not Favorites</option>
+			</select>
+
+			<select
 				aria-label='Duration filter'
 				value={value.missingDuration ?? ''}
 				onChange={(e) => update({ missingDuration: (e.target.value || undefined) as any })}

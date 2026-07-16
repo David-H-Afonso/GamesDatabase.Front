@@ -53,6 +53,7 @@ export const FilterField = {
 	Logo: 'Logo',
 	Hero: 'Hero',
 	Cover: 'Cover',
+	Favorite: 'Favorite',
 	// Campos de rejugadas
 	ReplayStarted: 'ReplayStarted',
 	ReplayFinished: 'ReplayFinished',
@@ -91,6 +92,7 @@ export const SortField = {
 	CreatedAt: 'CreatedAt',
 	UpdatedAt: 'UpdatedAt',
 	SteamPlaytimeForever: 'SteamPlaytimeForever',
+	Favorite: 'Favorite',
 	Id: 'Id',
 } as const
 

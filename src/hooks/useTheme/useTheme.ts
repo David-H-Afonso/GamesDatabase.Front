@@ -24,8 +24,8 @@ export const useTheme = () => {
 			}
 
 			const savedView = localStorage.getItem('viewMode')
-			if (savedView === 'default' || savedView === 'goty2025' || savedView === 'goal2025') {
-				dispatch(setViewMode(savedView as any))
+			if (savedView) {
+				dispatch(setViewMode(savedView))
 			}
 		}
 	}, [dispatch])

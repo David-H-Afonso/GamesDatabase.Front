@@ -18,6 +18,7 @@
 			"finished": "2023-02-15",
 			"playWithIds": [],
 			"playWithNames": [],
+			"favorite": false,
 			"logo": null,
 			"cover": null,
 			"comment": ""
@@ -37,6 +38,7 @@
 			"finished": null,
 			"playWithIds": [],
 			"playWithNames": [],
+			"favorite": true,
 			"logo": null,
 			"cover": null,
 			"comment": ""
@@ -56,6 +58,7 @@
 			"finished": null,
 			"playWithIds": [],
 			"playWithNames": [],
+			"favorite": false,
 			"logo": null,
 			"cover": null,
 			"comment": ""

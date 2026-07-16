@@ -75,6 +75,7 @@ const FIELD_TO_UPDATE_KEY: Record<string, string> = {
 	IsCheaperByKey: 'isCheaperByKey',
 	KeyStoreUrl: 'keyStoreUrl',
 	ManualPlaytimeMinutes: 'manualPlaytimeMinutes',
+	Favorite: 'favorite',
 }
 
 const NULL_MARKERS = new Set(['', '—', '-', 'null', 'undefined'])

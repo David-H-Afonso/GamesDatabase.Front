@@ -1,6 +1,7 @@
 import type { Game } from '@/models/api/Game'
-import type { CSSProperties } from 'react'
+import type { CSSProperties, MouseEvent } from 'react'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useAppSelector } from '@/store/hooks'
 import OptimizedImage from '../../OptimizedImage/OptimizedImage'
 import './CoverView.scss'
@@ -13,10 +14,11 @@ interface CoverViewProps {
 	index?: number
 	gameStatusColor?: string
 	playWithColors?: (string | undefined)[]
-	onFieldUpdate?: (gameId: number, field: string, value: number | number[] | undefined) => Promise<void>
+	onFieldUpdate?: (gameId: number, field: string, value: number | number[] | boolean | undefined) => Promise<void>
 }
 
 const CoverView = ({ game, openDetails, isSelected = false, onSelect, index = 0, gameStatusColor, playWithColors = [], onFieldUpdate }: CoverViewProps) => {
+	const { t } = useTranslation()
 	const isPriority = index < 8
 	const hasPerfectCompletion = game.completion === 100 || Boolean(game.steamAchievementsUnlocked && game.steamAchievementsUnlocked === game.steamAchievementsTotal)
 	const [coverFailed, setCoverFailed] = useState(false)
@@ -37,6 +39,12 @@ const CoverView = ({ game, openDetails, isSelected = false, onSelect, index = 0,
 		void onFieldUpdate?.(game.id, 'playWithIds', next)
 	}
 
+	const toggleFavorite = (event: MouseEvent<HTMLButtonElement>) => {
+		event.preventDefault()
+		event.stopPropagation()
+		void onFieldUpdate?.(game.id, 'favorite', !game.favorite)
+	}
+
 	return (
 		<article className={`game-cover-view ${isSelected ? 'is-selected' : ''}`} onClick={() => openDetails(game)} onMouseLeave={() => setActiveEditor(null)}>
 			<label className='game-cover-view__select' onClick={(event) => event.stopPropagation()}>
@@ -44,6 +52,16 @@ const CoverView = ({ game, openDetails, isSelected = false, onSelect, index = 0,
 			</label>
 
 			<div className='game-cover-view__art-frame'>
+				<button
+					type='button'
+					className={'game-cover-view__favorite' + (game.favorite ? ' is-active' : '')}
+					onClick={toggleFavorite}
+					aria-pressed={game.favorite}
+					aria-label={game.favorite ? t('game.card.removeFavorite') : t('game.card.markFavorite')}
+					title={game.favorite ? t('game.card.removeFavorite') : t('game.card.markFavorite')}
+					disabled={!onFieldUpdate}>
+					{game.favorite ? '★' : '☆'}
+				</button>
 				{artSrc ? (
 					<OptimizedImage
 						src={artSrc}

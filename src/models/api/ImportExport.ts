@@ -30,6 +30,7 @@ export type ConfigurableGameProperty =
 	| 'cover'
 	| 'isCheaperByKey'
 	| 'keyStoreUrl'
+	| 'favorite'
 	| 'steamAppId'
 	| 'steamPlaytimeForever'
 	| 'steamPlaytime2Weeks'
@@ -132,6 +133,7 @@ export const GAME_PROPERTY_FIELDS: PropertyFieldMeta[] = [
 	{ key: 'cover', label: 'Cover Art URL', inputType: 'none', canCleanOnImport: true, canCustomOnImport: false, canCleanOnExport: true },
 	{ key: 'isCheaperByKey', label: 'Cheaper by Key', inputType: 'boolean', canCleanOnImport: true, canCustomOnImport: true, canCleanOnExport: true },
 	{ key: 'keyStoreUrl', label: 'Key Store URL', inputType: 'text', canCleanOnImport: true, canCustomOnImport: true, canCleanOnExport: true },
+	{ key: 'favorite', label: 'Favorite', inputType: 'boolean', canCleanOnImport: true, canCustomOnImport: true, canCleanOnExport: true },
 	{ key: 'steamAppId', label: 'Steam AppID', inputType: 'number', canCleanOnImport: true, canCustomOnImport: true, canCleanOnExport: true },
 	{ key: 'steamPlaytimeForever', label: 'Steam Playtime (total minutes)', inputType: 'number', canCleanOnImport: true, canCustomOnImport: true, canCleanOnExport: true },
 	{ key: 'steamPlaytime2Weeks', label: 'Steam Playtime (2 weeks)', inputType: 'number', canCleanOnImport: true, canCustomOnImport: true, canCleanOnExport: true },

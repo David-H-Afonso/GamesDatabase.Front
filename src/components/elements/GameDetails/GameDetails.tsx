@@ -64,7 +64,6 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 		{ id: 1, name: t('game.details.cheaperKey'), color: undefined },
 		{ id: 2, name: t('game.details.cheaperStore'), color: undefined },
 	]
-
 	const panelRef = useClickOutside<HTMLDivElement>(() => {
 		handleClose()
 	})
@@ -166,6 +165,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 			comment: game.comment ?? '',
 			isCheaperByKey: game.isCheaperByKey ?? undefined,
 			keyStoreUrl: game.keyStoreUrl ?? '',
+			favorite: game.favorite ?? false,
 			manualPlaytimeMinutes: game.manualPlaytimeMinutes ?? undefined,
 			isManuallyCompleted: game.isManuallyCompleted ?? false,
 			steamAppId: game.steamAppId ?? undefined,
@@ -273,7 +273,7 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 			formik.setFieldValue(field as any, value)
 		}
 		// Handle required boolean fields
-		else if (field === 'isManuallyCompleted') {
+		else if (field === 'isManuallyCompleted' || field === 'favorite') {
 			payloadValue = Boolean(value)
 			formik.setFieldValue(field as any, payloadValue)
 		}
@@ -353,6 +353,18 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 							/>
 						</div>
 					)}
+					<button
+						type='button'
+						className={'game-details-favorite-toggle' + (game.favorite ? ' is-active' : '')}
+						onClick={(e) => {
+							e.stopPropagation()
+							void saveField('favorite', !game.favorite)
+						}}
+						aria-pressed={game.favorite}
+						aria-label={game.favorite ? t('game.card.removeFavorite') : t('game.card.markFavorite')}
+						title={game.favorite ? t('game.card.removeFavorite') : t('game.card.markFavorite')}>
+						{game.favorite ? '★' : '☆'}
+					</button>
 					{game.steamAppId && (
 						<button
 							className='game-details-cover-steam-refresh'
@@ -657,7 +669,6 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 										placeholder={t('game.details.selectCheaper')}
 									/>
 								</div>
-
 								{formik.values.isCheaperByKey !== undefined && (
 									<div className='game-details-content-infoList-item'>
 										<h3>{t('game.details.fieldKeyUrl')}</h3>

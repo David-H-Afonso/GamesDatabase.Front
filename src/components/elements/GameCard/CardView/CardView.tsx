@@ -20,7 +20,7 @@ import { getCriticScoreUrl, resolveEffectiveProvider, type CriticProvider } from
 interface CardViewProps {
 	game: Game
 	openDetails: (game: Game) => void
-	onFieldUpdate?: (gameId: number, field: string, value: number | number[] | undefined) => Promise<void>
+	onFieldUpdate?: (gameId: number, field: string, value: number | number[] | boolean | undefined) => Promise<void>
 	playWithColors: (string | undefined)[]
 	gameStatusColor: string | undefined
 	platformColor: string | undefined
@@ -135,7 +135,7 @@ const CardView: FC<CardViewProps> = (props) => {
 		setActiveSelector(nextSelector)
 	}
 
-	const handleFieldUpdate = async (field: string, value: number | number[] | undefined) => {
+	const handleFieldUpdate = async (field: string, value: number | number[] | boolean | undefined) => {
 		if (onFieldUpdate) {
 			await onFieldUpdate(game.id, field, value)
 		}
@@ -155,6 +155,12 @@ const CardView: FC<CardViewProps> = (props) => {
 		if (onSelect) {
 			onSelect(game.id, e.target.checked)
 		}
+	}
+
+	const handleFavoriteToggle = async (e: React.MouseEvent<HTMLButtonElement>) => {
+		e.preventDefault()
+		e.stopPropagation()
+		await handleFieldUpdate('favorite', !game.favorite)
 	}
 
 	const hasPriceComparison = showPriceComparisonIcon && game.isCheaperByKey !== undefined && game.isCheaperByKey !== null
@@ -189,6 +195,16 @@ const CardView: FC<CardViewProps> = (props) => {
 			}}>
 			<div className='game-card-view-container-hideOverflow'>
 				<div className='game-card-header'>
+					<button
+						type='button'
+						className={'game-card-favorite-toggle' + (game.favorite ? ' is-active' : '')}
+						onClick={handleFavoriteToggle}
+						aria-pressed={game.favorite}
+						aria-label={game.favorite ? t('game.card.removeFavorite') : t('game.card.markFavorite')}
+						title={game.favorite ? t('game.card.removeFavorite') : t('game.card.markFavorite')}
+					>
+						{game.favorite ? '★' : '☆'}
+					</button>
 					{heroSrc && (
 						<OptimizedImage
 							src={heroSrc}
@@ -400,6 +416,7 @@ export default memo(CardView, (prevProps, nextProps) => {
 	return (
 		prevProps.game.id === nextProps.game.id &&
 		prevProps.game.updatedAt === nextProps.game.updatedAt &&
+		prevProps.game.favorite === nextProps.game.favorite &&
 		prevProps.game.logo === nextProps.game.logo &&
 	prevProps.game.hero === nextProps.game.hero &&
 	prevProps.game.cover === nextProps.game.cover &&

@@ -13,7 +13,7 @@ import { getCriticScoreUrl, resolveEffectiveProvider, type CriticProvider } from
 interface RowViewProps {
 	game: Game
 	openDetails: (game: Game) => void
-	onFieldUpdate?: (gameId: number, field: string, value: number | number[] | undefined) => Promise<void>
+	onFieldUpdate?: (gameId: number, field: string, value: number | number[] | boolean | undefined) => Promise<void>
 	playWithColors: (string | undefined)[]
 	gameStatusColor: string | undefined
 	platformColor: string | undefined
@@ -121,7 +121,7 @@ const RowView: FC<RowViewProps> = (props) => {
 		setActiveSelector((prev) => (prev === type ? null : type))
 	}
 
-	const handleFieldUpdate = async (field: string, value: number | number[] | undefined) => {
+	const handleFieldUpdate = async (field: string, value: number | number[] | boolean | undefined) => {
 		if (onFieldUpdate) await onFieldUpdate(game.id, field, value)
 		setActiveSelector(null)
 	}
@@ -377,5 +377,5 @@ const RowView: FC<RowViewProps> = (props) => {
 
 // Memoize RowView to prevent unnecessary re-renders
 export default memo(RowView, (prevProps, nextProps) => {
-	return prevProps.game.id === nextProps.game.id && prevProps.game.updatedAt === nextProps.game.updatedAt && prevProps.isSelected === nextProps.isSelected
+	return prevProps.game.id === nextProps.game.id && prevProps.game.updatedAt === nextProps.game.updatedAt && prevProps.game.favorite === nextProps.game.favorite && prevProps.isSelected === nextProps.isSelected
 })

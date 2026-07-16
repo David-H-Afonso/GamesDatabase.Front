@@ -128,15 +128,14 @@ describe('useTheme', () => {
 		expect(['card', 'row', 'cover']).toContain(result.current.cardStyle)
 	})
 
-	it('ignores invalid viewMode value from localStorage', () => {
-		localStorage.setItem('viewMode', 'invalid-mode')
+	it('reads custom viewMode values from localStorage', () => {
+		localStorage.setItem('viewMode', 'Favoritos')
 
 		const { result } = renderHook(() => useTheme(), {
 			wrapper: createWrapperWithStore(store),
 		})
 
-		// viewMode should remain at a valid value
-		expect(['default', 'goty2025', 'goal2025', 'noStartedByScore']).toContain(result.current.viewMode)
+		expect(result.current.viewMode).toBe('Favoritos')
 	})
 
 	// ── System preference fallback ─────────────────────────────────────────────

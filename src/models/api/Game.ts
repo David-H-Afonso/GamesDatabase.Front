@@ -27,6 +27,7 @@ export interface Game {
 	updatedAt?: string // ISO date string - when the game was last modified
 	isCheaperByKey?: boolean // true if game is cheaper by key, false if cheaper in official store
 	keyStoreUrl?: string // URL to key store (only if isCheaperByKey is true)
+	favorite: boolean
 	steamAppId?: number
 	steamPlaytimeForever?: number // minutes
 	steamPlaytime2Weeks?: number // minutes
@@ -64,6 +65,7 @@ export interface GameCreateDto {
 	cover?: string
 	isCheaperByKey?: boolean
 	keyStoreUrl?: string
+	favorite?: boolean
 	steamAppId?: number
 	manualPlaytimeMinutes?: number
 	isManuallyCompleted?: boolean
@@ -80,6 +82,7 @@ export interface BulkUpdateGameDto {
 	playWithIds?: number[]
 	playedStatusId?: number
 	isCheaperByKey?: boolean
+	favorite?: boolean
 }
 
 export interface BulkUpdateResult {
@@ -136,6 +139,8 @@ export interface GameQueryParameters extends QueryParameters {
 	excludeStatusIds?: number[]
 	// Filter by price comparison
 	isCheaperByKey?: boolean
+	// Filter by favorites
+	favorite?: boolean
 	// Show incomplete games (Not Fulfilled, no hero, no logo, or no platform)
 	showIncomplete?: boolean
 	// Filter by critic provider

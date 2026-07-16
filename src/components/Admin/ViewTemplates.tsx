@@ -33,6 +33,52 @@ const currentYear = new Date().getFullYear()
 
 const VIEW_TEMPLATES: ViewTemplate[] = [
 	{
+		id: 'favorites',
+		name: 'Favoritos',
+		description: 'Juegos marcados como favoritos. Puedes ordenar después de favoritos por nombre, salida o nota.',
+		icon: <StarIcon aria-hidden='true' />,
+		params: [
+			{
+				key: 'sortMode',
+				label: 'Orden secundario',
+				type: 'select',
+				defaultValue: 'name',
+				options: [
+					{ value: 'name', label: 'Nombre' },
+					{ value: 'released', label: 'Fecha de salida' },
+					{ value: 'grade', label: 'Nota' },
+				],
+			},
+		],
+		generate: ({ sortMode }) => {
+			const secondarySort =
+				sortMode === 'released'
+					? { field: SortField.EffectiveReleased, direction: SortDirection.Descending, order: 2 }
+					: sortMode === 'grade'
+						? { field: SortField.EffectiveGrade, direction: SortDirection.Descending, order: 2 }
+						: { field: SortField.Name, direction: SortDirection.Ascending, order: 2 }
+
+			return {
+				name: `Favoritos (${sortMode === 'released' ? 'salida' : sortMode === 'grade' ? 'nota' : 'nombre'})`,
+				isPublic: true,
+				configuration: {
+					filterGroups: [
+						{
+							filters: [{ field: FilterField.Favorite, operator: FilterOperator.Equals, value: true }],
+							combineWith: CombineWith.And,
+						},
+					],
+					groupCombineWith: CombineWith.And,
+					sorting: [
+						{ field: SortField.Favorite, direction: SortDirection.Descending, order: 1 },
+						secondarySort,
+						...(sortMode === 'name' ? [] : [{ field: SortField.Name, direction: SortDirection.Ascending, order: 3 }]),
+					],
+				},
+			}
+		},
+	},
+	{
 		id: 'goty',
 		name: 'GOTY',
 		description: 'Juegos lanzados en el año seleccionado que hayas jugado o rejugado ese año. Ordenados por nota relevante.',

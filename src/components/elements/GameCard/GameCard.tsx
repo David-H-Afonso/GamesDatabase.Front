@@ -43,7 +43,7 @@ const GameCardComponent: FC<Props> = (props) => {
 	// Get array of colors for PlayWith options
 	const playWithColors = gamePlayWiths.map((pw) => pw.color)
 
-	const handleFieldUpdate = async (gameId: number, field: string, value: number | number[] | undefined) => {
+	const handleFieldUpdate = async (gameId: number, field: string, value: number | number[] | boolean | undefined) => {
 		try {
 			const payload = typeof value === 'undefined' ? null : value
 			await updateGameById(gameId, { [field]: payload } as any)

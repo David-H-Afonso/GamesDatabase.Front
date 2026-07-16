@@ -325,6 +325,11 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 							return out
 						}
 
+						if (f.field === FilterField.Favorite) {
+							out.value = f.value === true || f.value === 'true'
+							return out
+						}
+
 						// non-selector fields: if operator expects array (In/NotIn)
 						if (f.operator === FilterOperator.In || f.operator === FilterOperator.NotIn) {
 							if (!Array.isArray(f.value)) {
@@ -385,6 +390,7 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 		{ value: FilterField.Critic, label: t('game.filters.fieldCritic') },
 		{ value: FilterField.SteamAppId, label: t('game.filters.fieldSteamAppId') },
 		{ value: FilterField.SteamPlaytimeForever, label: t('game.filters.fieldSteamPlaytime') },
+		{ value: FilterField.Favorite, label: t('game.filters.fieldFavorite') },
 		{ value: FilterField.Description, label: t('game.filters.fieldDescription') },
 		{ value: FilterField.Comment, label: t('game.filters.fieldComment') },
 		{ value: 'ReplayGroup', label: t('game.filters.fieldReplay') },
@@ -438,6 +444,14 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 			FilterField.ReplayReleased,
 		]
 		const DATETIME_FIELDS = [FilterField.CreatedAt, FilterField.UpdatedAt]
+		const BOOLEAN_FIELDS = [FilterField.Favorite]
+
+		if (BOOLEAN_FIELDS.includes(field as any)) {
+			return [
+				{ value: FilterOperator.Equals, label: t('game.filters.opEquals') },
+				{ value: FilterOperator.NotEquals, label: t('game.filters.opNotEquals') },
+			]
+		}
 
 		// Text field operators
 		if (TEXT_FIELDS.includes(field as any)) {
@@ -506,6 +520,7 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 		{ value: SortField.CreatedAt, label: t('game.filters.fieldCreatedAt') },
 		{ value: SortField.UpdatedAt, label: t('game.filters.fieldUpdatedAt') },
 		{ value: SortField.SteamPlaytimeForever, label: t('game.filters.fieldSteamPlaytime') },
+		{ value: SortField.Favorite, label: t('game.filters.fieldFavorite') },
 	]
 
 	const REPLAY_FIELDS = [FilterField.ReplayStarted, FilterField.ReplayFinished, FilterField.ReplayReleased, FilterField.ReplayGrade, FilterField.ReplayTypeId]
@@ -623,6 +638,15 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 			}
 
 			return <input type='datetime-local' value={value} onChange={(e) => updateFilter(groupIndex, filterIndex, 'value', e.target.value)} />
+		}
+
+		if (filter.field === FilterField.Favorite) {
+			return (
+				<select value={String(filter.value ?? true)} onChange={(e) => updateFilter(groupIndex, filterIndex, 'value', e.target.value === 'true')}>
+					<option value='true'>{t('common.yes')}</option>
+					<option value='false'>{t('common.no')}</option>
+				</select>
+			)
 		}
 
 		// Default text input

@@ -392,6 +392,7 @@
 				}
 			},
 			"templates": {
+				"favorites": { "name": "Favoritos", "desc": "Juegos marcados como favoritos. Puedes ordenar después de favoritos por nombre, salida o nota." },
 				"goty": { "name": "GOTY", "desc": "Juegos lanzados en el año seleccionado que hayas jugado o rejugado ese año. Ordenados por nota relevante." },
 				"played-year": {
 					"name": "Jugados en Año",
@@ -878,7 +879,9 @@
 			"providerIcon": "Ícono de {{provider}}",
 			"steamPerfect": "Todos los logros de Steam completados",
 			"fullCompletionTitle": "Juego completado al 100%",
-			"scoreEmpty": "Sin puntuación"
+			"scoreEmpty": "Sin puntuación",
+			"markFavorite": "Marcar como favorito",
+			"removeFavorite": "Quitar de favoritos"
 		},
 		"details": {
 			"title": "Detalles del juego: {{name}}",
@@ -902,6 +905,7 @@
 			"fieldHero": "Imagen hero",
 			"fieldCover": "Carátula",
 			"fieldCheaper": "Más barato",
+			"fieldFavorite": "Favorito",
 			"fieldKeyUrl": "URL de Key",
 			"fieldComment": "Comentario",
 			"manuallyCompleted": "Logros",
@@ -936,6 +940,7 @@
 			"selectCriticLogo": "Usar por defecto",
 			"selectPlayWith": "Seleccionar opciones",
 			"selectCheaper": "No establecido",
+			"selectFavorite": "Selecciona si es favorito",
 			"criticDefault": "Por defecto",
 			"criticMetacritic": "Metacritic",
 			"criticOpenCritic": "OpenCritic",
@@ -1131,6 +1136,9 @@
 			"allPrices": "Todos los precios",
 			"cheaperByKey": "Más barato con Key",
 			"cheaperInStore": "Más barato en tienda",
+			"favorite": "Favorito",
+			"onlyFavorites": "Favoritos",
+			"withoutFavorites": "No favoritos",
 			"withSteam": "Con Steam vinculado",
 			"withoutSteam": "Sin Steam vinculado",
 			"duration": "Duración",
@@ -1347,10 +1355,10 @@
 			"perModeCustom": "Valor personalizado",
 			"perModeAsStored": "Como guardado",
 			"customClearedExportDesc1": "Limpia los campos personales (",
-			"customClearedExportFields": "Iniciado, Terminado, Nota, Comentario, Estado, Play With",
+			"customClearedExportFields": "Iniciado, Terminado, Nota, Comentario, Estado, Play With, Tiempo manual, Favorito",
 			"customClearedExportDesc2": ") y mantiene el resto tal como está guardado. Útil para compartir una copia limpia.",
 			"customClearedImportDesc1": "Ignora los campos personales del CSV (",
-			"customClearedImportFields": "Iniciado, Terminado, Nota, Comentario, Estado, Play With",
+			"customClearedImportFields": "Iniciado, Terminado, Nota, Comentario, Estado, Play With, Tiempo manual, Favorito",
 			"customClearedImportDesc2": ") y mantiene el resto como importado. El estado vuelve a ",
 			"customClearedImportFallback": "Sin Cumplir",
 			"customClearedImportDesc3": ".",
@@ -1388,7 +1396,8 @@
 				"steamPlaytimeForever": "Tiempo jugado en Steam (total, minutos)",
 				"steamPlaytime2Weeks": "Tiempo jugado en Steam (2 semanas, minutos)",
 				"steamLastSynced": "Última sincronización de Steam",
-				"manualPlaytimeMinutes": "Tiempo jugado manual (minutos)"
+				"manualPlaytimeMinutes": "Tiempo jugado manual (minutos)",
+				"favorite": "Favorito"
 			}
 		},
 		"view": "Vista",
@@ -1412,6 +1421,7 @@
 			"grade": "Nota",
 			"years": "Años",
 			"price": "Precio",
+			"favorite": "Favorito",
 			"withSteam": "Con Steam vinculado",
 			"withoutSteam": "Sin Steam vinculado",
 			"duration": "Duración",
@@ -1445,6 +1455,7 @@
 			"fieldUpdatedAt": "Última modificación",
 			"fieldSteamAppId": "Steam AppID",
 			"fieldSteamPlaytime": "Horas jugadas",
+			"fieldFavorite": "Favorito",
 			"opEquals": "Igual a",
 			"opNotEquals": "No igual a",
 			"opContains": "Contiene",

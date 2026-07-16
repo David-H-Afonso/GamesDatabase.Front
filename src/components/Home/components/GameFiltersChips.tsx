@@ -29,7 +29,7 @@ interface Props {
 	onBulkExport?: () => void
 }
 
-type PopoverKey = 'platform' | 'playWith' | 'status' | 'playedStatus' | 'grades' | 'years' | 'replay' | 'duration' | 'steam' | 'price' | 'criticProvider' | 'excluded' | 'pageSize'
+type PopoverKey = 'platform' | 'playWith' | 'status' | 'playedStatus' | 'grades' | 'years' | 'replay' | 'duration' | 'steam' | 'price' | 'favorite' | 'criticProvider' | 'excluded' | 'pageSize'
 
 const SortDirectionButton: React.FC<{ descending: boolean; title: string; onToggle: () => void }> = ({ descending, title, onToggle }) => (
 	<button type='button' className={'game-filters-chips__sort-direction' + (descending ? ' is-descending' : '')} onClick={onToggle} title={title} aria-label={title}>
@@ -256,6 +256,11 @@ const GameFiltersChips: React.FC<Props> = ({
 		return filters.isCheaperByKey ? t('home.filters.cheaperByKey') : t('home.filters.cheaperByStore')
 	}
 
+	const favoriteLabel = () => {
+		if (filters.favorite === undefined || filters.favorite === null) return t('common.all')
+		return filters.favorite ? t('home.filters.onlyFavorites') : t('home.filters.withoutFavorites')
+	}
+
 	const steamLabel = () => {
 		if (filters.hasSteamApp === undefined || filters.hasSteamApp === null) return t('common.all')
 		return filters.hasSteamApp ? t('home.filters.withSteam') : t('home.filters.withoutSteam')
@@ -304,6 +309,7 @@ const GameFiltersChips: React.FC<Props> = ({
 			finishedYear: undefined,
 			includeReplayDates: undefined,
 			isCheaperByKey: undefined,
+			favorite: undefined,
 			showIncomplete: undefined,
 			hasSteamApp: undefined,
 			fullCompletion: undefined,
@@ -336,6 +342,7 @@ const GameFiltersChips: React.FC<Props> = ({
 			!!filters.finishedYear ||
 			filters.includeReplayDates === false ||
 			(filters.isCheaperByKey !== undefined && filters.isCheaperByKey !== null) ||
+			(filters.favorite !== undefined && filters.favorite !== null) ||
 			filters.showIncomplete === true ||
 			(filters.hasSteamApp !== undefined && filters.hasSteamApp !== null) ||
 			filters.fullCompletion === true ||
@@ -376,6 +383,8 @@ const GameFiltersChips: React.FC<Props> = ({
 				)
 			case 'price':
 				return filters.isCheaperByKey !== undefined && filters.isCheaperByKey !== null
+			case 'favorite':
+				return filters.favorite !== undefined && filters.favorite !== null
 			case 'steam':
 				return filters.hasSteamApp !== undefined && filters.hasSteamApp !== null
 			case 'duration':
@@ -505,6 +514,7 @@ const GameFiltersChips: React.FC<Props> = ({
 							<option value='createdat'>{t('home.filters.fieldCreatedAt')}</option>
 							<option value='updatedat'>{t('home.filters.fieldUpdatedAt')}</option>
 							<option value='steamPlaytimeForever'>{t('home.filters.fieldSteamPlaytime')}</option>
+							<option value='favorite'>{t('home.filters.fieldFavorite')}</option>
 						</select>
 						<SortDirectionButton
 							descending={!!filters.sortDescending}
@@ -608,6 +618,7 @@ const GameFiltersChips: React.FC<Props> = ({
 								<option value='createdat'>{t('home.filters.fieldCreatedAt')}</option>
 								<option value='updatedat'>{t('home.filters.fieldUpdatedAt')}</option>
 								<option value='steamPlaytimeForever'>{t('home.filters.fieldSteamPlaytime')}</option>
+								<option value='favorite'>{t('home.filters.fieldFavorite')}</option>
 							</select>
 							<SortDirectionButton
 								descending={!!filters.sortDescending}
@@ -653,6 +664,10 @@ const GameFiltersChips: React.FC<Props> = ({
 
 						<button type='button' className={'game-filters-chips__chip' + (hasActiveFilter('price') ? ' is-active' : '')} onClick={() => togglePopover('price')}>
 							{t('home.filters.price')}: <span>{priceLabel()}</span>
+						</button>
+
+						<button type='button' className={'game-filters-chips__chip' + (hasActiveFilter('favorite') ? ' is-active' : '')} onClick={() => togglePopover('favorite')}>
+							{t('home.filters.favorite')}: <span>{favoriteLabel()}</span>
 						</button>
 
 						<button type='button' className={'game-filters-chips__chip' + (hasActiveFilter('steam') ? ' is-active' : '')} onClick={() => togglePopover('steam')}>
@@ -1106,6 +1121,26 @@ const GameFiltersChips: React.FC<Props> = ({
 											className={'game-filters-chips__option' + (filters.hasSteamApp === false ? ' is-active' : '')}
 											onClick={() => setFilters({ hasSteamApp: false })}>
 											{t('home.filters.withoutSteam')}
+										</button>
+									</div>
+								</>
+							)}
+
+							{openPopover === 'favorite' && (
+								<>
+									<strong className='game-filters-chips__popover-title'>{t('home.filters.favorite')}</strong>
+									<div className='game-filters-chips__popover-options'>
+										<button
+											type='button'
+											className={'game-filters-chips__option' + (filters.favorite === undefined || filters.favorite === null ? ' is-active' : '')}
+											onClick={() => setFilters({ favorite: undefined })}>
+											{t('common.all')}
+										</button>
+										<button type='button' className={'game-filters-chips__option' + (filters.favorite === true ? ' is-active' : '')} onClick={() => setFilters({ favorite: true })}>
+											{t('home.filters.onlyFavorites')}
+										</button>
+										<button type='button' className={'game-filters-chips__option' + (filters.favorite === false ? ' is-active' : '')} onClick={() => setFilters({ favorite: false })}>
+											{t('home.filters.withoutFavorites')}
 										</button>
 									</div>
 								</>
