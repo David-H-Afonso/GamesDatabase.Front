@@ -711,48 +711,104 @@
 		}
 	}
 
+	@media (max-width: 1120px) {
+		padding: 14px;
+		overflow: hidden;
+
+		&__top {
+			display: grid;
+			grid-template-columns: 1fr;
+			align-items: stretch;
+			gap: 10px;
+		}
+
+		&__top-left {
+			display: grid;
+			grid-template-columns: minmax(0, 1fr) auto;
+			align-items: center;
+			gap: 10px;
+			width: 100%;
+			min-width: 0;
+		}
+
+		&__top-right {
+			display: grid;
+			grid-template-columns: minmax(180px, 300px) auto;
+			align-items: center;
+			justify-content: start;
+			gap: 10px;
+			width: 100%;
+			min-width: 0;
+		}
+
+		&__field {
+			min-width: 0;
+		}
+
+		&__field--inline {
+			min-width: 0;
+
+			input,
+			select {
+				min-width: 0;
+			}
+		}
+
+		&__input-label,
+		&__field--view label {
+			display: none;
+		}
+
+		&__input-search,
+		&__select-view {
+			width: 100%;
+			min-width: 0;
+			max-width: none;
+		}
+
+		&__field--sort {
+			gap: 6px;
+			justify-self: end;
+
+			.game-filters-chips__select-pill {
+				width: 176px;
+				min-width: 0;
+				max-width: none;
+			}
+		}
+
+		&__field--view {
+			width: 100%;
+		}
+
+		&__advanced-btn {
+			justify-self: start;
+		}
+	}
+
 	@media (max-width: 768px) {
-		padding: 12px 14px 14px;
+		padding: 12px;
 		gap: 10px;
+		margin-bottom: 22px;
 
 		&__input-pill,
 		&__select-pill {
 			min-width: 160px;
 		}
 
-		&__input-search {
-			min-width: 0;
-			max-width: 180px;
-		}
-
-		&__input-label {
-			display: none;
-		}
-
-		&__top {
-			align-items: center;
-		}
-
 		&__top-left {
-			flex: 1;
-			min-width: 0;
+			grid-template-columns: minmax(0, 1fr) auto;
+			gap: 8px;
 		}
 
 		&__top-right {
-			flex-shrink: 0;
+			grid-template-columns: minmax(0, 1fr) auto;
+			gap: 8px;
 		}
 
-		&__field {
-			input {
-				min-width: 0;
-			}
-		}
-
-		// Keep the view selector reachable in mobile as a compact, label-less control
-		&__field--view {
-			.game-filters-chips__select-view {
-				min-width: 0;
-				max-width: 150px;
+		&__field--sort {
+			.game-filters-chips__select-pill {
+				width: 130px;
 			}
 		}
 
@@ -767,12 +823,22 @@
 	}
 
 	@media (max-width: 508px) {
-		&__input-search {
-			max-width: 120px;
-		}
 		.game-filters-chips__select-pill {
-			min-width: 100px;
-			max-width: 50%;
+			min-width: 0;
+		}
+
+		&__advanced-btn {
+			padding: 8px;
+			min-width: 36px;
+			font-size: 16px;
+
+			&__text {
+				display: none;
+			}
+
+			&__icon {
+				display: inline;
+			}
 		}
 	}
 

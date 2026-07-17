@@ -369,8 +369,8 @@
 		max-width: 100%;
 
 		@media (max-width: 520px) {
-			--cover-card-width: 145px;
-			gap: 22px 14px;
+			--cover-card-width: min(165px, calc((100vw - 44px) / 2));
+			gap: 22px 12px;
 		}
 	}
 
