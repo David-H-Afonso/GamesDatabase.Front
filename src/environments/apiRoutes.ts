@@ -6,7 +6,9 @@ export const apiRoutes = {
 	/** Games endpoints */
 	games: {
 		base: '/games',
+		summary: '/games/summary',
 		byId: (id: number) => `/games/${id}`,
+		status: (id: number) => `/games/${id}/status`,
 		create: '/games',
 		update: (id: number) => `/games/${id}`,
 		delete: (id: number) => `/games/${id}`,
@@ -122,6 +124,10 @@ export const apiRoutes = {
 		update: (id: number) => `/users/${id}`,
 		delete: (id: number) => `/users/${id}`,
 		changePassword: (id: number) => `/users/${id}/password`,
+	},
+
+	householdIntegration: {
+		authorize: '/integrations/household/v1/authorize',
 	},
 
 	backupSchedule: {

@@ -1,6 +1,6 @@
 import { customFetch } from '@/utils/customFetch'
 import { environment } from '@/environments'
-import type { Game, GameCreateDto, GameUpdateDto, GameQueryParameters, PagedResult } from '@/models/api/Game'
+import type { Game, GameCreateDto, GameUpdateDto, GameQueryParameters, PagedResult, GameSummary, GameStatusPatchDto } from '@/models/api/Game'
 
 const BASE = environment.apiRoutes.games.base
 
@@ -16,12 +16,26 @@ export const getGames = async (params?: GameQueryParameters): Promise<PagedResul
 	})
 }
 
+/** Fetch the ownership-scoped summary exposed for server integrations. */
+export const getGamesSummary = async (): Promise<GameSummary> => {
+	return await customFetch<GameSummary>(environment.apiRoutes.games.summary, { method: 'GET', baseURL: environment.baseUrl })
+}
+
 /**
  * Fetch a single game by id.
  */
 export const getGameById = async (id: number): Promise<Game> => {
 	const endpoint = environment.apiRoutes.games.byId(id)
 	return await customFetch<Game>(endpoint, { method: 'GET', baseURL: environment.baseUrl })
+}
+
+/** Update only a game's status; the API records the change in history. */
+export const patchGameStatus = async (id: number, patch: GameStatusPatchDto): Promise<Game> => {
+	return await customFetch<Game>(environment.apiRoutes.games.status(id), {
+		method: 'PATCH',
+		body: patch,
+		baseURL: environment.baseUrl,
+	})
 }
 
 /**

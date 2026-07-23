@@ -1,6 +1,6 @@
 import { vi, describe, it, expect } from 'vitest'
 import { screen } from '@testing-library/react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useSearchParams } from 'react-router-dom'
 import { renderWithProviders } from '@/test/utils/renderWithProviders'
 import { ProtectedRoute } from './ProtectedRoute'
 
@@ -128,6 +128,26 @@ describe('ProtectedRoute', () => {
 		)
 		expect(screen.getByText('Login Page')).toBeInTheDocument()
 		expect(screen.queryByText('Protected')).not.toBeInTheDocument()
+	})
+
+	it('preserves the complete Household deep link in the login returnTo query', () => {
+		const LoginDestination = () => {
+			const [params] = useSearchParams()
+			return <div>{params.get('returnTo')}</div>
+		}
+		const deepLink = '/integrations/household/authorize?client_id=household&state=abc&scope=profile.read%20games.read'
+		renderWithProviders(
+			<Routes>
+				<Route
+					path='/integrations/household/authorize'
+					element={<ProtectedRoute><div>Consent</div></ProtectedRoute>}
+				/>
+				<Route path='/login' element={<LoginDestination />} />
+			</Routes>,
+			{ preloadedState: unauthenticatedState as any, route: deepLink }
+		)
+
+		expect(screen.getByText('/integrations/household/authorize?client_id=household&state=abc&scope=profile.read%20games.read')).toBeInTheDocument()
 	})
 
 	it('renders admin content when user is an admin and adminOnly is true', () => {

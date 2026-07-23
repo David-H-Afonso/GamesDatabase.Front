@@ -16,7 +16,8 @@ export const ProtectedRoute = ({ children, adminOnly = false }: ProtectedRoutePr
 
 	if (!isAuthenticated) {
 		// Redirect to login, preserving the intended destination
-		return <Navigate to='/login' state={{ from: location }} replace />
+		const returnTo = `${location.pathname}${location.search}`
+		return <Navigate to={`/login?${new URLSearchParams({ returnTo })}`} state={{ from: location }} replace />
 	}
 
 	if (adminOnly && !isAdmin) {

@@ -29,7 +29,11 @@ export const SteamCallback = () => {
 			const steamAvatarUrl = searchParams.get('steamAvatarUrl')
 
 			if (error) {
-				navigate('/login?steamError=' + encodeURIComponent(error), { replace: true })
+				const storedReturnTo = sessionStorage.getItem('householdAuthorizationReturnTo')
+				sessionStorage.removeItem('householdAuthorizationReturnTo')
+				const params = new URLSearchParams({ steamError: error })
+				if (storedReturnTo?.startsWith('/integrations/household/authorize')) params.set('returnTo', storedReturnTo)
+				navigate(`/login?${params}`, { replace: true })
 				return
 			}
 
@@ -51,10 +55,17 @@ export const SteamCallback = () => {
 				// The code expires in 5 minutes and is consumed on first use.
 				try {
 					await dispatch(steamLoginUser({ code })).unwrap()
-					if (!cancelled) navigate('/', { replace: true })
+					const storedReturnTo = sessionStorage.getItem('householdAuthorizationReturnTo')
+					sessionStorage.removeItem('householdAuthorizationReturnTo')
+					const returnTo = storedReturnTo?.startsWith('/integrations/household/authorize') ? storedReturnTo : '/'
+					if (!cancelled) navigate(returnTo, { replace: true })
 				} catch (err) {
 					const message = err instanceof Error ? err.message : String(err || 'steam_login_failed')
-					if (!cancelled) navigate('/login?steamError=' + encodeURIComponent(message), { replace: true })
+					const storedReturnTo = sessionStorage.getItem('householdAuthorizationReturnTo')
+					sessionStorage.removeItem('householdAuthorizationReturnTo')
+					const params = new URLSearchParams({ steamError: message })
+					if (storedReturnTo?.startsWith('/integrations/household/authorize')) params.set('returnTo', storedReturnTo)
+					if (!cancelled) navigate(`/login?${params}`, { replace: true })
 				}
 				return
 			}

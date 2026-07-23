@@ -1,0 +1,203 @@
+@use '@/assets/styles' as *;
+
+.household-consent {
+	min-height: 100vh;
+	display: grid;
+	place-items: center;
+	padding: clamp(1rem, 4vw, 3rem);
+	box-sizing: border-box;
+	color: var(--text-primary);
+	background:
+		radial-gradient(circle at 12% 12%, color-mix(in srgb, var(--primary) 18%, transparent), transparent 34rem),
+		linear-gradient(145deg, var(--bg-primary), var(--bg-secondary));
+}
+
+.household-consent__card {
+	width: min(100%, 42rem);
+	padding: clamp(1.5rem, 5vw, 2.75rem);
+	border: 1px solid var(--border);
+	border-radius: 1.25rem;
+	background: color-mix(in srgb, var(--surface) 94%, transparent);
+	box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.2);
+}
+
+.household-consent__brand {
+	display: flex;
+	align-items: center;
+	gap: 0.65rem;
+	margin-bottom: 1.75rem;
+	font-weight: 800;
+	letter-spacing: -0.04em;
+
+	span {
+		display: grid;
+		place-items: center;
+		width: 2.5rem;
+		height: 2.5rem;
+		border-radius: 0.75rem;
+		background: var(--primary);
+		color: #fff;
+	}
+
+	i {
+		width: 2.25rem;
+		height: 1px;
+		background: var(--border-hover);
+		position: relative;
+
+		&::before,
+		&::after {
+			content: '';
+			position: absolute;
+			top: -0.2rem;
+			width: 0.4rem;
+			height: 0.4rem;
+			border-radius: 50%;
+			background: var(--primary);
+		}
+
+		&::before { left: 0; }
+		&::after { right: 0; }
+	}
+}
+
+.household-consent__eyebrow {
+	margin: 0 0 0.65rem;
+	color: var(--primary);
+	font-size: 0.75rem;
+	font-weight: 800;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+}
+
+.household-consent__header,
+.household-consent__invalid {
+	h1 {
+		margin: 0;
+		font-size: clamp(1.65rem, 4vw, 2.35rem);
+		line-height: 1.12;
+		letter-spacing: -0.035em;
+	}
+
+	> p:not(.household-consent__eyebrow) {
+		margin: 1rem 0 0;
+		color: var(--text-secondary);
+		line-height: 1.6;
+	}
+}
+
+.household-consent__permissions {
+	margin: 2rem 0;
+	padding: 1.35rem;
+	border: 1px solid var(--border);
+	border-radius: 0.9rem;
+	background: var(--bg-secondary);
+
+	h2 {
+		margin: 0 0 1rem;
+		font-size: 0.82rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--text-secondary);
+	}
+
+	ul {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: grid;
+		gap: 1rem;
+	}
+
+	li {
+		display: grid;
+		grid-template-columns: 1.75rem 1fr;
+		gap: 0.8rem;
+		align-items: start;
+	}
+
+	strong,
+	small { display: block; }
+
+	strong { font-size: 0.95rem; }
+	small { margin-top: 0.2rem; color: var(--text-secondary); line-height: 1.45; }
+}
+
+.household-consent__check {
+	display: grid;
+	place-items: center;
+	width: 1.55rem;
+	height: 1.55rem;
+	border-radius: 50%;
+	background: color-mix(in srgb, var(--primary) 18%, transparent);
+	color: var(--primary);
+	font-weight: 800;
+}
+
+.household-consent__security-note {
+	display: grid;
+	grid-template-columns: 1rem 1fr;
+	gap: 0.75rem;
+	align-items: start;
+	color: var(--text-secondary);
+	font-size: 0.82rem;
+	line-height: 1.55;
+
+	span { color: var(--primary); }
+	p { margin: 0; }
+}
+
+.household-consent__error {
+	margin: 1rem 0 0;
+	padding: 0.8rem 1rem;
+	border-radius: 0.65rem;
+	background: color-mix(in srgb, #ef4444 14%, transparent);
+	color: #ef4444;
+	font-size: 0.9rem;
+}
+
+.household-consent__actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 0.75rem;
+	margin-top: 2rem;
+
+	button {
+		min-height: 2.8rem;
+		padding: 0.7rem 1.15rem;
+		border-radius: 0.7rem;
+		font: inherit;
+		font-weight: 750;
+		cursor: pointer;
+		transition: transform 150ms ease, background 150ms ease, opacity 150ms ease;
+
+		&:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 3px; }
+		&:not(:disabled):active { transform: translateY(1px); }
+		&:disabled { cursor: wait; opacity: 0.65; }
+	}
+}
+
+.household-consent__deny {
+	border: 1px solid var(--border-hover);
+	background: transparent;
+	color: var(--text-primary);
+}
+
+.household-consent__approve {
+	border: 1px solid var(--primary);
+	background: var(--primary);
+	color: #fff;
+}
+
+.household-consent__note { font-size: 0.9rem; }
+
+@media (max-width: 520px) {
+	.household-consent__actions {
+		flex-direction: column-reverse;
+		button { width: 100%; }
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.household-consent__actions button { transition: none; }
+}

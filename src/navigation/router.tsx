@@ -5,6 +5,8 @@ import Home from '@/components/Home/containers/Home'
 import { Login, ProtectedRoute, PublicRoute, SteamCallback } from '@/components/Auth'
 import { RouteError, NotFound } from '@/components/errors'
 import AdminFallback from './AdminFallback'
+import GameDeepLink from '@/components/Games/GameDeepLink'
+import HouseholdConsent from '@/components/Integrations/HouseholdConsent'
 
 const Admin = lazy(() => import('@/components/Admin/containers/Admin'))
 
@@ -40,6 +42,28 @@ export const router = createHashRouter([
 				</AppLayout>
 			</ProtectedRoute>
 		),
+	},
+	{
+		path: '/games/:id',
+		element: (
+			<ProtectedRoute>
+				<AppLayout>
+					<GameDeepLink />
+				</AppLayout>
+			</ProtectedRoute>
+		),
+		errorElement: <RouteError />,
+	},
+	{
+		path: '/integrations/household/authorize',
+		element: (
+			<ProtectedRoute>
+				<EmptyLayout>
+					<HouseholdConsent />
+				</EmptyLayout>
+			</ProtectedRoute>
+		),
+		errorElement: <RouteError />,
 	},
 	{
 		path: '/admin/*',

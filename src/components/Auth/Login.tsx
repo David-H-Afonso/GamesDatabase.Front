@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { loginUser, clearError } from '@/store/features/auth/authSlice'
@@ -12,6 +12,7 @@ import './Login.scss'
 export const Login = () => {
 	const { t } = useTranslation()
 	const navigate = useNavigate()
+	const location = useLocation()
 	const dispatch = useAppDispatch()
 	const [searchParams] = useSearchParams()
 
@@ -25,6 +26,11 @@ export const Login = () => {
 	const [showDefaultHint, setShowDefaultHint] = useState(true)
 	const [steamError, setSteamError] = useState<string | null>(null)
 	const passwordInputRef = useRef<HTMLInputElement>(null)
+	const routeState = location.state as { from?: { pathname?: string; search?: string } } | null
+	const queryReturnTo = searchParams.get('returnTo')
+	const stateReturnTo = routeState?.from?.pathname ? `${routeState.from.pathname}${routeState.from.search ?? ''}` : null
+	const requestedReturnTo = queryReturnTo ?? stateReturnTo
+	const returnTo = requestedReturnTo?.startsWith('/') && !requestedReturnTo.startsWith('//') ? requestedReturnTo : '/'
 
 	// Hide default hint if there are recent users
 	const hasRecentUsers = recentUsers.length > 0
@@ -38,9 +44,9 @@ export const Login = () => {
 	// Redirect if already authenticated
 	useEffect(() => {
 		if (isAuthenticated) {
-			navigate('/', { replace: true })
+			navigate(returnTo, { replace: true })
 		}
-	}, [isAuthenticated, navigate])
+	}, [isAuthenticated, navigate, returnTo])
 
 	// Clear error when component unmounts
 	useEffect(() => {
@@ -89,6 +95,9 @@ export const Login = () => {
 	}
 
 	const handleSteamLogin = () => {
+		if (returnTo.startsWith('/integrations/household/authorize')) {
+			sessionStorage.setItem('householdAuthorizationReturnTo', returnTo)
+		}
 		const frontendUrl = window.location.origin
 		const steamLoginUrl = `${environment.baseUrl}${environment.apiRoutes.steam.authLogin}?mode=login&frontend_url=${encodeURIComponent(frontendUrl)}`
 		window.location.href = steamLoginUrl

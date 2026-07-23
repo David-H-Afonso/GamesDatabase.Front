@@ -1,4 +1,4 @@
-export { getGames, getGameById, createGame, updateGame, deleteGame } from './GamesService'
+export { getGames, getGamesSummary, getGameById, patchGameStatus, createGame, updateGame, deleteGame } from './GamesService'
 
 export {
 	getGameStatuses,

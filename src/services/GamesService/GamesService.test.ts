@@ -1,4 +1,4 @@
-import { getGames, getGameById, createGame, updateGame, deleteGame, bulkUpdateGames } from './GamesService'
+import { getGames, getGamesSummary, getGameById, patchGameStatus, createGame, updateGame, deleteGame, bulkUpdateGames } from './GamesService'
 import { customFetch } from '@/utils/customFetch'
 
 vi.mock('@/utils/customFetch', () => ({
@@ -24,6 +24,20 @@ describe('GamesService', () => {
 		const result = await getGameById(1)
 		expect(mockFetch).toHaveBeenCalledWith('/games/1', expect.objectContaining({ method: 'GET' }))
 		expect(result).toEqual(game)
+	})
+
+	it('getGamesSummary calls the dedicated summary endpoint', async () => {
+		const summary = { totalGames: 2, byStatus: [] }
+		mockFetch.mockResolvedValue(summary)
+		await expect(getGamesSummary()).resolves.toEqual(summary)
+		expect(mockFetch).toHaveBeenCalledWith('/games/summary', expect.objectContaining({ method: 'GET' }))
+	})
+
+	it('updateGameStatus calls the status-only PATCH endpoint', async () => {
+		const game = { id: 1, name: 'Zelda', statusId: 3 }
+		mockFetch.mockResolvedValue(game)
+		await expect(patchGameStatus(1, { statusId: 3 })).resolves.toEqual(game)
+		expect(mockFetch).toHaveBeenCalledWith('/games/1/status', expect.objectContaining({ method: 'PATCH', body: { statusId: 3 } }))
 	})
 
 	it('createGame calls POST with game data', async () => {

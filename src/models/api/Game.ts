@@ -90,6 +90,22 @@ export interface BulkUpdateResult {
 	totalRequested: number
 }
 
+export interface GameSummaryStatus {
+	statusId: number
+	statusName: string
+	count: number
+}
+
+export interface GameSummary {
+	totalGames: number
+	lastUpdatedAt?: string
+	byStatus: GameSummaryStatus[]
+}
+
+export interface GameStatusPatchDto {
+	statusId: number
+}
+
 // Query parameters for API requests
 export type SortByKey =
 	| 'name'
