@@ -48,6 +48,7 @@ export const router = createHashRouter([
 		element: (
 			<ProtectedRoute>
 				<AppLayout>
+					<Home />
 					<GameDeepLink />
 				</AppLayout>
 			</ProtectedRoute>
