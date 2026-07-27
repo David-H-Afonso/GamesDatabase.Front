@@ -12,6 +12,7 @@ vi.mock('@/environments', () => ({
 			games: {
 				base: '/games',
 				byId: (id: number) => `/games/${id}`,
+				status: (id: number) => `/games/${id}/status`,
 				create: '/games',
 				update: (id: number) => `/games/${id}`,
 				delete: (id: number) => `/games/${id}`,
@@ -78,7 +79,7 @@ vi.mock('@/environments', () => ({
 }))
 
 import { initCustomFetch } from '@/utils/customFetch'
-import { fetchGames, fetchGameById, createGame, updateGame, deleteGame, bulkUpdateGames } from '../thunk'
+import { fetchGames, fetchGameById, createGame, updateGame, updateGameStatus, deleteGame, bulkUpdateGames } from '../thunk'
 import { createTestStore } from '@/test/utils/createTestStore'
 import { createGame as makeGame, createGameList, resetIdCounter } from '@/test/factories'
 import * as GamesService from '@/services/GamesService'
@@ -287,6 +288,34 @@ describe('games thunks — updateGame', () => {
 		server.use(http.put(`${BASE}/games/5`, () => HttpResponse.json({}, { status: 500 })))
 		const result = await store.dispatch(updateGame({ id: 5, gameData: { id: 5, name: 'Fail', statusId: 1, playWithIds: [] } }))
 		expect(result.type).toBe('games/updateGame/rejected')
+	})
+})
+
+describe('games thunks — updateGameStatus', () => {
+	let store: ReturnType<typeof createTestStore>
+
+	beforeEach(() => {
+		resetIdCounter()
+		store = createTestStore()
+		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: "auth/setRefreshedTokens", payload: { token: "", refreshToken: "" } }))
+	})
+
+	it('uses the dedicated status endpoint and stores the updated game', async () => {
+		const updated = makeGame({ id: 73, statusId: 2, statusName: 'Done' })
+		server.use(http.patch(`${BASE}/games/73/status`, () => HttpResponse.json(updated)))
+
+		const result = await store.dispatch(updateGameStatus({ id: 73, statusId: 2 }))
+
+		expect(result.type).toBe('games/updateGameStatus/fulfilled')
+		expect(result.payload).toEqual(updated)
+	})
+
+	it('dispatches rejected when the status endpoint fails', async () => {
+		server.use(http.patch(`${BASE}/games/73/status`, () => HttpResponse.json({}, { status: 400 })))
+
+		const result = await store.dispatch(updateGameStatus({ id: 73, statusId: 2 }))
+
+		expect(result.type).toBe('games/updateGameStatus/rejected')
 	})
 })
 

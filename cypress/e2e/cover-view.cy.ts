@@ -106,6 +106,9 @@ describe('cover view', () => {
 			hasPreviousPage: false,
 		}).as('games')
 		cy.intercept('PUT', '**/api/games/1', {}).as('updateGame')
+		cy.intercept('PATCH', '**/api/games/1/status', (request) => {
+			request.reply({ statusCode: 200, body: { ...games[0], statusId: request.body.statusId, statusName: statuses.find((status) => status.id === request.body.statusId)?.name } })
+		}).as('updateGameStatus')
 		cy.intercept('POST', '**/api/steam/sync/1', { success: true }).as('syncGame')
 
 		cy.visit('/', {
@@ -124,7 +127,7 @@ describe('cover view', () => {
 		cy.contains('.game-cover-view', 'Warhammer 40,000').trigger('mouseenter')
 		cy.contains('.game-cover-view__hover-chip', 'Playing').click({ force: true })
 		cy.contains('.game-cover-view__quick-editor button', 'Done').click()
-		cy.wait('@updateGame').its('request.body').should('include', { statusId: 2 })
+		cy.wait('@updateGameStatus').its('request.body').should('include', { statusId: 2 })
 	})
 
 	it('bulk refreshes the selected cover image through Steam sync', () => {

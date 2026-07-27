@@ -2,6 +2,7 @@ import { createAsyncThunk } from '@reduxjs/toolkit'
 import {
 	createGame as createGameService,
 	updateGame as updateGameService,
+	patchGameStatus as patchGameStatusService,
 	getGameById,
 	getGames,
 	deleteGame as deleteGameService,
@@ -51,6 +52,15 @@ export const updateGame = createAsyncThunk('games/updateGame', async ({ id, game
 		return updatedGame
 	} catch (error: any) {
 		return rejectWithValue(error.message || 'Failed to update game')
+	}
+})
+
+// Async thunk for changing only an existing game's status
+export const updateGameStatus = createAsyncThunk('games/updateGameStatus', async ({ id, statusId }: { id: number; statusId: number }, { rejectWithValue }) => {
+	try {
+		return await patchGameStatusService(id, { statusId })
+	} catch (error: any) {
+		return rejectWithValue(error.message || 'Failed to update game status')
 	}
 })
 

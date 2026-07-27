@@ -14,6 +14,7 @@ import {
 	fetchGameById,
 	createGame,
 	updateGame,
+	updateGameStatus,
 	deleteGame,
 	bulkUpdateGames,
 } from '@/store/features/games'
@@ -65,6 +66,8 @@ export const useGames = () => {
 
 	const updateGameById = useCallback(async (id: number, gameData: GameUpdateDto) => dispatchAndUnwrapAsync<Game>(dispatch, updateGame({ id, gameData })), [dispatch])
 
+	const updateGameStatusById = useCallback(async (id: number, statusId: number) => dispatchAndUnwrapAsync<Game>(dispatch, updateGameStatus({ id, statusId })), [dispatch])
+
 	const deleteGameById = useCallback(
 		async (id: number) => {
 			dispatchAndUnwrapAsync(dispatch, deleteGame(id))
@@ -96,6 +99,7 @@ export const useGames = () => {
 		fetchGameDetails,
 		createNewGame,
 		updateGameById,
+		updateGameStatusById,
 		deleteGameById,
 		bulkUpdateGamesById,
 

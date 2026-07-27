@@ -22,7 +22,7 @@ const GameCardComponent: FC<Props> = (props) => {
 	const { game: initialGame, variant = 'card', onDelete, isSelected = false, onSelect } = props
 	const [selectedGame, setSelectedGame] = useState<Game | null>(null)
 	const [isDetailsOpen, setIsDetailsOpen] = useState(false)
-	const { updateGameById } = useGames()
+	const { updateGameById, updateGameStatusById } = useGames()
 
 	// Always use the game from Redux to get the latest updates
 	const game = useAppSelector(selectGameById(initialGame.id)) || initialGame
@@ -45,6 +45,10 @@ const GameCardComponent: FC<Props> = (props) => {
 
 	const handleFieldUpdate = async (gameId: number, field: string, value: number | number[] | boolean | undefined) => {
 		try {
+			if (field === 'statusId' && typeof value === 'number') {
+				await updateGameStatusById(gameId, value)
+				return
+			}
 			const payload = typeof value === 'undefined' ? null : value
 			await updateGameById(gameId, { [field]: payload } as any)
 		} catch (error) {

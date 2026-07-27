@@ -1,7 +1,7 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import type { GamesState } from '@/models/store/GamesState'
 import type { Game, GameQueryParameters, PagedResult } from '@/models/api/Game'
-import { fetchGames, fetchGameById, createGame, updateGame, deleteGame } from './thunk'
+import { fetchGames, fetchGameById, createGame, updateGame, updateGameStatus, deleteGame } from './thunk'
 import { DEFAULT_PAGE_SIZE } from '@/utils'
 
 const initialState: GamesState = {
@@ -182,6 +182,23 @@ const gamesSlice = createSlice({
 			.addCase(updateGame.rejected, (state) => {
 				state.loading = false
 				// Update errors are handled in-component; do not set global error state
+			})
+
+		// Update only the game's status
+		builder
+			.addCase(updateGameStatus.pending, (state) => {
+				state.loading = true
+				state.error = null
+			})
+			.addCase(updateGameStatus.fulfilled, (state, action) => {
+				state.loading = false
+				const index = state.games.findIndex((game) => game.id === action.payload.id)
+				if (index !== -1) state.games[index] = action.payload
+				if (state.currentGame?.id === action.payload.id) state.currentGame = action.payload
+				state.isDataFresh = false
+			})
+			.addCase(updateGameStatus.rejected, (state) => {
+				state.loading = false
 			})
 
 		// Delete game

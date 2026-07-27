@@ -14,6 +14,7 @@ vi.mock('@/environments', () => ({
 			games: {
 				base: '/games',
 				byId: (id: number) => `/games/${id}`,
+				status: (id: number) => `/games/${id}/status`,
 				create: '/games',
 				update: (id: number) => `/games/${id}`,
 				delete: (id: number) => `/games/${id}`,
