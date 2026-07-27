@@ -1,6 +1,6 @@
 import type { Game } from '@/models/api/Game'
 import type { CSSProperties, MouseEvent } from 'react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAppSelector } from '@/store/hooks'
 import OptimizedImage from '../../OptimizedImage/OptimizedImage'
@@ -22,7 +22,8 @@ const CoverView = ({ game, openDetails, isSelected = false, onSelect, index = 0,
 	const isPriority = index < 8
 	const hasPerfectCompletion = game.completion === 100 || Boolean(game.steamAchievementsUnlocked && game.steamAchievementsUnlocked === game.steamAchievementsTotal)
 	const [coverFailed, setCoverFailed] = useState(false)
-	const [activeEditor, setActiveEditor] = useState<'status' | 'playWith' | null>('status')
+	const [activeEditor, setActiveEditor] = useState<'status' | 'playWith' | null>(null)
+	const coverRef = useRef<HTMLElement>(null)
 	const { activeStatuses: statusOptions } = useAppSelector((state) => state.gameStatus)
 	const { playWithOptions } = useAppSelector((state) => state.gamePlayWith)
 	const artSrc = coverFailed ? game.hero : game.cover || game.hero
@@ -32,6 +33,17 @@ const CoverView = ({ game, openDetails, isSelected = false, onSelect, index = 0,
 	useEffect(() => {
 		setCoverFailed(false)
 	}, [game.cover])
+
+	useEffect(() => {
+		if (!activeEditor) return
+
+		const closeEditorOnOutsidePointer = (event: PointerEvent) => {
+			if (event.target instanceof Node && !coverRef.current?.contains(event.target)) setActiveEditor(null)
+		}
+
+		document.addEventListener('pointerdown', closeEditorOnOutsidePointer)
+		return () => document.removeEventListener('pointerdown', closeEditorOnOutsidePointer)
+	}, [activeEditor])
 
 	const updatePlayWith = (optionId: number, checked: boolean) => {
 		const current = game.playWithIds ?? []
@@ -46,7 +58,7 @@ const CoverView = ({ game, openDetails, isSelected = false, onSelect, index = 0,
 	}
 
 	return (
-		<article className={`game-cover-view ${isSelected ? 'is-selected' : ''}`} onClick={() => openDetails(game)} onMouseLeave={() => setActiveEditor('status')}>
+		<article ref={coverRef} className={`game-cover-view ${isSelected ? 'is-selected' : ''}`} onClick={() => openDetails(game)}>
 			<label className='game-cover-view__select' onClick={(event) => event.stopPropagation()}>
 				<input type='checkbox' checked={isSelected} onChange={(event) => onSelect?.(game.id, event.target.checked)} aria-label={`Select ${game.name}`} />
 			</label>
@@ -110,9 +122,17 @@ const CoverView = ({ game, openDetails, isSelected = false, onSelect, index = 0,
 							</div>
 						)}
 						{activeEditor === 'status' && (
-							<div className='game-cover-view__quick-editor'>
+							<div className='game-cover-view__quick-editor' onClick={(event) => event.stopPropagation()}>
 								{statusOptions.map((status) => (
-									<button key={status.id} type='button' className={status.id === game.statusId ? 'is-active' : ''} onClick={() => void onFieldUpdate?.(game.id, 'statusId', status.id)}>
+									<button
+										key={status.id}
+										type='button'
+										className={status.id === game.statusId ? 'is-active' : ''}
+										onClick={(event) => {
+											event.preventDefault()
+											event.stopPropagation()
+											void onFieldUpdate?.(game.id, 'statusId', status.id)
+										}}>
 										{status.name}
 									</button>
 								))}

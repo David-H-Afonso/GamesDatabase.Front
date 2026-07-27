@@ -1,4 +1,5 @@
 import { fireEvent, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test/utils/renderWithProviders'
 import type { Game } from '@/models/api/Game'
 import type { RootState } from '@/store'
@@ -45,11 +46,16 @@ describe('CoverView', () => {
 
 	it('updates status from the hover quick editor', async () => {
 		const onFieldUpdate = vi.fn().mockResolvedValue(undefined)
+		const user = userEvent.setup()
 		const { default: CoverView } = await import('./CoverView')
 		renderWithProviders(<CoverView game={game} openDetails={vi.fn()} onFieldUpdate={onFieldUpdate} />, { preloadedState })
 
-		fireEvent.click(screen.getByRole('button', { name: 'Done' }))
+		expect(screen.queryByRole('button', { name: 'Done' })).not.toBeInTheDocument()
+		await user.click(screen.getByRole('button', { name: 'Playing' }))
+		const doneButton = screen.getByRole('button', { name: 'Done' })
+		await user.click(doneButton)
 
+		expect(onFieldUpdate).toHaveBeenCalledTimes(1)
 		expect(onFieldUpdate).toHaveBeenCalledWith(game.id, 'statusId', 2)
 	})
 
