@@ -48,7 +48,6 @@ describe('CoverView', () => {
 		const { default: CoverView } = await import('./CoverView')
 		renderWithProviders(<CoverView game={game} openDetails={vi.fn()} onFieldUpdate={onFieldUpdate} />, { preloadedState })
 
-		fireEvent.click(screen.getByRole('button', { name: 'Playing' }))
 		fireEvent.click(screen.getByRole('button', { name: 'Done' }))
 
 		expect(onFieldUpdate).toHaveBeenCalledWith(game.id, 'statusId', 2)

@@ -22,7 +22,7 @@ const CoverView = ({ game, openDetails, isSelected = false, onSelect, index = 0,
 	const isPriority = index < 8
 	const hasPerfectCompletion = game.completion === 100 || Boolean(game.steamAchievementsUnlocked && game.steamAchievementsUnlocked === game.steamAchievementsTotal)
 	const [coverFailed, setCoverFailed] = useState(false)
-	const [activeEditor, setActiveEditor] = useState<'status' | 'playWith' | null>(null)
+	const [activeEditor, setActiveEditor] = useState<'status' | 'playWith' | null>('status')
 	const { activeStatuses: statusOptions } = useAppSelector((state) => state.gameStatus)
 	const { playWithOptions } = useAppSelector((state) => state.gamePlayWith)
 	const artSrc = coverFailed ? game.hero : game.cover || game.hero
@@ -46,7 +46,7 @@ const CoverView = ({ game, openDetails, isSelected = false, onSelect, index = 0,
 	}
 
 	return (
-		<article className={`game-cover-view ${isSelected ? 'is-selected' : ''}`} onClick={() => openDetails(game)} onMouseLeave={() => setActiveEditor(null)}>
+		<article className={`game-cover-view ${isSelected ? 'is-selected' : ''}`} onClick={() => openDetails(game)} onMouseLeave={() => setActiveEditor('status')}>
 			<label className='game-cover-view__select' onClick={(event) => event.stopPropagation()}>
 				<input type='checkbox' checked={isSelected} onChange={(event) => onSelect?.(game.id, event.target.checked)} aria-label={`Select ${game.name}`} />
 			</label>
@@ -86,7 +86,7 @@ const CoverView = ({ game, openDetails, isSelected = false, onSelect, index = 0,
 								type='button'
 								className='game-cover-view__hover-chip game-cover-view__hover-chip--status'
 								style={{ '--cover-chip-color': gameStatusColor || '#7c3aed' } as CSSProperties}
-								onClick={() => setActiveEditor(activeEditor === 'status' ? null : 'status')}>
+								onClick={() => setActiveEditor('status')}>
 								{game.statusName}
 							</button>
 						)}
