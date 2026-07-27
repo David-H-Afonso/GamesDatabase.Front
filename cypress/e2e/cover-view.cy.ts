@@ -123,7 +123,7 @@ describe('cover view', () => {
 		cy.contains('h3', 'Warhammer 40,000').should('have.attr', 'title', games[0].name)
 		cy.contains('.game-cover-view', 'Warhammer 40,000').trigger('mouseenter')
 		cy.contains('.game-cover-view__hover-chip', 'Playing').click({ force: true })
-		cy.contains('.game-cover-view__quick-editor button', 'Done').click({ force: true })
+		cy.contains('.game-cover-view__quick-editor button', 'Done').click()
 		cy.wait('@updateGame').its('request.body').should('include', { statusId: 2 })
 	})
 

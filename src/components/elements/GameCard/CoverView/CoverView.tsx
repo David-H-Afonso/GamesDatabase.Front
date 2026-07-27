@@ -57,6 +57,12 @@ const CoverView = ({ game, openDetails, isSelected = false, onSelect, index = 0,
 		void onFieldUpdate?.(game.id, 'favorite', !game.favorite)
 	}
 
+	const selectStatus = (statusId: number, event: MouseEvent<HTMLButtonElement>) => {
+		event.preventDefault()
+		event.stopPropagation()
+		void onFieldUpdate?.(game.id, 'statusId', statusId)
+	}
+
 	return (
 		<article ref={coverRef} className={`game-cover-view ${isSelected ? 'is-selected' : ''}`} onClick={() => openDetails(game)}>
 			<label className='game-cover-view__select' onClick={(event) => event.stopPropagation()}>
@@ -128,10 +134,10 @@ const CoverView = ({ game, openDetails, isSelected = false, onSelect, index = 0,
 										key={status.id}
 										type='button'
 										className={status.id === game.statusId ? 'is-active' : ''}
+										onMouseDown={(event) => selectStatus(status.id, event)}
 										onClick={(event) => {
-											event.preventDefault()
-											event.stopPropagation()
-											void onFieldUpdate?.(game.id, 'statusId', status.id)
+											if (event.detail === 0) selectStatus(status.id, event)
+											else event.stopPropagation()
 										}}>
 										{status.name}
 									</button>
