@@ -1,28 +1,42 @@
 export {}
 
 describe('Mobile filter layout', () => {
-	const viewports = [390, 430, 768, 900, 1024]
+	const mobileWidths = [390, 430, 768]
+	const desktopWidths = [900, 1024]
 
-	viewports.forEach((width) => {
-		it(`keeps filters contained without overlap at ${width}px`, () => {
+	const noOverflow = () => {
+		cy.document().then((doc) => {
+			expect(doc.documentElement.scrollWidth).to.be.at.most(doc.documentElement.clientWidth + 1)
+		})
+	}
+
+	mobileWidths.forEach((width) => {
+		it(`shows only search + filters button in the top bar at ${width}px`, () => {
 			cy.viewport(width, 800)
 			cy.login('Admin')
 			cy.mockApiRoutes()
 			cy.visit('/')
 			cy.wait('@getGames')
 
+			// Top bar keeps only the full-width search and the Filters button.
 			cy.get('#search-input').should('be.visible')
-			cy.get('#sort-select').should('be.visible')
-			cy.get('#view-select').should('be.visible')
 			cy.get('.game-filters-chips__advanced-btn').should('be.visible')
 
-			cy.document().then((doc) => {
-				expect(doc.documentElement.scrollWidth).to.be.at.most(doc.documentElement.clientWidth + 1)
-			})
+			// Sort and custom-view move into the advanced panel: hidden until opened.
+			cy.get('#sort-select').should('not.be.visible')
+			cy.get('#view-select').should('not.be.visible')
 
-			cy.get('#search-input, #sort-select, #view-select, .game-filters-chips__advanced-btn').then(($controls) => {
+			noOverflow()
+
+			// Opening the panel reveals the moved sort, custom-view and view-mode controls.
+			cy.get('.game-filters-chips__advanced-btn').click()
+			cy.get('.game-filters-chips__moved-controls-view select').should('be.visible')
+			cy.get('.game-filters-chips__moved-controls-sort select').should('be.visible')
+
+			noOverflow()
+
+			cy.get('#search-input, .game-filters-chips__advanced-btn').then(($controls) => {
 				const rects = [...$controls].map((element) => element.getBoundingClientRect())
-
 				for (let i = 0; i < rects.length; i += 1) {
 					for (let j = i + 1; j < rects.length; j += 1) {
 						const a = rects[i]
@@ -35,6 +49,23 @@ describe('Mobile filter layout', () => {
 			})
 
 			cy.screenshot(`filter-layout-${width}`, { capture: 'viewport' })
+		})
+	})
+
+	desktopWidths.forEach((width) => {
+		it(`keeps sort and view in the top bar without overflow at ${width}px`, () => {
+			cy.viewport(width, 800)
+			cy.login('Admin')
+			cy.mockApiRoutes()
+			cy.visit('/')
+			cy.wait('@getGames')
+
+			cy.get('#search-input').should('be.visible')
+			cy.get('#sort-select').should('be.visible')
+			cy.get('#view-select').should('be.visible')
+			cy.get('.game-filters-chips__advanced-btn').should('be.visible')
+
+			noOverflow()
 		})
 	})
 })

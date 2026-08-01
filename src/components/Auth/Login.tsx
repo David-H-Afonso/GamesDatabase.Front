@@ -7,6 +7,7 @@ import { selectIsAuthenticated, selectAuthLoading, selectAuthError } from '@/sto
 import { selectRecentUsers } from '@/store/features/recentUsers/selector'
 import { RecentUsersList } from './RecentUsersList'
 import { environment } from '@/environments'
+import { userService } from '@/services/UserService/UserService'
 import './Login.scss'
 
 export const Login = () => {
@@ -23,7 +24,8 @@ export const Login = () => {
 
 	const [username, setUsername] = useState('')
 	const [password, setPassword] = useState('')
-	const [showDefaultHint, setShowDefaultHint] = useState(true)
+	const [showDefaultHint, setShowDefaultHint] = useState(false)
+	const [defaultUsername, setDefaultUsername] = useState('Admin')
 	const [steamError, setSteamError] = useState<string | null>(null)
 	const passwordInputRef = useRef<HTMLInputElement>(null)
 	const routeState = location.state as { from?: { pathname?: string; search?: string } } | null
@@ -34,6 +36,31 @@ export const Login = () => {
 
 	// Hide default hint if there are recent users
 	const hasRecentUsers = recentUsers.length > 0
+
+	// Only offer the bootstrap default credentials when the API confirms the
+	// installation is still in initial-setup state (default admin without a
+	// password). On any error we keep the hint hidden to avoid suggesting
+	// credentials that do not work in production.
+	useEffect(() => {
+		if (hasRecentUsers) {
+			setShowDefaultHint(false)
+			return
+		}
+		let active = true
+		userService
+			.getSetupStatus()
+			.then((status) => {
+				if (!active) return
+				setShowDefaultHint(status.defaultCredentialsAvailable)
+				if (status.defaultUsername) setDefaultUsername(status.defaultUsername)
+			})
+			.catch(() => {
+				if (active) setShowDefaultHint(false)
+			})
+		return () => {
+			active = false
+		}
+	}, [hasRecentUsers])
 
 	// Show Steam error from callback
 	useEffect(() => {
@@ -67,7 +94,7 @@ export const Login = () => {
 	}
 
 	const handleUseDefaultCredentials = () => {
-		setUsername('Admin')
+		setUsername(defaultUsername)
 		setPassword('')
 		setShowDefaultHint(false)
 	}
@@ -127,7 +154,7 @@ export const Login = () => {
 						<button type='button' className='btn-link' onClick={handleUseDefaultCredentials}>
 							{t('auth.useDefaultCredentials')}
 						</button>
-						<p className='login-hint'>{t('auth.credentialsHint', { username: 'Admin' })}</p>
+						<p className='login-hint'>{t('auth.credentialsHint', { username: defaultUsername })}</p>
 					</div>
 				)}
 
@@ -172,12 +199,12 @@ export const Login = () => {
 				</div>
 
 				<div className='login-divider'>
-					<span>o</span>
+					<span>{t('auth.or')}</span>
 				</div>
 
 				<button type='button' className='btn btn-steam btn-block' onClick={handleSteamLogin} disabled={loading}>
 					<img src='https://store.steampowered.com/favicon.ico' alt='' width={16} height={16} style={{ marginRight: 8 }} />
-					Iniciar sesión con Steam
+					{t('auth.steamLogin')}
 				</button>
 			</div>
 		</div>

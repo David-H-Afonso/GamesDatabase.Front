@@ -2,6 +2,7 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import type { ThemeState } from '@/models/store/ThemeState'
 import type { ViewMode } from '@/models/ViewMode'
 import { AVAILABLE_THEMES, normalizeThemeKey } from '@/assets/styles/themes/AVAILABLE_THEMES'
+import { NO_BACKGROUND, resolveThemeBackgroundUrl } from '@/assets/styles/themes/themeBackgrounds'
 
 // Function to get initial theme
 const getInitialTheme = (): string => {
@@ -20,11 +21,22 @@ const getInitialTheme = (): string => {
 	}
 }
 
+// Apply the selected background image for a theme onto the document as a CSS
+// custom property consumed by the app shell (see themes/index.scss).
+const applyBackground = (theme: string, backgroundByTheme?: Record<string, string>) => {
+	if (typeof document === 'undefined') return
+	const backgroundId = backgroundByTheme?.[theme]
+	const url = resolveThemeBackgroundUrl(theme, backgroundId)
+	document.documentElement.style.setProperty('--app-bg-image', url ? `url("${url}")` : 'none')
+	if (document.body) document.body.classList.toggle('has-app-bg', !!url)
+}
+
 const initialState: ThemeState = {
 	currentTheme: getInitialTheme(),
 	availableThemes: [...AVAILABLE_THEMES],
 	cardStyle: 'card',
 	viewMode: 'default',
+	backgroundByTheme: {},
 }
 
 const themeSlice = createSlice({
@@ -40,10 +52,21 @@ const themeSlice = createSlice({
 				// Apply theme to document immediately
 				if (typeof document !== 'undefined') {
 					document.documentElement.setAttribute('data-theme', normalizedTheme)
+					applyBackground(normalizedTheme, state.backgroundByTheme)
 				}
 			} else {
 				console.warn(`Attempted to set unavailable theme: ${action.payload}`)
 			}
+		},
+		setThemeBackground: (state, action: PayloadAction<{ theme?: string; backgroundId: string }>) => {
+			const theme = normalizeThemeKey(action.payload.theme) ?? state.currentTheme
+			if (!state.backgroundByTheme) state.backgroundByTheme = {}
+			if (action.payload.backgroundId === NO_BACKGROUND) {
+				delete state.backgroundByTheme[theme]
+			} else {
+				state.backgroundByTheme[theme] = action.payload.backgroundId
+			}
+			if (theme === state.currentTheme) applyBackground(theme, state.backgroundByTheme)
 		},
 		addTheme: (state, action: PayloadAction<string>) => {
 			if (!state.availableThemes.includes(action.payload)) {
@@ -58,6 +81,7 @@ const themeSlice = createSlice({
 		initializeTheme: (state) => {
 			// Re-sync with the source of truth in case persisted state predates a new theme.
 			state.availableThemes = [...AVAILABLE_THEMES]
+			if (!state.backgroundByTheme) state.backgroundByTheme = {}
 
 			// Get theme from localStorage or system preference
 			let themeToSet = 'dark' // default fallback
@@ -78,6 +102,7 @@ const themeSlice = createSlice({
 			// Apply theme to document immediately
 			if (typeof document !== 'undefined') {
 				document.documentElement.setAttribute('data-theme', themeToSet)
+				applyBackground(themeToSet, state.backgroundByTheme)
 			}
 		},
 		setCardStyle: (state, action: PayloadAction<'card' | 'row' | 'cover'>) => {
@@ -90,6 +115,6 @@ const themeSlice = createSlice({
 	},
 })
 
-export const { setTheme, addTheme, removeTheme, initializeTheme, setCardStyle, setViewMode, reset } = themeSlice.actions
+export const { setTheme, setThemeBackground, addTheme, removeTheme, initializeTheme, setCardStyle, setViewMode, reset } = themeSlice.actions
 
 export default themeSlice.reducer

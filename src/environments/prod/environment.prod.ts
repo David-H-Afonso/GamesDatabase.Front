@@ -38,8 +38,4 @@ export const environment = {
 	cors: {
 		allowedOrigins: [], // Se configura desde el backend en producción
 	},
-	auth: {
-		defaultUsername: 'Admin',
-		defaultPassword: '',
-	},
 }

@@ -60,6 +60,8 @@ function mockHomeApis() {
 describe('Authentication Journeys', () => {
 	beforeEach(() => {
 		cy.clearLocalStorage()
+		// Default: configured installation → no bootstrap credentials offered.
+		cy.intercept('GET', `${API}/users/setup-status`, { defaultCredentialsAvailable: false, defaultUsername: null }).as('setupStatus')
 	})
 
 	// ── 6.2 Login válido → ver game list ──────────────────────────────────────
@@ -141,5 +143,20 @@ describe('Authentication Journeys', () => {
 		// ProtectedRoute with adminOnly redirects non-admins to /
 		cy.url().should('not.include', '/admin')
 		cy.get('.home-component').should('exist')
+	})
+
+	// ── Default-credentials hint is gated by setup status ─────────────────────
+
+	it('offers default credentials only on a fresh install', () => {
+		cy.intercept('GET', `${API}/users/setup-status`, { defaultCredentialsAvailable: true, defaultUsername: 'Admin' }).as('setupFresh')
+		cy.visit('/#/login')
+		cy.wait('@setupFresh')
+		cy.contains('button', /use default credentials/i).should('be.visible')
+	})
+
+	it('does not offer default credentials on a configured install', () => {
+		cy.visit('/#/login')
+		cy.wait('@setupStatus')
+		cy.contains('button', /use default credentials/i).should('not.exist')
 	})
 })

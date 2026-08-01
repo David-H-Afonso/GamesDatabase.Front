@@ -1,0 +1,119 @@
+// PlayStation-inspired theme — deep navy surfaces with a bright electric blue accent.
+// CSS-only palette. No official logos or brand assets are used.
+
+[data-theme='playstation'] {
+	--border-color-light: #26365a;
+	--border-color: #26365a;
+	--bg-hover: #172445;
+	--surface: #111d38;
+	--surface-light: #0b1428;
+	--surface-hover: #172445;
+	--surface-elevated: #17244a;
+	--box-shadow: 0 12px 28px rgba(3, 8, 20, 0.55);
+
+	// Background & Surface — PlayStation navy
+	--bg-primary: #0a1124;
+	--bg-secondary: #070c1b;
+	--bg-tertiary: #111d38;
+
+	// Text Colors
+	--text-primary: #eef2fb;
+	--text-secondary: #cdd6ea;
+	--text-tertiary: #a7b3cf;
+	--text-muted: #8590ad;
+	--text-disabled: #5e6a86;
+	--text-inverse: #0a1124;
+
+	// Brand Colors — electric blue
+	--primary: #006ce0;
+	--primary-hover: #2b86f2;
+	--primary-light: #10305e;
+
+	// Neutrals
+	--white: #ffffff;
+	--black: #000000;
+	--gray-50: #0d1526;
+	--gray-100: #16203a;
+	--gray-200: #263454;
+	--gray-300: #3a4a70;
+	--gray-400: #566288;
+	--gray-500: #8590ad;
+	--gray-600: #c0c9de;
+	--gray-700: #dbe2f0;
+	--gray-800: #eaeff6;
+	--gray-900: #f6f8fd;
+
+	// Semantic Colors
+	--success: #2dd4a7;
+	--success-light: #0f3f38;
+	--warning: #f2a93b;
+	--warning-light: #4d3312;
+	--error: #ff5a6a;
+	--error-light: #5a1720;
+	--info: #38b6ff;
+	--info-light: #123f5c;
+
+	// Border & Divider
+	--border: #223257;
+	--border-light: #182645;
+	--border-hover: #3a6db5;
+	--divider: #223257;
+
+	// Interactive Elements
+	--interactive: var(--primary);
+	--interactive-hover: var(--primary-hover);
+	--interactive-active: #0a4fa0;
+	--interactive-disabled: #4a577a;
+
+	// Input & Form Elements
+	--input-bg: #0d1730;
+	--input-border: #223257;
+	--input-border-focus: var(--primary);
+	--input-text: var(--text-primary);
+	--input-placeholder: #7e89a6;
+
+	// Cards & Components
+	--card-bg: var(--surface);
+	--card-border: #1c2a4c;
+	--card-shadow: 0 1px 3px rgba(0, 0, 0, 0.42), 0 12px 32px -18px rgba(0, 108, 224, 0.28);
+	--card-shadow-hover: 0 12px 28px -14px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(43, 134, 242, 0.16);
+
+	// Header specific
+	--header-background: #0b1330;
+	--header-text: var(--text-primary);
+	--primary-color: var(--primary);
+	--primary-color-alpha: rgba(0, 108, 224, 0.22);
+	--primary-color-dark: var(--primary-hover);
+	--text-color: var(--text-primary);
+
+	// Ambience
+	--bg-main: #060a16;
+	--bg-radial-blue: rgba(0, 108, 224, 0.3);
+	--bg-radial-green: rgba(43, 134, 242, 0.16);
+
+	// Header & control tokens
+	--header-bg: #0b1330;
+	--header-border: rgba(255, 255, 255, 0.08);
+	--header-shadow: 0 2px 20px rgba(0, 0, 0, 0.6);
+	--control-bg: rgba(255, 255, 255, 0.05);
+	--control-border: rgba(0, 108, 224, 0.2);
+	--control-hover-bg: rgba(255, 255, 255, 0.09);
+	--control-hover-border: rgba(43, 134, 242, 0.3);
+	--control-text: #cdd6ea;
+	--segment-bg: rgba(255, 255, 255, 0.04);
+	--segment-active-bg: rgba(0, 108, 224, 0.2);
+	--segment-active-shadow: 0 1px 2px rgba(0, 0, 0, 0.48);
+	--menu-bg: #111d38;
+	--menu-border: rgba(0, 108, 224, 0.18);
+	--menu-shadow: 0 16px 38px -10px rgba(0, 0, 0, 0.66);
+	--focus-ring: rgba(43, 134, 242, 0.6);
+	--toggle-icon: #6fb2ff;
+	--danger: #ff5a6a;
+	--danger-bg: rgba(255, 90, 106, 0.14);
+
+	// Primary CTA accent
+	--cta-gradient: linear-gradient(135deg, #006ce0 0%, #003f8f 100%);
+	--cta-gradient-hover: linear-gradient(135deg, #2b86f2 0%, #0a4fa0 100%);
+	--cta-glow: rgba(0, 108, 224, 0.45);
+	--cta-divider: rgba(255, 255, 255, 0.24);
+}

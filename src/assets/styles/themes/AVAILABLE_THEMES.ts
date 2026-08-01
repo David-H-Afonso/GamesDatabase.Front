@@ -1,4 +1,4 @@
-export const AVAILABLE_THEMES = ['light', 'dark', 'steam', 'wolverine-classic', 'wolverine-modern', 'gta-vice-city', 'gta-iv', 'gta-v', 'gta-vi'] as const
+export const AVAILABLE_THEMES = ['light', 'dark', 'steam', 'wolverine-classic', 'wolverine-modern', 'gta-vice-city', 'gta-iv', 'gta-v', 'gta-vi', 'nintendo', 'playstation', 'xbox'] as const
 
 export const THEME_FAMILIES = [
 	{ key: 'light', variants: ['light'], defaultTheme: 'light' },
@@ -6,6 +6,9 @@ export const THEME_FAMILIES = [
 	{ key: 'steam', variants: ['steam'], defaultTheme: 'steam' },
 	{ key: 'wolverine', variants: ['wolverine-classic', 'wolverine-modern'], defaultTheme: 'wolverine-classic' },
 	{ key: 'gta', variants: ['gta-vice-city', 'gta-iv', 'gta-v', 'gta-vi'], defaultTheme: 'gta-vice-city' },
+	{ key: 'nintendo', variants: ['nintendo'], defaultTheme: 'nintendo' },
+	{ key: 'playstation', variants: ['playstation'], defaultTheme: 'playstation' },
+	{ key: 'xbox', variants: ['xbox'], defaultTheme: 'xbox' },
 ] as const
 
 export const THEME_VARIANTS_BY_FAMILY: Record<string, readonly string[]> = {
@@ -14,6 +17,9 @@ export const THEME_VARIANTS_BY_FAMILY: Record<string, readonly string[]> = {
 	steam: ['steam'],
 	wolverine: ['wolverine-classic', 'wolverine-modern'],
 	gta: ['gta-vice-city', 'gta-iv', 'gta-v', 'gta-vi'],
+	nintendo: ['nintendo'],
+	playstation: ['playstation'],
+	xbox: ['xbox'],
 }
 
 export const DEFAULT_THEME_BY_FAMILY: Record<string, string> = {
@@ -22,6 +28,9 @@ export const DEFAULT_THEME_BY_FAMILY: Record<string, string> = {
 	steam: 'steam',
 	wolverine: 'wolverine-classic',
 	gta: 'gta-vice-city',
+	nintendo: 'nintendo',
+	playstation: 'playstation',
+	xbox: 'xbox',
 }
 
 export const THEME_FAMILY_BY_THEME: Record<string, string> = {
@@ -34,6 +43,9 @@ export const THEME_FAMILY_BY_THEME: Record<string, string> = {
 	'gta-iv': 'gta',
 	'gta-vice-city': 'gta',
 	'gta-vi': 'gta',
+	nintendo: 'nintendo',
+	playstation: 'playstation',
+	xbox: 'xbox',
 }
 
 export const LEGACY_THEME_ALIASES: Record<string, string> = {

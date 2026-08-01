@@ -2,11 +2,26 @@ import { customFetch } from '@/utils/customFetch'
 import { environment } from '@/environments'
 import type { User, UserCreateDto, UserUpdateDto, ChangePasswordDto } from '@/models/api/User'
 
+/** Anonymous initial-setup state returned by the API. */
+export interface SetupStatus {
+	defaultCredentialsAvailable: boolean
+	defaultUsername?: string | null
+}
+
 /**
  * User Management Service
  * Handles CRUD operations for users (Admin only, except for reading own data)
  */
 class UserService {
+	/**
+	 * Anonymous check for whether the seeded default admin still has no password,
+	 * so the login screen may safely offer the bootstrap sign-in. Never returns
+	 * real, user-chosen account names.
+	 */
+	async getSetupStatus(): Promise<SetupStatus> {
+		return await customFetch<SetupStatus>(environment.apiRoutes.users.setupStatus)
+	}
+
 	/**
 	 * Get all users (Admin only)
 	 */

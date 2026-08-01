@@ -1,0 +1,119 @@
+// Xbox-inspired theme — dark graphite surfaces with a vivid green accent.
+// CSS-only palette. No official logos or brand assets are used.
+
+[data-theme='xbox'] {
+	--border-color-light: #2c3a2f;
+	--border-color: #2c3a2f;
+	--bg-hover: #17251b;
+	--surface: #131c16;
+	--surface-light: #0c130f;
+	--surface-hover: #17251b;
+	--surface-elevated: #1a2a1f;
+	--box-shadow: 0 12px 28px rgba(4, 10, 6, 0.55);
+
+	// Background & Surface — graphite with a green undertone
+	--bg-primary: #0d130f;
+	--bg-secondary: #090d0a;
+	--bg-tertiary: #131c16;
+
+	// Text Colors
+	--text-primary: #eaf3ec;
+	--text-secondary: #cdddd1;
+	--text-tertiary: #a6bbac;
+	--text-muted: #86988b;
+	--text-disabled: #5f6f63;
+	--text-inverse: #0d130f;
+
+	// Brand Colors — Xbox green
+	--primary: #107c10;
+	--primary-hover: #16a316;
+	--primary-light: #123f18;
+
+	// Neutrals
+	--white: #ffffff;
+	--black: #000000;
+	--gray-50: #0f1611;
+	--gray-100: #18211b;
+	--gray-200: #29352c;
+	--gray-300: #3d4b40;
+	--gray-400: #5a6b5e;
+	--gray-500: #86988b;
+	--gray-600: #c2d2c6;
+	--gray-700: #dbe6de;
+	--gray-800: #eaf1ec;
+	--gray-900: #f5faf6;
+
+	// Semantic Colors
+	--success: #2ec94e;
+	--success-light: #103d1c;
+	--warning: #e0a53b;
+	--warning-light: #4a3712;
+	--error: #f0616a;
+	--error-light: #521a1f;
+	--info: #3bb0d6;
+	--info-light: #123c4a;
+
+	// Border & Divider
+	--border: #26332a;
+	--border-light: #1b271e;
+	--border-hover: #2f8f3a;
+	--divider: #26332a;
+
+	// Interactive Elements
+	--interactive: var(--primary);
+	--interactive-hover: var(--primary-hover);
+	--interactive-active: #0c5f0c;
+	--interactive-disabled: #4c5b4f;
+
+	// Input & Form Elements
+	--input-bg: #101911;
+	--input-border: #26332a;
+	--input-border-focus: var(--primary);
+	--input-text: var(--text-primary);
+	--input-placeholder: #7d8f82;
+
+	// Cards & Components
+	--card-bg: var(--surface);
+	--card-border: #1f2c22;
+	--card-shadow: 0 1px 3px rgba(0, 0, 0, 0.42), 0 12px 32px -18px rgba(16, 124, 16, 0.28);
+	--card-shadow-hover: 0 12px 28px -14px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(22, 163, 22, 0.16);
+
+	// Header specific
+	--header-background: #0e150f;
+	--header-text: var(--text-primary);
+	--primary-color: var(--primary);
+	--primary-color-alpha: rgba(16, 124, 16, 0.22);
+	--primary-color-dark: var(--primary-hover);
+	--text-color: var(--text-primary);
+
+	// Ambience
+	--bg-main: #070b08;
+	--bg-radial-blue: rgba(16, 124, 16, 0.2);
+	--bg-radial-green: rgba(46, 201, 78, 0.24);
+
+	// Header & control tokens
+	--header-bg: #0e150f;
+	--header-border: rgba(255, 255, 255, 0.08);
+	--header-shadow: 0 2px 20px rgba(0, 0, 0, 0.6);
+	--control-bg: rgba(255, 255, 255, 0.05);
+	--control-border: rgba(16, 124, 16, 0.2);
+	--control-hover-bg: rgba(255, 255, 255, 0.09);
+	--control-hover-border: rgba(46, 201, 78, 0.3);
+	--control-text: #cdddd1;
+	--segment-bg: rgba(255, 255, 255, 0.04);
+	--segment-active-bg: rgba(16, 124, 16, 0.2);
+	--segment-active-shadow: 0 1px 2px rgba(0, 0, 0, 0.48);
+	--menu-bg: #131c16;
+	--menu-border: rgba(16, 124, 16, 0.18);
+	--menu-shadow: 0 16px 38px -10px rgba(0, 0, 0, 0.66);
+	--focus-ring: rgba(46, 201, 78, 0.55);
+	--toggle-icon: #5fd06f;
+	--danger: #f0616a;
+	--danger-bg: rgba(240, 97, 106, 0.14);
+
+	// Primary CTA accent
+	--cta-gradient: linear-gradient(135deg, #107c10 0%, #0a5a0a 100%);
+	--cta-gradient-hover: linear-gradient(135deg, #16a316 0%, #0c6f0c 100%);
+	--cta-glow: rgba(16, 124, 16, 0.45);
+	--cta-divider: rgba(255, 255, 255, 0.24);
+}

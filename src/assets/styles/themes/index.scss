@@ -4,6 +4,9 @@
 @use './steam.scss';
 @use './wolverine.scss';
 @use './gta.scss';
+@use './nintendo.scss';
+@use './playstation.scss';
+@use './xbox.scss';
 
 // Default theme - applies when no data-theme is set or as fallback
 :root {
@@ -78,4 +81,48 @@ body {
 	background-color: var(--bg-primary);
 	color: var(--text-primary);
 	font-family: var(--font-family-primary, 'Inter', sans-serif);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Optional per-theme background image
+// A fixed, full-viewport layer sits behind the whole app and shows the user's
+// selected background for the active theme. `--app-bg-image` is set from the
+// theme slice; `has-app-bg` is toggled on <body> only when an image is active.
+// When active, top-level page shells become transparent so the image shows,
+// while cards/surfaces stay opaque for readability.
+// ─────────────────────────────────────────────────────────────────────────────
+body.has-app-bg::before {
+	content: '';
+	position: fixed;
+	inset: 0;
+	z-index: -1;
+	background-image: var(--app-bg-image, none);
+	background-size: cover;
+	background-position: center;
+	background-repeat: no-repeat;
+	background-attachment: fixed;
+	pointer-events: none;
+}
+
+body.has-app-bg,
+body.has-app-bg #root,
+body.has-app-bg .home-component,
+body.has-app-bg .admin-layout,
+body.has-app-bg .admin-content,
+body.has-app-bg .login-container {
+	background-color: transparent;
+}
+
+body.has-app-bg .home-component[data-theme],
+body.has-app-bg [data-theme='dark'] .home-component,
+body.has-app-bg [data-theme='steam'] .home-component,
+body.has-app-bg .home-component {
+	background-image: none;
+}
+
+@media (max-width: 768px) {
+	// Avoid the well-known mobile jank of fixed background attachment.
+	body.has-app-bg::before {
+		background-attachment: scroll;
+	}
 }

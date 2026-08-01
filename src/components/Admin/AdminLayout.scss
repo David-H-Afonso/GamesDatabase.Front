@@ -90,6 +90,8 @@
 
 .admin-content {
 	flex: 1;
+	min-width: 0;
+	width: 100%;
 	padding: 24px;
 	background-color: var(--bg-primary);
 }
@@ -115,6 +117,12 @@
 		overflow-y: visible;
 		border-right: none;
 		border-bottom: 1px solid var(--border);
+		padding: 12px;
+
+		h2 {
+			font-size: 15px;
+			margin-bottom: 12px;
+		}
 	}
 
 	.admin-nav {
@@ -125,6 +133,16 @@
 		.nav-link {
 			white-space: nowrap;
 			min-width: fit-content;
+			padding: 8px 12px;
 		}
+	}
+
+	// Keep the mobile header compact: build metadata is desktop-only detail.
+	.admin-build-info {
+		display: none;
+	}
+
+	.admin-content {
+		padding: 16px 12px;
 	}
 }

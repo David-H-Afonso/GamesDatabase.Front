@@ -113,7 +113,7 @@ export const AdminSteamImport = () => {
 				window.location.href = url
 			}
 		} catch {
-			setMessage('Error al iniciar la conexión con Steam')
+			setMessage(t('admin.steam.account.connectError'))
 			setIsSuccess(false)
 		}
 	}
@@ -122,7 +122,7 @@ export const AdminSteamImport = () => {
 		event.preventDefault()
 		const steamId = manualSteamId.trim()
 		if (!steamId) {
-			setMessage('Introduce un SteamID64')
+			setMessage(t('admin.steam.account.manualEnterId'))
 			setIsSuccess(false)
 			return
 		}
@@ -138,10 +138,10 @@ export const AdminSteamImport = () => {
 				})
 			)
 			setManualSteamId('')
-			setMessage('Cuenta de Steam vinculada')
+			setMessage(t('admin.steam.account.linkedOk'))
 			setIsSuccess(true)
 		} catch {
-			setMessage('No se pudo vincular ese SteamID')
+			setMessage(t('admin.steam.account.linkFailed'))
 			setIsSuccess(false)
 		} finally {
 			setManualLinkLoading(false)
@@ -155,10 +155,10 @@ export const AdminSteamImport = () => {
 			await dispatch(unlinkSteam()).unwrap()
 			dispatch(setSteamProfile(null))
 			setActiveTab('account')
-			setMessage('Cuenta de Steam desconectada')
+			setMessage(t('admin.steam.account.unlinkedOk'))
 			setIsSuccess(true)
 		} catch {
-			setMessage('Error al desconectar Steam')
+			setMessage(t('admin.steam.account.unlinkError'))
 			setIsSuccess(false)
 		}
 		setTimeout(() => setMessage(null), 3000)
@@ -169,10 +169,10 @@ export const AdminSteamImport = () => {
 			const result = await dispatch(syncAllSteam()).unwrap()
 			const syncedGames = result.gamesUpdated ?? result.syncedGames ?? 0
 			const syncedAchievements = result.achievementsUpdated ?? result.syncedAchievements ?? 0
-			setMessage(`Sync completado: ${syncedGames} juegos, ${syncedAchievements} logros`)
+			setMessage(t('admin.steam.account.syncDone', { games: syncedGames, achievements: syncedAchievements }))
 			setIsSuccess(true)
 		} catch {
-			setMessage('Error durante la sincronización')
+			setMessage(t('admin.steam.account.syncError'))
 			setIsSuccess(false)
 		}
 		setTimeout(() => setMessage(null), 5000)
@@ -188,7 +188,7 @@ export const AdminSteamImport = () => {
 			const data = await steamService.getMatchSuggestions()
 			setSuggestions(data)
 		} catch (e) {
-			setSuggestionsError(e instanceof Error ? e.message : 'Error cargando sugerencias')
+			setSuggestionsError(e instanceof Error ? e.message : t('admin.steam.suggestionsView.loadError'))
 		} finally {
 			setSuggestionsLoading(false)
 		}
@@ -326,7 +326,7 @@ export const AdminSteamImport = () => {
 			await steamService.dismissMatchSuggestions(toDismiss.map((s) => ({ steamAppId: s.steamAppId, gdbGameId: s.gdbGameId })))
 			removeSuggestions(toDismiss)
 		} catch (e) {
-			setSuggestionsError(e instanceof Error ? e.message : 'Error descartando sugerencias')
+			setSuggestionsError(e instanceof Error ? e.message : t('admin.steam.suggestionsView.dismissError'))
 		} finally {
 			setSuggestionsDismissing(false)
 		}
@@ -581,7 +581,7 @@ export const AdminSteamImport = () => {
 					await steamService.linkGame(game.appId, target.gameId)
 					linked++
 				} catch {
-					errors.push(`Error vinculando ${game.name} a ${target.gameName}`)
+					errors.push(t('admin.steam.libraryView.linkError', { game: game.name, target: target.gameName }))
 				}
 			}
 			setLinkLoading(false)
@@ -668,6 +668,21 @@ export const AdminSteamImport = () => {
 		return sorted
 	}, [filterUnmatched, getAction, library, librarySearch, librarySort])
 
+	// Client-side pagination keeps the mounted DOM bounded even for very large
+	// libraries (hundreds of Steam titles), so at most LIBRARY_PAGE_SIZE rows
+	// are rendered at a time.
+	const LIBRARY_PAGE_SIZE = 50
+	const [libraryPage, setLibraryPage] = useState(1)
+	const libraryPageCount = Math.max(1, Math.ceil(filteredLibrary.length / LIBRARY_PAGE_SIZE))
+
+	// Reset to the first page whenever the effective result set changes.
+	useEffect(() => {
+		setLibraryPage(1)
+	}, [librarySearch, filterUnmatched, librarySort])
+
+	const clampedLibraryPage = Math.min(libraryPage, libraryPageCount)
+	const pagedLibrary = filteredLibrary.slice((clampedLibraryPage - 1) * LIBRARY_PAGE_SIZE, clampedLibraryPage * LIBRARY_PAGE_SIZE)
+
 	const filteredSuggestions = suggestions.filter(
 		(s) => !suggestionSearch.trim() || s.steamName.toLowerCase().includes(suggestionSearch.toLowerCase()) || s.gdbGameName.toLowerCase().includes(suggestionSearch.toLowerCase())
 	)
@@ -722,57 +737,57 @@ export const AdminSteamImport = () => {
 		!isSteamLinked ? (
 			<div className='steam-connect-section'>
 				<div className='steam-connect-card'>
-					<h2>Conectar con Steam</h2>
-					<p>Vincula la cuenta con Steam OpenID cuando la app se use desde navegador.</p>
+					<h2>{t('admin.steam.account.connectTitle')}</h2>
+					<p>{t('admin.steam.account.connectDesc')}</p>
 					<button className='btn btn-steam' onClick={handleConnectSteam}>
 						<img src='https://store.steampowered.com/favicon.ico' alt='' width={16} height={16} />
-						Conectar cuenta de Steam
+						{t('admin.steam.account.connectButton')}
 					</button>
 				</div>
 
 				<form className='steam-connect-card steam-manual-form' onSubmit={handleManualLink}>
-					<h2>SteamID64 manual</h2>
-					<label htmlFor='manual-steam-id'>SteamID64 o URL de perfil</label>
+					<h2>{t('admin.steam.account.manualTitle')}</h2>
+					<label htmlFor='manual-steam-id'>{t('admin.steam.account.manualLabel')}</label>
 					<div className='steam-manual-row'>
 						<input id='manual-steam-id' type='text' value={manualSteamId} onChange={(event) => setManualSteamId(event.target.value)} placeholder='7656119...' autoComplete='off' />
 						<button className='btn btn-primary' type='submit' disabled={manualLinkLoading}>
-							{manualLinkLoading ? 'Guardando...' : 'Guardar'}
+							{manualLinkLoading ? t('admin.steam.account.manualSaving') : t('admin.steam.account.manualSave')}
 						</button>
 					</div>
-					<p>Úsalo en la app desktop si el navegador no puede volver automáticamente al ejecutable.</p>
+					<p>{t('admin.steam.account.manualHint')}</p>
 				</form>
 			</div>
 		) : (
 			<div className='steam-linked-section'>
 				{profileLoading ? (
-					<p>Cargando perfil de Steam...</p>
+					<p>{t('admin.steam.account.loadingProfile')}</p>
 				) : profile ? (
 					<div className='steam-profile'>
 						{profile.steamAvatarUrl && <img src={profile.steamAvatarUrl} alt={profile.steamNickname} className='steam-avatar' />}
 						<div className='steam-profile-info'>
 							<h3>{profile.steamNickname}</h3>
 							<p className='steam-id'>SteamID: {profile.steamId}</p>
-							{profile.steamLinkedAt && <p className='steam-linked-date'>Vinculado: {new Date(profile.steamLinkedAt).toLocaleDateString()}</p>}
+							{profile.steamLinkedAt && <p className='steam-linked-date'>{t('admin.steam.account.linkedOn', { date: new Date(profile.steamLinkedAt).toLocaleDateString() })}</p>}
 						</div>
 					</div>
 				) : null}
 
 				<div className='steam-actions'>
 					<button className='btn btn-primary' onClick={handleSyncAll} disabled={syncLoading}>
-						{syncLoading ? 'Sincronizando...' : 'Sincronizar todo'}
+						{syncLoading ? t('admin.steam.account.syncing') : t('admin.steam.account.syncAll')}
 					</button>
 					<button className='btn btn-danger' onClick={() => setUnlinkConfirmOpen(true)}>
-						Desconectar Steam
+						{t('admin.steam.account.disconnect')}
 					</button>
 				</div>
 
 				{lastSyncResult && (
 					<div className='steam-sync-result'>
-						<h4>Último resultado de sincronización</h4>
+						<h4>{t('admin.steam.account.lastSyncTitle')}</h4>
 						<ul>
-							<li>Juegos sincronizados: {lastSyncResult.gamesUpdated ?? lastSyncResult.syncedGames ?? 0}</li>
-							<li>Logros sincronizados: {lastSyncResult.achievementsUpdated ?? lastSyncResult.syncedAchievements ?? 0}</li>
-							{(lastSyncResult.errors?.length ?? 0) > 0 && <li className='sync-errors'>Errores: {lastSyncResult.errors?.join(', ')}</li>}
+							<li>{t('admin.steam.account.syncedGames', { count: lastSyncResult.gamesUpdated ?? lastSyncResult.syncedGames ?? 0 })}</li>
+							<li>{t('admin.steam.account.syncedAchievements', { count: lastSyncResult.achievementsUpdated ?? lastSyncResult.syncedAchievements ?? 0 })}</li>
+							{(lastSyncResult.errors?.length ?? 0) > 0 && <li className='sync-errors'>{t('admin.steam.account.syncErrors', { errors: lastSyncResult.errors?.join(', ') })}</li>}
 						</ul>
 					</div>
 				)}
@@ -800,16 +815,16 @@ export const AdminSteamImport = () => {
 
 			<div className='import-tabs'>
 				<button className={`tab-btn${activeTab === 'account' ? ' tab-btn--active' : ''}`} onClick={() => setActiveTab('account')}>
-					Cuenta y sincronización
+					{t('admin.steam.tabsAccount')}
 				</button>
 				<button className={`tab-btn${activeTab === 'library' ? ' tab-btn--active' : ''}`} onClick={() => setActiveTab('library')} disabled={!isSteamLinked}>
-					Biblioteca
+					{t('admin.steam.tabsLibrary')}
 				</button>
 				<button className={`tab-btn${activeTab === 'suggestions' ? ' tab-btn--active' : ''}`} onClick={() => setActiveTab('suggestions')} disabled={!isSteamLinked}>
-					Sugerencias de vinculación
+					{t('admin.steam.tabsSuggestions')}
 				</button>
 				<button className={`tab-btn${activeTab === 'store' ? ' tab-btn--active' : ''}`} onClick={() => setActiveTab('store')} disabled={!isSteamLinked}>
-					Buscar en Steam
+					{t('admin.steam.tabsStore')}
 				</button>
 				<button className={`tab-btn${activeTab === 'storeSuggestions' ? ' tab-btn--active' : ''}`} onClick={() => setActiveTab('storeSuggestions')} disabled={!isSteamLinked}>
 					{t('admin.steam.tabs.storeSuggestions')}
@@ -835,10 +850,10 @@ export const AdminSteamImport = () => {
 				renderAccountContent()
 			) : activeTab === 'store' ? (
 				<div className='store-search-view'>
-					<p className='store-search-hint'>Busca juegos en la tienda de Steam para añadirlos a GDB aunque no los tengas comprados.</p>
-					<input className='search-input' type='text' placeholder='Buscar juego en Steam...' value={storeQuery} onChange={handleStoreQueryChange} autoFocus />
-					{storeLoading && <p className='store-loading'>Buscando...</p>}
-					{!storeLoading && storeSearched && storeResults.length === 0 && <p className='store-no-results'>No se encontraron resultados para &quot;{storeQuery}&quot;.</p>}
+					<p className='store-search-hint'>{t('admin.steam.store.hint')}</p>
+					<input className='search-input' type='text' placeholder={t('admin.steam.store.placeholder')} value={storeQuery} onChange={handleStoreQueryChange} autoFocus />
+					{storeLoading && <p className='store-loading'>{t('admin.steam.store.searching')}</p>}
+					{!storeLoading && storeSearched && storeResults.length === 0 && <p className='store-no-results'>{t('admin.steam.store.noResults', { query: storeQuery })}</p>}
 					{storeResults.length > 0 && (
 						<div className='store-results-grid'>
 							{storeResults.map((game) => {
@@ -867,20 +882,20 @@ export const AdminSteamImport = () => {
 														)}
 													</span>
 												) : (
-													<span className='store-card-price store-card-price--free'>Gratis</span>
+													<span className='store-card-price store-card-price--free'>{t('admin.steam.store.free')}</span>
 												)}
 											</div>
 										</div>
 										<div className='store-card-action'>
 											{inGdb ? (
-												<span className='badge badge--exists'>En GDB</span>
+												<span className='badge badge--exists'>{t('admin.steam.store.inGdb')}</span>
 											) : addedState === 'error' ? (
 												<button className='btn btn-secondary btn-sm' onClick={() => handleAddStoreGame(game.appId)}>
-													Reintentar
+													{t('admin.steam.store.retry')}
 												</button>
 											) : (
 												<button className='btn btn-primary btn-sm' onClick={() => handleAddStoreGame(game.appId)} disabled={isAdding}>
-													{isAdding ? '...' : 'Añadir'}
+													{isAdding ? '...' : t('admin.steam.store.add')}
 												</button>
 											)}
 										</div>
@@ -1143,26 +1158,24 @@ export const AdminSteamImport = () => {
 			) : activeTab === 'suggestions' ? (
 				<div className='suggestions-view'>
 					{suggestionsLoading ? (
-						<p>Buscando coincidencias...</p>
+						<p>{t('admin.steam.suggestionsView.searching')}</p>
 					) : suggestionsError ? (
 						<div className='alert alert--error'>{suggestionsError}</div>
 					) : suggestions.length === 0 ? (
-						<p className='no-suggestions'>No se encontraron coincidencias posibles. Puede que todos los juegos ya estén vinculados o los nombres difieran demasiado.</p>
+						<p className='no-suggestions'>{t('admin.steam.suggestionsView.none')}</p>
 					) : (
 						<>
-							<p className='suggestions-hint'>
-								Se han encontrado {suggestions.length} posibles coincidencias por nombre entre tu biblioteca de Steam y juegos en GDB sin vincular.
-							</p>
+							<p className='suggestions-hint'>{t('admin.steam.suggestionsView.hint', { count: suggestions.length })}</p>
 							<div className='suggestions-toolbar'>
-								<input className='search-input' type='text' placeholder='Buscar por nombre...' value={suggestionSearch} onChange={(e) => setSuggestionSearch(e.target.value)} />
+								<input className='search-input' type='text' placeholder={t('admin.steam.common.searchByName')} value={suggestionSearch} onChange={(e) => setSuggestionSearch(e.target.value)} />
 								{selectedSuggestionIds.size > 0 && (
 									<div className='bulk-actions'>
-										<span className='bulk-count'>{selectedSuggestionIds.size} seleccionadas</span>
+										<span className='bulk-count'>{t('admin.steam.suggestionsView.selectedCount', { count: selectedSuggestionIds.size })}</span>
 										<button className='btn btn-primary btn-sm' onClick={handleBulkLinkSuggestions}>
-											Vincular seleccionadas
+											{t('admin.steam.suggestionsView.linkSelected')}
 										</button>
 										<button className='btn btn-secondary btn-sm' onClick={handleBulkDismissSuggestions} disabled={suggestionsDismissing}>
-											{suggestionsDismissing ? 'Descartando...' : 'Descartar seleccionadas'}
+											{suggestionsDismissing ? t('admin.steam.suggestionsView.dismissing') : t('admin.steam.suggestionsView.dismissSelected')}
 										</button>
 									</div>
 								)}
@@ -1178,10 +1191,10 @@ export const AdminSteamImport = () => {
 													onChange={toggleAllVisibleSuggestions}
 												/>
 											</th>
-											<th>Steam</th>
-											<th>En GDB</th>
-											<th>Confianza</th>
-											<th>Acción</th>
+											<th>{t('admin.steam.suggestionsView.colSteam')}</th>
+											<th>{t('admin.steam.suggestionsView.colGdb')}</th>
+											<th>{t('admin.steam.suggestionsView.colConfidence')}</th>
+											<th>{t('admin.steam.suggestionsView.colAction')}</th>
 										</tr>
 									</thead>
 									<tbody>
@@ -1221,7 +1234,7 @@ export const AdminSteamImport = () => {
 															event.stopPropagation()
 															handleLinkSuggestion(s)
 														}}>
-														Vincular
+														{t('admin.steam.suggestionsView.link')}
 													</button>
 												</td>
 											</tr>
@@ -1236,13 +1249,14 @@ export const AdminSteamImport = () => {
 				<>
 					{lastImportResult && (
 						<div className='import-result alert alert--success'>
-							<strong>Importación completada:</strong> {lastImportResult.created} creados, {lastImportResult.linked} vinculados, {lastImportResult.skipped} omitidos
+							<strong>{t('admin.steam.libraryView.importResult')}</strong> {t('admin.steam.libraryView.importCreated', { count: lastImportResult.created })},{' '}
+							{t('admin.steam.libraryView.importLinked', { count: lastImportResult.linked })}, {t('admin.steam.libraryView.importSkipped', { count: lastImportResult.skipped })}
 						</div>
 					)}
 
 					{linkResults && (
 						<div className='import-result alert alert--success'>
-							<strong>Vinculación completada:</strong> {linkResults.linked} vinculados
+							<strong>{t('admin.steam.libraryView.linkResult')}</strong> {t('admin.steam.libraryView.linkedCount', { count: linkResults.linked })}
 							{linkResults.errors.length > 0 && (
 								<ul>
 									{linkResults.errors.map((e, i) => (
@@ -1256,87 +1270,112 @@ export const AdminSteamImport = () => {
 					<div className='import-controls'>
 						<label className='filter-toggle'>
 							<input type='checkbox' checked={filterUnmatched} onChange={(e) => setFilterUnmatched(e.target.checked)} />
-							Mostrar solo juegos no existentes en GDB
+							{t('admin.steam.libraryView.showOnlyUnmatched')}
 						</label>
 						<div className='import-actions'>
 							<button className='btn btn-secondary' onClick={handleSelectAllUnmatched} disabled={libraryLoading}>
-								Seleccionar todos los no importados
+								{t('admin.steam.libraryView.selectAllUnmatched')}
 							</button>
 							<button className='btn btn-primary' onClick={handleImport} disabled={importLoading || linkLoading || totalActionCount === 0}>
 								{importLoading || linkLoading
-									? 'Procesando...'
-									: `Aplicar (${toCreateCount > 0 ? `${toCreateCount} crear` : ''}${toCreateCount > 0 && toLinkCount > 0 ? ', ' : ''}${toLinkCount > 0 ? `${toLinkCount} vincular` : ''})`}
+									? t('admin.steam.libraryView.processing')
+									: `${t('admin.steam.libraryView.apply')} (${toCreateCount > 0 ? t('admin.steam.libraryView.applyCreate', { count: toCreateCount }) : ''}${
+											toCreateCount > 0 && toLinkCount > 0 ? ', ' : ''
+										}${toLinkCount > 0 ? t('admin.steam.libraryView.applyLink', { count: toLinkCount }) : ''})`}
 							</button>
 						</div>
 					</div>
 					<input
 						className='search-input search-input--library'
 						type='text'
-						placeholder='Buscar por nombre...'
+						placeholder={t('admin.steam.libraryView.searchPlaceholder')}
 						value={librarySearch}
 						onChange={(e) => setLibrarySearch(e.target.value)}
 					/>
 
 					{libraryLoading ? (
-						<p>Cargando biblioteca de Steam...</p>
+						<p>{t('admin.steam.libraryView.loading')}</p>
 					) : (
-						<div className='library-table-wrapper'>
-							<table className='library-table'>
-								<thead>
-									<tr>
-										<th>Portada</th>
-										<th>
-											<button type='button' className='btn btn-secondary btn-sm' onClick={() => handleLibrarySort('name')}>
-												Nombre{renderSortIndicator('name')}
-											</button>
-										</th>
-										<th>
-											<button type='button' className='btn btn-secondary btn-sm' onClick={() => handleLibrarySort('playtime')}>
-												Tiempo de juego{renderSortIndicator('playtime')}
-											</button>
-										</th>
-										<th>
-											<button type='button' className='btn btn-secondary btn-sm' onClick={() => handleLibrarySort('status')}>
-												Estado en GDB{renderSortIndicator('status')}
-											</button>
-										</th>
-										<th>
-											<button type='button' className='btn btn-secondary btn-sm' onClick={() => handleLibrarySort('action')}>
-												Acción{renderSortIndicator('action')}
-											</button>
-										</th>
-									</tr>
-								</thead>
-								<tbody>
-									{filteredLibrary.map((game) => {
-										const action = getAction(game.appId)
-										return (
-											<tr key={game.appId} className={action === 'create' ? 'row--selected' : action === 'link' ? 'row--link' : ''}>
-												<td>{game.iconUrl ? <img src={game.iconUrl} alt='' width={32} height={32} style={{ borderRadius: 2 }} /> : <div className='no-icon' />}</td>
-												<td>
-													<span className='game-name'>{game.name}</span>
-													<span className='game-appid'>App {game.appId}</span>
-												</td>
-												<td>{game.playtimeForever > 0 ? `${Math.round(game.playtimeForever / 60)}h` : '—'}</td>
-												<td>
-													{game.gdbGameId ? <span className='badge badge--exists'>En GDB (#{game.gdbGameId})</span> : <span className='badge badge--missing'>No importado</span>}
-												</td>
-												<td className='action-cell'>
-													<select value={action} onChange={(e) => setAction(game.appId, e.target.value as ImportAction)} className='action-select'>
-														<option value='skip'>Omitir</option>
-														<option value='create'>Crear en GDB</option>
-														<option value='link'>Vincular a existente</option>
-													</select>
-													{action === 'link' && (
-														<GameSearch onSelect={(g) => setLinkTarget(game.appId, { gameId: g.id, gameName: g.name })} selected={linkTargets.get(game.appId) ?? null} />
-													)}
-												</td>
-											</tr>
-										)
-									})}
-								</tbody>
-							</table>
-						</div>
+						<>
+							<div className='library-table-wrapper'>
+								<table className='library-table'>
+									<thead>
+										<tr>
+											<th>{t('admin.steam.libraryView.colCover')}</th>
+											<th>
+												<button type='button' className='btn btn-secondary btn-sm' onClick={() => handleLibrarySort('name')}>
+													{t('admin.steam.libraryView.colName')}
+													{renderSortIndicator('name')}
+												</button>
+											</th>
+											<th>
+												<button type='button' className='btn btn-secondary btn-sm' onClick={() => handleLibrarySort('playtime')}>
+													{t('admin.steam.libraryView.colPlaytime')}
+													{renderSortIndicator('playtime')}
+												</button>
+											</th>
+											<th>
+												<button type='button' className='btn btn-secondary btn-sm' onClick={() => handleLibrarySort('status')}>
+													{t('admin.steam.libraryView.colStatus')}
+													{renderSortIndicator('status')}
+												</button>
+											</th>
+											<th>
+												<button type='button' className='btn btn-secondary btn-sm' onClick={() => handleLibrarySort('action')}>
+													{t('admin.steam.libraryView.colAction')}
+													{renderSortIndicator('action')}
+												</button>
+											</th>
+										</tr>
+									</thead>
+									<tbody>
+										{pagedLibrary.map((game) => {
+											const action = getAction(game.appId)
+											return (
+												<tr key={game.appId} className={action === 'create' ? 'row--selected' : action === 'link' ? 'row--link' : ''}>
+													<td>{game.iconUrl ? <img src={game.iconUrl} alt='' width={32} height={32} style={{ borderRadius: 2 }} /> : <div className='no-icon' />}</td>
+													<td>
+														<span className='game-name'>{game.name}</span>
+														<span className='game-appid'>App {game.appId}</span>
+													</td>
+													<td>{game.playtimeForever > 0 ? `${Math.round(game.playtimeForever / 60)}h` : '—'}</td>
+													<td>
+														{game.gdbGameId ? (
+															<span className='badge badge--exists'>{t('admin.steam.libraryView.inGdb', { id: game.gdbGameId })}</span>
+														) : (
+															<span className='badge badge--missing'>{t('admin.steam.libraryView.notImported')}</span>
+														)}
+													</td>
+													<td className='action-cell'>
+														<select value={action} onChange={(e) => setAction(game.appId, e.target.value as ImportAction)} className='action-select'>
+															<option value='skip'>{t('admin.steam.libraryView.actionSkip')}</option>
+															<option value='create'>{t('admin.steam.libraryView.actionCreate')}</option>
+															<option value='link'>{t('admin.steam.libraryView.actionLink')}</option>
+														</select>
+														{action === 'link' && (
+															<GameSearch onSelect={(g) => setLinkTarget(game.appId, { gameId: g.id, gameName: g.name })} selected={linkTargets.get(game.appId) ?? null} />
+														)}
+													</td>
+												</tr>
+											)
+										})}
+									</tbody>
+								</table>
+							</div>
+							{filteredLibrary.length > LIBRARY_PAGE_SIZE && (
+								<div className='library-pagination'>
+									<button className='btn btn-secondary btn-sm' onClick={() => setLibraryPage((p) => Math.max(1, p - 1))} disabled={clampedLibraryPage <= 1}>
+										{t('common.previous')}
+									</button>
+									<span className='library-pagination__info'>
+										{t('admin.steam.libraryView.pageInfo', { page: clampedLibraryPage, pages: libraryPageCount })} · {t('admin.steam.libraryView.rowsInfo', { count: filteredLibrary.length })}
+									</span>
+									<button className='btn btn-secondary btn-sm' onClick={() => setLibraryPage((p) => Math.min(libraryPageCount, p + 1))} disabled={clampedLibraryPage >= libraryPageCount}>
+										{t('common.next')}
+									</button>
+								</div>
+							)}
+						</>
 					)}
 				</>
 			)}
@@ -1350,6 +1389,7 @@ interface GameSearchProps {
 }
 
 function GameSearch({ onSelect, selected }: GameSearchProps) {
+	const { t } = useTranslation()
 	const [query, setQuery] = useState('')
 	const [results, setResults] = useState<Game[]>([])
 	const [searching, setSearching] = useState(false)
@@ -1385,7 +1425,7 @@ function GameSearch({ onSelect, selected }: GameSearchProps) {
 	return (
 		<div className='game-search'>
 			{selected && <span className='game-search-selected'>→ {selected.gameName}</span>}
-			<input className='game-search-input' type='text' placeholder='Buscar juego en GDB...' value={query} onChange={handleChange} autoComplete='off' />
+			<input className='game-search-input' type='text' placeholder={t('admin.steam.libraryView.gameSearchPlaceholder')} value={query} onChange={handleChange} autoComplete='off' />
 			{searching && <span className='game-search-loading'>...</span>}
 			{results.length > 0 && (
 				<ul className='game-search-results'>

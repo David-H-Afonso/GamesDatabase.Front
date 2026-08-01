@@ -1,0 +1,119 @@
+// Nintendo-inspired theme — clean white surfaces with a vivid red accent.
+// CSS-only palette. No official logos or brand assets are used.
+
+[data-theme='nintendo'] {
+	--border-color-light: #f0c9cc;
+	--border-color: #e3b7bb;
+	--bg-hover: #fbe9ea;
+	--surface: #ffffff;
+	--surface-light: #fff5f5;
+	--surface-hover: #fbe9ea;
+	--surface-elevated: #ffffff;
+	--box-shadow: 0 10px 24px rgba(190, 20, 30, 0.12);
+
+	// Background & Surface — bright, paper-white base with a soft red wash
+	--bg-primary: #f6f7f9;
+	--bg-secondary: #eef0f3;
+	--bg-tertiary: #ffffff;
+
+	// Text Colors
+	--text-primary: #1b1d21;
+	--text-secondary: #3c4046;
+	--text-tertiary: #5c626b;
+	--text-muted: #767c85;
+	--text-disabled: #a2a8b0;
+	--text-inverse: #ffffff;
+
+	// Brand Colors — signature red
+	--primary: #e60012;
+	--primary-hover: #c50010;
+	--primary-light: #ffd7da;
+
+	// Neutrals
+	--white: #ffffff;
+	--black: #000000;
+	--gray-50: #ffffff;
+	--gray-100: #f4f5f7;
+	--gray-200: #e6e8ec;
+	--gray-300: #d3d7dd;
+	--gray-400: #b3b9c1;
+	--gray-500: #8b929c;
+	--gray-600: #5c626b;
+	--gray-700: #3c4046;
+	--gray-800: #26282d;
+	--gray-900: #1b1d21;
+
+	// Semantic Colors
+	--success: #0f9d58;
+	--success-light: #d6f3e4;
+	--warning: #d98a00;
+	--warning-light: #fff0cf;
+	--error: #e60012;
+	--error-light: #ffd7da;
+	--info: #1a73e8;
+	--info-light: #d7e6fd;
+
+	// Border & Divider
+	--border: #e0e3e8;
+	--border-light: #eceef1;
+	--border-hover: #e60012;
+	--divider: #e0e3e8;
+
+	// Interactive Elements
+	--interactive: var(--primary);
+	--interactive-hover: var(--primary-hover);
+	--interactive-active: #a3000d;
+	--interactive-disabled: #c9ced5;
+
+	// Input & Form Elements
+	--input-bg: #ffffff;
+	--input-border: #d3d7dd;
+	--input-border-focus: var(--primary);
+	--input-text: var(--text-primary);
+	--input-placeholder: #9aa0a9;
+
+	// Cards & Components
+	--card-bg: var(--surface);
+	--card-border: #ececf0;
+	--card-shadow: 0 1px 3px rgba(20, 22, 26, 0.08), 0 10px 26px -18px rgba(230, 0, 18, 0.2);
+	--card-shadow-hover: 0 10px 24px -12px rgba(20, 22, 26, 0.16), 0 0 0 1px rgba(230, 0, 18, 0.14);
+
+	// Header specific
+	--header-background: #ffffff;
+	--header-text: var(--text-primary);
+	--primary-color: var(--primary);
+	--primary-color-alpha: rgba(230, 0, 18, 0.14);
+	--primary-color-dark: var(--primary-hover);
+	--text-color: var(--text-primary);
+
+	// Ambience
+	--bg-main: #eef0f3;
+	--bg-radial-blue: rgba(230, 0, 18, 0.08);
+	--bg-radial-green: rgba(230, 0, 18, 0.05);
+
+	// Header & control tokens
+	--header-bg: #ffffff;
+	--header-border: rgba(20, 22, 26, 0.08);
+	--header-shadow: 0 2px 18px rgba(190, 20, 30, 0.12);
+	--control-bg: rgba(230, 0, 18, 0.05);
+	--control-border: rgba(20, 22, 26, 0.1);
+	--control-hover-bg: rgba(230, 0, 18, 0.1);
+	--control-hover-border: rgba(230, 0, 18, 0.26);
+	--control-text: #3c4046;
+	--segment-bg: rgba(20, 22, 26, 0.04);
+	--segment-active-bg: rgba(230, 0, 18, 0.12);
+	--segment-active-shadow: 0 1px 2px rgba(190, 20, 30, 0.14);
+	--menu-bg: #ffffff;
+	--menu-border: rgba(20, 22, 26, 0.1);
+	--menu-shadow: 0 16px 38px -10px rgba(190, 20, 30, 0.2);
+	--focus-ring: rgba(230, 0, 18, 0.4);
+	--toggle-icon: #e60012;
+	--danger: #e60012;
+	--danger-bg: rgba(230, 0, 18, 0.12);
+
+	// Primary CTA accent
+	--cta-gradient: linear-gradient(135deg, #e60012 0%, #a3000d 100%);
+	--cta-gradient-hover: linear-gradient(135deg, #ff2233 0%, #c50010 100%);
+	--cta-glow: rgba(230, 0, 18, 0.28);
+	--cta-divider: rgba(255, 255, 255, 0.5);
+}

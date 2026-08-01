@@ -17,6 +17,7 @@ import {
 } from '@/services/DataExportService'
 import { useGames } from '@/hooks/useGames'
 import { ConfirmDialog } from '@/components/elements'
+import { AdminDataExportInstructions } from './AdminDataExportInstructions'
 import './AdminDataExport.scss'
 
 interface FolderAnalysisResult {
@@ -78,7 +79,6 @@ export const AdminDataExport: React.FC = () => {
 	const [showImageUrlPicker, setShowImageUrlPicker] = useState(false)
 	const [selectedPreset, setSelectedPreset] = useState<string>('')
 	const [customImageBaseUrl, setCustomImageBaseUrl] = useState('')
-	const [showInstructions, setShowInstructions] = useState(false)
 	const [applyingImageUrls, setApplyingImageUrls] = useState(false)
 	const [selectedOrphanFolders, setSelectedOrphanFolders] = useState<string[]>([])
 	const [deletingFolders, setDeletingFolders] = useState<string[]>([])
@@ -115,7 +115,7 @@ export const AdminDataExport: React.FC = () => {
 			const blob = await exportFullDatabase()
 			const filename = `database_export_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.csv`
 			downloadBlob(blob, filename)
-			showMessage('Database exported successfully!', 'success')
+			showMessage(t('admin.dataExport.exportSuccess'), 'success')
 		} catch (error) {
 			console.error('Full export error:', error)
 			showMessage(error instanceof Error ? error.message : 'Error exporting database', 'error')
@@ -136,7 +136,7 @@ export const AdminDataExport: React.FC = () => {
 			const catalogStats = result.catalogs
 			const gameStats = result.games
 			const detailedMessage = `
-				Database imported successfully (MERGE mode)!
+				${t('admin.dataExport.importSuccessTitle')}
 				
 				Catalogs:
 				- Platforms: ${catalogStats.platforms.imported} new, ${catalogStats.platforms.updated} updated
@@ -252,9 +252,9 @@ Statistics:
 			setDbDuplicatesResult(result)
 			setExpandedDuplicateGroups(result.duplicateGroups.map((group) => group.normalizedKey))
 			if (result.duplicateGroups.length === 0) {
-				showMessage('No se encontraron duplicados en la base de datos.', 'success')
+				showMessage(t('admin.dataExport.dupNoDuplicates'), 'success')
 			} else {
-				showMessage(`Se encontraron ${result.duplicateGroups.length} grupo(s) de duplicados potenciales.`, 'success')
+				showMessage(t('admin.dataExport.dupFoundToast', { count: result.duplicateGroups.length }), 'success')
 			}
 		} catch (error) {
 			console.error('DB duplicate analysis error:', error)
@@ -265,7 +265,7 @@ Statistics:
 	}
 
 	const formatOptionalDate = (date?: string) => {
-		if (!date) return 'Sin fecha'
+		if (!date) return t('admin.dataExport.noDate')
 		const parsed = new Date(date)
 		if (Number.isNaN(parsed.getTime())) return date
 		return parsed.toLocaleDateString()
@@ -274,14 +274,14 @@ Statistics:
 	const formatMetric = (value?: number, suffix = '') => (value === null || value === undefined ? '—' : `${value}${suffix}`)
 
 	const formatPlaytime = (minutes?: number) => {
-		if (!minutes) return 'Sin tiempo'
+		if (!minutes) return t('admin.dataExport.noTime')
 		const hours = Math.floor(minutes / 60)
 		const mins = minutes % 60
 		return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`
 	}
 
 	const formatBytes = (bytes?: number) => {
-		if (bytes === null || bytes === undefined) return 'Tamaño desconocido'
+		if (bytes === null || bytes === undefined) return t('admin.dataExport.unknownSize')
 		if (bytes < 1024) return `${bytes} B`
 		const units = ['KB', 'MB', 'GB', 'TB']
 		let value = bytes / 1024
@@ -396,7 +396,7 @@ Statistics:
 		}
 
 		setSelectedOrphanFolders([])
-		showMessage('Carpetas seleccionadas procesadas.', 'success')
+		showMessage(t('admin.dataExport.foldersProcessed'), 'success')
 	}
 
 	const toggleDuplicateGroup = (key: string) => {
@@ -488,7 +488,7 @@ Statistics:
 	const renderDuplicateGroup = (group: DatabaseDuplicateGroup, idx: number) => {
 		const groupKey = getDuplicateGroupKey(group) || `group-${idx}`
 		const expanded = expandedDuplicateGroups.includes(groupKey)
-		const matchLabel = group.matchType === 'fuzzy' ? `Parecido · ${group.confidence ?? 0}%` : 'Exacto'
+		const matchLabel = group.matchType === 'fuzzy' ? t('admin.dataExport.matchSimilar', { confidence: group.confidence ?? 0 }) : t('admin.dataExport.matchExact')
 		const dismissing = dismissingDuplicateGroups.includes(groupKey)
 
 		return (
@@ -496,7 +496,7 @@ Statistics:
 				<button className='duplicate-group-card__header' type='button' onClick={() => toggleDuplicateGroup(groupKey)}>
 					<span className='duplicate-group-card__title'>{group.games.map((game) => game.name).join(' / ')}</span>
 					<span className='duplicate-group-card__meta'>
-						{matchLabel} · {group.games.length} juegos · {expanded ? 'Ocultar detalles' : 'Ver detalles'}
+						{matchLabel} · {t('admin.dataExport.gamesCountLabel', { count: group.games.length })} · {expanded ? t('admin.dataExport.hideDetails') : t('admin.dataExport.showDetails')}
 					</span>
 				</button>
 				{expanded && (
@@ -504,7 +504,7 @@ Statistics:
 						<div className='duplicate-group-card__actions'>
 							<p className='duplicate-group-card__reason'>{group.reason}</p>
 							<button className='btn btn-secondary btn-small' onClick={() => handleDismissDuplicateGroup(group)} disabled={dismissing}>
-								{dismissing ? 'Descartando...' : 'Descartar falso positivo'}
+								{dismissing ? t('admin.dataExport.dismissing') : t('admin.dataExport.dismissFalsePositive')}
 							</button>
 						</div>
 						<div className='duplicate-game-grid'>
@@ -520,13 +520,13 @@ Statistics:
 												<span>#{game.id}</span>
 											</div>
 											<button className='btn btn-danger btn-small' onClick={() => handleDeleteDuplicateGame(game)} disabled={deletingGameIds.includes(game.id)}>
-												{deletingGameIds.includes(game.id) ? 'Borrando...' : 'Borrar este'}
+												{deletingGameIds.includes(game.id) ? t('admin.dataExport.deleting') : t('admin.dataExport.deleteThisGame')}
 											</button>
 										</div>
 										<div className='duplicate-game-card__chips'>
-											<span>{game.statusName || 'Sin estado'}</span>
-											<span>{game.platformName || 'Sin plataforma'}</span>
-											<span>{game.playedStatusName || 'Sin jugado'}</span>
+											<span>{game.statusName || t('admin.dataExport.noStatus')}</span>
+											<span>{game.platformName || t('admin.dataExport.noPlatform')}</span>
+											<span>{game.playedStatusName || t('admin.dataExport.noPlayedStatus')}</span>
 										</div>
 										<dl className='duplicate-game-card__details'>
 											<div>
@@ -563,38 +563,38 @@ Statistics:
 											</div>
 											<div>
 												<dt>Steam</dt>
-												<dd>{game.steamAppId ? `App ${game.steamAppId}` : 'Sin app'}</dd>
+												<dd>{game.steamAppId ? `App ${game.steamAppId}` : t('admin.dataExport.noApp')}</dd>
 											</div>
 											<div>
 												<dt>Playtime</dt>
 												<dd>{formatPlaytime(game.steamPlaytimeForever)}</dd>
 											</div>
 											<div>
-												<dt>Creado</dt>
+												<dt>{t('admin.dataExport.detailCreated')}</dt>
 												<dd>{formatOptionalDate(game.createdAt)}</dd>
 											</div>
 											<div>
-												<dt>Actualizado</dt>
+												<dt>{t('admin.dataExport.detailUpdated')}</dt>
 												<dd>{formatOptionalDate(game.updatedAt)}</dd>
 											</div>
 											<div>
-												<dt>Carpeta</dt>
+												<dt>{t('admin.dataExport.detailFolder')}</dt>
 												<dd title={game.folderPath || undefined}>
-													{game.folderName || 'Sin carpeta'}
+													{game.folderName || t('admin.dataExport.noFolder')}
 													{game.filesystemChecked ? (game.folderExists ? ' ✅' : ' ❌') : ''}
 												</dd>
 											</div>
 											<div>
-												<dt>Exportado</dt>
-												<dd>{game.isExported ? formatOptionalDate(game.lastExportedAt) : 'No exportado'}</dd>
+												<dt>{t('admin.dataExport.detailExported')}</dt>
+												<dd>{game.isExported ? formatOptionalDate(game.lastExportedAt) : t('admin.dataExport.notExported')}</dd>
 											</div>
 											<div>
-												<dt>Imágenes export</dt>
+												<dt>{t('admin.dataExport.detailExportImages')}</dt>
 												<dd>{`logo ${game.logoDownloaded ? '✅' : '❌'} · hero ${game.heroDownloaded ? '✅' : '❌'} · cover ${game.coverDownloaded ? '✅' : '❌'}`}</dd>
 											</div>
 											<div>
-												<dt>Cambios sin exportar</dt>
-												<dd>{game.modifiedSinceExport ? 'Sí' : 'No'}</dd>
+												<dt>{t('admin.dataExport.detailUnexportedChanges')}</dt>
+												<dd>{game.modifiedSinceExport ? t('common.yes') : t('common.no')}</dd>
 											</div>
 										</dl>
 									</div>
@@ -615,7 +615,7 @@ Statistics:
 
 			{message && (
 				<div className={`alert alert-${messageType}`}>
-					<button className='alert-close' onClick={closeMessage} aria-label='Close message'>
+					<button className='alert-close' onClick={closeMessage} aria-label={t('common.close')}>
 						×
 					</button>
 					<pre style={{ whiteSpace: 'pre-wrap', margin: 0 }}>{message}</pre>
@@ -623,62 +623,7 @@ Statistics:
 			)}
 
 			{/* Instructions Section */}
-			<div className='section instructions-section'>
-				<div className='section-toolbar'>
-					<h2>{t('admin.dataExport.instructionsTitle')}</h2>
-					<button className='btn btn-secondary btn-compact' onClick={() => setShowInstructions((value) => !value)}>
-						{showInstructions ? t('admin.dataExport.instrHide') : t('admin.dataExport.instrShow')}
-					</button>
-				</div>
-				{showInstructions && <div className='instructions-content'>
-					<div className='instruction-item'>
-						<h3>{t('admin.dataExport.instrExportTitle')}</h3>
-						<ul>
-							<li>{t('admin.dataExport.instrExport1')}</li>
-							<li>{t('admin.dataExport.instrExport2')}</li>
-							<li>{t('admin.dataExport.instrExport3')}</li>
-							<li>{t('admin.dataExport.instrExport4')}</li>
-							<li>{t('admin.dataExport.instrExport5')}</li>
-						</ul>
-					</div>
-
-					<div className='instruction-item'>
-						<h3>{t('admin.dataExport.instrImportTitle')}</h3>
-						<ul>
-							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrImport1') }} />
-							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrImport2') }} />
-							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrImport3') }} />
-							<li>{t('admin.dataExport.instrImport4')}</li>
-							<li>{t('admin.dataExport.instrImport5')}</li>
-							<li>{t('admin.dataExport.instrImport6')}</li>
-						</ul>
-					</div>
-
-					<div className='instruction-item'>
-						<h3>{t('admin.dataExport.instrUseCasesTitle')}</h3>
-						<ul>
-							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrUseCase1') }} />
-							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrUseCase2') }} />
-							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrUseCase3') }} />
-							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrUseCase4') }} />
-							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrUseCase5') }} />
-						</ul>
-					</div>
-
-					<div className='instruction-item warning-item'>
-						<h3>{t('admin.dataExport.instrNotesTitle')}</h3>
-						<ul>
-							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrNote1') }} />
-							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrNote2') }} />
-							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrNote3') }} />
-							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrNote4') }} />
-							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrNote5') }} />
-							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrNote6') }} />
-							<li dangerouslySetInnerHTML={{ __html: t('admin.dataExport.instrNote7') }} />
-						</ul>
-					</div>
-				</div>}
-			</div>
+			<AdminDataExportInstructions />
 
 			<div className='export-import-sections'>
 				{/* Full Database Export/Import Section */}
@@ -709,39 +654,7 @@ Statistics:
 					</div>
 				</div>
 
-				{/* ZIP Export Section
-				<div className='section zip-export-section'>
-					<h2>📦 Exportar a ZIP</h2>
-					<p className='section-description'>
-						Exporta la base de datos y las imágenes en un archivo ZIP comprimido.
-					</p>
-
-					<div className='action-group'>
-						<div className='action-item'>
-							<h3>Exportar Todo (Full)</h3>
-							<p>Exporta toda la base de datos con todas las imágenes de los juegos.</p>
-							<button
-								className='btn btn-primary btn-large'
-								onClick={() => handleExportToZip(true)}
-								disabled={loading}>
-								{loading ? '⏳ Exportando...' : '📦 Exportar ZIP Full'}
-							</button>
-						</div>
-
-						<div className='action-item'>
-							<h3>Exportar Solo Actualizado (Parcial)</h3>
-							<p>
-								Exporta únicamente los datos y las imágenes que han sido modificados recientemente.
-							</p>
-							<button
-								className='btn btn-secondary btn-large'
-								onClick={() => handleExportToZip(false)}
-								disabled={loading}>
-								{loading ? '⏳ Exportando...' : '📦 Exportar ZIP Parcial'}
-							</button>
-						</div>
-					</div>
-				</div> */}
+				{/* ZIP Export Section removed — the ZIP export UI is not part of the product. */}
 
 				{/* Network Sync Section */}
 				<div className='section network-sync-section'>
@@ -883,7 +796,7 @@ Statistics:
 											className='btn btn-danger btn-compact'
 											onClick={handleDeleteSelectedOrphanFolders}
 											disabled={selectedOrphanFolders.length === 0 || deletingFolders.length > 0}>
-											Borrar seleccionadas ({selectedOrphanFolders.length})
+											{t('admin.dataExport.deleteSelectedFolders', { count: selectedOrphanFolders.length })}
 										</button>
 									</div>
 									<ul className='orphan-folder-list'>
@@ -897,9 +810,9 @@ Statistics:
 														{orphan.reason && <small className='orphan-folder-list__reason'>{orphan.reason}</small>}
 														<small className='orphan-folder-list__meta'>
 															<span>{formatBytes(orphan.sizeBytes)}</span>
-															{typeof orphan.fileCount === 'number' && <span>{orphan.fileCount} archivo(s)</span>}
-															<span>Creada: {formatOptionalDate(orphan.createdAt)}</span>
-															<span>Modificada: {formatOptionalDate(orphan.modifiedAt)}</span>
+															{typeof orphan.fileCount === 'number' && <span>{t('admin.dataExport.filesCount', { count: orphan.fileCount })}</span>}
+															<span>{t('admin.dataExport.orphanCreated', { date: formatOptionalDate(orphan.createdAt) })}</span>
+															<span>{t('admin.dataExport.orphanModified', { date: formatOptionalDate(orphan.modifiedAt) })}</span>
 														</small>
 													</span>
 												</label>
@@ -907,7 +820,7 @@ Statistics:
 													className='btn btn-danger btn-small'
 													onClick={() => handleDeleteOrphanFolder(orphan.folderName)}
 													disabled={deletingFolders.includes(orphan.folderName)}>
-													{deletingFolders.includes(orphan.folderName) ? 'Borrando...' : 'Borrar'}
+													{deletingFolders.includes(orphan.folderName) ? t('admin.dataExport.deleting') : t('admin.dataExport.deleteFolder')}
 												</button>
 											</li>
 										))}
@@ -917,8 +830,8 @@ Statistics:
 
 							{(analysisResult.missingGameFolders?.length ?? 0) > 0 && (
 								<div className='missing-folders-section'>
-									<h3>Juegos sin carpeta ({analysisResult.missingGameFolders.length})</h3>
-									<p className='section-note'>Estos juegos existen en la base de datos, pero no tienen la carpeta esperada en disco.</p>
+									<h3>{t('admin.dataExport.missingFoldersTitle', { count: analysisResult.missingGameFolders.length })}</h3>
+									<p className='section-note'>{t('admin.dataExport.missingFoldersNote')}</p>
 									<ul className='missing-folder-list'>
 										{analysisResult.missingGameFolders.map((missing) => (
 											<li key={missing.gameId}>
@@ -926,7 +839,7 @@ Statistics:
 													<strong>
 														#{missing.gameId} {missing.gameName}
 													</strong>
-													<span>Carpeta esperada: {missing.expectedFolderName}</span>
+													<span>{t('admin.dataExport.expectedFolder', { name: missing.expectedFolderName })}</span>
 													<code>{missing.expectedFullPath}</code>
 												</div>
 											</li>

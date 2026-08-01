@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { setTheme } from '@/store/features/theme/themeSlice'
+import { setTheme, setThemeBackground } from '@/store/features/theme/themeSlice'
 import { getThemeFamilyKey, normalizeThemeKey, THEME_FAMILIES, THEME_VARIANTS_BY_FAMILY } from '@/assets/styles/themes/AVAILABLE_THEMES'
+import { getThemeBackgroundOptions, NO_BACKGROUND } from '@/assets/styles/themes/themeBackgrounds'
 import './ThemeLanguageControls.scss'
 
 const LANGUAGES: ReadonlyArray<{ code: string; label: string }> = [
@@ -57,6 +58,29 @@ const PalmIcon = () => (
 	</svg>
 )
 
+const GamepadIcon = () => (
+	<svg width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round' strokeLinejoin='round' aria-hidden='true'>
+		<rect x='2' y='7' width='20' height='11' rx='5.5' />
+		<path d='M7 11v3M5.5 12.5h3' />
+		<circle cx='16' cy='11.5' r='1' fill='currentColor' stroke='none' />
+		<circle cx='18.5' cy='13.5' r='1' fill='currentColor' stroke='none' />
+	</svg>
+)
+
+const PlayIcon = () => (
+	<svg width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round' strokeLinejoin='round' aria-hidden='true'>
+		<circle cx='12' cy='12' r='9' />
+		<path d='M10 8.5v7l6-3.5-6-3.5Z' fill='currentColor' stroke='none' />
+	</svg>
+)
+
+const SphereIcon = () => (
+	<svg width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round' strokeLinejoin='round' aria-hidden='true'>
+		<circle cx='12' cy='12' r='9' />
+		<path d='M8 6c4 3 4 9 0 12M16 6c-4 3-4 9 0 12' />
+	</svg>
+)
+
 const ChevronIcon = ({ className }: { className?: string }) => (
 	<svg className={className} width='12' height='12' viewBox='0 0 12 8' fill='none' aria-hidden='true'>
 		<path d='M1.5 2.5 6 6l4.5-3.5' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round' strokeLinejoin='round' />
@@ -75,6 +99,9 @@ const themeIcon = (key: string) => {
 	if (key === 'steam') return <SteamIcon />
 	if (key.startsWith('wolverine')) return <ClawIcon />
 	if (key.startsWith('gta')) return <PalmIcon />
+	if (key === 'nintendo') return <GamepadIcon />
+	if (key === 'playstation') return <PlayIcon />
+	if (key === 'xbox') return <SphereIcon />
 	return <PaletteIcon />
 }
 
@@ -82,9 +109,10 @@ export const ThemeLanguageControls: React.FC = () => {
 	const { t, i18n } = useTranslation()
 	const dispatch = useAppDispatch()
 	const currentTheme = normalizeThemeKey(useAppSelector((s) => s.theme?.currentTheme) ?? 'dark') ?? 'dark'
+	const backgroundByTheme = useAppSelector((s) => s.theme?.backgroundByTheme) ?? {}
 	const currentLang = i18n.resolvedLanguage ?? 'en'
 
-	const [open, setOpen] = useState<null | 'theme' | 'variant' | 'lang'>(null)
+	const [open, setOpen] = useState<null | 'theme' | 'variant' | 'background' | 'lang'>(null)
 	const ref = useRef<HTMLDivElement>(null)
 
 	useEffect(() => {
@@ -108,6 +136,9 @@ export const ThemeLanguageControls: React.FC = () => {
 		'gta-iv': t('nav.themeGtaIv'),
 		'gta-vice-city': t('nav.themeViceCity'),
 		'gta-vi': t('nav.themeGtaVi'),
+		nintendo: t('nav.themeNintendo'),
+		playstation: t('nav.themePlaystation'),
+		xbox: t('nav.themeXbox'),
 	}
 	const themeLabel = (key: string) => themeLabels[key] ?? key.charAt(0).toUpperCase() + key.slice(1)
 	const currentThemeFamily = getThemeFamilyKey(currentTheme) ?? 'dark'
@@ -115,6 +146,15 @@ export const ThemeLanguageControls: React.FC = () => {
 	const hasVariants = currentVariants.length > 1
 	const currentThemeSummary = hasVariants ? `${themeLabel(currentThemeFamily)} · ${themeLabel(currentTheme)}` : themeLabel(currentThemeFamily)
 	const currentLanguage = LANGUAGES.find((l) => currentLang.startsWith(l.code)) ?? LANGUAGES[0]
+
+	const backgroundOptions = getThemeBackgroundOptions(currentTheme)
+	const hasBackgrounds = backgroundOptions.length > 0
+	const currentBackgroundId = backgroundByTheme[currentTheme] ?? NO_BACKGROUND
+	const backgroundLabel = (id: string) => {
+		if (id === NO_BACKGROUND) return t('nav.bgNone')
+		const option = backgroundOptions.find((o) => o.id === id)
+		return option ? t(option.labelKey) : t('nav.bgNone')
+	}
 
 	return (
 		<div className='tl-controls' ref={ref}>
@@ -182,6 +222,41 @@ export const ThemeLanguageControls: React.FC = () => {
 										<span className='tl-select__icon'>{themeIcon(key)}</span>
 										<span className='tl-select__option-label'>{themeLabel(key)}</span>
 										{currentTheme === key && (
+											<span className='tl-select__check'>
+												<CheckIcon />
+											</span>
+										)}
+									</button>
+								))}
+							</div>
+						)}
+					</div>
+				</div>
+			)}
+
+			{hasBackgrounds && (
+				<div className='tl-control'>
+					<span className='tl-control__label'>{t('nav.background')}</span>
+					<div className='tl-select'>
+						<button type='button' className='tl-select__trigger' aria-haspopup='listbox' aria-expanded={open === 'background'} onClick={() => setOpen(open === 'background' ? null : 'background')}>
+							<span className='tl-select__current'>{backgroundLabel(currentBackgroundId)}</span>
+							<ChevronIcon className={`tl-select__chevron${open === 'background' ? ' is-open' : ''}`} />
+						</button>
+						{open === 'background' && (
+							<div className='tl-select__menu' role='listbox' aria-label={t('nav.background')}>
+								{[{ id: NO_BACKGROUND, labelKey: '' }, ...backgroundOptions].map((option) => (
+									<button
+										key={option.id}
+										type='button'
+										role='option'
+										aria-selected={currentBackgroundId === option.id}
+										className={`tl-select__option${currentBackgroundId === option.id ? ' is-active' : ''}`}
+										onClick={() => {
+											dispatch(setThemeBackground({ theme: currentTheme, backgroundId: option.id }))
+											setOpen(null)
+										}}>
+										<span className='tl-select__option-label'>{backgroundLabel(option.id)}</span>
+										{currentBackgroundId === option.id && (
 											<span className='tl-select__check'>
 												<CheckIcon />
 											</span>

@@ -118,6 +118,7 @@ export const apiRoutes = {
 		login: '/users/login',
 		refresh: '/users/refresh',
 		logout: '/users/logout',
+		setupStatus: '/users/setup-status',
 		base: '/users',
 		byId: (id: number) => `/users/${id}`,
 		create: '/users',

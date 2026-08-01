@@ -1,8 +1,7 @@
 @use '@/assets/styles' as *;
 
 .admin-preferences {
-	max-width: 1200px;
-	margin: 0 auto;
+	width: 100%;
 	padding: $space-lg;
 
 	&__header {

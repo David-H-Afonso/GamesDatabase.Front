@@ -71,7 +71,7 @@ vi.mock('@/environments', () => ({
 				delete: (id: number) => `/gameviews/${id}`,
 				configuration: (id: number) => `/gameviews/${id}/configuration`,
 			},
-			users: { base: '/users', byId: (id: number) => `/users/${id}`, login: '/users/login' },
+			users: { base: '/users', byId: (id: number) => `/users/${id}`, login: '/users/login', setupStatus: '/users/setup-status' },
 			auth: { login: '/auth/login', logout: '/auth/logout' },
 		},
 		pagination: { defaultPageSize: 50 },
@@ -88,6 +88,8 @@ describe('Login', () => {
 	beforeEach(() => {
 		store = createTestStore()
 		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: 'auth/setRefreshedTokens', payload: { token: '', refreshToken: '' } }))
+		// Default: installation already configured → no bootstrap credentials.
+		server.use(http.get(`${BASE}/users/setup-status`, () => HttpResponse.json({ defaultCredentialsAvailable: false, defaultUsername: null })))
 	})
 
 	// ── Rendering ─────────────────────────────────────────────────────────────
@@ -165,5 +167,31 @@ describe('Login', () => {
 		await waitFor(() => {
 			expect(store.getState().auth.error).not.toBeNull()
 		})
+	})
+
+	// ── Default-credentials hint gated by setup status ─────────────────────────
+
+	it('offers the default credentials hint only on a fresh install', async () => {
+		server.use(http.get(`${BASE}/users/setup-status`, () => HttpResponse.json({ defaultCredentialsAvailable: true, defaultUsername: 'Admin' })))
+		renderWithProviders(<Login />, { store })
+
+		expect(await screen.findByText(/use default credentials|usar credenciales/i)).toBeInTheDocument()
+	})
+
+	it('hides the default credentials hint when the installation is already configured', async () => {
+		server.use(http.get(`${BASE}/users/setup-status`, () => HttpResponse.json({ defaultCredentialsAvailable: false, defaultUsername: null })))
+		renderWithProviders(<Login />, { store })
+
+		// Give the effect time to resolve, then assert the hint never appears.
+		await waitFor(() => expect(screen.getByRole('button', { name: /^iniciar sesión$/i })).toBeInTheDocument())
+		expect(screen.queryByText(/use default credentials|usar credenciales/i)).not.toBeInTheDocument()
+	})
+
+	it('hides the default credentials hint when setup-status fails', async () => {
+		server.use(http.get(`${BASE}/users/setup-status`, () => HttpResponse.json({ message: 'error' }, { status: 500 })))
+		renderWithProviders(<Login />, { store })
+
+		await waitFor(() => expect(screen.getByRole('button', { name: /^iniciar sesión$/i })).toBeInTheDocument())
+		expect(screen.queryByText(/use default credentials|usar credenciales/i)).not.toBeInTheDocument()
 	})
 })

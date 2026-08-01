@@ -478,9 +478,33 @@
 		gap: 12px;
 		padding: 0 0 12px 0;
 
+		// Custom-view select: only surfaces inside the panel on mobile
+		&-view {
+			display: none;
+
+			@media (max-width: 768px) {
+				display: flex;
+				width: 100%;
+
+				.game-filters-chips__select-view {
+					width: 100%;
+				}
+			}
+		}
+
 		// Sort by control: only show when hidden from top
 		&-sort {
 			display: none;
+
+			@media (max-width: 768px) {
+				display: flex;
+				width: 100%;
+
+				.game-filters-chips__select-pill {
+					flex: 1;
+					width: auto;
+				}
+			}
 
 			@media (max-width: 600px) {
 				display: flex;
@@ -796,20 +820,26 @@
 			min-width: 160px;
 		}
 
+		// Mobile: only the search bar and the Filters button stay in the top row.
+		// Sort, custom view and the view-mode toggle move into the advanced panel.
 		&__top-left {
-			grid-template-columns: minmax(0, 1fr) auto;
+			grid-template-columns: minmax(0, 1fr);
 			gap: 8px;
 		}
 
 		&__top-right {
-			grid-template-columns: minmax(0, 1fr) auto;
+			display: flex;
+			justify-content: flex-end;
+			align-items: center;
 			gap: 8px;
 		}
 
 		&__field--sort {
-			.game-filters-chips__select-pill {
-				width: 130px;
-			}
+			display: none;
+		}
+
+		&__field--view {
+			display: none;
 		}
 
 		// Hide action button (select all) from top bar in mobile

@@ -574,6 +574,24 @@ const GameFiltersChips: React.FC<Props> = ({
 				<>
 					{/* MOVED CONTROLS (hidden controls from top row) */}
 					<div className='game-filters-chips__moved-controls'>
+						{onViewChange && (
+							<div className='game-filters-chips__moved-controls-view game-filters-chips__field game-filters-chips__field--inline'>
+								<label htmlFor='view-select-mobile'>{t('home.view')}</label>
+								<select
+									id='view-select-mobile'
+									className='game-filters-chips__select-view'
+									value={currentView}
+									onChange={(e) => onViewChange(e.target.value)}>
+									<option value='default'>{t('home.viewDefault')}</option>
+									{publicGameViews.map((view) => (
+										<option key={view.id} value={view.name}>
+											{view.name}
+										</option>
+									))}
+								</select>
+							</div>
+						)}
+
 						{onSelectAll && (
 							<button type='button' className='game-filters-chips__moved-controls-selectall game-filters-chips__action-btn' onClick={onSelectAll}>
 								{selectedCount > 0 ? t('home.deselectAll') : t('home.selectAll')}
