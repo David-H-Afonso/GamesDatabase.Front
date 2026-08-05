@@ -17,6 +17,8 @@ export interface PlaylistSummary {
 	heroUrlOverride?: string
 	coverUrlOverride?: string
 	logoUrlOverride?: string
+	isAutomatic: boolean
+	rules?: PlaylistRules
 	sortOrder: number
 	gameCount: number
 	updatedAt: string
@@ -33,9 +35,32 @@ export interface PlaylistCreateDto {
 	heroUrl?: string
 	coverUrl?: string
 	logoUrl?: string
+	isAutomatic?: boolean
+	rules?: PlaylistRules
 }
 
 export type PlaylistUpdateDto = Partial<PlaylistCreateDto>
+
+export interface PlaylistRules {
+	search?: string
+	statusIds: number[]
+	platformIds: number[]
+	playedStatusIds: number[]
+	favorite?: boolean
+	minGrade?: number
+	maxGrade?: number
+	minCritic?: number
+	maxCritic?: number
+	minScore?: number
+	maxScore?: number
+	releasedFromYear?: number
+	releasedToYear?: number
+	hasSteam?: boolean
+	fullCompletion?: boolean
+	sortBy: 'Position' | 'Name' | 'Grade' | 'Critic' | 'Score' | 'Released' | 'Updated'
+	sortDescending: boolean
+	limit?: number
+}
 
 export interface PlaylistTransfer {
 	format: 'games-database-playlist'

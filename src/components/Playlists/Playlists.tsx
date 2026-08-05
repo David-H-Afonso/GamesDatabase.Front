@@ -10,9 +10,10 @@ import { setCardStyle } from '@/store/features/theme/themeSlice'
 import { usePlaylists } from '@/hooks'
 import { setCurrentPlaylist, setPlaylists } from '@/store/features/playlists'
 import { getGames } from '@/services/GamesService/GamesService'
+import { useGamePlatform, useGamePlayedStatus, useGameStatus } from '@/hooks'
 import { ConfirmDialog, GameCard, Modal, OptimizedImage } from '@/components/elements'
 import type { Game } from '@/models/api/Game'
-import type { Playlist, PlaylistCreateDto, PlaylistItem, PlaylistTransfer } from '@/models/api/Playlist'
+import type { Playlist, PlaylistCreateDto, PlaylistItem, PlaylistRules, PlaylistTransfer } from '@/models/api/Playlist'
 import './Playlists.scss'
 
 const Icon = ({ path }: { path: string }) => (
@@ -51,7 +52,7 @@ const PlaylistHeroImage = ({ src }: { src?: string }) => {
 
 const PlaylistForm = ({ initial, onClose, onSave }: { initial?: Playlist | null; onClose: () => void; onSave: (data: PlaylistCreateDto) => Promise<void> }) => {
 	const { t } = useTranslation()
-	const [form, setForm] = useState<PlaylistCreateDto>({ name: initial?.name ?? '', description: initial?.description ?? '', heroUrl: initial?.heroUrlOverride ?? '', coverUrl: initial?.coverUrlOverride ?? '', logoUrl: initial?.logoUrlOverride ?? '' })
+	const [form, setForm] = useState<PlaylistCreateDto>({ name: initial?.name ?? '', description: initial?.description ?? '', heroUrl: initial?.heroUrlOverride ?? '', coverUrl: initial?.coverUrlOverride ?? '', logoUrl: initial?.logoUrlOverride ?? '', isAutomatic: initial?.isAutomatic ?? false, rules: initial?.rules ?? { statusIds: [], platformIds: [], playedStatusIds: [], sortBy: 'Name', sortDescending: false } })
 	const [saving, setSaving] = useState(false)
 	const update = (key: keyof PlaylistCreateDto, value: string) => setForm(current => ({ ...current, [key]: value }))
 	const submit = async (event: FormEvent) => {
@@ -69,9 +70,21 @@ const PlaylistForm = ({ initial, onClose, onSave }: { initial?: Playlist | null;
 				<label>{t('playlists.coverUrl')}<input type='url' value={form.coverUrl} onChange={event => update('coverUrl', event.target.value)} placeholder={t('playlists.urlPlaceholder')} /></label>
 				<label>{t('playlists.logoUrl')}<input type='url' value={form.logoUrl} onChange={event => update('logoUrl', event.target.value)} placeholder={t('playlists.urlPlaceholder')} /></label>
 			</div>
+			<label className='playlist-form__checkbox'><input type='checkbox' checked={form.isAutomatic ?? false} onChange={event => setForm(current => ({ ...current, isAutomatic: event.target.checked }))} />{t('playlists.automatic')}</label>
+			{form.isAutomatic && <AutomaticRules rules={form.rules!} onChange={rules => setForm(current => ({ ...current, rules }))} />}
 			<div className='playlist-form__actions'><button type='button' className='playlist-button playlist-button--quiet' onClick={onClose}>{t('common.cancel')}</button><button type='submit' className='playlist-button playlist-button--primary' disabled={saving}>{saving ? t('common.saving') : t('common.save')}</button></div>
 		</form>
 	)
+}
+
+const AutomaticRules = ({ rules, onChange }: { rules: PlaylistRules; onChange: (rules: PlaylistRules) => void }) => {
+	const { t } = useTranslation()
+	const { activeStatuses } = useGameStatus()
+	const { activePlatforms } = useGamePlatform()
+	const { activePlayedStatuses } = useGamePlayedStatus()
+	const update = (patch: Partial<PlaylistRules>) => onChange({ ...rules, ...patch })
+	const toggle = (key: 'statusIds' | 'platformIds' | 'playedStatusIds', id: number) => update({ [key]: rules[key].includes(id) ? rules[key].filter(value => value !== id) : [...rules[key], id] })
+	return <fieldset className='playlist-rules'><legend>{t('playlists.rulesTitle')}</legend><label>{t('playlists.ruleSearch')}<input value={rules.search ?? ''} onChange={event => update({ search: event.target.value })} /></label><div className='playlist-rules__group'><strong>{t('playlists.ruleStatuses')}</strong><div className='playlist-rules__options'>{activeStatuses.map(option => <label key={option.id} className='playlist-form__checkbox'><input type='checkbox' checked={rules.statusIds.includes(option.id)} onChange={() => toggle('statusIds', option.id)} />{option.name}</label>)}</div></div><div className='playlist-rules__group'><strong>{t('playlists.rulePlatforms')}</strong><div className='playlist-rules__options'>{activePlatforms.map(option => <label key={option.id} className='playlist-form__checkbox'><input type='checkbox' checked={rules.platformIds.includes(option.id)} onChange={() => toggle('platformIds', option.id)} />{option.name}</label>)}</div></div><div className='playlist-rules__group'><strong>{t('playlists.rulePlayedStatuses')}</strong><div className='playlist-rules__options'>{activePlayedStatuses.map(option => <label key={option.id} className='playlist-form__checkbox'><input type='checkbox' checked={rules.playedStatusIds.includes(option.id)} onChange={() => toggle('playedStatusIds', option.id)} />{option.name}</label>)}</div></div><div className='playlist-rules__grid'><label>{t('playlists.ruleMinGrade')}<input type='number' min='0' max='100' value={rules.minGrade ?? ''} onChange={event => update({ minGrade: event.target.value ? Number(event.target.value) : undefined })} /></label><label>{t('playlists.ruleMaxGrade')}<input type='number' min='0' max='100' value={rules.maxGrade ?? ''} onChange={event => update({ maxGrade: event.target.value ? Number(event.target.value) : undefined })} /></label><label>{t('playlists.ruleLimit')}<input type='number' min='1' value={rules.limit ?? ''} onChange={event => update({ limit: event.target.value ? Number(event.target.value) : undefined })} /></label></div><label>{t('playlists.ruleSort')}<select value={rules.sortBy} onChange={event => update({ sortBy: event.target.value as PlaylistRules['sortBy'] })}><option value='Name'>{t('playlists.sortName')}</option><option value='Grade'>{t('playlists.sortGrade')}</option><option value='Critic'>{t('playlists.sortCritic')}</option><option value='Score'>{t('playlists.sortScore')}</option><option value='Released'>{t('playlists.sortReleased')}</option><option value='Updated'>{t('playlists.sortUpdated')}</option></select></label><label className='playlist-form__checkbox'><input type='checkbox' checked={rules.favorite === true} onChange={event => update({ favorite: event.target.checked ? true : undefined })} />{t('playlists.ruleFavorites')}</label><label className='playlist-form__checkbox'><input type='checkbox' checked={rules.hasSteam === true} onChange={event => update({ hasSteam: event.target.checked ? true : undefined })} />{t('playlists.ruleSteam')}</label><label className='playlist-form__checkbox'><input type='checkbox' checked={rules.fullCompletion === true} onChange={event => update({ fullCompletion: event.target.checked ? true : undefined })} />{t('playlists.ruleCompleted')}</label><label className='playlist-form__checkbox'><input type='checkbox' checked={rules.sortDescending} onChange={event => update({ sortDescending: event.target.checked })} />{t('playlists.ruleDescending')}</label></fieldset>
 }
 
 const PlaylistRailItem = ({ id, name, coverUrl, selected, onSelect }: { id: number; name: string; coverUrl?: string; selected: boolean; onSelect: () => void }) => {
@@ -285,6 +298,7 @@ export default function Playlists() {
 						<div className='playlist-hero__shade' aria-hidden='true' />
 						<div className='playlist-hero__top'>{currentPlaylist.logoUrl && <div className='playlist-hero__logo'><OptimizedImage src={currentPlaylist.logoUrl} alt='' width={160} height={64} /></div>}<div className='playlist-menu' ref={menuRef}><button type='button' className='playlist-menu__trigger' aria-label={t('playlists.options')} aria-expanded={menuOpen} onClick={() => setMenuOpen(value => !value)}><MoreIcon /></button>{menuOpen && <div className='playlist-menu__panel'><button type='button' onClick={() => { void handleExport(); setMenuOpen(false) }}>{t('playlists.export')}</button><select value={exportReference} onChange={event => setExportReference(event.target.value as 'id' | 'name')} aria-label={t('playlists.exportReference')}><option value='id'>{t('playlists.byId')}</option><option value='name'>{t('playlists.byName')}</option></select><button type='button' onClick={() => { setEditor('edit'); setMenuOpen(false) }}>{t('common.edit')}</button><button type='button' onClick={() => { setDeleteId(currentPlaylist.id); setMenuOpen(false) }}>{t('common.delete')}</button></div>}</div></div>
 						<div className='playlist-hero__content'><div className='playlist-hero__copy'><span>{t('playlists.playlistLabel')}</span><h2>{currentPlaylist.name}</h2>{currentPlaylist.description && <PlaylistDescription description={currentPlaylist.description} />}</div></div>
+						{currentPlaylist.isAutomatic && <span className='playlist-hero__automatic'>{t('playlists.automatic')}</span>}
 					</div>
 					<div className='playlist-tools'><div className='playlist-view-toggle' role='group' aria-label={t('playlists.viewMode')}>
 						{(['row', 'card', 'cover'] as const).map(mode => <button key={mode} type='button' className={cardStyle === mode ? 'is-active' : ''} onClick={() => dispatch(setCardStyle(mode))}>{t(`playlists.views.${mode}`)}</button>)}
@@ -292,7 +306,7 @@ export default function Playlists() {
 					{searchOpen && gameQuery && <div className='playlist-search-results' aria-live='polite'>{searching ? <div className='playlist-search-results__status'><span className='playlist-search-results__spinner' aria-hidden='true' />{t('common.loading')}</div> : gameResults.length ? gameResults.map(game => <button key={game.id} type='button' disabled={selectedGameIds.has(game.id)} onClick={() => { void addItem(currentPlaylist.id, game.id) }}><span>{game.name}</span><small>{selectedGameIds.has(game.id) ? t('playlists.added') : t('playlists.add')}</small></button>) : <div className='playlist-search-results__status'>{t('playlists.noSearchResults')}</div>}</div>}</div></div>
 					<DndContext sensors={sensors} collisionDetection={closestCenter} modifiers={cardStyle === 'row' ? [restrictToVerticalAxis, restrictToParentElement] : []} onDragStart={handleDragStart} onDragCancel={handleDragCancel} onDragOver={({ over }) => setOverGameId(over ? Number(String(over.id).replace('item-', '')) : null)} onDragEnd={handleGameDrag}>
 						<SortableContext items={currentPlaylist.items.map(item => `item-${item.id}`)} strategy={verticalListSortingStrategy}>
-							<div className={`playlist-games playlist-games--${cardStyle}`}>{currentPlaylist.items.map(item => <SortableGame key={item.id} item={item} cardStyle={cardStyle} isDropTarget={overGameId === item.id && activeGameId !== item.id} onRemove={() => void removeItem(currentPlaylist.id, item.id)} onGameUpdated={handleGameUpdated} />)}</div>
+							<div className={`playlist-games playlist-games--${cardStyle}`}>{currentPlaylist.items.map(item => <SortableGame key={item.id} item={item} cardStyle={cardStyle} isDropTarget={!currentPlaylist.isAutomatic && overGameId === item.id && activeGameId !== item.id} onRemove={() => void removeItem(currentPlaylist.id, item.id)} onGameUpdated={handleGameUpdated} />)}</div>
 						</SortableContext>
 						<DragOverlay>{activeGame ? <div className='playlist-game-preview'>{activeGame.name}</div> : null}</DragOverlay>
 					</DndContext>
