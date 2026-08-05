@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
-import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
+import { DndContext, DragOverlay, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent, type DragStartEvent } from '@dnd-kit/core'
 import { restrictToParentElement, restrictToVerticalAxis } from '@dnd-kit/modifiers'
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useTranslation } from 'react-i18next'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { setCardStyle } from '@/store/features/theme/themeSlice'
 import { usePlaylists } from '@/hooks'
@@ -20,7 +21,26 @@ const Icon = ({ path }: { path: string }) => (
 	</svg>
 )
 
+const SearchIcon = () => (
+	<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round' strokeLinejoin='round' aria-hidden='true'>
+		<circle cx='10.8' cy='10.8' r='6.8' />
+		<path d='m16 16 4.2 4.2' />
+	</svg>
+)
+
 const Grip = () => <Icon path='M8 5h.01M16 5h.01M8 12h.01M16 12h.01M8 19h.01M16 19h.01' />
+
+const MoreIcon = () => <Icon path='M5 12h.01M12 12h.01M19 12h.01' />
+
+const PlaylistDescription = ({ description }: { description: string }) => (
+	<>
+		<p className='playlist-hero__description-desktop' title={description}>{description}</p>
+		<details className='playlist-hero__description-mobile'>
+			<summary>Ver descripción completa</summary>
+			<p>{description}</p>
+		</details>
+	</>
+)
 
 const PlaylistForm = ({ initial, onClose, onSave }: { initial?: Playlist | null; onClose: () => void; onSave: (data: PlaylistCreateDto) => Promise<void> }) => {
 	const { t } = useTranslation()
@@ -52,15 +72,15 @@ const PlaylistRailItem = ({ id, name, coverUrl, selected, onSelect }: { id: numb
 	return <div ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition }} className={`playlist-rail__item${selected ? ' is-selected' : ''}${isDragging ? ' is-dragging' : ''}`}>
 		<button className='playlist-rail__select' onClick={onSelect} type='button'>
 			{coverUrl ? <OptimizedImage src={coverUrl} alt='' width={52} height={70} /> : <span className='playlist-rail__placeholder'><Icon path='M5 5h14v14H5zM8 9h8M8 13h6' /></span>}
-			<span><strong>{name}</strong><small>{id}</small></span>
+			<span><strong>{name}</strong></span>
 		</button>
 		<button className='playlist-drag-handle' type='button' aria-label='Drag to reorder' {...attributes} {...listeners}><Grip /></button>
 	</div>
 }
 
-const SortableGame = ({ item, cardStyle, onRemove }: { item: PlaylistItem; cardStyle: 'card' | 'row' | 'cover'; onRemove: () => void }) => {
+const SortableGame = ({ item, cardStyle, isDropTarget, onRemove }: { item: PlaylistItem; cardStyle: 'card' | 'row' | 'cover'; isDropTarget: boolean; onRemove: () => void }) => {
 	const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: `item-${item.id}` })
-	return <article ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition }} className={`playlist-game playlist-game--${cardStyle}${isDragging ? ' is-dragging' : ''}`}>
+	return <article ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition }} className={`playlist-game playlist-game--${cardStyle}${isDragging ? ' is-dragging' : ''}${isDropTarget ? ' is-drop-target' : ''}`}>
 		<div className='playlist-game__toolbar'>
 			<button className='playlist-drag-handle' type='button' aria-label='Drag to reorder' {...attributes} {...listeners}><Grip /></button>
 			<span className='playlist-game__position'>{item.position + 1}</span>
@@ -72,10 +92,13 @@ const SortableGame = ({ item, cardStyle, onRemove }: { item: PlaylistItem; cardS
 
 export default function Playlists() {
 	const { t } = useTranslation()
+	const navigate = useNavigate()
+	const { id: routeId } = useParams<{ id?: string }>()
 	const dispatch = useAppDispatch()
-	const { playlists, currentPlaylist, loading, fetchAll, fetchById, create, update, remove, reorder, addItem, removeItem, reorderItems, exportPlaylist, importPlaylist } = usePlaylists()
+	const { playlists, currentPlaylist, loading, reordering, fetchAll, fetchById, create, update, remove, reorder, addItem, removeItem, reorderItems, exportPlaylist, importPlaylist } = usePlaylists()
 	const cardStyle = useAppSelector(state => state.theme.cardStyle ?? 'card')
-	const [selectedId, setSelectedId] = useState<number | null>(null)
+	const routePlaylistId = routeId && Number.isInteger(Number(routeId)) ? Number(routeId) : null
+	const [selectedId, setSelectedId] = useState<number | null>(routePlaylistId)
 	const [editor, setEditor] = useState<'create' | 'edit' | null>(null)
 	const [deleteId, setDeleteId] = useState<number | null>(null)
 	const [gameQuery, setGameQuery] = useState('')
@@ -85,13 +108,29 @@ export default function Playlists() {
 	const [importText, setImportText] = useState('')
 	const [exportReference, setExportReference] = useState<'id' | 'name'>('id')
 	const [transferError, setTransferError] = useState<string | null>(null)
+	const [searchOpen, setSearchOpen] = useState(false)
+	const [menuOpen, setMenuOpen] = useState(false)
+	const [activePlaylistId, setActivePlaylistId] = useState<number | null>(null)
+	const [activeGameId, setActiveGameId] = useState<number | null>(null)
+	const [overGameId, setOverGameId] = useState<number | null>(null)
+	const searchRef = useRef<HTMLDivElement>(null)
+	const menuRef = useRef<HTMLDivElement>(null)
 	const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }))
 
 	useEffect(() => { void fetchAll() }, [fetchAll])
 	useEffect(() => {
-		if (selectedId === null && playlists.length) setSelectedId(playlists[0].id)
-		if (selectedId !== null && !playlists.some(item => item.id === selectedId)) setSelectedId(playlists[0]?.id ?? null)
-	}, [playlists, selectedId])
+		setSelectedId(routePlaylistId)
+	}, [routePlaylistId])
+	useEffect(() => {
+		if (selectedId === null && !routePlaylistId && playlists.length) {
+			navigate(`/playlists/${playlists[0].id}`, { replace: true })
+			return
+		}
+		if (selectedId !== null && !playlists.some(item => item.id === selectedId)) {
+			if (playlists[0]) navigate(`/playlists/${playlists[0].id}`, { replace: true })
+			else setSelectedId(null)
+		}
+	}, [navigate, playlists, selectedId, routePlaylistId])
 	useEffect(() => { if (selectedId !== null) void fetchById(selectedId) }, [selectedId, fetchById])
 	useEffect(() => {
 		const term = gameQuery.trim()
@@ -102,11 +141,21 @@ export default function Playlists() {
 		}, 250)
 		return () => window.clearTimeout(timer)
 	}, [gameQuery])
+	useEffect(() => {
+		const handlePointerDown = (event: PointerEvent) => {
+			const target = event.target as Node
+			if (!searchRef.current?.contains(target)) setSearchOpen(false)
+			if (!menuRef.current?.contains(target)) setMenuOpen(false)
+		}
+		document.addEventListener('pointerdown', handlePointerDown)
+		return () => document.removeEventListener('pointerdown', handlePointerDown)
+	}, [])
 
 	const selectedGameIds = useMemo(() => new Set(currentPlaylist?.items.map(item => item.gameId) ?? []), [currentPlaylist])
 	const selectedSummary = playlists.find(item => item.id === selectedId)
 
 	const handlePlaylistDrag = async ({ active, over }: DragEndEvent) => {
+		setActivePlaylistId(null)
 		if (!over || active.id === over.id) return
 		const ids = playlists.map(item => item.id)
 		const from = ids.findIndex(id => `playlist-${id}` === active.id)
@@ -118,6 +167,8 @@ export default function Playlists() {
 	}
 
 	const handleGameDrag = async ({ active, over }: DragEndEvent) => {
+		setActiveGameId(null)
+		setOverGameId(null)
 		if (!currentPlaylist || !over || active.id === over.id) return
 		const ids = currentPlaylist.items.map(item => item.id)
 		const from = ids.findIndex(id => `item-${id}` === active.id)
@@ -129,14 +180,24 @@ export default function Playlists() {
 		dispatch(setCurrentPlaylist(optimistic))
 		try { await reorderItems(currentPlaylist.id, ordered) } catch { dispatch(setCurrentPlaylist(previous)) }
 	}
+	const handleDragStart = ({ active }: DragStartEvent) => {
+		const value = String(active.id)
+		if (value.startsWith('playlist-')) setActivePlaylistId(Number(value.replace('playlist-', '')))
+		if (value.startsWith('item-')) setActiveGameId(Number(value.replace('item-', '')))
+	}
+	const handleDragCancel = () => {
+		setActivePlaylistId(null)
+		setActiveGameId(null)
+		setOverGameId(null)
+	}
 
 	const savePlaylist = async (data: PlaylistCreateDto) => {
-		if (editor === 'create') { const created = await create(data) as Playlist; setSelectedId(created.id) }
+		if (editor === 'create') { const created = await create(data) as Playlist; setSelectedId(created.id); navigate(`/playlists/${created.id}`) }
 		else if (selectedId !== null) await update(selectedId, data)
 		setEditor(null)
 	}
 
-	const handleDelete = async () => { if (deleteId !== null) { await remove(deleteId); setDeleteId(null) } }
+	const handleDelete = async () => { if (deleteId !== null) { await remove(deleteId); setDeleteId(null); navigate('/playlists') } }
 	const handleExport = async () => {
 		if (!currentPlaylist) return
 		try {
@@ -162,33 +223,37 @@ export default function Playlists() {
 		} catch (error) { setTransferError(error instanceof Error ? error.message : t('playlists.transferError')) }
 	}
 
+	const activeGame = currentPlaylist?.items.find(item => item.id === activeGameId)?.game
 	return <main className='playlists-page'>
-		<header className='playlists-page__header'><div><span className='playlists-page__eyebrow'>{t('playlists.eyebrow')}</span><h1>{t('playlists.title')}</h1><p>{t('playlists.subtitle')}</p></div><div className='playlists-page__header-actions'><button className='playlist-button playlist-button--quiet' type='button' onClick={() => setImportOpen(true)}>{t('playlists.import')}</button><button className='playlist-button playlist-button--primary' type='button' onClick={() => setEditor('create')}>+ {t('playlists.new')}</button></div></header>
+		<header className='playlists-page__header'><div><span className='playlists-page__eyebrow'>{t('playlists.eyebrow')}</span><h1>{t('playlists.title')}</h1></div><div className='playlists-page__header-actions'><button className='playlist-button playlist-button--quiet' type='button' onClick={() => setImportOpen(true)}>{t('playlists.import')}</button><button className='playlist-button playlist-button--primary' type='button' onClick={() => setEditor('create')}>+ {t('playlists.new')}</button></div></header>
 		<div className='playlists-layout'>
 			<aside className='playlist-rail'>
 				<div className='playlist-rail__header'><h2>{t('playlists.collection')}</h2><span>{playlists.length}</span></div>
-				<DndContext sensors={sensors} collisionDetection={closestCenter} modifiers={[restrictToVerticalAxis, restrictToParentElement]} onDragEnd={handlePlaylistDrag}>
+				<DndContext sensors={sensors} collisionDetection={closestCenter} modifiers={[restrictToVerticalAxis, restrictToParentElement]} onDragStart={handleDragStart} onDragCancel={handleDragCancel} onDragEnd={handlePlaylistDrag}>
 					<SortableContext items={playlists.map(item => `playlist-${item.id}`)} strategy={verticalListSortingStrategy}>
-						{playlists.map(playlist => <PlaylistRailItem key={playlist.id} id={playlist.id} name={playlist.name} coverUrl={playlist.coverUrl} selected={selectedId === playlist.id} onSelect={() => setSelectedId(playlist.id)} />)}
+						{playlists.map(playlist => <PlaylistRailItem key={playlist.id} id={playlist.id} name={playlist.name} coverUrl={playlist.coverUrl} selected={selectedId === playlist.id} onSelect={() => { setSelectedId(playlist.id); navigate(`/playlists/${playlist.id}`) }} />)}
 					</SortableContext>
+					<DragOverlay>{activePlaylistId !== null ? <div className='playlist-drag-preview'>{playlists.find(item => item.id === activePlaylistId)?.name}</div> : null}</DragOverlay>
 				</DndContext>
 				{!loading && !playlists.length && <p className='playlist-rail__empty'>{t('playlists.empty')}</p>}
 			</aside>
 			<section className='playlist-detail'>
 				{currentPlaylist ? <>
-					<div className='playlist-hero' style={currentPlaylist.heroUrl ? { backgroundImage: `linear-gradient(90deg, var(--playlist-hero-shade), rgba(0,0,0,.18)), url("${currentPlaylist.heroUrl}")` } : undefined}>
-						<div className='playlist-hero__content'>{currentPlaylist.logoUrl && <OptimizedImage src={currentPlaylist.logoUrl} alt='' className='playlist-hero__logo' width={280} height={110} />}<div><span>{t('playlists.playlistLabel')}</span><h2>{currentPlaylist.name}</h2>{currentPlaylist.description && <p>{currentPlaylist.description}</p>}</div></div>
-						<div className='playlist-hero__actions'><button type='button' onClick={handleExport}>{t('playlists.export')}</button><select value={exportReference} onChange={event => setExportReference(event.target.value as 'id' | 'name')} aria-label={t('playlists.exportReference')}><option value='id'>{t('playlists.byId')}</option><option value='name'>{t('playlists.byName')}</option></select><button type='button' onClick={() => setEditor('edit')}>{t('common.edit')}</button><button type='button' onClick={() => setDeleteId(currentPlaylist.id)}>{t('common.delete')}</button></div>
+					<div className='playlist-hero' style={currentPlaylist.heroUrl || currentPlaylist.coverUrl ? { backgroundImage: `linear-gradient(90deg, rgba(8, 10, 15, .96) 0%, rgba(8, 10, 15, .72) 48%, rgba(8, 10, 15, .22) 100%), url("${currentPlaylist.heroUrl ?? currentPlaylist.coverUrl}")` } : undefined}>
+						<div className='playlist-hero__top'>{currentPlaylist.logoUrl && <div className='playlist-hero__logo'><OptimizedImage src={currentPlaylist.logoUrl} alt='' width={160} height={64} /></div>}<div className='playlist-menu' ref={menuRef}><button type='button' className='playlist-menu__trigger' aria-label={t('playlists.options')} aria-expanded={menuOpen} onClick={() => setMenuOpen(value => !value)}><MoreIcon /></button>{menuOpen && <div className='playlist-menu__panel'><button type='button' onClick={() => { void handleExport(); setMenuOpen(false) }}>{t('playlists.export')}</button><select value={exportReference} onChange={event => setExportReference(event.target.value as 'id' | 'name')} aria-label={t('playlists.exportReference')}><option value='id'>{t('playlists.byId')}</option><option value='name'>{t('playlists.byName')}</option></select><button type='button' onClick={() => { setEditor('edit'); setMenuOpen(false) }}>{t('common.edit')}</button><button type='button' onClick={() => { setDeleteId(currentPlaylist.id); setMenuOpen(false) }}>{t('common.delete')}</button></div>}</div></div>
+						<div className='playlist-hero__content'><div className='playlist-hero__copy'><span>{t('playlists.playlistLabel')}</span><h2>{currentPlaylist.name}</h2>{currentPlaylist.description && <PlaylistDescription description={currentPlaylist.description} />}</div></div>
 					</div>
 					<div className='playlist-tools'><div className='playlist-view-toggle' role='group' aria-label={t('playlists.viewMode')}>
 						{(['row', 'card', 'cover'] as const).map(mode => <button key={mode} type='button' className={cardStyle === mode ? 'is-active' : ''} onClick={() => dispatch(setCardStyle(mode))}>{t(`playlists.views.${mode}`)}</button>)}
-					</div><label className='playlist-search'><Icon path='M11 4a7 7 0 1 0 4.9 12L20 20' /><input value={gameQuery} onChange={event => setGameQuery(event.target.value)} placeholder={t('playlists.addPlaceholder')} /></label></div>
-					{gameQuery && <div className='playlist-search-results'>{searching ? <span>{t('common.loading')}</span> : gameResults.map(game => <button key={game.id} type='button' disabled={selectedGameIds.has(game.id)} onClick={() => { void addItem(currentPlaylist.id, game.id); setGameQuery('') }}><span>{game.name}</span><small>{selectedGameIds.has(game.id) ? t('playlists.added') : t('playlists.add')}</small></button>)}</div>}
-					<DndContext sensors={sensors} collisionDetection={closestCenter} modifiers={cardStyle === 'row' ? [restrictToVerticalAxis, restrictToParentElement] : []} onDragEnd={handleGameDrag}>
+					</div><div className='playlist-search-area' ref={searchRef}><label className='playlist-search'><SearchIcon /><input value={gameQuery} onFocus={() => setSearchOpen(true)} onChange={event => { setSearchOpen(true); setGameQuery(event.target.value) }} placeholder={t('playlists.addPlaceholder')} /></label>
+					{searchOpen && gameQuery && <div className='playlist-search-results' aria-live='polite'>{searching ? <div className='playlist-search-results__status'><span className='playlist-search-results__spinner' aria-hidden='true' />{t('common.loading')}</div> : gameResults.length ? gameResults.map(game => <button key={game.id} type='button' disabled={selectedGameIds.has(game.id)} onClick={() => { void addItem(currentPlaylist.id, game.id) }}><span>{game.name}</span><small>{selectedGameIds.has(game.id) ? t('playlists.added') : t('playlists.add')}</small></button>) : <div className='playlist-search-results__status'>{t('playlists.noSearchResults')}</div>}</div>}</div></div>
+					<DndContext sensors={sensors} collisionDetection={closestCenter} modifiers={cardStyle === 'row' ? [restrictToVerticalAxis, restrictToParentElement] : []} onDragStart={handleDragStart} onDragCancel={handleDragCancel} onDragOver={({ over }) => setOverGameId(over ? Number(String(over.id).replace('item-', '')) : null)} onDragEnd={handleGameDrag}>
 						<SortableContext items={currentPlaylist.items.map(item => `item-${item.id}`)} strategy={verticalListSortingStrategy}>
-							<div className={`playlist-games playlist-games--${cardStyle}`}>{currentPlaylist.items.map(item => <SortableGame key={item.id} item={item} cardStyle={cardStyle} onRemove={() => void removeItem(currentPlaylist.id, item.id)} />)}</div>
+							<div className={`playlist-games playlist-games--${cardStyle}`}>{currentPlaylist.items.map(item => <SortableGame key={item.id} item={item} cardStyle={cardStyle} isDropTarget={overGameId === item.id && activeGameId !== item.id} onRemove={() => void removeItem(currentPlaylist.id, item.id)} />)}</div>
 						</SortableContext>
+						<DragOverlay>{activeGame ? <div className='playlist-game-preview'>{activeGame.name}</div> : null}</DragOverlay>
 					</DndContext>
+					{reordering && <div className='playlist-reorder-status' role='status'>{t('playlists.reordering')}</div>}
 					{!currentPlaylist.items.length && <div className='playlist-games__empty'><h3>{t('playlists.noGames')}</h3><p>{t('playlists.noGamesHint')}</p></div>}
 				</> : <div className='playlist-detail__empty'><h2>{t('playlists.select')}</h2><p>{t('playlists.selectHint')}</p></div>}
 			</section>

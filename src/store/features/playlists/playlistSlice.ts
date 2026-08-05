@@ -3,7 +3,7 @@ import type { Playlist } from '@/models/api/Playlist'
 import type { PlaylistState } from '@/models/store/PlaylistState'
 import { addPlaylistItemThunk, createPlaylistThunk, deletePlaylistThunk, fetchPlaylistById, fetchPlaylists, importPlaylistThunk, removePlaylistItemThunk, reorderPlaylistItemsThunk, reorderPlaylistsThunk, updatePlaylistThunk } from './thunk'
 
-const initialState: PlaylistState = { playlists: [], currentPlaylist: null, loading: false, error: null }
+const initialState: PlaylistState = { playlists: [], currentPlaylist: null, loading: false, error: null, reordering: false }
 
 const playlistSlice = createSlice({
 	name: 'playlists',
@@ -33,9 +33,17 @@ const playlistSlice = createSlice({
 			.addCase(removePlaylistItemThunk.fulfilled, (state, action) => { state.currentPlaylist = action.payload })
 			.addCase(reorderPlaylistItemsThunk.fulfilled, (state, action) => {
 				if (!state.currentPlaylist) return
-				state.currentPlaylist.items = action.payload.map(id => state.currentPlaylist!.items.find(item => item.id === id)!).filter(Boolean)
+				state.currentPlaylist.items = action.payload
+					.map((id, position) => {
+						const item = state.currentPlaylist!.items.find(candidate => candidate.id === id)
+						return item ? { ...item, position } : null
+					})
+					.filter(Boolean) as typeof state.currentPlaylist.items
+				state.reordering = false
 			})
 			.addCase(importPlaylistThunk.fulfilled, (state, action) => { state.playlists.push(action.payload); state.currentPlaylist = action.payload })
+			.addCase(reorderPlaylistItemsThunk.pending, (state) => { state.reordering = true; state.error = null })
+			.addCase(reorderPlaylistItemsThunk.rejected, (state, action) => { state.reordering = false; state.error = action.payload as string })
 			.addMatcher(action => action.type.startsWith('playlists/') && action.type.endsWith('/rejected'), (state, action: any) => { state.loading = false; state.error = action.payload as string })
 	},
 })

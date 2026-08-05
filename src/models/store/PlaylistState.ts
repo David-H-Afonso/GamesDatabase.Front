@@ -5,4 +5,5 @@ export interface PlaylistState {
 	currentPlaylist: Playlist | null
 	loading: boolean
 	error: string | null
+	reordering: boolean
 }

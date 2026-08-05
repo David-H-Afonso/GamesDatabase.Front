@@ -1,4 +1,4 @@
-import { useState, useEffect, memo } from 'react'
+import { useState, useEffect, useRef, memo } from 'react'
 import './OptimizedImage.scss'
 
 interface OptimizedImageProps {
@@ -23,6 +23,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = (props) => {
 	const { src, alt, className = '', width, height, quality = 'medium', loading = 'lazy', fetchPriority, onLoad, onError, imageUnavailableText } = props
 	const [isLoaded, setIsLoaded] = useState(false)
 	const [hasError, setHasError] = useState(false)
+	const imageRef = useRef<HTMLImageElement>(null)
 
 	// Optimize image URL based on quality setting
 	const getOptimizedSrc = (originalSrc: string): string => {
@@ -104,14 +105,26 @@ const OptimizedImage: React.FC<OptimizedImageProps> = (props) => {
 	}
 
 	const optimizedSrc = getOptimizedSrc(src)
+	const sourceRef = useRef(optimizedSrc)
 
 	useEffect(() => {
+		if (sourceRef.current === optimizedSrc) return
+		sourceRef.current = optimizedSrc
 		if (!optimizedSrc && src) {
 			setHasError(true)
 			setIsLoaded(false)
 		} else {
 			setHasError(false)
 			setIsLoaded(false)
+		}
+	}, [optimizedSrc, src])
+
+	useEffect(() => {
+		const image = imageRef.current
+		if (!image?.complete) return
+		if (image.naturalWidth > 0) {
+			setIsLoaded(true)
+			setHasError(false)
 		}
 	}, [optimizedSrc, src])
 
@@ -141,6 +154,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = (props) => {
 				</div>
 			)}
 			<img
+				ref={imageRef}
 				src={optimizedSrc}
 				alt={alt}
 				className={`optimized-image ${isLoaded ? 'loaded' : ''}`}

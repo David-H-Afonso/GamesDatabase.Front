@@ -10,8 +10,9 @@ export const usePlaylists = () => {
 	const currentPlaylist = useAppSelector(selectCurrentPlaylist)
 	const loading = useAppSelector(selectPlaylistsLoading)
 	const error = useAppSelector(selectPlaylistsError)
+	const reordering = useAppSelector(state => state.playlists.reordering)
 	return {
-		playlists, currentPlaylist, loading, error,
+		playlists, currentPlaylist, loading, error, reordering,
 		fetchAll: useCallback(() => dispatchAndUnwrapAsync(dispatch, fetchPlaylists()), [dispatch]),
 		fetchById: useCallback((id: number) => dispatchAndUnwrapAsync(dispatch, fetchPlaylistById(id)), [dispatch]),
 		create: useCallback((data: PlaylistCreateDto) => dispatchAndUnwrapAsync(dispatch, createPlaylistThunk(data)), [dispatch]),

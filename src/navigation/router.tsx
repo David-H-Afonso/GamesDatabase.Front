@@ -90,6 +90,17 @@ export const router = createHashRouter([
 		errorElement: <RouteError />,
 	},
 	{
+		path: '/playlists/:id',
+		element: (
+			<ProtectedRoute>
+				<AppLayout>
+					<Playlists />
+				</AppLayout>
+			</ProtectedRoute>
+		),
+		errorElement: <RouteError />,
+	},
+	{
 		path: '/steam-callback',
 		element: (
 			<EmptyLayout>

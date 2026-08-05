@@ -205,6 +205,8 @@ Statistics:
 - Images Failed: ${s.imagesFailed}
 - Images Retried: ${s.imagesRetried}
 - Files Written: ${s.filesWritten}
+- Playlists: ${s.playlistsSynced}/${s.totalPlaylists}
+- Playlist Images Synced: ${s.playlistImagesSynced}
 - Elapsed Time: ${s.elapsedSeconds.toFixed(2)}s
 				`
 			}

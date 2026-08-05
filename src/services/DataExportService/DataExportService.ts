@@ -171,6 +171,9 @@ export const syncToNetwork = async (
 		imagesFailed: number
 		imagesRetried: number
 		filesWritten: number
+		totalPlaylists: number
+		playlistsSynced: number
+		playlistImagesSynced: number
 	}
 	failedImages?: Array<{
 		gameName: string
