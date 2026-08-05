@@ -17,10 +17,11 @@ interface Props {
 	deselectAll?: () => void
 	index?: number
 	playlistControls?: ReactNode
+	onGameUpdated?: (game: Game) => void
 }
 
 const GameCardComponent: FC<Props> = (props) => {
-	const { game: initialGame, variant = 'card', onDelete, isSelected = false, onSelect } = props
+	const { game: initialGame, variant = 'card', onDelete, isSelected = false, onSelect, onGameUpdated } = props
 	const [selectedGame, setSelectedGame] = useState<Game | null>(null)
 	const [isDetailsOpen, setIsDetailsOpen] = useState(false)
 	const { updateGameById, updateGameStatusById } = useGames()
@@ -47,11 +48,13 @@ const GameCardComponent: FC<Props> = (props) => {
 	const handleFieldUpdate = async (gameId: number, field: string, value: number | number[] | boolean | undefined) => {
 		try {
 			if (field === 'statusId' && typeof value === 'number') {
-				await updateGameStatusById(gameId, value)
+				const updated = await updateGameStatusById(gameId, value)
+				onGameUpdated?.(updated as Game)
 				return
 			}
 			const payload = typeof value === 'undefined' ? null : value
-			await updateGameById(gameId, { [field]: payload } as any)
+			const updated = await updateGameById(gameId, { [field]: payload } as any)
+			onGameUpdated?.(updated as Game)
 		} catch (error) {
 			console.error(`Error updating ${field}:`, error)
 			throw error
@@ -126,5 +129,5 @@ const GameCardComponent: FC<Props> = (props) => {
 // if the game ID, selection state, or variant changed. The component will
 // automatically get updates from Redux when the game data changes.
 export const GameCard = memo(GameCardComponent, (prevProps, nextProps) => {
-	return prevProps.game.id === nextProps.game.id && prevProps.isSelected === nextProps.isSelected && prevProps.variant === nextProps.variant && prevProps.playlistControls === nextProps.playlistControls
+	return prevProps.game.id === nextProps.game.id && prevProps.isSelected === nextProps.isSelected && prevProps.variant === nextProps.variant && prevProps.playlistControls === nextProps.playlistControls && prevProps.onGameUpdated === nextProps.onGameUpdated
 })

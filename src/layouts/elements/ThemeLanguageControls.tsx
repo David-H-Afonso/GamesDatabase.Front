@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { setTheme, setThemeBackground } from '@/store/features/theme/themeSlice'
 import { getThemeFamilyKey, normalizeThemeKey, THEME_FAMILIES, THEME_VARIANTS_BY_FAMILY } from '@/assets/styles/themes/AVAILABLE_THEMES'
-import { getThemeBackgroundOptions, NO_BACKGROUND } from '@/assets/styles/themes/themeBackgrounds'
+import { getDefaultThemeBackgroundId, getThemeBackgroundOptions, NO_BACKGROUND } from '@/assets/styles/themes/themeBackgrounds'
 import './ThemeLanguageControls.scss'
 
 const LANGUAGES: ReadonlyArray<{ code: string; label: string }> = [
@@ -149,7 +149,7 @@ export const ThemeLanguageControls: React.FC = () => {
 
 	const backgroundOptions = getThemeBackgroundOptions(currentTheme)
 	const hasBackgrounds = backgroundOptions.length > 0
-	const currentBackgroundId = backgroundByTheme[currentTheme] ?? NO_BACKGROUND
+	const currentBackgroundId = backgroundByTheme[currentTheme] ?? getDefaultThemeBackgroundId(currentTheme) ?? NO_BACKGROUND
 	const backgroundLabel = (id: string) => {
 		if (id === NO_BACKGROUND) return t('nav.bgNone')
 		const option = backgroundOptions.find((o) => o.id === id)

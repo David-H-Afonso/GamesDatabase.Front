@@ -86,7 +86,7 @@ const PlaylistRailItem = ({ id, name, coverUrl, selected, onSelect }: { id: numb
 	</div>
 }
 
-const SortableGame = ({ item, cardStyle, isDropTarget, onRemove }: { item: PlaylistItem; cardStyle: 'card' | 'row' | 'cover'; isDropTarget: boolean; onRemove: () => void }) => {
+const SortableGame = ({ item, cardStyle, isDropTarget, onRemove, onGameUpdated }: { item: PlaylistItem; cardStyle: 'card' | 'row' | 'cover'; isDropTarget: boolean; onRemove: () => void; onGameUpdated: (game: Game) => void }) => {
 	const { t } = useTranslation()
 	const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: `item-${item.id}` })
 	const toolbar = <div className='playlist-game__toolbar'>
@@ -96,7 +96,7 @@ const SortableGame = ({ item, cardStyle, isDropTarget, onRemove }: { item: Playl
 	</div>
 	return <article ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition }} className={`playlist-game playlist-game--${cardStyle}${isDragging ? ' is-dragging' : ''}${isDropTarget ? ' is-drop-target' : ''}`}>
 		{cardStyle !== 'card' && toolbar}
-		<GameCard game={item.game} variant={cardStyle} playlistControls={cardStyle === 'card' ? toolbar : undefined} />
+		<GameCard game={item.game} variant={cardStyle} playlistControls={cardStyle === 'card' ? toolbar : undefined} onGameUpdated={onGameUpdated} />
 	</article>
 }
 
@@ -193,6 +193,13 @@ export default function Playlists() {
 		dispatch(setCurrentPlaylist(optimistic))
 		try { await reorderItems(currentPlaylist.id, ordered) } catch { dispatch(setCurrentPlaylist(previous)) }
 	}
+	const handleGameUpdated = (updatedGame: Game) => {
+		if (!currentPlaylist) return
+		dispatch(setCurrentPlaylist({
+			...currentPlaylist,
+			items: currentPlaylist.items.map(item => item.gameId === updatedGame.id ? { ...item, game: updatedGame } : item),
+		}))
+	}
 	const handleDragStart = ({ active }: DragStartEvent) => {
 		const value = String(active.id)
 		if (value.startsWith('playlist-')) setActivePlaylistId(Number(value.replace('playlist-', '')))
@@ -278,7 +285,7 @@ export default function Playlists() {
 					{searchOpen && gameQuery && <div className='playlist-search-results' aria-live='polite'>{searching ? <div className='playlist-search-results__status'><span className='playlist-search-results__spinner' aria-hidden='true' />{t('common.loading')}</div> : gameResults.length ? gameResults.map(game => <button key={game.id} type='button' disabled={selectedGameIds.has(game.id)} onClick={() => { void addItem(currentPlaylist.id, game.id) }}><span>{game.name}</span><small>{selectedGameIds.has(game.id) ? t('playlists.added') : t('playlists.add')}</small></button>) : <div className='playlist-search-results__status'>{t('playlists.noSearchResults')}</div>}</div>}</div></div>
 					<DndContext sensors={sensors} collisionDetection={closestCenter} modifiers={cardStyle === 'row' ? [restrictToVerticalAxis, restrictToParentElement] : []} onDragStart={handleDragStart} onDragCancel={handleDragCancel} onDragOver={({ over }) => setOverGameId(over ? Number(String(over.id).replace('item-', '')) : null)} onDragEnd={handleGameDrag}>
 						<SortableContext items={currentPlaylist.items.map(item => `item-${item.id}`)} strategy={verticalListSortingStrategy}>
-							<div className={`playlist-games playlist-games--${cardStyle}`}>{currentPlaylist.items.map(item => <SortableGame key={item.id} item={item} cardStyle={cardStyle} isDropTarget={overGameId === item.id && activeGameId !== item.id} onRemove={() => void removeItem(currentPlaylist.id, item.id)} />)}</div>
+							<div className={`playlist-games playlist-games--${cardStyle}`}>{currentPlaylist.items.map(item => <SortableGame key={item.id} item={item} cardStyle={cardStyle} isDropTarget={overGameId === item.id && activeGameId !== item.id} onRemove={() => void removeItem(currentPlaylist.id, item.id)} onGameUpdated={handleGameUpdated} />)}</div>
 						</SortableContext>
 						<DragOverlay>{activeGame ? <div className='playlist-game-preview'>{activeGame.name}</div> : null}</DragOverlay>
 					</DndContext>

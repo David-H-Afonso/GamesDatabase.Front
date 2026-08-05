@@ -2,7 +2,7 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import type { ThemeState } from '@/models/store/ThemeState'
 import type { ViewMode } from '@/models/ViewMode'
 import { AVAILABLE_THEMES, normalizeThemeKey } from '@/assets/styles/themes/AVAILABLE_THEMES'
-import { NO_BACKGROUND, resolveThemeBackgroundUrl } from '@/assets/styles/themes/themeBackgrounds'
+import { NO_BACKGROUND, resolveBackgroundValue } from '@/assets/styles/themes/themeBackgrounds'
 
 // Function to get initial theme
 const getInitialTheme = (): string => {
@@ -26,7 +26,7 @@ const getInitialTheme = (): string => {
 const applyBackground = (theme: string, backgroundByTheme?: Record<string, string>) => {
 	if (typeof document === 'undefined') return
 	const backgroundId = backgroundByTheme?.[theme]
-	const url = resolveThemeBackgroundUrl(theme, backgroundId)
+	const url = resolveBackgroundValue(theme, backgroundId)
 	document.documentElement.style.setProperty('--app-bg-image', url ? `url("${url}")` : 'none')
 	if (document.body) document.body.classList.toggle('has-app-bg', !!url)
 }
@@ -62,7 +62,8 @@ const themeSlice = createSlice({
 			const theme = normalizeThemeKey(action.payload.theme) ?? state.currentTheme
 			if (!state.backgroundByTheme) state.backgroundByTheme = {}
 			if (action.payload.backgroundId === NO_BACKGROUND) {
-				delete state.backgroundByTheme[theme]
+				// Keep an explicit opt-out so a theme default cannot turn the image back on.
+				state.backgroundByTheme[theme] = NO_BACKGROUND
 			} else {
 				state.backgroundByTheme[theme] = action.payload.backgroundId
 			}

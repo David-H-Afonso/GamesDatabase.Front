@@ -104,6 +104,15 @@ body.has-app-bg::before {
 	pointer-events: none;
 }
 
+body.has-app-bg::after {
+	content: '';
+	position: fixed;
+	inset: 0;
+	z-index: -1;
+	background: rgba(0, 0, 0, .28);
+	pointer-events: none;
+}
+
 body.has-app-bg,
 body.has-app-bg #root,
 body.has-app-bg .home-component,
@@ -116,8 +125,19 @@ body.has-app-bg .login-container {
 body.has-app-bg .home-component[data-theme],
 body.has-app-bg [data-theme='dark'] .home-component,
 body.has-app-bg [data-theme='steam'] .home-component,
-body.has-app-bg .home-component {
+body.has-app-bg .home-component,
+body.has-app-bg .playlists-page {
 	background-image: none;
+	background-color: transparent;
+	color: #f8fafc;
+	text-shadow: 0 1px 3px rgba(0, 0, 0, .45);
+}
+
+body.has-app-bg .home-component .game-card,
+body.has-app-bg .home-component .game-card h3,
+body.has-app-bg .home-component .game-card p,
+body.has-app-bg .playlists-page h1 {
+	color: #f8fafc;
 }
 
 @media (max-width: 768px) {
