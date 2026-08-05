@@ -98,6 +98,8 @@ export const apiRoutes = {
 		items: (id: number) => `/playlists/${id}/items`,
 		removeItem: (id: number, itemId: number) => `/playlists/${id}/items/${itemId}`,
 		reorderItems: (id: number) => `/playlists/${id}/items/reorder`,
+		export: (id: number, reference: 'id' | 'name') => `/playlists/${id}/export?reference=${reference}`,
+		import: '/playlists/import',
 	},
 
 	/** Game Replay Type endpoints */

@@ -1,6 +1,6 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
-import { addPlaylistItem, createPlaylist, deletePlaylist, getPlaylistById, getPlaylists, removePlaylistItem, reorderPlaylistItems, reorderPlaylists, updatePlaylist } from '@/services'
-import type { PlaylistCreateDto, PlaylistUpdateDto } from '@/models/api/Playlist'
+import { addPlaylistItem, createPlaylist, deletePlaylist, exportPlaylist, getPlaylistById, getPlaylists, importPlaylist, removePlaylistItem, reorderPlaylistItems, reorderPlaylists, updatePlaylist } from '@/services'
+import type { PlaylistCreateDto, PlaylistTransfer, PlaylistUpdateDto } from '@/models/api/Playlist'
 
 const errorMessage = (error: unknown) => (error instanceof Error ? error.message : 'Playlist request failed')
 
@@ -30,4 +30,10 @@ export const removePlaylistItemThunk = createAsyncThunk('playlists/removeItem', 
 })
 export const reorderPlaylistItemsThunk = createAsyncThunk('playlists/reorderItems', async ({ id, orderedIds }: { id: number; orderedIds: number[] }, { rejectWithValue }) => {
 		try { await reorderPlaylistItems(id, orderedIds); return orderedIds } catch (error) { return rejectWithValue(errorMessage(error)) }
+})
+export const exportPlaylistThunk = createAsyncThunk('playlists/export', async ({ id, reference }: { id: number; reference: 'id' | 'name' }, { rejectWithValue }) => {
+		try { return await exportPlaylist(id, reference) } catch (error) { return rejectWithValue(errorMessage(error)) }
+})
+export const importPlaylistThunk = createAsyncThunk('playlists/import', async (data: PlaylistTransfer, { rejectWithValue }) => {
+		try { return await importPlaylist(data) } catch (error) { return rejectWithValue(errorMessage(error)) }
 })

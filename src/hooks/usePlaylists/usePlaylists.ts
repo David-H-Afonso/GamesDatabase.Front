@@ -1,8 +1,8 @@
 import { useCallback } from 'react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { addPlaylistItemThunk, createPlaylistThunk, deletePlaylistThunk, fetchPlaylistById, fetchPlaylists, removePlaylistItemThunk, reorderPlaylistItemsThunk, reorderPlaylistsThunk, selectCurrentPlaylist, selectPlaylists, selectPlaylistsError, selectPlaylistsLoading, updatePlaylistThunk } from '@/store/features/playlists'
+import { addPlaylistItemThunk, createPlaylistThunk, deletePlaylistThunk, exportPlaylistThunk, fetchPlaylistById, fetchPlaylists, importPlaylistThunk, removePlaylistItemThunk, reorderPlaylistItemsThunk, reorderPlaylistsThunk, selectCurrentPlaylist, selectPlaylists, selectPlaylistsError, selectPlaylistsLoading, updatePlaylistThunk } from '@/store/features/playlists'
 import { dispatchAndUnwrapAsync } from '@/utils'
-import type { PlaylistCreateDto, PlaylistUpdateDto } from '@/models/api/Playlist'
+import type { PlaylistCreateDto, PlaylistTransfer, PlaylistUpdateDto } from '@/models/api/Playlist'
 
 export const usePlaylists = () => {
 	const dispatch = useAppDispatch()
@@ -21,5 +21,7 @@ export const usePlaylists = () => {
 		addItem: useCallback((id: number, gameId: number) => dispatchAndUnwrapAsync(dispatch, addPlaylistItemThunk({ id, gameId })), [dispatch]),
 		removeItem: useCallback((id: number, itemId: number) => dispatchAndUnwrapAsync(dispatch, removePlaylistItemThunk({ id, itemId })), [dispatch]),
 		reorderItems: useCallback((id: number, orderedIds: number[]) => dispatchAndUnwrapAsync(dispatch, reorderPlaylistItemsThunk({ id, orderedIds })), [dispatch]),
+		exportPlaylist: useCallback((id: number, reference: 'id' | 'name') => dispatchAndUnwrapAsync(dispatch, exportPlaylistThunk({ id, reference })), [dispatch]),
+		importPlaylist: useCallback((data: PlaylistTransfer) => dispatchAndUnwrapAsync(dispatch, importPlaylistThunk(data)), [dispatch]),
 	}
 }

@@ -1,6 +1,6 @@
 import { customFetch } from '@/utils/customFetch'
 import { environment } from '@/environments'
-import type { Playlist, PlaylistCreateDto, PlaylistSummary, PlaylistUpdateDto } from '@/models/api/Playlist'
+import type { Playlist, PlaylistCreateDto, PlaylistSummary, PlaylistUpdateDto, PlaylistTransfer } from '@/models/api/Playlist'
 
 const BASE = environment.apiRoutes.playlists
 
@@ -13,3 +13,5 @@ export const reorderPlaylists = (orderedIds: number[]) => customFetch<void>(BASE
 export const addPlaylistItem = (id: number, gameId: number) => customFetch<Playlist>(BASE.items(id), { method: 'POST', body: { gameId }, baseURL: environment.baseUrl })
 export const removePlaylistItem = (id: number, itemId: number) => customFetch<Playlist>(BASE.removeItem(id, itemId), { method: 'DELETE', baseURL: environment.baseUrl })
 export const reorderPlaylistItems = (id: number, orderedIds: number[]) => customFetch<void>(BASE.reorderItems(id), { method: 'POST', body: { orderedIds }, baseURL: environment.baseUrl })
+export const exportPlaylist = (id: number, reference: 'id' | 'name') => customFetch<PlaylistTransfer>(BASE.export(id, reference), { method: 'GET', baseURL: environment.baseUrl })
+export const importPlaylist = (data: PlaylistTransfer) => customFetch<Playlist>(BASE.import, { method: 'POST', body: data, baseURL: environment.baseUrl })

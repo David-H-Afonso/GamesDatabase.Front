@@ -36,3 +36,14 @@ export interface PlaylistCreateDto {
 }
 
 export type PlaylistUpdateDto = Partial<PlaylistCreateDto>
+
+export interface PlaylistTransfer {
+	format: 'games-database-playlist'
+	version: 1
+	name: string
+	description?: string
+	heroUrl?: string
+	coverUrl?: string
+	logoUrl?: string
+	games: Array<{ gameId?: number; name?: string }>
+}

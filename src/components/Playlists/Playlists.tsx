@@ -11,7 +11,7 @@ import { setCurrentPlaylist, setPlaylists } from '@/store/features/playlists'
 import { getGames } from '@/services/GamesService/GamesService'
 import { ConfirmDialog, GameCard, Modal, OptimizedImage } from '@/components/elements'
 import type { Game } from '@/models/api/Game'
-import type { Playlist, PlaylistCreateDto, PlaylistItem } from '@/models/api/Playlist'
+import type { Playlist, PlaylistCreateDto, PlaylistItem, PlaylistTransfer } from '@/models/api/Playlist'
 import './Playlists.scss'
 
 const Icon = ({ path }: { path: string }) => (
@@ -73,7 +73,7 @@ const SortableGame = ({ item, cardStyle, onRemove }: { item: PlaylistItem; cardS
 export default function Playlists() {
 	const { t } = useTranslation()
 	const dispatch = useAppDispatch()
-	const { playlists, currentPlaylist, loading, fetchAll, fetchById, create, update, remove, reorder, addItem, removeItem, reorderItems } = usePlaylists()
+	const { playlists, currentPlaylist, loading, fetchAll, fetchById, create, update, remove, reorder, addItem, removeItem, reorderItems, exportPlaylist, importPlaylist } = usePlaylists()
 	const cardStyle = useAppSelector(state => state.theme.cardStyle ?? 'card')
 	const [selectedId, setSelectedId] = useState<number | null>(null)
 	const [editor, setEditor] = useState<'create' | 'edit' | null>(null)
@@ -81,6 +81,10 @@ export default function Playlists() {
 	const [gameQuery, setGameQuery] = useState('')
 	const [gameResults, setGameResults] = useState<Game[]>([])
 	const [searching, setSearching] = useState(false)
+	const [importOpen, setImportOpen] = useState(false)
+	const [importText, setImportText] = useState('')
+	const [exportReference, setExportReference] = useState<'id' | 'name'>('id')
+	const [transferError, setTransferError] = useState<string | null>(null)
 	const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }))
 
 	useEffect(() => { void fetchAll() }, [fetchAll])
@@ -133,9 +137,33 @@ export default function Playlists() {
 	}
 
 	const handleDelete = async () => { if (deleteId !== null) { await remove(deleteId); setDeleteId(null) } }
+	const handleExport = async () => {
+		if (!currentPlaylist) return
+		try {
+			const transfer = await exportPlaylist(currentPlaylist.id, exportReference) as PlaylistTransfer
+			const blob = new Blob([JSON.stringify(transfer, null, 2)], { type: 'application/json' })
+			const url = URL.createObjectURL(blob)
+			const anchor = document.createElement('a')
+			anchor.href = url
+			anchor.download = `${currentPlaylist.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.json`
+			anchor.click()
+			URL.revokeObjectURL(url)
+		} catch (error) { setTransferError(error instanceof Error ? error.message : t('playlists.transferError')) }
+	}
+	const handleImport = async () => {
+		setTransferError(null)
+		try {
+			const parsed = JSON.parse(importText) as PlaylistTransfer
+			if (parsed.format !== 'games-database-playlist' || parsed.version !== 1 || !parsed.name || !Array.isArray(parsed.games)) throw new Error(t('playlists.invalidImport'))
+			await importPlaylist(parsed)
+			setImportOpen(false)
+			setImportText('')
+			await fetchAll()
+		} catch (error) { setTransferError(error instanceof Error ? error.message : t('playlists.transferError')) }
+	}
 
 	return <main className='playlists-page'>
-		<header className='playlists-page__header'><div><span className='playlists-page__eyebrow'>{t('playlists.eyebrow')}</span><h1>{t('playlists.title')}</h1><p>{t('playlists.subtitle')}</p></div><button className='playlist-button playlist-button--primary' type='button' onClick={() => setEditor('create')}>+ {t('playlists.new')}</button></header>
+		<header className='playlists-page__header'><div><span className='playlists-page__eyebrow'>{t('playlists.eyebrow')}</span><h1>{t('playlists.title')}</h1><p>{t('playlists.subtitle')}</p></div><div className='playlists-page__header-actions'><button className='playlist-button playlist-button--quiet' type='button' onClick={() => setImportOpen(true)}>{t('playlists.import')}</button><button className='playlist-button playlist-button--primary' type='button' onClick={() => setEditor('create')}>+ {t('playlists.new')}</button></div></header>
 		<div className='playlists-layout'>
 			<aside className='playlist-rail'>
 				<div className='playlist-rail__header'><h2>{t('playlists.collection')}</h2><span>{playlists.length}</span></div>
@@ -150,7 +178,7 @@ export default function Playlists() {
 				{currentPlaylist ? <>
 					<div className='playlist-hero' style={currentPlaylist.heroUrl ? { backgroundImage: `linear-gradient(90deg, var(--playlist-hero-shade), rgba(0,0,0,.18)), url("${currentPlaylist.heroUrl}")` } : undefined}>
 						<div className='playlist-hero__content'>{currentPlaylist.logoUrl && <OptimizedImage src={currentPlaylist.logoUrl} alt='' className='playlist-hero__logo' width={280} height={110} />}<div><span>{t('playlists.playlistLabel')}</span><h2>{currentPlaylist.name}</h2>{currentPlaylist.description && <p>{currentPlaylist.description}</p>}</div></div>
-						<div className='playlist-hero__actions'><button type='button' onClick={() => setEditor('edit')}>{t('common.edit')}</button><button type='button' onClick={() => setDeleteId(currentPlaylist.id)}>{t('common.delete')}</button></div>
+						<div className='playlist-hero__actions'><button type='button' onClick={handleExport}>{t('playlists.export')}</button><select value={exportReference} onChange={event => setExportReference(event.target.value as 'id' | 'name')} aria-label={t('playlists.exportReference')}><option value='id'>{t('playlists.byId')}</option><option value='name'>{t('playlists.byName')}</option></select><button type='button' onClick={() => setEditor('edit')}>{t('common.edit')}</button><button type='button' onClick={() => setDeleteId(currentPlaylist.id)}>{t('common.delete')}</button></div>
 					</div>
 					<div className='playlist-tools'><div className='playlist-view-toggle' role='group' aria-label={t('playlists.viewMode')}>
 						{(['row', 'card', 'cover'] as const).map(mode => <button key={mode} type='button' className={cardStyle === mode ? 'is-active' : ''} onClick={() => dispatch(setCardStyle(mode))}>{t(`playlists.views.${mode}`)}</button>)}
@@ -166,6 +194,7 @@ export default function Playlists() {
 			</section>
 		</div>
 		<Modal isOpen={editor !== null} onClose={() => setEditor(null)} title={editor === 'edit' ? t('playlists.edit') : t('playlists.new')} maxWidth='760px'><PlaylistForm initial={editor === 'edit' ? currentPlaylist : null} onClose={() => setEditor(null)} onSave={savePlaylist} /></Modal>
+		<Modal isOpen={importOpen} onClose={() => setImportOpen(false)} title={t('playlists.import')} maxWidth='760px'><div className='playlist-import'><p>{t('playlists.importHint')}</p><textarea value={importText} onChange={event => setImportText(event.target.value)} rows={14} placeholder='{ "format": "games-database-playlist", "version": 1, "name": "Pokemon", "games": [{ "gameId": 123 }] }' />{transferError && <p className='playlist-import__error'>{transferError}</p>}<div className='playlist-form__actions'><button type='button' className='playlist-button playlist-button--quiet' onClick={() => setImportOpen(false)}>{t('common.cancel')}</button><button type='button' className='playlist-button playlist-button--primary' onClick={() => void handleImport()}>{t('playlists.import')}</button></div></div></Modal>
 		<ConfirmDialog isOpen={deleteId !== null} title={t('playlists.deleteTitle')} message={t('playlists.deleteMessage', { name: selectedSummary?.name ?? '' })} onCancel={() => setDeleteId(null)} onConfirm={() => void handleDelete()} confirmLabel={t('common.delete')} />
 	</main>
 }

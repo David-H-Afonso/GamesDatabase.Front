@@ -2,6 +2,7 @@
 
 .playlists-page { min-height: calc(100vh - 72px); padding: 42px clamp(18px, 4vw, 64px) 72px; color: var(--text-primary); background: var(--bg-primary); }
 .playlists-page__header { max-width: 1500px; margin: 0 auto 28px; display: flex; justify-content: space-between; align-items: end; gap: 24px; }
+.playlists-page__header-actions { display: flex; gap: 8px; }
 .playlists-page__eyebrow { color: var(--primary-color, #61afef); font-size: .72rem; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; }
 .playlists-page h1 { margin: 8px 0 6px; font-size: clamp(2rem, 4vw, 3.5rem); letter-spacing: -.05em; }
 .playlists-page__header p { margin: 0; color: var(--text-secondary); max-width: 620px; }
@@ -34,6 +35,7 @@
 .playlist-hero__logo { max-width: 190px; max-height: 90px; object-fit: contain; }
 .playlist-hero__actions { display: flex; gap: 8px; flex: 0 0 auto; }
 .playlist-hero__actions button, .playlist-view-toggle button { border: 1px solid var(--border-color-light); background: color-mix(in srgb, var(--surface) 74%, transparent); color: inherit; border-radius: 8px; padding: 8px 12px; cursor: pointer; }
+.playlist-hero__actions select { border: 1px solid var(--border-color-light); border-radius: 8px; padding: 8px; color: inherit; background: var(--surface); }
 .playlist-hero__actions button:hover, .playlist-view-toggle button:hover { border-color: var(--primary-color, #61afef); }
 .playlist-tools { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin: 20px 0 12px; }
 .playlist-view-toggle { display: flex; gap: 4px; padding: 4px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border-color-light); }
@@ -71,5 +73,9 @@
 .playlist-form textarea { resize: vertical; }
 .playlist-form__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 .playlist-form__actions { display: flex; justify-content: end; gap: 8px; padding-top: 8px; }
+.playlist-import { display: grid; gap: 14px; }
+.playlist-import p { margin: 0; color: var(--text-secondary); }
+.playlist-import textarea { width: 100%; box-sizing: border-box; resize: vertical; border: 1px solid var(--input-border); border-radius: 8px; padding: 12px; color: var(--input-text); background: var(--input-bg); font: .84rem/1.5 ui-monospace, monospace; }
+.playlist-import__error { color: var(--error, #ef4444) !important; }
 @media (max-width: 900px) { .playlists-layout { grid-template-columns: 1fr; } .playlist-rail { position: static; } .playlist-rail > .dnd-context { display: flex; } .playlist-rail__item { min-width: 220px; } .playlist-rail { overflow-x: auto; } .playlist-hero { min-height: 230px; } }
 @media (max-width: 620px) { .playlists-page__header, .playlist-tools, .playlist-hero { align-items: stretch; flex-direction: column; } .playlist-hero__content { align-items: start; flex-direction: column; } .playlist-hero__actions { justify-content: end; } .playlist-form__grid { grid-template-columns: 1fr; } .playlist-games--card { grid-template-columns: 1fr; } .playlist-games--cover { grid-template-columns: repeat(2, minmax(0, 1fr)); } .playlist-search { max-width: none; } }

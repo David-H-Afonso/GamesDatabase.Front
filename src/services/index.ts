@@ -66,7 +66,7 @@ export type { ExportType, ExportFileNameOptions, DatabaseDuplicateGameDetails, D
 export { getGameViews, getGameViewById, createGameView, updateGameView, updateGameViewConfiguration, deleteGameView, getPublicGameViews, reorderGameViews } from './GameViewService'
 
 export { GameViewMigrationService } from './GameViewMigrationService'
-export { getPlaylists, getPlaylistById, createPlaylist, updatePlaylist, deletePlaylist, reorderPlaylists, addPlaylistItem, removePlaylistItem, reorderPlaylistItems } from './PlaylistService/PlaylistService'
+export { getPlaylists, getPlaylistById, createPlaylist, updatePlaylist, deletePlaylist, reorderPlaylists, addPlaylistItem, removePlaylistItem, reorderPlaylistItems, exportPlaylist, importPlaylist } from './PlaylistService/PlaylistService'
 
 export { authService } from './AuthService'
 export { userService } from './UserService'

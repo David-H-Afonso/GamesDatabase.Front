@@ -1,7 +1,7 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import type { Playlist } from '@/models/api/Playlist'
 import type { PlaylistState } from '@/models/store/PlaylistState'
-import { addPlaylistItemThunk, createPlaylistThunk, deletePlaylistThunk, fetchPlaylistById, fetchPlaylists, removePlaylistItemThunk, reorderPlaylistItemsThunk, reorderPlaylistsThunk, updatePlaylistThunk } from './thunk'
+import { addPlaylistItemThunk, createPlaylistThunk, deletePlaylistThunk, fetchPlaylistById, fetchPlaylists, importPlaylistThunk, removePlaylistItemThunk, reorderPlaylistItemsThunk, reorderPlaylistsThunk, updatePlaylistThunk } from './thunk'
 
 const initialState: PlaylistState = { playlists: [], currentPlaylist: null, loading: false, error: null }
 
@@ -35,6 +35,7 @@ const playlistSlice = createSlice({
 				if (!state.currentPlaylist) return
 				state.currentPlaylist.items = action.payload.map(id => state.currentPlaylist!.items.find(item => item.id === id)!).filter(Boolean)
 			})
+			.addCase(importPlaylistThunk.fulfilled, (state, action) => { state.playlists.push(action.payload); state.currentPlaylist = action.payload })
 			.addMatcher(action => action.type.startsWith('playlists/') && action.type.endsWith('/rejected'), (state, action: any) => { state.loading = false; state.error = action.payload as string })
 	},
 })
