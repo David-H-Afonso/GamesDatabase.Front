@@ -251,13 +251,13 @@ export const analyzeDatabaseDuplicates = async (): Promise<{
 	})
 }
 
-export const deleteOrphanFolder = async (folderName: string): Promise<{ folderName: string; deleted: boolean; message: string }> => {
+export const deleteOrphanFolder = async (folderName: string, entityType: 'Game' | 'Playlist' = 'Game'): Promise<{ folderName: string; deleted: boolean; message: string }> => {
 	const endpoint = environment.apiRoutes.dataExport.deleteOrphanFolder
 
 	return await customFetch(endpoint, {
 		method: 'DELETE',
 		headers: { 'Content-Type': 'application/json' },
-		body: { folderName },
+		body: { folderName, entityType },
 		baseURL: environment.baseUrl,
 		timeout: environment.api?.timeout,
 	})

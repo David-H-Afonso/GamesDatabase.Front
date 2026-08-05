@@ -27,6 +27,11 @@ interface FolderAnalysisResult {
 	potentialDuplicates: PotentialDuplicate[]
 	orphanFolders: OrphanFolder[]
 	missingGameFolders: MissingGameFolder[]
+	totalPlaylistsInDatabase?: number
+	totalPlaylistFoldersInFilesystem?: number
+	playlistFolderDifference?: number
+	playlistPotentialDuplicates?: PotentialDuplicate[]
+	playlistOrphanFolders?: OrphanFolder[]
 	databaseDuplicates?: DatabaseDuplicatesResult
 }
 
@@ -342,20 +347,21 @@ Statistics:
 		setSelectedOrphanFolders((current) => (current.includes(folderName) ? current.filter((name) => name !== folderName) : [...current, folderName]))
 	}
 
-	const handleDeleteOrphanFolder = async (folderName: string) => {
+	const handleDeleteOrphanFolder = async (folderName: string, entityType: 'Game' | 'Playlist' = 'Game') => {
 		const confirmed = await askConfirm(t('admin.dataExport.confirmDeleteTitle'), t('admin.dataExport.confirmDeleteOrphanFolder', { folder: folderName }))
 		if (!confirmed) return
 
 		try {
 			setDeletingFolders((current) => [...current, folderName])
-			const result = await deleteOrphanFolder(folderName)
+			const result = await deleteOrphanFolder(folderName, entityType)
 			setAnalysisResult((current) =>
 				current
 					? {
 							...current,
 							totalFoldersInFilesystem: Math.max(0, current.totalFoldersInFilesystem - 1),
 							difference: current.difference - 1,
-							orphanFolders: current.orphanFolders.filter((folder) => folder.folderName !== folderName),
+							orphanFolders: entityType === 'Game' ? current.orphanFolders.filter((folder) => folder.folderName !== folderName) : current.orphanFolders,
+							playlistOrphanFolders: entityType === 'Playlist' ? current.playlistOrphanFolders?.filter((folder) => folder.folderName !== folderName) : current.playlistOrphanFolders,
 						}
 					: current
 			)
@@ -850,6 +856,21 @@ Statistics:
 								</div>
 							)}
 
+							{((analysisResult.playlistPotentialDuplicates?.length ?? 0) > 0 || (analysisResult.playlistOrphanFolders?.length ?? 0) > 0) && (
+								<div className='playlists-analysis-section'>
+									<h3>{t('admin.dataExport.playlistsStorageTitle')}</h3>
+									<p className='section-note'>{t('admin.dataExport.playlistsStorageNote')}</p>
+									{(analysisResult.playlistPotentialDuplicates?.length ?? 0) > 0 && <div className='duplicates-section'>
+										<h4>{t('admin.dataExport.playlistPotentialDuplicates', { count: analysisResult.playlistPotentialDuplicates!.length })}</h4>
+										{analysisResult.playlistPotentialDuplicates!.map((dup, index) => <div key={index} className='duplicate-item'><strong>{dup.gameName}</strong><ul className='folder-list'>{dup.folderNames.map(folder => <li key={folder}><code>{folder}</code></li>)}</ul></div>)}
+									</div>}
+									{(analysisResult.playlistOrphanFolders?.length ?? 0) > 0 && <div className='orphans-section'>
+										<h4>{t('admin.dataExport.playlistOrphanFolders', { count: analysisResult.playlistOrphanFolders!.length })}</h4>
+										<ul className='orphan-folder-list'>{analysisResult.playlistOrphanFolders!.map(orphan => <li key={orphan.folderName}><label className='orphan-folder-list__info'><span><strong>{orphan.folderName}</strong><code>{orphan.fullPath}</code></span></label><button className='btn btn-danger btn-small' onClick={() => void handleDeleteOrphanFolder(orphan.folderName, 'Playlist')}>{t('admin.dataExport.deleteFolder')}</button></li>)}</ul>
+									</div>}
+								</div>
+							)}
+
 							{(analysisResult.databaseDuplicates?.duplicateGroups.length ?? 0) > 0 && (
 								<div className='duplicates-section'>
 									<h3>{t('admin.dataExport.dbDuplicates', { count: analysisResult.databaseDuplicates!.duplicateGroups.length })}</h3>
@@ -859,6 +880,8 @@ Statistics:
 
 							{analysisResult.potentialDuplicates.length === 0 &&
 								analysisResult.orphanFolders.length === 0 &&
+								(analysisResult.playlistPotentialDuplicates?.length ?? 0) === 0 &&
+								(analysisResult.playlistOrphanFolders?.length ?? 0) === 0 &&
 								(analysisResult.missingGameFolders?.length ?? 0) === 0 &&
 								analysisResult.difference === 0 &&
 								(analysisResult.databaseDuplicates?.duplicateGroups.length ?? 0) === 0 && (

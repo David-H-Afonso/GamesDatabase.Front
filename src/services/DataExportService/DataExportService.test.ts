@@ -166,7 +166,7 @@ describe('DataExportService', () => {
 			mockFetch.mockResolvedValue({ folderName: 'Old Game', deleted: true, message: 'Deleted' })
 			const result = await deleteOrphanFolder('Old Game')
 			expect(result.deleted).toBe(true)
-			expect(mockFetch).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({ method: 'DELETE', body: { folderName: 'Old Game' } }))
+			expect(mockFetch).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({ method: 'DELETE', body: { folderName: 'Old Game', entityType: 'Game' } }))
 		})
 
 		it('deleteDuplicateGame calls DELETE with game id', async () => {
