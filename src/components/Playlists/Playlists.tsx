@@ -43,6 +43,12 @@ const PlaylistDescription = ({ description }: { description: string }) => {
 	</>
 }
 
+const PlaylistHeroImage = ({ src }: { src?: string }) => {
+	const [failed, setFailed] = useState(false)
+	if (!src || failed) return null
+	return <img className='playlist-hero__background' src={src} alt='' aria-hidden='true' onError={() => setFailed(true)} />
+}
+
 const PlaylistForm = ({ initial, onClose, onSave }: { initial?: Playlist | null; onClose: () => void; onSave: (data: PlaylistCreateDto) => Promise<void> }) => {
 	const { t } = useTranslation()
 	const [form, setForm] = useState<PlaylistCreateDto>({ name: initial?.name ?? '', description: initial?.description ?? '', heroUrl: initial?.heroUrlOverride ?? '', coverUrl: initial?.coverUrlOverride ?? '', logoUrl: initial?.logoUrlOverride ?? '' })
@@ -138,6 +144,7 @@ export default function Playlists() {
 		}
 	}, [navigate, playlists, selectedId, routePlaylistId])
 	useEffect(() => { if (selectedId !== null) void fetchById(selectedId) }, [selectedId, fetchById])
+	const playlistMatchesRoute = routePlaylistId === null || currentPlaylist?.id === routePlaylistId
 	useEffect(() => {
 		const term = gameQuery.trim()
 		if (!term) { setGameResults([]); return }
@@ -258,8 +265,10 @@ export default function Playlists() {
 				</aside>
 			</div>
 			<section className='playlist-detail'>
-				{currentPlaylist ? <>
-					<div className='playlist-hero' style={currentPlaylist.heroUrl || currentPlaylist.coverUrl ? { backgroundImage: `linear-gradient(90deg, rgba(8, 10, 15, .96) 0%, rgba(8, 10, 15, .72) 48%, rgba(8, 10, 15, .22) 100%), url("${currentPlaylist.heroUrl ?? currentPlaylist.coverUrl}")` } : undefined}>
+				{currentPlaylist && playlistMatchesRoute ? <>
+					<div className='playlist-hero'>
+						<PlaylistHeroImage src={currentPlaylist.heroUrl ?? currentPlaylist.coverUrl} />
+						<div className='playlist-hero__shade' aria-hidden='true' />
 						<div className='playlist-hero__top'>{currentPlaylist.logoUrl && <div className='playlist-hero__logo'><OptimizedImage src={currentPlaylist.logoUrl} alt='' width={160} height={64} /></div>}<div className='playlist-menu' ref={menuRef}><button type='button' className='playlist-menu__trigger' aria-label={t('playlists.options')} aria-expanded={menuOpen} onClick={() => setMenuOpen(value => !value)}><MoreIcon /></button>{menuOpen && <div className='playlist-menu__panel'><button type='button' onClick={() => { void handleExport(); setMenuOpen(false) }}>{t('playlists.export')}</button><select value={exportReference} onChange={event => setExportReference(event.target.value as 'id' | 'name')} aria-label={t('playlists.exportReference')}><option value='id'>{t('playlists.byId')}</option><option value='name'>{t('playlists.byName')}</option></select><button type='button' onClick={() => { setEditor('edit'); setMenuOpen(false) }}>{t('common.edit')}</button><button type='button' onClick={() => { setDeleteId(currentPlaylist.id); setMenuOpen(false) }}>{t('common.delete')}</button></div>}</div></div>
 						<div className='playlist-hero__content'><div className='playlist-hero__copy'><span>{t('playlists.playlistLabel')}</span><h2>{currentPlaylist.name}</h2>{currentPlaylist.description && <PlaylistDescription description={currentPlaylist.description} />}</div></div>
 					</div>
