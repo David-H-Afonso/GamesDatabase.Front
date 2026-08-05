@@ -1,5 +1,5 @@
 import type { Game } from '@/models/api/Game'
-import { useLayoutEffect, useRef, useState, memo, type FC } from 'react'
+import { useLayoutEffect, useRef, useState, memo, type FC, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import './CardView.scss'
 import { DEFAULT_PLATFORM_ICON, STEAM_PLATFORM_ICON, formatPlaytime, formatToLocaleDate, useClickOutside, getMetacriticColor } from '@/utils'
@@ -28,11 +28,12 @@ interface CardViewProps {
 	onSelect?: (gameId: number, isSelected: boolean) => void
 	deselectAll?: () => void
 	index?: number
+	playlistControls?: ReactNode
 }
 
 const CardView: FC<CardViewProps> = (props) => {
 	const isPriority = props.index !== undefined && props.index < 4
-	const { game, openDetails, playWithColors, gameStatusColor, platformColor, onFieldUpdate, isSelected = false, onSelect, deselectAll } = props
+	const { game, openDetails, playWithColors, gameStatusColor, platformColor, onFieldUpdate, isSelected = false, onSelect, deselectAll, playlistControls } = props
 	const [activeSelector, setActiveSelector] = useState<'status' | 'platform' | 'playWith' | null>(null)
 	const { t } = useTranslation()
 
@@ -265,6 +266,7 @@ const CardView: FC<CardViewProps> = (props) => {
 							)}
 						</div>
 					</div>
+					{playlistControls}
 					{isPerfectCompletion && <div className='game-card-perfect-badge'>{t('game.card.full')}</div>}
 					<div className='game-card-header-info'>
 						<div className='game-card-header-info-logo'>

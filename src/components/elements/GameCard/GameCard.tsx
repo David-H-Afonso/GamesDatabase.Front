@@ -1,5 +1,5 @@
 import type { Game } from '@/models/api/Game'
-import { useState, memo, type FC } from 'react'
+import { useState, memo, type FC, type ReactNode } from 'react'
 import { useAppSelector } from '@/store/hooks'
 import { selectGameById } from '@/store/features/games'
 import { useGamePlatform, useGamePlayedStatus, useGamePlayWith, useGames, useGameStatus } from '@/hooks'
@@ -16,6 +16,7 @@ interface Props {
 	onSelect?: (gameId: number, isSelected: boolean) => void
 	deselectAll?: () => void
 	index?: number
+	playlistControls?: ReactNode
 }
 
 const GameCardComponent: FC<Props> = (props) => {
@@ -79,6 +80,7 @@ const GameCardComponent: FC<Props> = (props) => {
 						isSelected={isSelected}
 						deselectAll={props.deselectAll}
 						index={props.index}
+						playlistControls={props.playlistControls}
 					/>
 				</div>
 			)}
@@ -124,5 +126,5 @@ const GameCardComponent: FC<Props> = (props) => {
 // if the game ID, selection state, or variant changed. The component will
 // automatically get updates from Redux when the game data changes.
 export const GameCard = memo(GameCardComponent, (prevProps, nextProps) => {
-	return prevProps.game.id === nextProps.game.id && prevProps.isSelected === nextProps.isSelected && prevProps.variant === nextProps.variant
+	return prevProps.game.id === nextProps.game.id && prevProps.isSelected === nextProps.isSelected && prevProps.variant === nextProps.variant && prevProps.playlistControls === nextProps.playlistControls
 })

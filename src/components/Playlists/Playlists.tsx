@@ -32,15 +32,16 @@ const Grip = () => <Icon path='M8 5h.01M16 5h.01M8 12h.01M16 12h.01M8 19h.01M16 
 
 const MoreIcon = () => <Icon path='M5 12h.01M12 12h.01M19 12h.01' />
 
-const PlaylistDescription = ({ description }: { description: string }) => (
-	<>
+const PlaylistDescription = ({ description }: { description: string }) => {
+	const { t } = useTranslation()
+	return <>
 		<p className='playlist-hero__description-desktop' title={description}>{description}</p>
 		<details className='playlist-hero__description-mobile'>
-			<summary>Ver descripción completa</summary>
+			<summary>{t('playlists.showDescription')}</summary>
 			<p>{description}</p>
 		</details>
 	</>
-)
+}
 
 const PlaylistForm = ({ initial, onClose, onSave }: { initial?: Playlist | null; onClose: () => void; onSave: (data: PlaylistCreateDto) => Promise<void> }) => {
 	const { t } = useTranslation()
@@ -68,25 +69,28 @@ const PlaylistForm = ({ initial, onClose, onSave }: { initial?: Playlist | null;
 }
 
 const PlaylistRailItem = ({ id, name, coverUrl, selected, onSelect }: { id: number; name: string; coverUrl?: string; selected: boolean; onSelect: () => void }) => {
+	const { t } = useTranslation()
 	const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: `playlist-${id}` })
 	return <div ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition }} className={`playlist-rail__item${selected ? ' is-selected' : ''}${isDragging ? ' is-dragging' : ''}`}>
 		<button className='playlist-rail__select' onClick={onSelect} type='button'>
 			{coverUrl ? <OptimizedImage src={coverUrl} alt='' width={52} height={70} /> : <span className='playlist-rail__placeholder'><Icon path='M5 5h14v14H5zM8 9h8M8 13h6' /></span>}
 			<span><strong>{name}</strong></span>
 		</button>
-		<button className='playlist-drag-handle' type='button' aria-label='Drag to reorder' {...attributes} {...listeners}><Grip /></button>
+		<button className='playlist-drag-handle' type='button' aria-label={t('playlists.dragToReorder')} {...attributes} {...listeners}><Grip /></button>
 	</div>
 }
 
 const SortableGame = ({ item, cardStyle, isDropTarget, onRemove }: { item: PlaylistItem; cardStyle: 'card' | 'row' | 'cover'; isDropTarget: boolean; onRemove: () => void }) => {
+	const { t } = useTranslation()
 	const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: `item-${item.id}` })
+	const toolbar = <div className='playlist-game__toolbar'>
+		<button className='playlist-drag-handle' type='button' aria-label={t('playlists.dragToReorder')} {...attributes} {...listeners}><Grip /></button>
+		<span className='playlist-game__position'>{item.position + 1}</span>
+		<button type='button' className='playlist-game__remove' onClick={onRemove} aria-label={t('playlists.removeGame')}>×</button>
+	</div>
 	return <article ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition }} className={`playlist-game playlist-game--${cardStyle}${isDragging ? ' is-dragging' : ''}${isDropTarget ? ' is-drop-target' : ''}`}>
-		<div className='playlist-game__toolbar'>
-			<button className='playlist-drag-handle' type='button' aria-label='Drag to reorder' {...attributes} {...listeners}><Grip /></button>
-			<span className='playlist-game__position'>{item.position + 1}</span>
-			<button type='button' className='playlist-game__remove' onClick={onRemove} aria-label='Remove game'>×</button>
-		</div>
-		<GameCard game={item.game} variant={cardStyle} />
+		{cardStyle !== 'card' && toolbar}
+		<GameCard game={item.game} variant={cardStyle} playlistControls={cardStyle === 'card' ? toolbar : undefined} />
 	</article>
 }
 
@@ -108,6 +112,7 @@ export default function Playlists() {
 	const [importText, setImportText] = useState('')
 	const [exportReference, setExportReference] = useState<'id' | 'name'>('id')
 	const [transferError, setTransferError] = useState<string | null>(null)
+	const [importFileName, setImportFileName] = useState<string | null>(null)
 	const [searchOpen, setSearchOpen] = useState(false)
 	const [menuOpen, setMenuOpen] = useState(false)
 	const [activePlaylistId, setActivePlaylistId] = useState<number | null>(null)
@@ -115,6 +120,7 @@ export default function Playlists() {
 	const [overGameId, setOverGameId] = useState<number | null>(null)
 	const searchRef = useRef<HTMLDivElement>(null)
 	const menuRef = useRef<HTMLDivElement>(null)
+	const importFileRef = useRef<HTMLInputElement>(null)
 	const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }))
 
 	useEffect(() => { void fetchAll() }, [fetchAll])
@@ -222,12 +228,25 @@ export default function Playlists() {
 			await fetchAll()
 		} catch (error) { setTransferError(error instanceof Error ? error.message : t('playlists.transferError')) }
 	}
+	const handleImportFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+		const file = event.target.files?.[0]
+		if (!file) return
+		try {
+			setImportText(await file.text())
+			setImportFileName(file.name)
+			setTransferError(null)
+		} catch {
+			setTransferError(t('playlists.fileReadError'))
+		}
+		event.target.value = ''
+	}
 
 	const activeGame = currentPlaylist?.items.find(item => item.id === activeGameId)?.game
 	return <main className='playlists-page'>
 		<div className='playlists-layout'>
-			<header className='playlists-page__header'><div className='playlists-page__heading'><span className='playlists-page__eyebrow'>{t('playlists.eyebrow')}</span><h1>{t('playlists.title')}</h1><div className='playlists-page__header-actions'><button className='playlist-button playlist-button--quiet' type='button' onClick={() => setImportOpen(true)}>{t('playlists.import')}</button><button className='playlist-button playlist-button--primary' type='button' onClick={() => setEditor('create')}>+ {t('playlists.new')}</button></div></div></header>
-			<aside className='playlist-rail'>
+			<div className='playlists-sidebar'>
+				<header className='playlists-page__header'><div className='playlists-page__heading'><span className='playlists-page__eyebrow'>{t('playlists.eyebrow')}</span><h1>{t('playlists.title')}</h1><div className='playlists-page__header-actions'><button className='playlist-button playlist-button--quiet' type='button' onClick={() => setImportOpen(true)}>{t('playlists.import')}</button><button className='playlist-button playlist-button--primary' type='button' onClick={() => setEditor('create')}>+ {t('playlists.new')}</button></div></div></header>
+				<aside className='playlist-rail'>
 				<div className='playlist-rail__header'><h2>{t('playlists.collection')}</h2><span>{playlists.length}</span></div>
 				<DndContext sensors={sensors} collisionDetection={closestCenter} modifiers={[restrictToVerticalAxis, restrictToParentElement]} onDragStart={handleDragStart} onDragCancel={handleDragCancel} onDragEnd={handlePlaylistDrag}>
 					<SortableContext items={playlists.map(item => `playlist-${item.id}`)} strategy={verticalListSortingStrategy}>
@@ -236,7 +255,8 @@ export default function Playlists() {
 					<DragOverlay>{activePlaylistId !== null ? <div className='playlist-drag-preview'>{playlists.find(item => item.id === activePlaylistId)?.name}</div> : null}</DragOverlay>
 				</DndContext>
 				{!loading && !playlists.length && <p className='playlist-rail__empty'>{t('playlists.empty')}</p>}
-			</aside>
+				</aside>
+			</div>
 			<section className='playlist-detail'>
 				{currentPlaylist ? <>
 					<div className='playlist-hero' style={currentPlaylist.heroUrl || currentPlaylist.coverUrl ? { backgroundImage: `linear-gradient(90deg, rgba(8, 10, 15, .96) 0%, rgba(8, 10, 15, .72) 48%, rgba(8, 10, 15, .22) 100%), url("${currentPlaylist.heroUrl ?? currentPlaylist.coverUrl}")` } : undefined}>
@@ -259,7 +279,7 @@ export default function Playlists() {
 			</section>
 		</div>
 		<Modal isOpen={editor !== null} onClose={() => setEditor(null)} title={editor === 'edit' ? t('playlists.edit') : t('playlists.new')} maxWidth='760px'><PlaylistForm initial={editor === 'edit' ? currentPlaylist : null} onClose={() => setEditor(null)} onSave={savePlaylist} /></Modal>
-		<Modal isOpen={importOpen} onClose={() => setImportOpen(false)} title={t('playlists.import')} maxWidth='760px'><div className='playlist-import'><p>{t('playlists.importHint')}</p><textarea value={importText} onChange={event => setImportText(event.target.value)} rows={14} placeholder='{ "format": "games-database-playlist", "version": 1, "name": "Pokemon", "games": [{ "gameId": 123 }] }' />{transferError && <p className='playlist-import__error'>{transferError}</p>}<div className='playlist-form__actions'><button type='button' className='playlist-button playlist-button--quiet' onClick={() => setImportOpen(false)}>{t('common.cancel')}</button><button type='button' className='playlist-button playlist-button--primary' onClick={() => void handleImport()}>{t('playlists.import')}</button></div></div></Modal>
+		<Modal isOpen={importOpen} onClose={() => setImportOpen(false)} title={t('playlists.import')} maxWidth='760px'><div className='playlist-import'><p>{t('playlists.importHint')}</p><input ref={importFileRef} className='playlist-import__file-input' type='file' accept='application/json,.json' onChange={handleImportFile} /><button type='button' className='playlist-button playlist-button--quiet playlist-import__file-button' onClick={() => importFileRef.current?.click()}>{t('playlists.chooseFile')}</button>{importFileName && <span className='playlist-import__file-name'>{importFileName}</span>}<textarea value={importText} onChange={event => { setImportText(event.target.value); setImportFileName(null) }} rows={14} placeholder={t('playlists.jsonPlaceholder')} />{transferError && <p className='playlist-import__error'>{transferError}</p>}<div className='playlist-form__actions'><button type='button' className='playlist-button playlist-button--quiet' onClick={() => setImportOpen(false)}>{t('common.cancel')}</button><button type='button' className='playlist-button playlist-button--primary' onClick={() => void handleImport()}>{t('playlists.import')}</button></div></div></Modal>
 		<ConfirmDialog isOpen={deleteId !== null} title={t('playlists.deleteTitle')} message={t('playlists.deleteMessage', { name: selectedSummary?.name ?? '' })} onCancel={() => setDeleteId(null)} onConfirm={() => void handleDelete()} confirmLabel={t('common.delete')} />
 	</main>
 }
