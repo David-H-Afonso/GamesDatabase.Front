@@ -266,7 +266,7 @@ describe('CardView', () => {
 		})
 
 		const icon = screen.getByAltText('Unknown') as HTMLImageElement
-		expect(icon.src).toContain('data:image/png;base64')
+		expect(icon.src).toContain('/platform-icons/')
 		expect(screen.getByText('1h')).toBeInTheDocument()
 	})
 })

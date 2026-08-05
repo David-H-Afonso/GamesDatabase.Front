@@ -158,7 +158,7 @@ export const AdminPlatforms: React.FC = () => {
 							<div className='platform-logo-editor__controls'>
 								<input type='file' accept={PLATFORM_LOGO_ACCEPT} aria-label={t('admin.platforms.uploadLogo')} onChange={(event) => void handleLogoFileChange(event)} />
 								<input
-									type='url'
+									type='text'
 									value={formData.logo?.startsWith('data:') ? '' : formData.logo || ''}
 									onChange={(event) => setFormData({ ...formData, logo: event.target.value || undefined })}
 									placeholder={t('admin.platforms.logoUrlPlaceholder')}

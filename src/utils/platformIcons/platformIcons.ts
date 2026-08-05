@@ -1,6 +1,18 @@
-import platformIconData from './platformIconData.json'
-
-const platformIcons = platformIconData as Record<string, string>
+const platformIcons: Record<string, string> = {
+	default: '/platform-icons/default.png',
+	steam: '/platform-icons/steam.png',
+	switch: '/platform-icons/switch.png',
+	switch2: '/platform-icons/switch2.png',
+	epic: '/platform-icons/epic.png',
+	gog: '/platform-icons/gog.png',
+	ubisoft: '/platform-icons/ubisoft.png',
+	emulator: '/platform-icons/emulator.png',
+	itchio: '/platform-icons/itchio.png',
+	battlenet: '/platform-icons/battlenet.png',
+	ea: '/platform-icons/ea.png',
+	playstation: '/platform-icons/playstation.png',
+	xbox: '/platform-icons/xbox.png',
+}
 
 export const DEFAULT_PLATFORM_ICON = platformIcons.default
 export const STEAM_PLATFORM_ICON = platformIcons.steam

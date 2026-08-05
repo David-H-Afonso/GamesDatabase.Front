@@ -13,6 +13,7 @@ export interface Game {
 	name: string
 	platformId?: number
 	platformName?: string
+	platformLogo?: string
 	playWithIds: number[] // Changed to array
 	playWithNames: string[] // Changed to array
 	playedStatusId?: number
@@ -40,7 +41,6 @@ export interface Game {
 	steamFinishedRejectedValue?: string
 	manualPlaytimeMinutes?: number
 	isManuallyCompleted?: boolean
-	platformLogo?: string
 }
 
 // DTOs for create and update operations

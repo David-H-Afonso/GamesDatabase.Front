@@ -168,7 +168,7 @@ const CardView: FC<CardViewProps> = (props) => {
 	const PriceComparisonIcon = game.isCheaperByKey ? KeyIcon : StoreIcon
 	const hasCompletedSteamAchievements = Boolean(game.steamAchievementsTotal && game.steamAchievementsTotal > 0 && game.steamAchievementsUnlocked === game.steamAchievementsTotal)
 	const isPerfectCompletion = hasCompletedSteamAchievements || Boolean(game.isManuallyCompleted)
-	const platformLogo = game.platformLogo || platformOptions.find((platform) => platform.id === game.platformId)?.logo
+	const platformLogo = platformOptions.find((platform) => platform.id === game.platformId)?.logo
 	const hasManualPlaytime = game.manualPlaytimeMinutes !== null && typeof game.manualPlaytimeMinutes !== 'undefined'
 	const effectivePlaytime = hasManualPlaytime ? game.manualPlaytimeMinutes : game.steamPlaytimeForever
 	const hasPlaytime = effectivePlaytime != null && effectivePlaytime > 0

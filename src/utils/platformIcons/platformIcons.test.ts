@@ -3,8 +3,8 @@ import { DEFAULT_PLATFORM_ICON, PLATFORM_ICON_PRESETS, STEAM_PLATFORM_ICON, form
 
 describe('platformIcons', () => {
 	it('provides default and preset icons as image data URLs', () => {
-		expect(DEFAULT_PLATFORM_ICON).toContain('data:image/png;base64')
-		expect(STEAM_PLATFORM_ICON).toContain('data:image/png;base64')
+		expect(DEFAULT_PLATFORM_ICON).toBe('/platform-icons/default.png')
+		expect(STEAM_PLATFORM_ICON).toBe('/platform-icons/steam.png')
 		expect(PLATFORM_ICON_PRESETS.map((preset) => preset.id)).toEqual([
 			'switch',
 			'switch2',
@@ -19,8 +19,7 @@ describe('platformIcons', () => {
 			'playstation',
 			'xbox',
 		])
-		expect(PLATFORM_ICON_PRESETS.every((preset) => preset.logo.startsWith('data:image/'))).toBe(true)
-		expect(PLATFORM_ICON_PRESETS.every((preset) => preset.logo.length <= 500_000)).toBe(true)
+		expect(PLATFORM_ICON_PRESETS.every((preset) => preset.logo.startsWith('/platform-icons/'))).toBe(true)
 	})
 
 	it('formats playtime minutes as compact hours', () => {

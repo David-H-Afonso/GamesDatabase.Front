@@ -151,7 +151,7 @@ describe('AdminPlatforms', () => {
 		await user.type(screen.getByLabelText('Nombre'), 'Switch')
 		await user.click(screen.getByRole('button', { name: 'Switch' }))
 		await user.click(screen.getByText('Crear'))
-		expect(mockCreatePlatform).toHaveBeenCalledWith(expect.objectContaining({ name: 'Switch', logo: expect.stringContaining('data:image/png;base64') }))
+		expect(mockCreatePlatform).toHaveBeenCalledWith(expect.objectContaining({ name: 'Switch', logo: '/platform-icons/switch.png' }))
 	})
 
 	it('submits update form with edited data', async () => {
