@@ -59,6 +59,7 @@ const IconUsers = (
 		<path d='M22 21v-2a4 4 0 0 0-3-3.87' />
 	</Svg>
 )
+const IconPlaylist = <Svg d='M4 5h16M4 12h16M4 19h10' />
 const IconSettings = (
 	<Svg>
 		<circle cx='12' cy='12' r='3' />
@@ -179,6 +180,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
 
 		const goto: CommandItem[] = [
 			{ id: 'go-home', group: t('command.goto'), label: t('nav.home'), icon: IconHome, keywords: 'home inicio start', run: () => applySearch(undefined) },
+			{ id: 'go-playlists', group: t('command.goto'), label: t('nav.playlists'), icon: IconPlaylist, keywords: 'playlists listas orden juegos', run: () => go('/playlists') },
 			{ id: 'go-admin', group: t('command.goto'), label: t('nav.admin'), icon: IconAdmin, keywords: 'admin platforms plataformas', run: () => go('/admin/platforms') },
 			...(isAdmin ? [{ id: 'go-users', group: t('command.goto'), label: t('nav.users'), icon: IconUsers, keywords: 'users usuarios', run: () => go('/admin/users') }] : []),
 			{ id: 'go-settings', group: t('command.goto'), label: t('command.settings'), icon: IconSettings, keywords: 'settings ajustes config', run: () => go('/settings') },

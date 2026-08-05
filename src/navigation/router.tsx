@@ -7,6 +7,7 @@ import { RouteError, NotFound } from '@/components/errors'
 import AdminFallback from './AdminFallback'
 import GameDeepLink from '@/components/Games/GameDeepLink'
 import HouseholdConsent from '@/components/Integrations/HouseholdConsent'
+import Playlists from '@/components/Playlists/Playlists'
 
 const Admin = lazy(() => import('@/components/Admin/containers/Admin'))
 
@@ -73,6 +74,17 @@ export const router = createHashRouter([
 				<Suspense fallback={<AdminFallback />}>
 					<Admin />
 				</Suspense>
+			</ProtectedRoute>
+		),
+		errorElement: <RouteError />,
+	},
+	{
+		path: '/playlists',
+		element: (
+			<ProtectedRoute>
+				<AppLayout>
+					<Playlists />
+				</AppLayout>
 			</ProtectedRoute>
 		),
 		errorElement: <RouteError />,

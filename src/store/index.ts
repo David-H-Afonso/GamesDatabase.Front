@@ -12,6 +12,7 @@ import themeReducer from './features/theme/themeSlice'
 import authReducer from './features/auth/authSlice'
 import recentUsersReducer from './features/recentUsers/recentUsersSlice'
 import steamReducer from './features/steam/steamSlice'
+import playlistsReducer from './features/playlists/playlistSlice'
 
 /**
  * CENTRALIZED PERSISTENCE CONFIGURATION
@@ -91,6 +92,7 @@ const persistConfig = {
 		'gamePlayedStatus',
 		'gameReplayType',
 		'gameViews',
+		'playlists',
 		'theme',
 		'auth', // Persist authentication state
 		'recentUsers', // Persist recent users for quick login
@@ -107,6 +109,7 @@ const rootReducer = combineReducers({
 	gamePlayedStatus: gamePlayedStatusReducer,
 	gameReplayType: gameReplayTypeReducer,
 	gameViews: gameViewsReducer,
+	playlists: playlistsReducer,
 	theme: themeReducer,
 	auth: authReducer,
 	recentUsers: recentUsersReducer,

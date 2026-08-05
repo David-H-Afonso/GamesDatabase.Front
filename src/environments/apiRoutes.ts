@@ -87,6 +87,19 @@ export const apiRoutes = {
 		delete: (id: number) => `/gameviews/${id}`,
 	},
 
+	/** Playlist endpoints */
+	playlists: {
+		base: '/playlists',
+		byId: (id: number) => `/playlists/${id}`,
+		create: '/playlists',
+		update: (id: number) => `/playlists/${id}`,
+		delete: (id: number) => `/playlists/${id}`,
+		reorder: '/playlists/reorder',
+		items: (id: number) => `/playlists/${id}/items`,
+		removeItem: (id: number, itemId: number) => `/playlists/${id}/items/${itemId}`,
+		reorderItems: (id: number) => `/playlists/${id}/items/reorder`,
+	},
+
 	/** Game Replay Type endpoints */
 	gameReplayTypes: {
 		base: '/gamereplaytypes',
