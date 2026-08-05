@@ -124,6 +124,9 @@ export default function Playlists() {
 	const [activePlaylistId, setActivePlaylistId] = useState<number | null>(null)
 	const [activeGameId, setActiveGameId] = useState<number | null>(null)
 	const [overGameId, setOverGameId] = useState<number | null>(null)
+	const [playlistsExpanded, setPlaylistsExpanded] = useState(() =>
+		typeof window === 'undefined' ? true : !window.matchMedia('(max-width: 900px)').matches
+	)
 	const searchRef = useRef<HTMLDivElement>(null)
 	const menuRef = useRef<HTMLDivElement>(null)
 	const importFileRef = useRef<HTMLInputElement>(null)
@@ -260,11 +263,15 @@ export default function Playlists() {
 		<div className='playlists-layout'>
 			<div className='playlists-sidebar'>
 				<header className='playlists-page__header'><div className='playlists-page__heading'><span className='playlists-page__eyebrow'>{t('playlists.eyebrow')}</span><h1>{t('playlists.title')}</h1><div className='playlists-page__header-actions'><button className='playlist-button playlist-button--quiet' type='button' onClick={() => setImportOpen(true)}>{t('playlists.import')}</button><button className='playlist-button playlist-button--primary' type='button' onClick={() => setEditor('create')}>+ {t('playlists.new')}</button></div></div></header>
-				<aside className='playlist-rail'>
-				<div className='playlist-rail__header'><h2>{t('playlists.collection')}</h2><span>{playlists.length}</span></div>
+				<aside className={`playlist-rail${playlistsExpanded ? ' is-expanded' : ' is-collapsed'}`}>
+				<div className='playlist-rail__header'>
+					<button type='button' className='playlist-rail__toggle' aria-label={playlistsExpanded ? t('playlists.collapseCollection') : t('playlists.expandCollection')} aria-expanded={playlistsExpanded} onClick={() => setPlaylistsExpanded(value => !value)}>
+						<h2>{t('playlists.collection')}</h2><span>{playlists.length}</span><span className='playlist-rail__chevron' aria-hidden='true'>{playlistsExpanded ? '⌃' : '⌄'}</span>
+					</button>
+				</div>
 				<DndContext sensors={sensors} collisionDetection={closestCenter} modifiers={[restrictToVerticalAxis, restrictToParentElement]} onDragStart={handleDragStart} onDragCancel={handleDragCancel} onDragEnd={handlePlaylistDrag}>
 					<SortableContext items={playlists.map(item => `playlist-${item.id}`)} strategy={verticalListSortingStrategy}>
-						{playlists.map(playlist => <PlaylistRailItem key={playlist.id} id={playlist.id} name={playlist.name} coverUrl={playlist.coverUrl} selected={selectedId === playlist.id} onSelect={() => { setSelectedId(playlist.id); navigate(`/playlists/${playlist.id}`) }} />)}
+						{playlists.filter(playlist => playlistsExpanded || selectedId === playlist.id).map(playlist => <PlaylistRailItem key={playlist.id} id={playlist.id} name={playlist.name} coverUrl={playlist.coverUrl} selected={selectedId === playlist.id} onSelect={() => { setSelectedId(playlist.id); navigate(`/playlists/${playlist.id}`) }} />)}
 					</SortableContext>
 					<DragOverlay>{activePlaylistId !== null ? <div className='playlist-drag-preview'>{playlists.find(item => item.id === activePlaylistId)?.name}</div> : null}</DragOverlay>
 				</DndContext>

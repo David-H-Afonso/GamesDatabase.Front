@@ -132,6 +132,8 @@
 		"title": "Playlists",
 		"subtitle": "Organiza tus juegos para decidir qué jugar después.",
 		"collection": "Mis playlists",
+		"expandCollection": "Expandir playlists",
+		"collapseCollection": "Contraer playlists",
 		"playlistLabel": "Orden de juego",
 		"new": "Nueva playlist",
 		"import": "Importar JSON",
