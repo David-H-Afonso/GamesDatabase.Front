@@ -60,6 +60,7 @@ export interface PlaylistRules {
 	sortBy: 'Position' | 'Name' | 'Grade' | 'Critic' | 'Score' | 'Released' | 'Updated'
 	sortDescending: boolean
 	limit?: number
+	orderedGameIds: number[]
 }
 
 export interface PlaylistTransfer {

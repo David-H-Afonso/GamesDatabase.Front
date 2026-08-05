@@ -52,7 +52,7 @@ const PlaylistHeroImage = ({ src }: { src?: string }) => {
 
 const PlaylistForm = ({ initial, onClose, onSave }: { initial?: Playlist | null; onClose: () => void; onSave: (data: PlaylistCreateDto) => Promise<void> }) => {
 	const { t } = useTranslation()
-	const [form, setForm] = useState<PlaylistCreateDto>({ name: initial?.name ?? '', description: initial?.description ?? '', heroUrl: initial?.heroUrlOverride ?? '', coverUrl: initial?.coverUrlOverride ?? '', logoUrl: initial?.logoUrlOverride ?? '', isAutomatic: initial?.isAutomatic ?? false, rules: initial?.rules ?? { statusIds: [], platformIds: [], playedStatusIds: [], sortBy: 'Name', sortDescending: false } })
+	const [form, setForm] = useState<PlaylistCreateDto>({ name: initial?.name ?? '', description: initial?.description ?? '', heroUrl: initial?.heroUrlOverride ?? '', coverUrl: initial?.coverUrlOverride ?? '', logoUrl: initial?.logoUrlOverride ?? '', isAutomatic: initial?.isAutomatic ?? false, rules: initial?.rules ?? { statusIds: [], platformIds: [], playedStatusIds: [], sortBy: 'Name', sortDescending: false, orderedGameIds: [] } })
 	const [saving, setSaving] = useState(false)
 	const update = (key: keyof PlaylistCreateDto, value: string) => setForm(current => ({ ...current, [key]: value }))
 	const submit = async (event: FormEvent) => {
