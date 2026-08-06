@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
+import { createPortal } from 'react-dom'
 import { DndContext, DragOverlay, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent, type DragStartEvent } from '@dnd-kit/core'
 import { restrictToParentElement, restrictToVerticalAxis } from '@dnd-kit/modifiers'
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
@@ -142,6 +143,8 @@ export default function Playlists() {
 	)
 	const searchRef = useRef<HTMLDivElement>(null)
 	const menuRef = useRef<HTMLDivElement>(null)
+	const menuPanelRef = useRef<HTMLDivElement>(null)
+	const menuTriggerRef = useRef<HTMLButtonElement>(null)
 	const importFileRef = useRef<HTMLInputElement>(null)
 	const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }))
 
@@ -174,11 +177,22 @@ export default function Playlists() {
 		const handlePointerDown = (event: PointerEvent) => {
 			const target = event.target as Node
 			if (!searchRef.current?.contains(target)) setSearchOpen(false)
-			if (!menuRef.current?.contains(target)) setMenuOpen(false)
+			if (!menuRef.current?.contains(target) && !menuPanelRef.current?.contains(target)) setMenuOpen(false)
 		}
 		document.addEventListener('pointerdown', handlePointerDown)
 		return () => document.removeEventListener('pointerdown', handlePointerDown)
 	}, [])
+	const menuPanel = menuOpen && typeof document !== 'undefined' && menuTriggerRef.current
+		? createPortal(
+				<div ref={menuPanelRef} className='playlist-menu__panel' style={{ top: menuTriggerRef.current.getBoundingClientRect().bottom + 8, left: menuTriggerRef.current.getBoundingClientRect().right - 190 }} onPointerDown={event => event.stopPropagation()}>
+					<button type='button' onClick={() => { void handleExport(); setMenuOpen(false) }}>{t('playlists.export')}</button>
+					<select value={exportReference} onChange={event => setExportReference(event.target.value as 'id' | 'name')} aria-label={t('playlists.exportReference')}><option value='id'>{t('playlists.byId')}</option><option value='name'>{t('playlists.byName')}</option></select>
+					<button type='button' onClick={() => { setEditor('edit'); setMenuOpen(false) }}>{t('common.edit')}</button>
+					<button type='button' onClick={() => { setDeleteId(currentPlaylist!.id); setMenuOpen(false) }}>{t('common.delete')}</button>
+				</div>,
+				document.body
+			)
+		: null
 
 	const selectedGameIds = useMemo(() => new Set(currentPlaylist?.items.map(item => item.gameId) ?? []), [currentPlaylist])
 	const selectedSummary = playlists.find(item => item.id === selectedId)
@@ -296,7 +310,7 @@ export default function Playlists() {
 					<div className='playlist-hero'>
 						<PlaylistHeroImage src={currentPlaylist.heroUrl ?? currentPlaylist.coverUrl} />
 						<div className='playlist-hero__shade' aria-hidden='true' />
-						<div className='playlist-hero__top'>{currentPlaylist.logoUrl && <div className='playlist-hero__logo'><OptimizedImage src={currentPlaylist.logoUrl} alt='' width={160} height={64} /></div>}<div className='playlist-menu' ref={menuRef}><button type='button' className='playlist-menu__trigger' aria-label={t('playlists.options')} aria-expanded={menuOpen} onClick={() => setMenuOpen(value => !value)}><MoreIcon /></button>{menuOpen && <div className='playlist-menu__panel'><button type='button' onClick={() => { void handleExport(); setMenuOpen(false) }}>{t('playlists.export')}</button><select value={exportReference} onChange={event => setExportReference(event.target.value as 'id' | 'name')} aria-label={t('playlists.exportReference')}><option value='id'>{t('playlists.byId')}</option><option value='name'>{t('playlists.byName')}</option></select><button type='button' onClick={() => { setEditor('edit'); setMenuOpen(false) }}>{t('common.edit')}</button><button type='button' onClick={() => { setDeleteId(currentPlaylist.id); setMenuOpen(false) }}>{t('common.delete')}</button></div>}</div></div>
+						<div className='playlist-hero__top'>{currentPlaylist.logoUrl && <div className='playlist-hero__logo'><OptimizedImage src={currentPlaylist.logoUrl} alt='' width={160} height={64} /></div>}<div className='playlist-menu' ref={menuRef}><button ref={menuTriggerRef} type='button' className='playlist-menu__trigger' aria-label={t('playlists.options')} aria-expanded={menuOpen} onClick={() => setMenuOpen(value => !value)}><MoreIcon /></button></div></div>
 						<div className='playlist-hero__content'><div className='playlist-hero__copy'><span>{t('playlists.playlistLabel')}</span><h2>{currentPlaylist.name}</h2>{currentPlaylist.description && <PlaylistDescription description={currentPlaylist.description} />}</div></div>
 						{currentPlaylist.isAutomatic && <span className='playlist-hero__automatic'>{t('playlists.automatic')}</span>}
 					</div>
@@ -315,6 +329,7 @@ export default function Playlists() {
 				</> : <div className='playlist-detail__empty'><h2>{t('playlists.select')}</h2><p>{t('playlists.selectHint')}</p></div>}
 			</section>
 		</div>
+		{menuPanel}
 		<Modal isOpen={editor !== null} onClose={() => setEditor(null)} title={editor === 'edit' ? t('playlists.edit') : t('playlists.new')} maxWidth='760px'><PlaylistForm initial={editor === 'edit' ? currentPlaylist : null} onClose={() => setEditor(null)} onSave={savePlaylist} /></Modal>
 		<Modal isOpen={importOpen} onClose={() => setImportOpen(false)} title={t('playlists.import')} maxWidth='760px'><div className='playlist-import'><p>{t('playlists.importHint')}</p><input ref={importFileRef} className='playlist-import__file-input' type='file' accept='application/json,.json' onChange={handleImportFile} /><button type='button' className='playlist-button playlist-button--quiet playlist-import__file-button' onClick={() => importFileRef.current?.click()}>{t('playlists.chooseFile')}</button>{importFileName && <span className='playlist-import__file-name'>{importFileName}</span>}<textarea value={importText} onChange={event => { setImportText(event.target.value); setImportFileName(null) }} rows={14} placeholder={t('playlists.jsonPlaceholder')} />{transferError && <p className='playlist-import__error'>{transferError}</p>}<div className='playlist-form__actions'><button type='button' className='playlist-button playlist-button--quiet' onClick={() => setImportOpen(false)}>{t('common.cancel')}</button><button type='button' className='playlist-button playlist-button--primary' onClick={() => void handleImport()}>{t('playlists.import')}</button></div></div></Modal>
 		<ConfirmDialog isOpen={deleteId !== null} title={t('playlists.deleteTitle')} message={t('playlists.deleteMessage', { name: selectedSummary?.name ?? '' })} onCancel={() => setDeleteId(null)} onConfirm={() => void handleDelete()} confirmLabel={t('common.delete')} />
