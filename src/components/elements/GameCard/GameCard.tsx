@@ -18,6 +18,7 @@ interface Props {
 	index?: number
 	playlistControls?: ReactNode
 	onGameUpdated?: (game: Game) => void
+	hideSelection?: boolean
 }
 
 const GameCardComponent: FC<Props> = (props) => {
@@ -84,6 +85,7 @@ const GameCardComponent: FC<Props> = (props) => {
 						deselectAll={props.deselectAll}
 						index={props.index}
 						playlistControls={props.playlistControls}
+						hideSelection={props.hideSelection}
 					/>
 				</div>
 			)}
@@ -117,6 +119,7 @@ const GameCardComponent: FC<Props> = (props) => {
 						gameStatusColor={gameStatus?.color}
 						playWithColors={playWithColors}
 						onFieldUpdate={handleFieldUpdate}
+						hideSelection={props.hideSelection}
 					/>
 				</div>
 			)}

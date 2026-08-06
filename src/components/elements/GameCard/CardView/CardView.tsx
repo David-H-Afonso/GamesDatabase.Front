@@ -29,6 +29,7 @@ interface CardViewProps {
 	deselectAll?: () => void
 	index?: number
 	playlistControls?: ReactNode
+	hideSelection?: boolean
 }
 
 const CardView: FC<CardViewProps> = (props) => {
@@ -219,7 +220,7 @@ const CardView: FC<CardViewProps> = (props) => {
 						/>
 					)}
 					<div className='game-card-header-score'>
-						<input
+						{!props.hideSelection && <input
 							type='checkbox'
 							checked={isSelected}
 							onClick={(e) => e.stopPropagation()}
@@ -230,7 +231,7 @@ const CardView: FC<CardViewProps> = (props) => {
 								opacity: isSelected ? 1 : 0,
 								transition: 'opacity 0.2s ease-in-out',
 							}}
-						/>
+						/>}
 						<div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
 							{hasPriceComparison && (
 								<span

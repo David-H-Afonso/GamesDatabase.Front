@@ -119,6 +119,12 @@
 				}
 			}
 
+			.game-card-favorite-toggle:hover,
+			.game-card-favorite-toggle:focus-visible {
+				opacity: 1;
+				pointer-events: auto;
+			}
+
 			.game-card-cover {
 				filter: brightness(0.75);
 				height: 100%;
@@ -132,11 +138,15 @@
 			&-score {
 				display: flex;
 				justify-content: space-between;
-				padding: 15px 52px 15px 15px;
+				padding: 15px 37px 15px 15px;
 				position: absolute;
 				top: 0;
 				width: 100%;
 				z-index: 2;
+
+				> div:last-child {
+					margin-left: auto;
+				}
 
 				.game-card-score {
 					align-items: center;
@@ -493,6 +503,26 @@
 			}
 		}
 	}
+}
+
+// The header rule below owns the button's base opacity, so keep the hover
+// state explicit at this specificity for cards in Home and Playlists alike.
+.game-card-view-container:hover .game-card-header .game-card-favorite-toggle,
+.game-card-view-container:focus-within .game-card-header .game-card-favorite-toggle {
+	opacity: 1;
+	pointer-events: auto;
+}
+
+.game-card-view-container .game-card-header .game-card-favorite-toggle {
+	opacity: 0;
+	pointer-events: none;
+}
+
+.game-card-view-container:hover .game-card-header .game-card-favorite-toggle,
+.game-card-view-container:focus-within .game-card-header .game-card-favorite-toggle,
+.game-card-view-container .game-card-header .game-card-favorite-toggle.is-active {
+	opacity: 1;
+	pointer-events: auto;
 }
 
 .game-card-tag-selector--portal {

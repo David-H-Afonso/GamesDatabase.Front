@@ -89,7 +89,10 @@
 .playlist-game__remove:hover { background: rgba(220,60,80,.8); }
 .playlist-game--card .playlist-game__toolbar { top: 8px; right: 8px; left: auto; }
 .playlist-game--card .playlist-game__toolbar .playlist-drag-handle { width: 24px; }
-.game-card-view-container .playlist-game__toolbar { position: absolute; z-index: 8; top: 8px; right: 8px; }
+.game-card-view-container .playlist-game__toolbar { position: absolute; z-index: 8; top: 8px; left: 8px; right: auto; }
+.game-card-view-container .playlist-game__toolbar { pointer-events: auto; }
+.playlist-game--card .game-card-favorite-toggle { right: 104px; }
+.playlist-game--cover .playlist-game__toolbar { left: 8px; right: auto; }
 .playlist-game--row .game-card { padding-top: 0; }
 .playlist-game--cover .game-card { min-width: 0; }
 .playlist-game.is-dragging { z-index: 10; opacity: .72; }
@@ -107,16 +110,18 @@
 .playlist-button--quiet { color: var(--text-primary); background: var(--surface-hover); }
 .playlist-form { display: grid; gap: 16px; }
 .playlist-form > label:not(.playlist-form__checkbox), .playlist-rules > label:not(.playlist-form__checkbox) { display: grid; gap: 6px; color: var(--text-secondary); font-size: .82rem; font-weight: 700; }
-.playlist-form input, .playlist-form textarea { width: 100%; box-sizing: border-box; border: 1px solid var(--input-border); border-radius: 8px; padding: 10px 12px; color: var(--input-text); background: var(--input-bg); font: inherit; }
+.playlist-form input:not([type='checkbox']), .playlist-form textarea, .playlist-form select { width: 100%; box-sizing: border-box; border: 1px solid var(--input-border); border-radius: 8px; padding: 10px 12px; color: var(--input-text); background: var(--input-bg); font: inherit; }
 .playlist-form textarea { resize: vertical; }
 .playlist-form__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 .playlist-form__actions { display: flex; justify-content: end; gap: 8px; padding-top: 8px; }
 .playlist-form__checkbox { display: flex !important; flex-direction: row !important; align-items: center; gap: 8px !important; color: var(--text-primary); font-size: .84rem; font-weight: 700; }
 .playlist-form__checkbox input[type='checkbox'] { width: 16px; min-width: 16px; height: 16px; margin: 0; flex: 0 0 16px; }
+fieldset.playlist-rules label.playlist-form__checkbox,
+form.playlist-form > label.playlist-form__checkbox { display: flex !important; width: fit-content; min-width: 0; max-width: 100%; grid-template-columns: none !important; justify-content: flex-start; align-items: center; text-align: left; line-height: 1.25; }
 .playlist-rules { display: grid; gap: 12px; margin: 0; padding: 14px; border: 1px solid var(--border-color-light); border-radius: 12px; }
 .playlist-rules legend { padding: 0 6px; color: var(--primary-color, #61afef); font-weight: 800; }
 .playlist-rules__group { display: grid; gap: 7px; }
-.playlist-rules__options { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px 14px; }
+.playlist-rules__options { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px 14px; align-items: start; }
 .playlist-rules__options .playlist-form__checkbox { min-width: 0; }
 .playlist-rules__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .playlist-import { display: grid; gap: 14px; }

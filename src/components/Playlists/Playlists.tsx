@@ -110,7 +110,7 @@ const SortableGame = ({ item, cardStyle, isDropTarget, onRemove, onGameUpdated }
 	</div>
 	return <article ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition }} className={`playlist-game playlist-game--${cardStyle}${isDragging ? ' is-dragging' : ''}${isDropTarget ? ' is-drop-target' : ''}`}>
 		{cardStyle !== 'card' && toolbar}
-		<GameCard game={item.game} variant={cardStyle} playlistControls={cardStyle === 'card' ? toolbar : undefined} onGameUpdated={onGameUpdated} />
+		<GameCard game={item.game} variant={cardStyle} hideSelection={true} playlistControls={cardStyle === 'card' ? toolbar : undefined} onGameUpdated={onGameUpdated} />
 	</article>
 }
 

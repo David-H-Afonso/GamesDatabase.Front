@@ -15,9 +15,10 @@ interface CoverViewProps {
 	gameStatusColor?: string
 	playWithColors?: (string | undefined)[]
 	onFieldUpdate?: (gameId: number, field: string, value: number | number[] | boolean | undefined) => Promise<void>
+	hideSelection?: boolean
 }
 
-const CoverView = ({ game, openDetails, isSelected = false, onSelect, index = 0, gameStatusColor, playWithColors = [], onFieldUpdate }: CoverViewProps) => {
+const CoverView = ({ game, openDetails, isSelected = false, onSelect, index = 0, gameStatusColor, playWithColors = [], onFieldUpdate, hideSelection = false }: CoverViewProps) => {
 	const { t } = useTranslation()
 	const isPriority = index < 8
 	const hasPerfectCompletion = game.completion === 100 || Boolean(game.steamAchievementsUnlocked && game.steamAchievementsUnlocked === game.steamAchievementsTotal)
@@ -65,9 +66,11 @@ const CoverView = ({ game, openDetails, isSelected = false, onSelect, index = 0,
 
 	return (
 		<article ref={coverRef} className={`game-cover-view ${isSelected ? 'is-selected' : ''}`} onClick={() => openDetails(game)}>
-			<label className='game-cover-view__select' onClick={(event) => event.stopPropagation()}>
-				<input type='checkbox' checked={isSelected} onChange={(event) => onSelect?.(game.id, event.target.checked)} aria-label={`Select ${game.name}`} />
-			</label>
+			{!hideSelection && (
+				<label className='game-cover-view__select' onClick={(event) => event.stopPropagation()}>
+					<input type='checkbox' checked={isSelected} onChange={(event) => onSelect?.(game.id, event.target.checked)} aria-label={`Select ${game.name}`} />
+				</label>
+			)}
 
 			<div className='game-cover-view__art-frame'>
 				<button
