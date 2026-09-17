@@ -6,9 +6,10 @@ WORKDIR /app
 # Install build dependencies for native modules
 RUN apk add --no-cache python3 make g++
 
-# Copy locked package files and install reproducible dependencies
-COPY package.json package-lock.json ./
-RUN npm ci --no-audit --no-fund
+# Copy package metadata and install dependencies. The public repository does
+# not version a package-lock.json, so keep npm install for build compatibility.
+COPY package.json ./
+RUN npm install --no-audit --no-fund
 
 # Copy source code
 COPY . .
