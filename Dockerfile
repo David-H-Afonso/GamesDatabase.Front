@@ -1,13 +1,14 @@
-# Build stage
-FROM node:20-alpine AS build
+# Build stage: Vite produces static assets, so build with the runner's native
+# architecture instead of running npm and the bundler through QEMU for arm64.
+FROM --platform=$BUILDPLATFORM node:20-alpine AS build
 WORKDIR /app
 
 # Install build dependencies for native modules
 RUN apk add --no-cache python3 make g++
 
-# Copy package files and install dependencies
-COPY package.json ./
-RUN npm install --no-audit --no-fund
+# Copy locked package files and install reproducible dependencies
+COPY package.json package-lock.json ./
+RUN npm ci --no-audit --no-fund
 
 # Copy source code
 COPY . .
