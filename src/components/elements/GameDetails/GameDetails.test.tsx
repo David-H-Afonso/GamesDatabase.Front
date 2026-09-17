@@ -139,6 +139,7 @@ describe('GameDetails', () => {
 	beforeEach(async () => {
 		await i18n.changeLanguage('en')
 		vi.clearAllMocks()
+		mockFetchGameDetails.mockReset()
 		imageShouldLoad = true
 		vi.useFakeTimers({ shouldAdvanceTime: true })
 	})
@@ -385,6 +386,22 @@ describe('GameDetails', () => {
 		expect(await screen.findByRole('status')).toHaveTextContent(/load the Steam hero/)
 		// Previous hero must be restored so the user does not lose working data
 		await waitFor(() => expect(mockUpdateGameById).toHaveBeenCalledWith(steamGame.id, { hero: steamGame.hero }))
+		expect(syncSpy).toHaveBeenCalledWith(steamGame.id)
+	})
+
+	it('restores the previous cover when Steam returns an unavailable cover URL', async () => {
+		vi.useRealTimers()
+		imageShouldLoad = false
+		const syncSpy = vi.spyOn(steamService, 'syncGame').mockResolvedValue({} as any)
+		mockFetchGameDetails.mockResolvedValueOnce({ ...steamGame, cover: 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4354570/library_600x900.jpg' })
+
+		const { GameDetails } = await import('./GameDetails')
+		renderWithProviders(<GameDetails game={{ ...steamGame, cover: 'https://gdb.example/game-images/1/Games/Final_Fantasy_VII_Revelation/cover.jpg', steamAppId: 4354570 }} closeDetails={vi.fn()} />, { preloadedState: defaultState })
+
+		await user.click(screen.getAllByLabelText('Refresh cover art from Steam')[0])
+
+		expect(await screen.findByRole('status')).toHaveTextContent(/load the Steam cover/)
+		await waitFor(() => expect(mockUpdateGameById).toHaveBeenCalledWith(steamGame.id, { cover: 'https://gdb.example/game-images/1/Games/Final_Fantasy_VII_Revelation/cover.jpg' }))
 		expect(syncSpy).toHaveBeenCalledWith(steamGame.id)
 	})
 

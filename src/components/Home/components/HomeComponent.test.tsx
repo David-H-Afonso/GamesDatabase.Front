@@ -52,6 +52,7 @@ const mockRefreshGames = vi.fn().mockResolvedValue(undefined)
 const mockDeleteGameById = vi.fn().mockResolvedValue(undefined)
 const mockBulkUpdateGamesById = vi.fn().mockResolvedValue({ updatedCount: 2, totalRequested: 2 })
 const mockUpdateGameById = vi.fn().mockResolvedValue(undefined)
+const mockFetchGameDetails = vi.fn()
 const mockLoadPublicGameViews = vi.fn().mockResolvedValue(undefined)
 const mockSteamService = vi.hoisted(() => ({
 	syncGame: vi.fn().mockResolvedValue({}),
@@ -68,6 +69,7 @@ vi.mock('@/hooks', () => ({
 		pagination: currentPagination,
 		fetchGamesList: mockFetchGamesList,
 		refreshGames: mockRefreshGames,
+		fetchGameDetails: mockFetchGameDetails,
 		deleteGameById: mockDeleteGameById,
 		bulkUpdateGamesById: mockBulkUpdateGamesById,
 		updateGameById: mockUpdateGameById,
@@ -172,6 +174,17 @@ describe('HomeComponent', () => {
 		vi.clearAllMocks()
 		currentGames = mockGames
 		currentPagination = mockPagination
+		mockFetchGameDetails.mockResolvedValue({ cover: 'https://example.com/refreshed-cover.jpg' })
+		vi.stubGlobal(
+			'Image',
+			class {
+				onload: (() => void) | null = null
+				onerror: (() => void) | null = null
+				set src(_value: string) {
+					queueMicrotask(() => this.onload?.())
+				}
+			}
+		)
 	})
 
 	// Import dynamically so mocks are applied
@@ -327,6 +340,30 @@ describe('HomeComponent', () => {
 		await waitFor(() => expect(mockUpdateGameById).toHaveBeenCalledWith(1, { cover: null }))
 		expect(mockSteamService.syncGame).toHaveBeenCalledWith(1)
 		expect(mockUpdateGameById).not.toHaveBeenCalledWith(2, expect.anything())
+	})
+
+	it('restores the previous image when Steam returns an unavailable image', async () => {
+		const user = userEvent.setup()
+		currentGames = [{ id: 1, name: 'Final Fantasy VII Revelation', statusId: 1, cover: 'https://gdb.example/game-images/1/Games/Final_Fantasy_VII_Revelation/cover.jpg', steamAppId: 4354570 }]
+		mockFetchGameDetails.mockResolvedValue({ cover: 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4354570/library_600x900.jpg' })
+		vi.stubGlobal(
+			'Image',
+			class {
+				onload: (() => void) | null = null
+				onerror: (() => void) | null = null
+				set src(_value: string) {
+					queueMicrotask(() => this.onerror?.())
+				}
+			}
+		)
+
+		const HomeComponent = await loadHomeComponent()
+		renderWithProviders(<HomeComponent />, { preloadedState: defaultState })
+
+		await user.click(screen.getByTestId('select-1'))
+		await user.click(screen.getByTestId('bulk-refresh-cover'))
+
+		await waitFor(() => expect(mockUpdateGameById).toHaveBeenCalledWith(1, { cover: 'https://gdb.example/game-images/1/Games/Final_Fantasy_VII_Revelation/cover.jpg' }))
 	})
 
 	it('continues with the remaining games when one refresh fails', async () => {

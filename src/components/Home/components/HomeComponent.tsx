@@ -21,6 +21,14 @@ const BULK_IMAGE_REFRESH_COOLDOWN_MS = 1000
 
 const waitForBulkImageRefreshCooldown = () => new Promise<void>((resolve) => setTimeout(resolve, BULK_IMAGE_REFRESH_COOLDOWN_MS))
 
+const preloadImage = (url: string) =>
+	new Promise<boolean>((resolve) => {
+		const image = new Image()
+		image.onload = () => resolve(true)
+		image.onerror = () => resolve(false)
+		image.src = url
+	})
+
 const rowHeaderColumns = [
 	{ className: 'gr-status', labelKey: 'home.columns.status', sortBy: 'status' },
 	{ className: 'gr-name', labelKey: 'home.columns.name', sortBy: 'name' },
@@ -39,7 +47,7 @@ const rowHeaderColumns = [
 ] as const
 
 const HomeComponent = () => {
-	const { games, error, loading, pagination, fetchGamesList, refreshGames, deleteGameById, bulkUpdateGamesById, updateGameById } = useGames()
+	const { games, error, loading, pagination, fetchGamesList, refreshGames, fetchGameDetails, deleteGameById, bulkUpdateGamesById, updateGameById } = useGames()
 	const { publicGameViews, loadPublicGameViews } = useGameViews()
 
 	const { t } = useTranslation()
@@ -267,11 +275,18 @@ const HomeComponent = () => {
 		try {
 			let updated = 0
 			for (const [gameIndex, game] of selectedSteamGames.entries()) {
+				const previousImage = game[field]
 				let refreshed = false
 				for (let attempt = 1; attempt <= BULK_IMAGE_REFRESH_MAX_ATTEMPTS; attempt++) {
 					try {
 						await updateGameById(game.id, { [field]: null } as any)
 						await steamService.syncGame(game.id)
+						const refreshedGame = await fetchGameDetails(game.id)
+						const refreshedImage = refreshedGame?.[field]
+						if (!refreshedImage || !(await preloadImage(refreshedImage))) {
+							console.error(`Steam returned an unavailable ${field} image for game ${game.id}`)
+							break
+						}
 						refreshed = true
 						break
 					} catch (error) {
@@ -280,6 +295,13 @@ const HomeComponent = () => {
 						} else {
 							await waitForBulkImageRefreshCooldown()
 						}
+					}
+				}
+				if (!refreshed) {
+					try {
+						await updateGameById(game.id, { [field]: previousImage ?? null } as any)
+					} catch (restoreError) {
+						console.error(`Error restoring ${field} for game ${game.id}`, restoreError)
 					}
 				}
 				if (refreshed) updated++
