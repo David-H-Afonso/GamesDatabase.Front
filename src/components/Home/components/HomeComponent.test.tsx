@@ -25,6 +25,7 @@ vi.mock('react-i18next', () => ({
 				'home.filters.sortBy': 'Sort by',
 				'home.confirmDeleteGame': 'Delete game?',
 				'home.confirmDeleteSelected': 'Delete selected games?',
+				'home.bulkDeleteError': 'Some selected games could not be deleted.',
 				'home.noGames': 'No games found.',
 				'home.pagination': 'Página {{page}} de {{total}} · {{count}} juegos',
 			}
@@ -322,6 +323,26 @@ describe('HomeComponent', () => {
 		expect(mockDeleteGameById).toHaveBeenCalledWith(1)
 		expect(mockDeleteGameById).toHaveBeenCalledWith(2)
 		expect(mockDeleteGameById).toHaveBeenCalledTimes(2)
+	})
+
+	it('deletes selected games sequentially and continues after one failure', async () => {
+		const user = userEvent.setup()
+		const deleteOrder: number[] = []
+		mockDeleteGameById.mockImplementation(async (id: number) => {
+			deleteOrder.push(id)
+			if (id === 1) throw new Error('database is busy')
+		})
+		const HomeComponent = await loadHomeComponent()
+		renderWithProviders(<HomeComponent />, { preloadedState: defaultState })
+
+		await user.click(screen.getByTestId('select-1'))
+		await user.click(screen.getByTestId('select-2'))
+		await user.click(screen.getByTestId('bulk-delete'))
+		await user.click(screen.getByTestId('confirm-ok'))
+
+		await waitFor(() => expect(deleteOrder).toEqual([1, 2]))
+		expect(mockRefreshGames).toHaveBeenCalledWith(expect.objectContaining({ page: 1 }))
+		expect(screen.getByRole('status')).toHaveTextContent('Some selected games could not be deleted.')
 	})
 
 	it('bulk refreshes the selected Steam cover images', async () => {

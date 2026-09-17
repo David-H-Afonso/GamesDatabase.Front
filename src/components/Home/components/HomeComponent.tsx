@@ -198,17 +198,29 @@ const HomeComponent = () => {
 		if (!pendingDelete) return
 		const target = pendingDelete
 		setPendingDelete(null)
+		let deleteError: unknown = null
 		try {
 			if (target.kind === 'bulk') {
-				await Promise.all(selectedGames.map((id) => deleteGameById(id)))
+				// SQLite serializes writes. Delete selected games one at a time so a
+				// history write cannot make the next DELETE fail with a database lock.
+				for (const id of selectedGames) {
+					try {
+						await deleteGameById(id)
+					} catch (err) {
+						deleteError = err
+						console.error(`Error deleting game ${id}`, err)
+					}
+				}
 				setSelectedGames([])
 			} else {
 				await deleteGameById(target.id)
 			}
-			fetchGamesList(filters)
+			await refreshGames(filters)
 		} catch (err) {
+			deleteError = err
 			console.error('Error deleting games', err)
 		}
+		if (deleteError) setToast({ message: t('home.bulkDeleteError'), type: 'error' })
 	}
 
 	const handlePageChange = (newPage: number) => setFilters({ ...filters, page: newPage })

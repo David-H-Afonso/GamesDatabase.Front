@@ -1334,6 +1334,7 @@
 		"pageInfo": "Page {{page}} of {{total}} ({{count}} games)",
 		"pagination": "Page {{page}} of {{total}} ({{count}} games)",
 		"confirmDeleteSelected": "Are you sure you want to delete the selected games?",
+		"bulkDeleteError": "Some selected games could not be deleted. Please try again.",
 		"confirmDeleteGame": "Are you sure you want to delete this game?",
 		"bulkUpdateSuccess": "Successfully updated {{updated}} of {{total}} games",
 		"bulkImageRefreshSuccess": "Refreshed {{field}} for {{updated}} of {{total}} games",
