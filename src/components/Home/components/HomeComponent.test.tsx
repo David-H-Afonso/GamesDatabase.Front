@@ -300,12 +300,15 @@ describe('HomeComponent', () => {
 		renderWithProviders(<HomeComponent />, { preloadedState: defaultState })
 
 		await user.click(screen.getByTestId('select-1'))
+		await user.click(screen.getByTestId('select-2'))
 		await user.click(screen.getByTestId('bulk-delete'))
 		expect(screen.getByRole('alertdialog')).toBeInTheDocument()
 
 		await user.click(screen.getByTestId('confirm-ok'))
 
 		expect(mockDeleteGameById).toHaveBeenCalledWith(1)
+		expect(mockDeleteGameById).toHaveBeenCalledWith(2)
+		expect(mockDeleteGameById).toHaveBeenCalledTimes(2)
 	})
 
 	it('bulk refreshes the selected Steam cover images', async () => {

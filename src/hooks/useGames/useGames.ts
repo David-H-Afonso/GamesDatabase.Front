@@ -70,7 +70,7 @@ export const useGames = () => {
 
 	const deleteGameById = useCallback(
 		async (id: number) => {
-			dispatchAndUnwrapAsync(dispatch, deleteGame(id))
+			return dispatchAndUnwrapAsync(dispatch, deleteGame(id))
 		},
 		[dispatch]
 	)
