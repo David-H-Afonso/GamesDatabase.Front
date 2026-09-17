@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
+import { fireEvent, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test/utils/renderWithProviders'
 import type { RootState } from '@/store'
@@ -324,6 +324,55 @@ describe('HomeComponent', () => {
 		await waitFor(() => expect(mockUpdateGameById).toHaveBeenCalledWith(1, { cover: null }))
 		expect(mockSteamService.syncGame).toHaveBeenCalledWith(1)
 		expect(mockUpdateGameById).not.toHaveBeenCalledWith(2, expect.anything())
+	})
+
+	it('continues with the remaining games when one refresh fails', async () => {
+		currentGames = [
+			{ id: 1, name: 'Broken Game', statusId: 1, platformId: 1, steamAppId: 570 },
+			{ id: 2, name: 'Working Game', statusId: 2, platformId: 2, steamAppId: 730 },
+		]
+		mockSteamService.syncGame.mockRejectedValueOnce(new Error('first game failed')).mockRejectedValueOnce(new Error('first game failed')).mockRejectedValueOnce(new Error('first game failed')).mockResolvedValue({})
+
+		const HomeComponent = await loadHomeComponent()
+		renderWithProviders(<HomeComponent />, { preloadedState: defaultState })
+
+		const user = userEvent.setup()
+		await user.click(screen.getByTestId('select-1'))
+		await user.click(screen.getByTestId('select-2'))
+		vi.useFakeTimers()
+		try {
+			fireEvent.click(screen.getByTestId('bulk-refresh-cover'))
+			await vi.runAllTimersAsync()
+			await Promise.resolve()
+
+			expect(mockSteamService.syncGame).toHaveBeenCalledWith(2)
+			expect(mockSteamService.syncGame).toHaveBeenCalledTimes(4)
+			expect(mockUpdateGameById).toHaveBeenCalledWith(2, { cover: null })
+		} finally {
+			vi.useRealTimers()
+		}
+	})
+
+	it('retries a failed game twice before marking it as failed', async () => {
+		currentGames = [{ id: 1, name: 'Transient Game', statusId: 1, platformId: 1, steamAppId: 570 }]
+		mockUpdateGameById.mockRejectedValueOnce(new Error('temporary failure')).mockRejectedValueOnce(new Error('temporary failure')).mockResolvedValue(undefined)
+
+		const HomeComponent = await loadHomeComponent()
+		renderWithProviders(<HomeComponent />, { preloadedState: defaultState })
+
+		const user = userEvent.setup()
+		await user.click(screen.getByTestId('select-1'))
+		vi.useFakeTimers()
+		try {
+			fireEvent.click(screen.getByTestId('bulk-refresh-cover'))
+			await vi.runAllTimersAsync()
+			await Promise.resolve()
+
+			expect(mockSteamService.syncGame).toHaveBeenCalledWith(1)
+			expect(mockUpdateGameById).toHaveBeenCalledTimes(3)
+		} finally {
+			vi.useRealTimers()
+		}
 	})
 
 	it('renders row header columns when cardStyle is row', async () => {

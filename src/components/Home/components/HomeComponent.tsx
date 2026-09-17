@@ -16,6 +16,11 @@ import './HomeComponent.scss'
 const BulkEditModal = lazy(() => import('./BulkEditModal'))
 type BulkImageField = 'logo' | 'hero' | 'cover'
 
+const BULK_IMAGE_REFRESH_MAX_ATTEMPTS = 3
+const BULK_IMAGE_REFRESH_COOLDOWN_MS = 1000
+
+const waitForBulkImageRefreshCooldown = () => new Promise<void>((resolve) => setTimeout(resolve, BULK_IMAGE_REFRESH_COOLDOWN_MS))
+
 const rowHeaderColumns = [
 	{ className: 'gr-status', labelKey: 'home.columns.status', sortBy: 'status' },
 	{ className: 'gr-name', labelKey: 'home.columns.name', sortBy: 'name' },
@@ -260,14 +265,27 @@ const HomeComponent = () => {
 
 		setBulkImageRefreshing(true)
 		try {
-			const results = await Promise.allSettled(
-				selectedSteamGames.map(async (game: any) => {
-					await updateGameById(game.id, { [field]: null } as any)
-					await steamService.syncGame(game.id)
-				})
-			)
-			const updated = results.filter((result) => result.status === 'fulfilled').length
-			const failed = results.length - updated
+			let updated = 0
+			for (const [gameIndex, game] of selectedSteamGames.entries()) {
+				let refreshed = false
+				for (let attempt = 1; attempt <= BULK_IMAGE_REFRESH_MAX_ATTEMPTS; attempt++) {
+					try {
+						await updateGameById(game.id, { [field]: null } as any)
+						await steamService.syncGame(game.id)
+						refreshed = true
+						break
+					} catch (error) {
+						if (attempt === BULK_IMAGE_REFRESH_MAX_ATTEMPTS) {
+							console.error(`Error refreshing ${field} for game ${game.id}`, error)
+						} else {
+							await waitForBulkImageRefreshCooldown()
+						}
+					}
+				}
+				if (refreshed) updated++
+				if (gameIndex < selectedSteamGames.length - 1) await waitForBulkImageRefreshCooldown()
+			}
+			const failed = selectedSteamGames.length - updated
 			setToast({
 				message: t(failed > 0 ? 'home.bulkImageRefreshPartial' : 'home.bulkImageRefreshSuccess', { updated, total: selectedSteamGames.length, field: t(`home.imageFields.${field}`) }),
 				type: failed > 0 ? 'error' : 'success',
