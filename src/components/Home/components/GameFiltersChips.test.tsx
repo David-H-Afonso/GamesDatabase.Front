@@ -115,7 +115,7 @@ const defaultState: Partial<RootState> = {
 	auth: {
 		user: { id: 1, username: 'test' },
 		token: 'tok',
-			refreshToken: null,
+		refreshToken: null,
 		isLoggedIn: true,
 		loading: false,
 		error: null,
@@ -173,6 +173,14 @@ describe('GameFiltersChips', () => {
 		expect(onSortChange).toHaveBeenCalledWith('grade', false)
 	})
 
+	it('orders sort options by the primary collection workflow', async () => {
+		const GameFiltersChips = await loadGameFiltersChips()
+		renderWithProviders(<GameFiltersChips filters={defaultFilters} onFiltersChange={vi.fn()} onSearchChange={vi.fn()} onSortChange={vi.fn()} />, { preloadedState: defaultState })
+
+		const options = Array.from(screen.getByLabelText('Sort by').querySelectorAll('option')).map((option) => option.value)
+		expect(options.slice(0, 8)).toEqual(['status', 'updatedat', 'createdat', 'critic', 'score', 'grade', 'storyDuration', 'completionDuration'])
+	})
+
 	it('toggles sort direction when arrow button is clicked', async () => {
 		const onSortChange = vi.fn()
 		const GameFiltersChips = await loadGameFiltersChips()
@@ -181,6 +189,8 @@ describe('GameFiltersChips', () => {
 		})
 
 		const dirBtn = screen.getByTitle('Ascending')
+		expect(dirBtn.nextElementSibling).toBe(screen.getByLabelText('Sort by'))
+		expect(dirBtn.querySelector('path')).toHaveAttribute('d', 'M13 12H21M13 8H21M13 16H21M6 7V17M6 7L3 10M6 7L9 10')
 		await user.click(dirBtn)
 
 		expect(onSortChange).toHaveBeenCalledWith('name', true)
@@ -194,7 +204,28 @@ describe('GameFiltersChips', () => {
 
 		const dirBtn = container.querySelector('.game-filters-chips__sort-direction')
 		expect(dirBtn).toHaveClass('is-descending')
+		expect(dirBtn?.querySelector('path')).toHaveAttribute('d', 'M13 12H21M13 8H21M13 16H21M6 7V17M6 17L3 14M6 17L9 14')
 		expect(screen.getByTitle('Descending')).toBeInTheDocument()
+	})
+
+	it('exposes empty, mixed, and complete page selection with matching icons', async () => {
+		const GameFiltersChips = await loadGameFiltersChips()
+		const props = { filters: defaultFilters, onFiltersChange: vi.fn(), onSearchChange: vi.fn(), onSortChange: vi.fn(), onSelectAll: vi.fn(), totalCount: 3 }
+		const { rerender } = renderWithProviders(<GameFiltersChips {...props} selectedCount={0} />, { preloadedState: defaultState })
+		const checkbox = screen.getByRole('checkbox', { name: 'Select all' })
+		expect(checkbox).toHaveAttribute('aria-checked', 'false')
+		expect(checkbox.querySelectorAll('svg path')).toHaveLength(1)
+
+		rerender(<GameFiltersChips {...props} selectedCount={1} />)
+		expect(checkbox).toHaveAttribute('aria-checked', 'mixed')
+		expect(checkbox.querySelectorAll('svg path')).toHaveLength(2)
+		await user.click(checkbox)
+		expect(props.onSelectAll).toHaveBeenCalledOnce()
+
+		rerender(<GameFiltersChips {...props} selectedCount={3} />)
+		const selectedCheckbox = screen.getByRole('checkbox', { name: 'Deselect all' })
+		expect(selectedCheckbox).toHaveAttribute('aria-checked', 'true')
+		expect(selectedCheckbox.querySelectorAll('svg path')).toHaveLength(1)
 	})
 
 	it('shows selection controls when selectedCount > 0', async () => {
@@ -283,7 +314,14 @@ describe('GameFiltersChips', () => {
 		const onBulkRefreshImages = vi.fn()
 		const GameFiltersChips = await loadGameFiltersChips()
 		renderWithProviders(
-			<GameFiltersChips filters={defaultFilters} onFiltersChange={vi.fn()} onSearchChange={vi.fn()} onSortChange={vi.fn()} selectedCount={2} onBulkRefreshImages={onBulkRefreshImages} />,
+			<GameFiltersChips
+				filters={defaultFilters}
+				onFiltersChange={vi.fn()}
+				onSearchChange={vi.fn()}
+				onSortChange={vi.fn()}
+				selectedCount={2}
+				onBulkRefreshImages={onBulkRefreshImages}
+			/>,
 			{ preloadedState: defaultState }
 		)
 

@@ -19,6 +19,7 @@ interface Props {
 	currentView?: string
 	onViewChange?: (viewName: string) => void
 	selectedCount?: number
+	totalCount?: number
 	onSelectAll?: () => void
 	onDeselectAll?: () => void
 	onBulkDelete?: () => void
@@ -29,22 +30,55 @@ interface Props {
 	onBulkExport?: () => void
 }
 
-type PopoverKey = 'platform' | 'playWith' | 'status' | 'playedStatus' | 'grades' | 'years' | 'replay' | 'duration' | 'steam' | 'price' | 'favorite' | 'criticProvider' | 'excluded' | 'pageSize'
+type PopoverKey =
+	| 'platform'
+	| 'playWith'
+	| 'status'
+	| 'playedStatus'
+	| 'grades'
+	| 'years'
+	| 'replay'
+	| 'duration'
+	| 'steam'
+	| 'price'
+	| 'favorite'
+	| 'criticProvider'
+	| 'excluded'
+	| 'pageSize'
+
+const sortOptions = [
+	{ value: 'status', labelKey: 'home.filters.fieldStatus' },
+	{ value: 'updatedat', labelKey: 'home.filters.fieldUpdatedAt' },
+	{ value: 'createdat', labelKey: 'home.filters.fieldCreatedAt' },
+	{ value: 'critic', labelKey: 'home.filters.fieldCritic' },
+	{ value: 'score', labelKey: 'home.filters.fieldScore' },
+	{ value: 'grade', labelKey: 'home.filters.fieldGrade' },
+	{ value: 'storyDuration', labelKey: 'home.chips.sortStory' },
+	{ value: 'completionDuration', labelKey: 'home.chips.sortCompletion' },
+	{ value: 'name', labelKey: 'home.filters.fieldName' },
+	{ value: 'platform', labelKey: 'home.filters.platform' },
+	{ value: 'playedStatus', labelKey: 'home.filters.playedStatus' },
+	{ value: 'playWith', labelKey: 'home.filters.playWith' },
+	{ value: 'released', labelKey: 'home.filters.fieldReleased' },
+	{ value: 'started', labelKey: 'home.filters.fieldStarted' },
+	{ value: 'finished', labelKey: 'home.columns.finished' },
+	{ value: 'comment', labelKey: 'home.columns.comment' },
+	{ value: 'steamPlaytimeForever', labelKey: 'home.filters.fieldSteamPlaytime' },
+	{ value: 'favorite', labelKey: 'home.filters.fieldFavorite' },
+] as const
 
 const SortDirectionButton: React.FC<{ descending: boolean; title: string; onToggle: () => void }> = ({ descending, title, onToggle }) => (
 	<button type='button' className={'game-filters-chips__sort-direction' + (descending ? ' is-descending' : '')} onClick={onToggle} title={title} aria-label={title}>
 		<svg
 			className='game-filters-chips__sort-icon'
-			width='14'
-			height='14'
-			viewBox='0 0 24 24'
+			viewBox='2 3 20 18'
 			fill='none'
 			stroke='currentColor'
-			strokeWidth='2.5'
+			strokeWidth='2'
 			strokeLinecap='round'
 			strokeLinejoin='round'
 			aria-hidden='true'>
-			<polyline points='6 15 12 9 18 15' />
+			{descending ? <path d='M13 12H21M13 8H21M13 16H21M6 7V17M6 17L3 14M6 17L9 14' /> : <path d='M13 12H21M13 8H21M13 16H21M6 7V17M6 7L3 10M6 7L9 10' />}
 		</svg>
 	</button>
 )
@@ -60,6 +94,7 @@ const GameFiltersChips: React.FC<Props> = ({
 	currentView = 'default',
 	onViewChange,
 	selectedCount = 0,
+	totalCount = 0,
 	onSelectAll,
 	onDeselectAll,
 	onBulkDelete,
@@ -88,6 +123,9 @@ const GameFiltersChips: React.FC<Props> = ({
 	const [statusOptions, setStatusOptions] = useState<{ value: number; label: string }[]>([])
 	const [playedStatusOptions, setPlayedStatusOptions] = useState<{ value: number; label: string }[]>([])
 	const [replayTypeOptions, setReplayTypeOptions] = useState<{ value: number; label: string }[]>([])
+	const allGamesSelected = selectedCount > 0 && (totalCount === 0 || selectedCount >= totalCount)
+	const selectionIsMixed = selectedCount > 0 && !allGamesSelected
+	const selectionLabel = allGamesSelected ? t('home.deselectAll') : t('home.selectAll')
 
 	// ── Search debounce: local state prevents list re-renders on every keystroke ──
 	const [localSearch, setLocalSearch] = useState(() => filters.search || '')
@@ -476,56 +514,63 @@ const GameFiltersChips: React.FC<Props> = ({
 			<div className='game-filters-chips__top'>
 				<div className='game-filters-chips__top-left'>
 					<div className='game-filters-chips__field game-filters-chips__field--inline'>
-						<label className='game-filters-chips__input-label' htmlFor='search-input'>
+						<label className='sr-only' htmlFor='search-input'>
 							{t('home.chips.searchLabel')}
 						</label>
-						<input
-							id='search-input'
-							className='game-filters-chips__input-search'
-							placeholder={t('home.searchPlaceholder')}
-							value={localSearch}
-							onChange={(e) => handleLocalSearchChange(e.target.value)}
-						/>
+						<div className='game-filters-chips__search-control' title={t('home.chips.searchLabel')}>
+							<svg className='game-filters-chips__control-icon' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' aria-hidden='true'>
+								<path d='M15.7955 15.8111L21 21M18 10.5C18 14.6421 14.6421 18 10.5 18C6.35786 18 3 14.6421 3 10.5C3 6.35786 6.35786 3 10.5 3C14.6421 3 18 6.35786 18 10.5Z' />
+							</svg>
+							<input
+								id='search-input'
+								className='game-filters-chips__input-search'
+								placeholder={t('home.searchPlaceholder')}
+								value={localSearch}
+								onChange={(e) => handleLocalSearchChange(e.target.value)}
+							/>
+						</div>
 					</div>
 
 					<div className='game-filters-chips__field game-filters-chips__field--inline game-filters-chips__field--sort'>
-						<label className='game-filters-chips__input-label' htmlFor='sort-select'>
+						<label className='sr-only' htmlFor='sort-select'>
 							{t('home.filters.sortBy')}
 						</label>
-						<select
-							id='sort-select'
-							className='game-filters-chips__select-pill'
-							value={filters.sortBy || 'name'}
-							onChange={(e) => onSortChange(e.target.value, filters.sortDescending || false)}>
-							<option value='name'>{t('home.filters.fieldName')}</option>
-							<option value='grade'>{t('home.filters.fieldGrade')}</option>
-							<option value='critic'>{t('home.filters.fieldCritic')}</option>
-							<option value='comment'>{t('home.columns.comment')}</option>
-							<option value='released'>{t('home.filters.fieldReleased')}</option>
-							<option value='started'>{t('home.filters.fieldStarted')}</option>
-							<option value='finished'>{t('home.columns.finished')}</option>
-							<option value='score'>{t('home.filters.fieldScore')}</option>
-							<option value='storyDuration'>{t('home.chips.sortStory')}</option>
-							<option value='completionDuration'>{t('home.chips.sortCompletion')}</option>
-							<option value='status'>{t('home.filters.fieldStatus')}</option>
-							<option value='platform'>{t('home.filters.platform')}</option>
-							<option value='playedStatus'>{t('home.filters.playedStatus')}</option>
-							<option value='playWith'>{t('home.filters.playWith')}</option>
-							<option value='createdat'>{t('home.filters.fieldCreatedAt')}</option>
-							<option value='updatedat'>{t('home.filters.fieldUpdatedAt')}</option>
-							<option value='steamPlaytimeForever'>{t('home.filters.fieldSteamPlaytime')}</option>
-							<option value='favorite'>{t('home.filters.fieldFavorite')}</option>
-						</select>
 						<SortDirectionButton
 							descending={!!filters.sortDescending}
 							title={filters.sortDescending ? t('home.sorting.descending') : t('home.sorting.ascending')}
 							onToggle={() => onSortChange(filters.sortBy || 'name', !filters.sortDescending)}
 						/>
+						<select
+							id='sort-select'
+							className='game-filters-chips__select-pill'
+							value={filters.sortBy || 'name'}
+							onChange={(e) => onSortChange(e.target.value, filters.sortDescending || false)}>
+							{sortOptions.map((option) => (
+								<option key={option.value} value={option.value}>
+									{t(option.labelKey)}
+								</option>
+							))}
+						</select>
 					</div>
 
 					{onSelectAll && (
-						<button type='button' className='game-filters-chips__action-btn' onClick={onSelectAll}>
-							{selectedCount > 0 ? t('home.deselectAll') : t('home.selectAll')}
+						<button
+							type='button'
+							className={'game-filters-chips__action-btn game-filters-chips__selection-toggle' + (selectionIsMixed ? ' is-mixed' : '')}
+							onClick={onSelectAll}
+							role='checkbox'
+							aria-checked={allGamesSelected ? 'true' : selectionIsMixed ? 'mixed' : 'false'}
+							aria-label={selectionLabel}
+							title={selectionLabel}>
+							<svg className='game-filters-chips__selection-icon' viewBox='0 0 24 24' fill='currentColor' aria-hidden='true'>
+								{allGamesSelected ? (
+									<path d='M3 3h18v18H3V3Zm6.9 12.9 7.3-7.3-1.4-1.4-5.9 5.9-1.7-1.7-1.4 1.4 3.1 3.1Z' fillRule='evenodd' />
+								) : (
+									<path fillRule='evenodd' d='M3 3h18v18H3V3Zm1.25 1.25v15.5h15.5V4.25H4.25Z' />
+								)}
+								{selectionIsMixed && <path d='M7 11h10v2H7z' />}
+							</svg>
+							<span className='sr-only'>{selectionLabel}</span>
 						</button>
 					)}
 				</div>
@@ -533,7 +578,22 @@ const GameFiltersChips: React.FC<Props> = ({
 				<div className='game-filters-chips__top-right'>
 					{onViewChange && (
 						<div className='game-filters-chips__field game-filters-chips__field--inline game-filters-chips__field--view'>
-							<label htmlFor='view-select'>{t('home.view')}</label>
+							<label className='sr-only' htmlFor='view-select'>
+								{t('home.view')}
+							</label>
+							<span className='game-filters-chips__control-icon game-filters-chips__control-icon--view' title={t('home.view')} aria-hidden='true'>
+								<svg viewBox='0 0 24 24' fill='currentColor'>
+									<path
+										fillRule='evenodd'
+										d='M9 6C9 4.34315 7.65685 3 6 3H4C2.34315 3 1 4.34315 1 6V8C1 9.65685 2.34315 11 4 11H6C7.65685 11 9 9.65685 9 8V6ZM7 6C7 5.44772 6.55228 5 6 5H4C3.44772 5 3 5.44772 3 6V8C3 8.55228 3.44772 9 4 9H6C6.55228 9 7 8.55228 7 8V6Z'
+									/>
+									<path
+										fillRule='evenodd'
+										d='M9 16C9 14.3431 7.65685 13 6 13H4C2.34315 13 1 14.3431 1 16V18C1 19.6569 2.34315 21 4 21H6C7.65685 21 9 19.6569 9 18V16ZM7 16C7 15.4477 6.55228 15 6 15H4C3.44772 15 3 15.4477 3 16V18C3 18.5523 3.44772 19 4 19H6C6.55228 19 7 18.5523 7 18V16Z'
+									/>
+									<path d='M11 7C11 6.44772 11.4477 6 12 6H22C22.5523 6 23 6.44772 23 7C23 7.55228 22.5523 8 22 8H12C11.4477 8 11 7.55228 11 7ZM11 17C11 16.4477 11.4477 16 12 16H22C22.5523 16 23 16.4477 23 17C23 17.5523 22.5523 18 22 18H12C11.4477 18 11 17.5523 11 17Z' />
+								</svg>
+							</span>
 							<select id='view-select' className='game-filters-chips__select-view' value={currentView} onChange={(e) => onViewChange(e.target.value)}>
 								<option value='default'>{t('home.viewDefault')}</option>
 								{publicGameViews.map((view) => (
@@ -577,11 +637,7 @@ const GameFiltersChips: React.FC<Props> = ({
 						{onViewChange && (
 							<div className='game-filters-chips__moved-controls-view game-filters-chips__field game-filters-chips__field--inline'>
 								<label htmlFor='view-select-mobile'>{t('home.view')}</label>
-								<select
-									id='view-select-mobile'
-									className='game-filters-chips__select-view'
-									value={currentView}
-									onChange={(e) => onViewChange(e.target.value)}>
+								<select id='view-select-mobile' className='game-filters-chips__select-view' value={currentView} onChange={(e) => onViewChange(e.target.value)}>
 									<option value='default'>{t('home.viewDefault')}</option>
 									{publicGameViews.map((view) => (
 										<option key={view.id} value={view.name}>
@@ -593,8 +649,25 @@ const GameFiltersChips: React.FC<Props> = ({
 						)}
 
 						{onSelectAll && (
-							<button type='button' className='game-filters-chips__moved-controls-selectall game-filters-chips__action-btn' onClick={onSelectAll}>
-								{selectedCount > 0 ? t('home.deselectAll') : t('home.selectAll')}
+							<button
+								type='button'
+								className={
+									'game-filters-chips__moved-controls-selectall game-filters-chips__action-btn game-filters-chips__selection-toggle' + (selectionIsMixed ? ' is-mixed' : '')
+								}
+								onClick={onSelectAll}
+								role='checkbox'
+								aria-checked={allGamesSelected ? 'true' : selectionIsMixed ? 'mixed' : 'false'}
+								aria-label={selectionLabel}
+								title={selectionLabel}>
+								<svg className='game-filters-chips__selection-icon' viewBox='0 0 24 24' fill='currentColor' aria-hidden='true'>
+									{allGamesSelected ? (
+										<path d='M3 3h18v18H3V3Zm6.9 12.9 7.3-7.3-1.4-1.4-5.9 5.9-1.7-1.7-1.4 1.4 3.1 3.1Z' fillRule='evenodd' />
+									) : (
+										<path fillRule='evenodd' d='M3 3h18v18H3V3Zm1.25 1.25v15.5h15.5V4.25H4.25Z' />
+									)}
+									{selectionIsMixed && <path d='M7 11h10v2H7z' />}
+								</svg>
+								<span>{selectionLabel}</span>
 							</button>
 						)}
 
@@ -613,36 +686,26 @@ const GameFiltersChips: React.FC<Props> = ({
 						)}
 
 						<div className='game-filters-chips__moved-controls-sort game-filters-chips__field game-filters-chips__field--inline'>
-							<label>{t('home.filters.sortBy')}</label>
-							<select
-								aria-label={t('home.filters.sortBy')}
-								className='game-filters-chips__select-pill'
-								value={filters.sortBy || 'name'}
-								onChange={(e) => onSortChange(e.target.value, filters.sortDescending || false)}>
-								<option value='name'>{t('home.filters.fieldName')}</option>
-								<option value='grade'>{t('home.filters.fieldGrade')}</option>
-								<option value='critic'>{t('home.filters.fieldCritic')}</option>
-								<option value='comment'>{t('home.columns.comment')}</option>
-								<option value='released'>{t('home.filters.fieldReleased')}</option>
-								<option value='started'>{t('home.filters.fieldStarted')}</option>
-								<option value='finished'>{t('home.columns.finished')}</option>
-								<option value='score'>{t('home.filters.fieldScore')}</option>
-								<option value='storyDuration'>{t('home.chips.sortStory')}</option>
-								<option value='completionDuration'>{t('home.chips.sortCompletion')}</option>
-								<option value='status'>{t('home.filters.fieldStatus')}</option>
-								<option value='platform'>{t('home.filters.platform')}</option>
-								<option value='playedStatus'>{t('home.filters.playedStatus')}</option>
-								<option value='playWith'>{t('home.filters.playWith')}</option>
-								<option value='createdat'>{t('home.filters.fieldCreatedAt')}</option>
-								<option value='updatedat'>{t('home.filters.fieldUpdatedAt')}</option>
-								<option value='steamPlaytimeForever'>{t('home.filters.fieldSteamPlaytime')}</option>
-								<option value='favorite'>{t('home.filters.fieldFavorite')}</option>
-							</select>
+							<label className='sr-only' htmlFor='sort-select-mobile'>
+								{t('home.filters.sortBy')}
+							</label>
 							<SortDirectionButton
 								descending={!!filters.sortDescending}
 								title={filters.sortDescending ? t('home.sorting.descending') : t('home.sorting.ascending')}
 								onToggle={() => onSortChange(filters.sortBy || 'name', !filters.sortDescending)}
 							/>
+							<select
+								id='sort-select-mobile'
+								aria-label={t('home.filters.sortBy')}
+								className='game-filters-chips__select-pill'
+								value={filters.sortBy || 'name'}
+								onChange={(e) => onSortChange(e.target.value, filters.sortDescending || false)}>
+								{sortOptions.map((option) => (
+									<option key={option.value} value={option.value}>
+										{t(option.labelKey)}
+									</option>
+								))}
+							</select>
 						</div>
 					</div>
 
@@ -1157,7 +1220,10 @@ const GameFiltersChips: React.FC<Props> = ({
 										<button type='button' className={'game-filters-chips__option' + (filters.favorite === true ? ' is-active' : '')} onClick={() => setFilters({ favorite: true })}>
 											{t('home.filters.onlyFavorites')}
 										</button>
-										<button type='button' className={'game-filters-chips__option' + (filters.favorite === false ? ' is-active' : '')} onClick={() => setFilters({ favorite: false })}>
+										<button
+											type='button'
+											className={'game-filters-chips__option' + (filters.favorite === false ? ' is-active' : '')}
+											onClick={() => setFilters({ favorite: false })}>
 											{t('home.filters.withoutFavorites')}
 										</button>
 									</div>

@@ -321,7 +321,11 @@ const HomeComponent = () => {
 			}
 			const failed = selectedSteamGames.length - updated
 			setToast({
-				message: t(failed > 0 ? 'home.bulkImageRefreshPartial' : 'home.bulkImageRefreshSuccess', { updated, total: selectedSteamGames.length, field: t(`home.imageFields.${field}`) }),
+				message: t(failed > 0 ? 'home.bulkImageRefreshPartial' : 'home.bulkImageRefreshSuccess', {
+					updated,
+					total: selectedSteamGames.length,
+					field: t(`home.imageFields.${field}`),
+				}),
 				type: failed > 0 ? 'error' : 'success',
 			})
 			setSelectedGames([])
@@ -364,13 +368,14 @@ const HomeComponent = () => {
 					currentView={viewMode}
 					onViewChange={(viewName) => dispatch(setViewMode(viewName as any))}
 					selectedCount={selectedGames.length}
+					totalCount={games.length}
 					onSelectAll={handleSelectAll}
 					onDeselectAll={() => setSelectedGames([])}
 					onBulkDelete={handleBulkDelete}
-						onBulkEdit={() => setBulkEditOpen(true)}
-						onBulkRefreshImages={handleBulkRefreshImages}
-						bulkImagesDisabled={bulkImageRefreshing}
-						onBulkExport={() => {
+					onBulkEdit={() => setBulkEditOpen(true)}
+					onBulkRefreshImages={handleBulkRefreshImages}
+					bulkImagesDisabled={bulkImageRefreshing}
+					onBulkExport={() => {
 						const preSelected = games.filter((g: any) => selectedGames.includes(g.id)).map((g: any) => ({ id: g.id as number, name: g.name as string }))
 						setExportPreSelected(preSelected)
 						setExportModalOpen(true)
@@ -389,9 +394,7 @@ const HomeComponent = () => {
 						const list = games
 						if (loading && list.length === 0) {
 							const skeletonCount = Math.min(pagination.pageSize || 12, 12)
-							return Array.from({ length: skeletonCount }, (_, i) => (
-								<GameCardSkeleton key={i} variant={cardStyle} index={i} />
-							))
+							return Array.from({ length: skeletonCount }, (_, i) => <GameCardSkeleton key={i} variant={cardStyle} index={i} />)
 						}
 						if (!list || list.length === 0) return <p className='home-component__no-games'>{t('home.noGames')}</p>
 						return list.map((game: any, index: number) => (
