@@ -37,6 +37,13 @@ const preloadedState: Partial<RootState> = {
 }
 
 describe('CoverView', () => {
+	it('shows the full-completion badge for manually completed games', async () => {
+		const { default: CoverView } = await import('./CoverView')
+		renderWithProviders(<CoverView game={{ ...game, isManuallyCompleted: true }} openDetails={vi.fn()} />, { preloadedState })
+
+		expect(screen.getByText('100%')).toBeInTheDocument()
+	})
+
 	it('exposes the full game name as a tooltip title', async () => {
 		const { default: CoverView } = await import('./CoverView')
 		renderWithProviders(<CoverView game={game} openDetails={vi.fn()} />, { preloadedState })

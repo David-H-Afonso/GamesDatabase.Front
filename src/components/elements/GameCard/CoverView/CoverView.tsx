@@ -21,7 +21,7 @@ interface CoverViewProps {
 const CoverView = ({ game, openDetails, isSelected = false, onSelect, index = 0, gameStatusColor, playWithColors = [], onFieldUpdate, hideSelection = false }: CoverViewProps) => {
 	const { t } = useTranslation()
 	const isPriority = index < 8
-	const hasPerfectCompletion = game.completion === 100 || Boolean(game.steamAchievementsUnlocked && game.steamAchievementsUnlocked === game.steamAchievementsTotal)
+	const hasPerfectCompletion = game.completion === 100 || Boolean(game.isManuallyCompleted) || Boolean(game.steamAchievementsTotal && game.steamAchievementsTotal > 0 && game.steamAchievementsUnlocked === game.steamAchievementsTotal)
 	const [coverFailed, setCoverFailed] = useState(false)
 	const [activeEditor, setActiveEditor] = useState<'status' | 'playWith' | null>(null)
 	const coverRef = useRef<HTMLElement>(null)
