@@ -310,6 +310,26 @@ describe('GameDetails', () => {
 		expect(openSpy).toHaveBeenCalledWith('https://www.metacritic.com/search/dark-souls/', '_blank', 'noopener')
 	})
 
+	it('opens the Steam game page directly when a valid Steam App ID is available', async () => {
+		const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null)
+		const { GameDetails } = await import('./GameDetails')
+		renderWithProviders(<GameDetails game={{ ...steamGame, platformName: 'Steam' }} closeDetails={vi.fn()} />, { preloadedState: defaultState })
+
+		await user.click(screen.getByText('Platform'))
+
+		expect(openSpy).toHaveBeenCalledWith('https://store.steampowered.com/app/570/', '_blank', 'noopener')
+	})
+
+	it('falls back to Steam search when the game has no valid Steam App ID', async () => {
+		const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null)
+		const { GameDetails } = await import('./GameDetails')
+		renderWithProviders(<GameDetails game={{ ...mockGame, platformName: 'Steam' }} closeDetails={vi.fn()} />, { preloadedState: defaultState })
+
+		await user.click(screen.getByText('Platform'))
+
+		expect(openSpy).toHaveBeenCalledWith('https://store.steampowered.com/search/?term=Dark+Souls', '_blank', 'noopener')
+	})
+
 	it('adds closing class when close button clicked', async () => {
 		const { GameDetails } = await import('./GameDetails')
 		const { container } = renderWithProviders(<GameDetails game={mockGame} closeDetails={vi.fn()} />, { preloadedState: defaultState })

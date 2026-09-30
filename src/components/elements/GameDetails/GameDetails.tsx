@@ -511,8 +511,10 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 											if (!formik.values.name) return
 											const platform = (game.platformName || '').toLowerCase()
 											if (platform.includes('steam')) {
-												const q = encodeURIComponent(formik.values.name).replace(/%20/g, '+')
-												const url = `https://store.steampowered.com/search/?term=${q}`
+												const steamAppId = game.steamAppId
+												const url = typeof steamAppId === 'number' && Number.isSafeInteger(steamAppId) && steamAppId > 0
+													? `https://store.steampowered.com/app/${steamAppId}/`
+													: `https://store.steampowered.com/search/?term=${encodeURIComponent(formik.values.name).replace(/%20/g, '+')}`
 												window.open(url, '_blank', 'noopener')
 												return
 											}
