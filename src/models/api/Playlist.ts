@@ -8,6 +8,7 @@ export interface PlaylistItem {
 }
 
 export interface PlaylistSummary {
+	groupId?: number | null
 	maxLength?: number | null
 	id: number
 	name: string
@@ -24,6 +25,8 @@ export interface PlaylistSummary {
 	gameCount: number
 	updatedAt: string
 }
+
+export interface PlaylistGroup { id: number; name: string; sortOrder: number }
 
 export interface Playlist extends PlaylistSummary {
 	createdAt: string
