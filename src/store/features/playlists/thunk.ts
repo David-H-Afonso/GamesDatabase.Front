@@ -22,8 +22,8 @@ export const deletePlaylistThunk = createAsyncThunk('playlists/delete', async (i
 export const reorderPlaylistsThunk = createAsyncThunk('playlists/reorder', async (orderedIds: number[], { rejectWithValue }) => {
 		try { await reorderPlaylists(orderedIds); return orderedIds } catch (error) { return rejectWithValue(errorMessage(error)) }
 })
-export const addPlaylistItemThunk = createAsyncThunk('playlists/addItem', async ({ id, gameId }: { id: number; gameId: number }, { rejectWithValue }) => {
-		try { return await addPlaylistItem(id, gameId) } catch (error) { return rejectWithValue(errorMessage(error)) }
+export const addPlaylistItemThunk = createAsyncThunk('playlists/addItem', async ({ id, gameId, statusId }: { id: number; gameId: number; statusId?: number }, { rejectWithValue }) => {
+		try { return await addPlaylistItem(id, gameId, statusId) } catch (error) { return rejectWithValue(errorMessage(error)) }
 })
 export const removePlaylistItemThunk = createAsyncThunk('playlists/removeItem', async ({ id, itemId }: { id: number; itemId: number }, { rejectWithValue }) => {
 		try { return await removePlaylistItem(id, itemId) } catch (error) { return rejectWithValue(errorMessage(error)) }

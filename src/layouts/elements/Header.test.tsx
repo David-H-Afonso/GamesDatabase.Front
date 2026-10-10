@@ -53,7 +53,13 @@ describe('Header', () => {
 	it('renders navigation links', () => {
 		renderWithProviders(<Header />, { preloadedState: adminState as any })
 		expect(screen.getAllByText('Inicio').length).toBeGreaterThanOrEqual(1)
+		expect(screen.getAllByText('Focus').length).toBeGreaterThanOrEqual(1)
 		expect(screen.getAllByText('Admin').length).toBeGreaterThanOrEqual(1)
+	})
+
+	it('marks Focus as the current page when opened', () => {
+		renderWithProviders(<Header />, { preloadedState: adminState as any, route: '/focus' })
+		expect(screen.getByRole('link', { name: 'Focus' })).toHaveAttribute('aria-current', 'page')
 	})
 
 	it('shows Users link for admin role', () => {

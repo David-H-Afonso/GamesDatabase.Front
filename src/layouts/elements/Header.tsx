@@ -107,16 +107,18 @@ export const Header: React.FC = () => {
 	const isUsers = location.pathname.startsWith('/admin/users')
 	const isAdminSection = location.pathname.startsWith('/admin') && !isUsers
 	const isHome = location.pathname === '/'
+	const isFocus = location.pathname.startsWith('/focus')
 	const isPlaylists = location.pathname.startsWith('/playlists')
 
 	const navItems = useMemo(
 		() => [
 			{ key: 'home', to: '/', label: t('nav.home'), active: isHome },
+			{ key: 'focus', to: '/focus', label: t('nav.focus'), active: isFocus },
 			{ key: 'playlists', to: '/playlists', label: t('nav.playlists'), active: isPlaylists },
 			{ key: 'admin', to: '/admin/platforms', label: t('nav.admin'), active: isAdminSection },
 			...(isAdmin ? [{ key: 'users', to: '/admin/users', label: t('nav.users'), active: isUsers }] : []),
 		],
-		[t, isHome, isPlaylists, isAdminSection, isUsers, isAdmin]
+		[t, isHome, isFocus, isPlaylists, isAdminSection, isUsers, isAdmin]
 	)
 	const activeKey = navItems.find((n) => n.active)?.key ?? null
 

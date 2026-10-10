@@ -180,6 +180,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
 
 		const goto: CommandItem[] = [
 			{ id: 'go-home', group: t('command.goto'), label: t('nav.home'), icon: IconHome, keywords: 'home inicio start', run: () => applySearch(undefined) },
+			{ id: 'go-focus', group: t('command.goto'), label: t('nav.focus'), icon: <Svg d='M12 3v3m0 12v3M3 12h3m12 0h3M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z' />, keywords: 'focus modo foco jugar siguiente ahora', run: () => go('/focus') },
 			{ id: 'go-playlists', group: t('command.goto'), label: t('nav.playlists'), icon: IconPlaylist, keywords: 'playlists listas orden juegos', run: () => go('/playlists') },
 			{ id: 'go-admin', group: t('command.goto'), label: t('nav.admin'), icon: IconAdmin, keywords: 'admin platforms plataformas', run: () => go('/admin/platforms') },
 			...(isAdmin ? [{ id: 'go-users', group: t('command.goto'), label: t('nav.users'), icon: IconUsers, keywords: 'users usuarios', run: () => go('/admin/users') }] : []),

@@ -16,6 +16,7 @@ import { ConfirmDialog, GameCard, Modal, OptimizedImage } from '@/components/ele
 import type { Game } from '@/models/api/Game'
 import type { Playlist, PlaylistCreateDto, PlaylistItem, PlaylistRules, PlaylistTransfer } from '@/models/api/Playlist'
 import './Playlists.scss'
+import PlaylistOrdering from './PlaylistOrdering'
 
 const Icon = ({ path }: { path: string }) => (
 	<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round' strokeLinejoin='round' aria-hidden='true'>
@@ -53,7 +54,8 @@ const PlaylistHeroImage = ({ src }: { src?: string }) => {
 
 const PlaylistForm = ({ initial, onClose, onSave }: { initial?: Playlist | null; onClose: () => void; onSave: (data: PlaylistCreateDto) => Promise<void> }) => {
 	const { t } = useTranslation()
-	const [form, setForm] = useState<PlaylistCreateDto>({ name: initial?.name ?? '', description: initial?.description ?? '', heroUrl: initial?.heroUrlOverride ?? '', coverUrl: initial?.coverUrlOverride ?? '', logoUrl: initial?.logoUrlOverride ?? '', isAutomatic: initial?.isAutomatic ?? false, rules: initial?.rules ?? { statusIds: [], platformIds: [], playedStatusIds: [], sortBy: 'Name', sortDescending: false, orderedGameIds: [] } })
+	const activeStatuses = useAppSelector(state => state.gameStatus.activeStatuses)
+	const [form, setForm] = useState<PlaylistCreateDto>({ maxLength: initial?.maxLength ?? null, name: initial?.name ?? '', description: initial?.description ?? '', heroUrl: initial?.heroUrlOverride ?? '', coverUrl: initial?.coverUrlOverride ?? '', logoUrl: initial?.logoUrlOverride ?? '', isAutomatic: initial?.isAutomatic ?? false, rules: initial?.rules ?? { statusIds: [], platformIds: [], playedStatusIds: [], sortBy: 'Name', sortDescending: false, orderedGameIds: [] } })
 	const [saving, setSaving] = useState(false)
 	const update = (key: keyof PlaylistCreateDto, value: string) => setForm(current => ({ ...current, [key]: value }))
 	const submit = async (event: FormEvent) => {
@@ -66,6 +68,7 @@ const PlaylistForm = ({ initial, onClose, onSave }: { initial?: Playlist | null;
 		<form className='playlist-form' onSubmit={submit}>
 			<label>{t('playlists.name')}<input value={form.name} onChange={event => update('name', event.target.value)} autoFocus required /></label>
 			<label>{t('playlists.description')}<textarea value={form.description} onChange={event => update('description', event.target.value)} rows={3} /></label>
+			<label>{t('playlists.maxLength')}<input type='number' min='1' step='1' value={form.maxLength ?? ''} placeholder={t('playlists.unlimited')} onChange={event => setForm(current => ({ ...current, maxLength: event.target.value === '' ? null : Number(event.target.value) }))} /><small>{t('playlists.maxLengthHint')}</small></label>
 			<div className='playlist-form__grid'>
 				<label>{t('playlists.heroUrl')}<input type='url' value={form.heroUrl} onChange={event => update('heroUrl', event.target.value)} placeholder={t('playlists.urlPlaceholder')} /></label>
 				<label>{t('playlists.coverUrl')}<input type='url' value={form.coverUrl} onChange={event => update('coverUrl', event.target.value)} placeholder={t('playlists.urlPlaceholder')} /></label>
@@ -73,6 +76,7 @@ const PlaylistForm = ({ initial, onClose, onSave }: { initial?: Playlist | null;
 			</div>
 			<label className='playlist-form__checkbox'><input type='checkbox' checked={form.isAutomatic ?? false} onChange={event => setForm(current => ({ ...current, isAutomatic: event.target.checked }))} />{t('playlists.automatic')}</label>
 			{form.isAutomatic && <AutomaticRules rules={form.rules!} onChange={rules => setForm(current => ({ ...current, rules }))} />}
+			{form.isAutomatic && <PlaylistOrdering rules={form.rules!} statuses={activeStatuses} onChange={rules => setForm(current => ({ ...current, rules }))} />}
 			<div className='playlist-form__actions'><button type='button' className='playlist-button playlist-button--quiet' onClick={onClose}>{t('common.cancel')}</button><button type='submit' className='playlist-button playlist-button--primary' disabled={saving}>{saving ? t('common.saving') : t('common.save')}</button></div>
 		</form>
 	)
@@ -121,6 +125,11 @@ export default function Playlists() {
 	const dispatch = useAppDispatch()
 	const { playlists, currentPlaylist, loading, reordering, fetchAll, fetchById, create, update, remove, reorder, addItem, removeItem, reorderItems, exportPlaylist, importPlaylist } = usePlaylists()
 	const cardStyle = useAppSelector(state => state.theme.cardStyle ?? 'card')
+	const statusOptions = useAppSelector(state => state.gameStatus.activeStatuses)
+	const [pendingGame, setPendingGame] = useState<Game | null>(null)
+	const [addStatusId, setAddStatusId] = useState<number | null>(null)
+	const [adding, setAdding] = useState(false)
+	const [addError, setAddError] = useState<string | null>(null)
 	const routePlaylistId = routeId && Number.isInteger(Number(routeId)) ? Number(routeId) : null
 	const [selectedId, setSelectedId] = useState<number | null>(routePlaylistId)
 	const [editor, setEditor] = useState<'create' | 'edit' | null>(null)
@@ -147,6 +156,7 @@ export default function Playlists() {
 	const menuTriggerRef = useRef<HTMLButtonElement>(null)
 	const importFileRef = useRef<HTMLInputElement>(null)
 	const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }))
+	const isFull = currentPlaylist?.maxLength != null && currentPlaylist.items.length >= currentPlaylist.maxLength
 
 	useEffect(() => { void fetchAll() }, [fetchAll])
 	useEffect(() => {
@@ -166,13 +176,14 @@ export default function Playlists() {
 	const playlistMatchesRoute = routePlaylistId === null || currentPlaylist?.id === routePlaylistId
 	useEffect(() => {
 		const term = gameQuery.trim()
-		if (!term) { setGameResults([]); return }
+		if (!term || isFull) { setGameResults([]); setSearching(false); setSearchOpen(false); return }
+		let cancelled = false
 		setSearching(true)
 		const timer = window.setTimeout(async () => {
-			try { const result = await getGames({ search: term, page: 1, pageSize: 12 }); setGameResults(result.data) } catch { setGameResults([]) } finally { setSearching(false) }
+			try { const result = await getGames({ search: term, page: 1, pageSize: 12 }); if (!cancelled) setGameResults(result.data) } catch { if (!cancelled) setGameResults([]) } finally { if (!cancelled) setSearching(false) }
 		}, 250)
-		return () => window.clearTimeout(timer)
-	}, [gameQuery])
+		return () => { cancelled = true; window.clearTimeout(timer) }
+	}, [gameQuery, isFull])
 	useEffect(() => {
 		const handlePointerDown = (event: PointerEvent) => {
 			const target = event.target as Node
@@ -196,6 +207,27 @@ export default function Playlists() {
 
 	const selectedGameIds = useMemo(() => new Set(currentPlaylist?.items.map(item => item.gameId) ?? []), [currentPlaylist])
 	const selectedSummary = playlists.find(item => item.id === selectedId)
+	const allowedStatuses = statusOptions.filter(status => !currentPlaylist?.rules?.statusIds.length || currentPlaylist.rules.statusIds.includes(status.id))
+	const performAdd = async (game: Game, statusId?: number) => {
+		if (!currentPlaylist || adding || isFull) return
+		setAdding(true)
+		setAddError(null)
+		try {
+			await addItem(currentPlaylist.id, game.id, statusId)
+			setPendingGame(null)
+			setGameQuery('')
+			setSearchOpen(false)
+		} catch (error) { setAddError(error instanceof Error ? error.message : String(error)) }
+		finally { setAdding(false) }
+	}
+	const requestAdd = (game: Game) => {
+		if (isFull) return
+		if (currentPlaylist?.isAutomatic) {
+			setPendingGame(game)
+			setAddStatusId(allowedStatuses.some(status => status.id === game.statusId) ? game.statusId : null)
+			setAddError(null)
+		} else void performAdd(game)
+	}
 
 	const handlePlaylistDrag = async ({ active, over }: DragEndEvent) => {
 		setActivePlaylistId(null)
@@ -221,7 +253,10 @@ export default function Playlists() {
 		const previous = currentPlaylist
 		const optimistic = { ...currentPlaylist, items: ordered.map((id, position) => ({ ...currentPlaylist.items.find(item => item.id === id)!, position })) }
 		dispatch(setCurrentPlaylist(optimistic))
-		try { await reorderItems(currentPlaylist.id, ordered) } catch { dispatch(setCurrentPlaylist(previous)) }
+		try {
+			await reorderItems(currentPlaylist.id, ordered)
+			if (currentPlaylist.isAutomatic) await fetchById(currentPlaylist.id)
+		} catch { dispatch(setCurrentPlaylist(previous)) }
 	}
 	const handleGameUpdated = (updatedGame: Game) => {
 		if (!currentPlaylist) return
@@ -316,8 +351,10 @@ export default function Playlists() {
 					</div>
 					<div className='playlist-tools'><div className='playlist-view-toggle' role='group' aria-label={t('playlists.viewMode')}>
 						{(['row', 'card', 'cover'] as const).map(mode => <button key={mode} type='button' className={cardStyle === mode ? 'is-active' : ''} onClick={() => dispatch(setCardStyle(mode))}>{t(`playlists.views.${mode}`)}</button>)}
-					</div><div className='playlist-search-area' ref={searchRef}><label className='playlist-search'><SearchIcon /><input value={gameQuery} onFocus={() => setSearchOpen(true)} onChange={event => { setSearchOpen(true); setGameQuery(event.target.value) }} placeholder={t('playlists.addPlaceholder')} /></label>
-					{searchOpen && gameQuery && <div className='playlist-search-results' aria-live='polite'>{searching ? <div className='playlist-search-results__status'><span className='playlist-search-results__spinner' aria-hidden='true' />{t('common.loading')}</div> : gameResults.length ? gameResults.map(game => <button key={game.id} type='button' disabled={selectedGameIds.has(game.id)} onClick={() => { void addItem(currentPlaylist.id, game.id) }}><span>{game.name}</span><small>{selectedGameIds.has(game.id) ? t('playlists.added') : t('playlists.add')}</small></button>) : <div className='playlist-search-results__status'>{t('playlists.noSearchResults')}</div>}</div>}</div></div>
+					</div><div className='playlist-search-area' ref={searchRef}><label className='playlist-search'><SearchIcon /><input disabled={isFull || adding} value={gameQuery} onFocus={() => setSearchOpen(true)} onChange={event => { setSearchOpen(true); setGameQuery(event.target.value) }} placeholder={t(isFull ? 'playlists.listFull' : 'playlists.addPlaceholder')} /></label>
+					{searchOpen && gameQuery && <div className='playlist-search-results' aria-live='polite'>{searching ? <div className='playlist-search-results__status'><span className='playlist-search-results__spinner' aria-hidden='true' />{t('common.loading')}</div> : gameResults.length ? gameResults.map(game => <button key={game.id} type='button' disabled={selectedGameIds.has(game.id) || adding} onClick={() => requestAdd(game)}><span>{game.name}</span><small>{selectedGameIds.has(game.id) ? t('playlists.added') : t('playlists.add')}</small></button>) : <div className='playlist-search-results__status'>{t('playlists.noSearchResults')}</div>}</div>}</div></div>
+					{addError && !pendingGame && <p role='alert' className='playlist-import__error'>{addError}</p>}
+					{currentPlaylist.maxLength != null && <p className='playlist-capacity' role='status'>{t('playlists.capacity', { count: currentPlaylist.items.length, max: currentPlaylist.maxLength })}{isFull && <> · {t('playlists.capacityHint')}</>}</p>}
 					<DndContext sensors={sensors} collisionDetection={closestCenter} modifiers={cardStyle === 'row' ? [restrictToVerticalAxis, restrictToParentElement] : []} onDragStart={handleDragStart} onDragCancel={handleDragCancel} onDragOver={({ over }) => setOverGameId(over ? Number(String(over.id).replace('item-', '')) : null)} onDragEnd={handleGameDrag}>
 						<SortableContext items={currentPlaylist.items.map(item => `item-${item.id}`)} strategy={verticalListSortingStrategy}>
 							<div className={`playlist-games playlist-games--${cardStyle}`}>{currentPlaylist.items.map(item => <SortableGame key={item.id} item={item} cardStyle={cardStyle} isDropTarget={!currentPlaylist.isAutomatic && overGameId === item.id && activeGameId !== item.id} onRemove={() => void removeItem(currentPlaylist.id, item.id)} onGameUpdated={handleGameUpdated} />)}</div>
@@ -330,6 +367,16 @@ export default function Playlists() {
 			</section>
 		</div>
 		{menuPanel}
+		<Modal isOpen={pendingGame !== null} onClose={() => { if (!adding) setPendingGame(null) }} title={t('playlists.addAutomaticTitle')} maxWidth='540px'>
+			<div className='playlist-add-dialog'>
+				<h3>{pendingGame?.name}</h3>
+				<p>{t('playlists.addAutomaticHint', { playlist: currentPlaylist?.name, status: pendingGame?.statusName ?? '' })}</p>
+				<fieldset><legend>{t('playlists.assignStatus')}</legend>{allowedStatuses.map(status => <label key={status.id}><input type='radio' name='playlist-add-status' checked={addStatusId === status.id} onChange={() => setAddStatusId(status.id)} disabled={adding} /><span style={{ borderLeftColor: status.color }}>{status.name}</span></label>)}</fieldset>
+				<p className='playlist-add-dialog__hint'>{t('playlists.otherRulesHint')}</p>
+				{addError && <p role='alert' className='playlist-import__error'>{addError}</p>}
+				<div className='playlist-form__actions'><button type='button' className='playlist-button playlist-button--quiet' disabled={adding} onClick={() => setPendingGame(null)}>{t('playlists.doNotAdd')}</button><button type='button' className='playlist-button playlist-button--primary' disabled={adding || isFull || addStatusId === null} onClick={() => pendingGame && void performAdd(pendingGame, addStatusId!)}>{t(adding ? 'common.saving' : 'playlists.confirmAdd')}</button></div>
+			</div>
+		</Modal>
 		<Modal isOpen={editor !== null} onClose={() => setEditor(null)} title={editor === 'edit' ? t('playlists.edit') : t('playlists.new')} maxWidth='760px'><PlaylistForm initial={editor === 'edit' ? currentPlaylist : null} onClose={() => setEditor(null)} onSave={savePlaylist} /></Modal>
 		<Modal isOpen={importOpen} onClose={() => setImportOpen(false)} title={t('playlists.import')} maxWidth='760px'><div className='playlist-import'><p>{t('playlists.importHint')}</p><input ref={importFileRef} className='playlist-import__file-input' type='file' accept='application/json,.json' onChange={handleImportFile} /><button type='button' className='playlist-button playlist-button--quiet playlist-import__file-button' onClick={() => importFileRef.current?.click()}>{t('playlists.chooseFile')}</button>{importFileName && <span className='playlist-import__file-name'>{importFileName}</span>}<textarea value={importText} onChange={event => { setImportText(event.target.value); setImportFileName(null) }} rows={14} placeholder={t('playlists.jsonPlaceholder')} />{transferError && <p className='playlist-import__error'>{transferError}</p>}<div className='playlist-form__actions'><button type='button' className='playlist-button playlist-button--quiet' onClick={() => setImportOpen(false)}>{t('common.cancel')}</button><button type='button' className='playlist-button playlist-button--primary' onClick={() => void handleImport()}>{t('playlists.import')}</button></div></div></Modal>
 		<ConfirmDialog isOpen={deleteId !== null} title={t('playlists.deleteTitle')} message={t('playlists.deleteMessage', { name: selectedSummary?.name ?? '' })} onCancel={() => setDeleteId(null)} onConfirm={() => void handleDelete()} confirmLabel={t('common.delete')} />

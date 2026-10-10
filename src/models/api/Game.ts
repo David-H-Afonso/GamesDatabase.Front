@@ -1,7 +1,7 @@
 // Main Game interface
 export interface Game {
 	comment?: string
-	completion?: number // 0-100
+	completion?: number // estimated completionist duration in hours, not a percentage
 	cover?: string
 	critic?: number // 0-100
 	criticProvider?: string // 'Metacritic' | 'OpenCritic' | 'SteamDB'
@@ -23,7 +23,7 @@ export interface Game {
 	started?: string // ISO date string
 	statusId: number
 	statusName?: string
-	story?: number // 0-100
+	story?: number // estimated main-story duration in hours
 	createdAt?: string // ISO date string - when the game was created
 	updatedAt?: string // ISO date string - when the game was last modified
 	isCheaperByKey?: boolean // true if game is cheaper by key, false if cheaper in official store

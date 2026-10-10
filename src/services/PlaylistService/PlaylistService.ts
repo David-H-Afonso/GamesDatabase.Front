@@ -10,7 +10,7 @@ export const createPlaylist = (data: PlaylistCreateDto) => customFetch<Playlist>
 export const updatePlaylist = (id: number, data: PlaylistUpdateDto) => customFetch<Playlist>(BASE.update(id), { method: 'PUT', body: data, baseURL: environment.baseUrl })
 export const deletePlaylist = (id: number) => customFetch<void>(BASE.delete(id), { method: 'DELETE', baseURL: environment.baseUrl })
 export const reorderPlaylists = (orderedIds: number[]) => customFetch<void>(BASE.reorder, { method: 'POST', body: { orderedIds }, baseURL: environment.baseUrl })
-export const addPlaylistItem = (id: number, gameId: number) => customFetch<Playlist>(BASE.items(id), { method: 'POST', body: { gameId }, baseURL: environment.baseUrl })
+export const addPlaylistItem = (id: number, gameId: number, statusId?: number) => customFetch<Playlist>(BASE.items(id), { method: 'POST', body: { gameId, ...(statusId !== undefined ? { statusId } : {}) }, baseURL: environment.baseUrl })
 export const removePlaylistItem = (id: number, itemId: number) => customFetch<Playlist>(BASE.removeItem(id, itemId), { method: 'DELETE', baseURL: environment.baseUrl })
 export const reorderPlaylistItems = (id: number, orderedIds: number[]) => customFetch<void>(BASE.reorderItems(id), { method: 'POST', body: { orderedIds }, baseURL: environment.baseUrl })
 export const exportPlaylist = (id: number, reference: 'id' | 'name') => customFetch<PlaylistTransfer>(BASE.export(id, reference), { method: 'GET', baseURL: environment.baseUrl })

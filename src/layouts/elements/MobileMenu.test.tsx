@@ -44,6 +44,7 @@ describe('MobileMenu', () => {
 			preloadedState: baseState as any,
 		})
 		expect(screen.getByText('Inicio')).toBeInTheDocument()
+		expect(screen.getByText('Focus')).toBeInTheDocument()
 		expect(screen.getAllByText('Admin').length).toBeGreaterThanOrEqual(1)
 	})
 

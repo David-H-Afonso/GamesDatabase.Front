@@ -8,6 +8,7 @@ export interface PlaylistItem {
 }
 
 export interface PlaylistSummary {
+	maxLength?: number | null
 	id: number
 	name: string
 	description?: string
@@ -30,6 +31,7 @@ export interface Playlist extends PlaylistSummary {
 }
 
 export interface PlaylistCreateDto {
+	maxLength?: number | null
 	name: string
 	description?: string
 	heroUrl?: string
@@ -61,9 +63,13 @@ export interface PlaylistRules {
 	sortDescending: boolean
 	limit?: number
 	orderedGameIds: number[]
+	statusPriorityIds?: number[]
+	groupByStatus?: boolean
+	excludedGameIds?: number[]
 }
 
 export interface PlaylistTransfer {
+	maxLength?: number | null
 	format: 'games-database-playlist'
 	version: 1
 	name: string

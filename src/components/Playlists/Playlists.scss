@@ -1,5 +1,25 @@
 @use '@/assets/styles' as *;
 
+.playlist-ordering { display: grid; gap: 12px; padding: 16px; border: 1px solid var(--border-color-light); border-radius: 10px; }
+.playlist-ordering p { margin: 0; color: var(--text-secondary); font-size: .9rem; line-height: 1.5; }
+.playlist-ordering label { display: grid; gap: 8px; }
+.playlist-ordering ol { padding: 0; margin: 0; list-style: none; display: grid; gap: 6px; }
+.playlist-ordering li { display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: var(--surface-hover); border-radius: 6px; }
+.playlist-ordering li span { flex: 1; }
+.playlist-ordering li button { min-width: 44px; min-height: 44px; border: 1px solid var(--border-color-light); background: var(--surface); color: var(--text-primary); border-radius: 6px; cursor: pointer; }
+.playlist-ordering li button:disabled { opacity: .4; cursor: default; }
+.playlist-add-dialog { display: grid; gap: 16px; }
+.playlist-add-dialog h3, .playlist-add-dialog p { margin: 0; line-height: 1.6; }
+.playlist-add-dialog h3 { font-size: 1.35rem; }
+.playlist-add-dialog p { color: var(--text-secondary); }
+.playlist-add-dialog fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 8px; }
+.playlist-add-dialog legend { margin-bottom: 10px; font-weight: 600; }
+.playlist-add-dialog label { display: flex; align-items: center; gap: 12px; padding: 12px; min-height: 44px; box-sizing: border-box; border: 1px solid var(--border-color-light); border-radius: 8px; background: var(--surface); cursor: pointer; }
+.playlist-add-dialog label:has(input:checked) { border-color: var(--primary); background: var(--surface-hover); }
+.playlist-add-dialog label span { border-left: 3px solid; padding-left: 10px; }
+.playlist-add-dialog__hint { font-size: .875rem; }
+.playlist-add-dialog button, .playlist-ordering button { @include focus-ring; }
+
 .playlists-page { min-height: calc(100vh - 72px); padding: 42px clamp(18px, 4vw, 64px) 72px; color: var(--text-primary); background: var(--bg-primary); }
 .playlists-sidebar { grid-column: 1; grid-row: 1; min-width: 0; }
 .playlists-page__header { box-sizing: border-box; display: flex; align-items: start; padding-top: 0; }

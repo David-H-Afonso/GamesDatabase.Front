@@ -8,6 +8,7 @@ import AdminFallback from './AdminFallback'
 import GameDeepLink from '@/components/Games/GameDeepLink'
 import HouseholdConsent from '@/components/Integrations/HouseholdConsent'
 import Playlists from '@/components/Playlists/Playlists'
+import FocusMode from '@/components/Focus/FocusMode'
 
 const Admin = lazy(() => import('@/components/Admin/containers/Admin'))
 
@@ -43,6 +44,17 @@ export const router = createHashRouter([
 				</AppLayout>
 			</ProtectedRoute>
 		),
+	},
+	{
+		path: '/focus',
+		element: (
+			<ProtectedRoute>
+				<AppLayout>
+					<FocusMode />
+				</AppLayout>
+			</ProtectedRoute>
+		),
+		errorElement: <RouteError />,
 	},
 	{
 		path: '/games/:id',

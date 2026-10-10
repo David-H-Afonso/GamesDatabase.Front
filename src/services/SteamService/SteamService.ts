@@ -39,6 +39,8 @@ export interface SteamImportedGame {
 }
 
 export interface SteamSyncResult {
+	success?: boolean
+	error?: string
 	gamesUpdated?: number
 	achievementsUpdated?: number
 	syncedGames?: number

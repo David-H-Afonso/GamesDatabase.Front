@@ -19,7 +19,7 @@ export const usePlaylists = () => {
 		update: useCallback((id: number, data: PlaylistUpdateDto) => dispatchAndUnwrapAsync(dispatch, updatePlaylistThunk({ id, data })), [dispatch]),
 		remove: useCallback((id: number) => dispatchAndUnwrapAsync(dispatch, deletePlaylistThunk(id)), [dispatch]),
 		reorder: useCallback((orderedIds: number[]) => dispatchAndUnwrapAsync(dispatch, reorderPlaylistsThunk(orderedIds)), [dispatch]),
-		addItem: useCallback((id: number, gameId: number) => dispatchAndUnwrapAsync(dispatch, addPlaylistItemThunk({ id, gameId })), [dispatch]),
+		addItem: useCallback((id: number, gameId: number, statusId?: number) => dispatchAndUnwrapAsync(dispatch, addPlaylistItemThunk({ id, gameId, statusId })), [dispatch]),
 		removeItem: useCallback((id: number, itemId: number) => dispatchAndUnwrapAsync(dispatch, removePlaylistItemThunk({ id, itemId })), [dispatch]),
 		reorderItems: useCallback((id: number, orderedIds: number[]) => dispatchAndUnwrapAsync(dispatch, reorderPlaylistItemsThunk({ id, orderedIds })), [dispatch]),
 		exportPlaylist: useCallback((id: number, reference: 'id' | 'name') => dispatchAndUnwrapAsync(dispatch, exportPlaylistThunk({ id, reference })), [dispatch]),

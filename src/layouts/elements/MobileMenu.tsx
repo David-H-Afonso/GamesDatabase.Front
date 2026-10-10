@@ -46,6 +46,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, onLogou
 	const isUsers = location.pathname.startsWith('/admin/users')
 	const isAdminSection = location.pathname.startsWith('/admin') && !isUsers
 	const isHome = location.pathname === '/'
+	const isFocus = location.pathname.startsWith('/focus')
 	const isPlaylists = location.pathname.startsWith('/playlists')
 
 	return (
@@ -69,6 +70,9 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, onLogou
 				<nav className='mobile-menu__nav' aria-label={t('nav.menu')}>
 					<Link to='/' className={`mobile-menu__link ${isHome ? 'active' : ''}`} onClick={onClose}>
 						{t('nav.home')}
+					</Link>
+					<Link to='/focus' className={`mobile-menu__link ${isFocus ? 'active' : ''}`} onClick={onClose}>
+						{t('nav.focus')}
 					</Link>
 					<Link to='/playlists' className={`mobile-menu__link ${isPlaylists ? 'active' : ''}`} onClick={onClose}>
 						{t('nav.playlists')}
