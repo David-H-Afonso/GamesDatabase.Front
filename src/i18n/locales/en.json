@@ -200,6 +200,11 @@
 		"overflowNotice": "There are {{count}} extra games in this list. Focus shows only the first four."
 	},
 	"playlists": {
+		"selectionMode": "Select playlists",
+		"selectPlaylist": "Select {{name}}",
+		"selectedLists": "{{count}} selected",
+		"moveSelected": "Move selected",
+		"dragGroup": "Reorder group {{name}}",
 		"newGroup": "New group",
 		"groupName": "Group name",
 		"groupExample": "Series, backlog, co-op…",

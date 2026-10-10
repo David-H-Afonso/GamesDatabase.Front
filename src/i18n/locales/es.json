@@ -200,6 +200,11 @@
 		"overflowNotice": "Hay {{count}} juegos extra en esta lista. Focus muestra solo los cuatro primeros."
 	},
 	"playlists": {
+		"selectionMode": "Seleccionar playlists",
+		"selectPlaylist": "Seleccionar {{name}}",
+		"selectedLists": "{{count}} seleccionadas",
+		"moveSelected": "Mover seleccionadas",
+		"dragGroup": "Reordenar grupo {{name}}",
 		"newGroup": "Nuevo grupo",
 		"groupName": "Nombre del grupo",
 		"groupExample": "Sagas, pendientes, cooperativos…",
