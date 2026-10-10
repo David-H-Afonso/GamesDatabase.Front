@@ -29,11 +29,11 @@ function PlaylistRow({ playlist, selected, onSelect, overlay = false, selecting 
 function GroupSection({ group, playlists, collapsed, onToggle, onEdit, onDelete, children, selecting }: { group: PlaylistGroup; playlists: PlaylistSummary[]; collapsed: boolean; onToggle: () => void; onEdit: () => void; onDelete: () => void; children: React.ReactNode; selecting: boolean }) {
 	const { t } = useTranslation()
 	const { setNodeRef, isOver } = useDroppable({ id: `group-${group.id}`, data: { groupId: group.id || null } })
-	const sortable = useSortable({ id: `folder-${group.id}`, data: { groupId: group.id }, disabled: group.id === 0 || selecting })
+	const sortable = useSortable({ id: `folder-${group.id}`, data: { groupId: group.id }, disabled: selecting })
 	return <section ref={node => { setNodeRef(node); sortable.setNodeRef(node) }} style={{ transform: CSS.Transform.toString(sortable.transform), transition: sortable.transition }} className={`playlist-library__group${isOver ? ' is-over' : ''}${sortable.isDragging ? ' is-folder-dragging' : ''}`}>
 		<div className='playlist-library__group-heading'>
 			<button type='button' className='playlist-library__group-toggle' onClick={onToggle} aria-expanded={!collapsed} aria-controls={`playlist-group-${group.id}`}><span className={`playlist-library__chevron${collapsed ? '' : ' is-open'}`} aria-hidden='true'>›</span><FolderIcon /><strong>{group.name}</strong><span className='playlist-library__count'>{playlists.length}</span></button>
-			{group.id > 0 && !selecting && <button type='button' className='playlist-library__grip playlist-library__folder-grip' aria-label={t('playlists.dragGroup', { name: group.name })} {...sortable.attributes} {...sortable.listeners}><Grip /></button>}
+			{!selecting && <button type='button' className='playlist-library__grip playlist-library__folder-grip' aria-label={t('playlists.dragGroup', { name: group.name })} {...sortable.attributes} {...sortable.listeners}><Grip /></button>}
 			{group.id > 0 && <div className='playlist-library__group-actions'><button type='button' onClick={onEdit} aria-label={t('playlists.renameGroup', { name: group.name })} title={t('common.edit')}><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.6' aria-hidden='true'><path d='m15 4 5 5M4 20l5-1L20 8l-4-4L5 15z' /></svg></button><button type='button' onClick={onDelete} aria-label={t('playlists.deleteGroup', { name: group.name })} title={t('common.delete')}><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.6' aria-hidden='true'><path d='m6 6 12 12M18 6 6 18' /></svg></button></div>}
 		</div>
 		{!collapsed && <div className='playlist-library__group-body' id={`playlist-group-${group.id}`}>{children}{!playlists.length && <p className='playlist-library__empty-group'>{t('playlists.dropHere')}</p>}</div>}
@@ -64,18 +64,19 @@ export default function PlaylistLibrary({ playlists, selectedId, onSelect, onRef
 	useEffect(() => { void getPlaylistGroups().then(setGroups).catch(() => setError(t('playlists.groupsLoadError'))) }, [t])
 	useEffect(() => { try { localStorage.setItem(`gdb.playlist-groups.${userId}`, JSON.stringify(collapsed)) } catch { /* Storage is optional. */ } }, [collapsed, userId])
 	const active = localPlaylists.find(playlist => playlist.id === activeId)
-	const sections = [{ id: 0, name: t('playlists.ungrouped'), sortOrder: 0 }, ...groups]
+	const sections = [{ id: 0, name: t('playlists.ungrouped'), sortOrder: 0 }, ...groups].sort((a, b) => a.sortOrder - b.sortOrder)
 	const openEditor = (group: PlaylistGroup | 'new') => { setEditor(group); setName(group === 'new' ? '' : group.name); setError(null) }
 	const finishDrag = async ({ active, over }: DragEndEvent) => {
 		setActiveId(null)
 		setActiveFolderId(null)
 		if (!over || moving) return
 		if (String(active.id).startsWith('folder-')) {
-			const from = groups.findIndex(group => `folder-${group.id}` === active.id)
-			const to = groups.findIndex(group => `folder-${group.id}` === over.id)
+			const from = sections.findIndex(group => `folder-${group.id}` === active.id)
+			const to = sections.findIndex(group => `folder-${group.id}` === over.id)
 			if (from < 0 || to < 0 || from === to) return
-			const next = arrayMove(groups, from, to)
-			setGroups(next); setMoving(true); setError(null)
+			const next = arrayMove(sections, from, to)
+			const origin = next.findIndex(group => group.id === 0)
+			setGroups(next.map((group, index) => ({ ...group, sortOrder: index - origin })).filter(group => group.id !== 0)); setMoving(true); setError(null)
 			try { await reorderPlaylistGroups(next.map(group => group.id)) } catch { setGroups(groups); setError(t('common.reorderError')) } finally { setMoving(false) }
 			return
 		}
@@ -105,15 +106,16 @@ export default function PlaylistLibrary({ playlists, selectedId, onSelect, onRef
 		<label className='playlist-library__search'><input type='search' value={query} onChange={event => setQuery(event.target.value)} placeholder={t('playlists.findPlaylist')} aria-label={t('playlists.findPlaylist')} /></label>
 		{error && <p role='alert' className='playlist-library__error'>{error}</p>}
 		{selecting && <div className='playlist-library__move'><span>{t('playlists.selectedLists', { count: checkedIds.length })}</span><label><span className='sr-only'>{t('playlists.moveToGroup')}</span><select disabled={moving} value={destination} onChange={event => setDestination(event.target.value)}><option value=''>{t('playlists.ungrouped')}</option>{groups.map(group => <option key={group.id} value={group.id}>{group.name}</option>)}</select></label><button type='button' disabled={moving || checkedIds.length === 0} onClick={async () => { setMoving(true); setError(null); try { for (const id of checkedIds) await movePlaylistToGroup(id, destination ? Number(destination) : null); setCheckedIds([]); await onRefresh() } catch { setError(t('playlists.groupSaveError')); await onRefresh() } finally { setMoving(false) } }}>{t('playlists.moveSelected')}</button></div>}
-		<DndContext sensors={sensors} modifiers={[restrictToVerticalAxis]} collisionDetection={args => { if (String(args.active.id).startsWith('folder-')) return closestCenter({ ...args, droppableContainers: args.droppableContainers.filter(container => String(container.id).startsWith('folder-') && container.id !== 'folder-0') }); const hits = pointerWithin(args).filter(hit => !String(hit.id).startsWith('folder-')); const rows = hits.filter(hit => String(hit.id).startsWith('playlist-')); return rows.length ? rows : hits.length ? hits : closestCenter({ ...args, droppableContainers: args.droppableContainers.filter(container => !String(container.id).startsWith('folder-')) }) }} onDragStart={({ active }) => { snapshot.current = localPlaylists; if (String(active.id).startsWith('folder-')) setActiveFolderId(Number(String(active.id).replace('folder-', ''))); else setActiveId(Number(String(active.id).replace('playlist-', ''))) }} onDragCancel={() => { setActiveId(null); setActiveFolderId(null) }} onDragEnd={event => void finishDrag(event)}>
-			<SortableContext items={groups.map(group => `folder-${group.id}`)} strategy={verticalListSortingStrategy}><div className='playlist-library__sections'>{sections.map(group => {
+		<DndContext sensors={sensors} modifiers={[restrictToVerticalAxis]} collisionDetection={args => { if (String(args.active.id).startsWith('folder-')) return closestCenter({ ...args, droppableContainers: args.droppableContainers.filter(container => String(container.id).startsWith('folder-')) }); const hits = pointerWithin(args).filter(hit => !String(hit.id).startsWith('folder-')); const rows = hits.filter(hit => String(hit.id).startsWith('playlist-')); return rows.length ? rows : hits.length ? hits : closestCenter({ ...args, droppableContainers: args.droppableContainers.filter(container => !String(container.id).startsWith('folder-')) }) }} onDragStart={({ active }) => { snapshot.current = localPlaylists; if (String(active.id).startsWith('folder-')) setActiveFolderId(Number(String(active.id).replace('folder-', ''))); else setActiveId(Number(String(active.id).replace('playlist-', ''))) }} onDragCancel={() => { setActiveId(null); setActiveFolderId(null) }} onDragEnd={event => void finishDrag(event)}>
+			<SortableContext items={sections.filter(group => group.id !== 0 || localPlaylists.some(playlist => !playlist.groupId)).map(group => `folder-${group.id}`)} strategy={verticalListSortingStrategy}><div className='playlist-library__sections'>{sections.map(group => {
 				const members = localPlaylists.filter(playlist => (playlist.groupId ?? 0) === group.id && playlist.name.toLocaleLowerCase().includes(query.toLocaleLowerCase()))
+				if (group.id === 0 && !members.length) return null
 				if (query && !members.length) return null
 				return <GroupSection key={group.id} group={group} playlists={members} selecting={selecting} collapsed={!query && collapsed.includes(group.id)} onToggle={() => setCollapsed(current => current.includes(group.id) ? current.filter(id => id !== group.id) : [...current, group.id])} onEdit={() => openEditor(group)} onDelete={() => setDeleting(group)}>
 					<SortableContext items={members.map(playlist => `playlist-${playlist.id}`)} strategy={verticalListSortingStrategy}>{members.map(playlist => <PlaylistRow key={playlist.id} playlist={playlist} selected={playlist.id === selectedId} selecting={selecting} checked={checkedIds.includes(playlist.id)} onCheck={() => setCheckedIds(ids => ids.includes(playlist.id) ? ids.filter(id => id !== playlist.id) : [...ids, playlist.id])} onSelect={() => onSelect(playlist.id)} />)}</SortableContext>
 				</GroupSection>
 			})}</div></SortableContext>
-			{createPortal(<DragOverlay adjustScale={false} dropAnimation={{ duration: 180, easing: 'cubic-bezier(.2,.8,.2,1)' }}>{activeFolderId !== null ? <div className='playlist-library__folder-overlay'><FolderIcon /><strong>{groups.find(group => group.id === activeFolderId)?.name}</strong></div> : active && <PlaylistRow playlist={active} selected={false} onSelect={() => {}} overlay />}</DragOverlay>, document.body)}
+			{createPortal(<DragOverlay adjustScale={false} dropAnimation={{ duration: 180, easing: 'cubic-bezier(.2,.8,.2,1)' }}>{activeFolderId !== null ? <div className='playlist-library__folder-overlay'><FolderIcon /><strong>{sections.find(group => group.id === activeFolderId)?.name}</strong></div> : active && <PlaylistRow playlist={active} selected={false} onSelect={() => {}} overlay />}</DragOverlay>, document.body)}
 		</DndContext>
 		{moving && <p role='status' className='playlist-library__save-status'>{t('common.saving')}</p>}
 		</div>

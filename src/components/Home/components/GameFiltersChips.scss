@@ -876,6 +876,31 @@
 		gap: 10px;
 		margin-bottom: 22px;
 
+		&__top {
+			grid-template-columns: minmax(0, 1fr) auto;
+			align-items: center;
+			gap: 10px;
+		}
+
+		&__top-left &__field--inline:not(&__field--sort),
+		&__search-control {
+			width: 100%;
+			min-width: 0;
+		}
+
+		&__search-control {
+			gap: 8px;
+			.game-filters-chips__input-search {
+				flex: 1;
+				width: 100%;
+				min-width: 0;
+				font-size: 16px;
+				min-height: 44px;
+			}
+		}
+
+		&__advanced-btn { min-width: 44px; min-height: 44px; }
+
 		&__input-pill,
 		&__select-pill {
 			min-width: 160px;
@@ -890,6 +915,7 @@
 
 		&__top-right {
 			display: flex;
+			width: auto;
 			justify-content: flex-end;
 			align-items: center;
 			gap: 8px;
