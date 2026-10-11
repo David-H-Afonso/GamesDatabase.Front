@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
+import { act, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test/utils/renderWithProviders'
 import { usePlaylists } from '@/hooks'
@@ -7,11 +7,15 @@ import type { Game } from '@/models/api/Game'
 import type { Playlist, PlaylistItem, PlaylistSummary } from '@/models/api/Playlist'
 import FocusMode from './FocusMode'
 import { steamService } from '@/services/SteamService/SteamService'
+import { getPlaylistById } from '@/services/PlaylistService/PlaylistService'
+import playlistsReducer, { refreshCurrentPlaylist } from '@/store/features/playlists/playlistSlice'
+import { fetchPlaylistById } from '@/store/features/playlists/thunk'
 
 vi.mock('./FocusMode.scss', () => ({}))
 vi.mock('@/hooks', () => ({ usePlaylists: vi.fn() }))
 vi.mock('@/services/GamesService/GamesService', () => ({ getGames: vi.fn() }))
 vi.mock('@/services/SteamService/SteamService', () => ({ steamService: { syncGame: vi.fn().mockResolvedValue({ success: true }) } }))
+vi.mock('@/services/PlaylistService/PlaylistService', () => ({ getPlaylistById: vi.fn() }))
 
 const makeGame = (id: number, name: string): Game => ({
 	id,
@@ -79,6 +83,8 @@ describe('FocusMode', () => {
 	beforeEach(() => {
 		window.localStorage.clear()
 		vi.clearAllMocks()
+		vi.mocked(getPlaylistById).mockResolvedValue(makePlaylist())
+		vi.mocked(steamService.syncGame).mockResolvedValue({ success: true })
 		mockGetGames.mockResolvedValue({ data: [], totalCount: 0, page: 1, pageSize: 8, totalPages: 0, hasNextPage: false, hasPreviousPage: false })
 	})
 
@@ -155,7 +161,41 @@ describe('FocusMode', () => {
 		renderWithProviders(<FocusMode />)
 		await waitFor(() => expect(steamService.syncGame).toHaveBeenCalledTimes(1))
 		expect(steamService.syncGame).toHaveBeenCalledWith(1)
-		await waitFor(() => expect(hooks.fetchById).toHaveBeenCalledTimes(2))
+		await waitFor(() => expect(getPlaylistById).toHaveBeenCalledWith(7))
+		expect(hooks.fetchById).toHaveBeenCalledTimes(1)
 		expect(screen.getByLabelText('Completado al 100%')).toBeInTheDocument()
+	})
+
+	it('does not refresh shared playlist state after leaving Focus while Steam is syncing', async () => {
+		let finishSync!: (value: { success: boolean }) => void
+		vi.mocked(steamService.syncGame).mockReturnValueOnce(new Promise(resolve => { finishSync = resolve }))
+		mockUsePlaylists.mockReturnValue(makePlaylistHook(makePlaylist([makeItem(101, { ...currentGame, steamAppId: 100 })])) as any)
+		const { unmount } = renderWithProviders(<FocusMode />)
+		await waitFor(() => expect(steamService.syncGame).toHaveBeenCalledTimes(1))
+		unmount()
+		await act(async () => { finishSync({ success: true }) })
+		expect(getPlaylistById).not.toHaveBeenCalled()
+	})
+
+	it('ignores a Focus refresh when another playlist is loading or has become current', () => {
+		const focus = makePlaylist()
+		const other = { ...focus, id: 16, name: 'Backlog' }
+		let state = playlistsReducer(undefined, { type: 'init' })
+		state = { ...state, currentPlaylist: focus }
+		state = playlistsReducer(state, fetchPlaylistById.pending('new-request', 16))
+		state = playlistsReducer(state, refreshCurrentPlaylist(focus))
+		expect(state.currentPlaylistRequestId).toBe('new-request')
+		state = playlistsReducer(state, fetchPlaylistById.fulfilled(other, 'new-request', 16))
+		state = playlistsReducer(state, refreshCurrentPlaylist(focus))
+		expect(state.currentPlaylist?.id).toBe(16)
+	})
+
+	it('keeps the newest playlist detail response when requests finish out of order', () => {
+		let state = playlistsReducer(undefined, fetchPlaylistById.pending('focus-request', 7))
+		state = playlistsReducer(state, fetchPlaylistById.pending('backlog-request', 16))
+		const other = { ...makePlaylist(), id: 16 }
+		state = playlistsReducer(state, fetchPlaylistById.fulfilled(other, 'backlog-request', 16))
+		state = playlistsReducer(state, fetchPlaylistById.fulfilled(makePlaylist(), 'focus-request', 7))
+		expect(state.currentPlaylist?.id).toBe(16)
 	})
 })

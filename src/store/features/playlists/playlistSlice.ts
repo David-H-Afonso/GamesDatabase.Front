@@ -9,7 +9,10 @@ const playlistSlice = createSlice({
 	name: 'playlists',
 	initialState,
 	reducers: {
-		setCurrentPlaylist: (state, action: PayloadAction<Playlist | null>) => { state.currentPlaylist = action.payload },
+		setCurrentPlaylist: (state, action: PayloadAction<Playlist | null>) => { state.currentPlaylist = action.payload; state.currentPlaylistRequestId = undefined },
+		refreshCurrentPlaylist: (state, action: PayloadAction<Playlist>) => {
+			if (!state.currentPlaylistRequestId && state.currentPlaylist?.id === action.payload.id) state.currentPlaylist = action.payload
+		},
 		setPlaylists: (state, action: PayloadAction<PlaylistState['playlists']>) => { state.playlists = action.payload },
 		resetState: () => initialState,
 	},
@@ -17,9 +20,15 @@ const playlistSlice = createSlice({
 		builder.addCase(fetchPlaylists.pending, (state) => { state.loading = true; state.error = null })
 			.addCase(fetchPlaylists.fulfilled, (state, action) => { state.loading = false; state.playlists = action.payload })
 			.addCase(fetchPlaylists.rejected, (state, action) => { state.loading = false; state.error = action.payload as string })
-			.addCase(fetchPlaylistById.pending, (state) => { state.loading = true; state.error = null })
-			.addCase(fetchPlaylistById.fulfilled, (state, action) => { state.loading = false; state.currentPlaylist = action.payload })
-			.addCase(fetchPlaylistById.rejected, (state, action) => { state.loading = false; state.error = action.payload as string })
+			.addCase(fetchPlaylistById.pending, (state, action) => { state.loading = true; state.error = null; state.currentPlaylistRequestId = action.meta.requestId })
+			.addCase(fetchPlaylistById.fulfilled, (state, action) => {
+				if (state.currentPlaylistRequestId !== action.meta.requestId) return
+				state.loading = false; state.currentPlaylist = action.payload; state.currentPlaylistRequestId = undefined
+			})
+			.addCase(fetchPlaylistById.rejected, (state, action) => {
+				if (state.currentPlaylistRequestId !== action.meta.requestId) return
+				state.loading = false; state.error = action.payload as string; state.currentPlaylistRequestId = undefined
+			})
 			.addCase(createPlaylistThunk.fulfilled, (state, action) => { state.playlists.push(action.payload) })
 			.addCase(updatePlaylistThunk.fulfilled, (state, action) => {
 				const item = action.payload
@@ -44,9 +53,9 @@ const playlistSlice = createSlice({
 			.addCase(importPlaylistThunk.fulfilled, (state, action) => { state.playlists.push(action.payload); state.currentPlaylist = action.payload })
 			.addCase(reorderPlaylistItemsThunk.pending, (state) => { state.reordering = true; state.error = null })
 			.addCase(reorderPlaylistItemsThunk.rejected, (state, action) => { state.reordering = false; state.error = action.payload as string })
-			.addMatcher(action => action.type.startsWith('playlists/') && action.type.endsWith('/rejected'), (state, action: any) => { state.loading = false; state.error = action.payload as string })
+			.addMatcher(action => action.type.startsWith('playlists/') && action.type.endsWith('/rejected') && action.type !== fetchPlaylistById.rejected.type, (state, action: any) => { state.loading = false; state.error = action.payload as string })
 	},
 })
 
-export const { setCurrentPlaylist, setPlaylists, resetState } = playlistSlice.actions
+export const { setCurrentPlaylist, refreshCurrentPlaylist, setPlaylists, resetState } = playlistSlice.actions
 export default playlistSlice.reducer

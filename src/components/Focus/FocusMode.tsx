@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { usePlaylists } from '@/hooks'
-import { useAppSelector } from '@/store/hooks'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { refreshCurrentPlaylist } from '@/store/features/playlists/playlistSlice'
+import { getPlaylistById } from '@/services/PlaylistService/PlaylistService'
 import { getGames } from '@/services/GamesService/GamesService'
 import { formatPlaytime } from '@/utils/platformIcons/platformIcons'
 import type { Game } from '@/models/api/Game'
@@ -108,6 +110,7 @@ const FocusQueueCard = ({
 export default function FocusMode() {
 	const { t } = useTranslation()
 	const userId = useAppSelector(state => state.auth.user?.id)
+	const dispatch = useAppDispatch()
 	const { playlists, currentPlaylist, fetchAll, fetchById, create, addItem, removeItem } = usePlaylists()
 	const [managing, setManaging] = useState(false)
 	const [featuredGameId, setFeaturedGameId] = useState<number | null>(null)
@@ -126,6 +129,7 @@ export default function FocusMode() {
 	const searchInputRef = useRef<HTMLInputElement>(null)
 	const searchRequestRef = useRef(0)
 	const syncedGamesRef = useRef(new Set<number>())
+	const mountedRef = useRef(false)
 	const [steamUpdating, setSteamUpdating] = useState(false)
 	const [steamFailed, setSteamFailed] = useState(false)
 
@@ -137,6 +141,11 @@ export default function FocusMode() {
 	const queuedItems = visibleItems.filter(item => item.id !== currentItem?.id)
 	const focusCapacity = Math.min(focusPlaylist?.maxLength ?? FOCUS_GAME_LIMIT, FOCUS_GAME_LIMIT)
 	const remainingCapacity = Math.max(0, focusCapacity - allItems.length)
+
+	useEffect(() => {
+		mountedRef.current = true
+		return () => { mountedRef.current = false }
+	}, [])
 
 	useEffect(() => {
 		let cancelled = false
@@ -182,14 +191,21 @@ export default function FocusMode() {
 		void (async () => {
 			let failed = false
 			for (const item of steamGames) {
+				if (!mountedRef.current) return
 				try { const result = await steamService.syncGame(item.gameId); if (result.success === false || result.error || result.errors?.length) failed = true }
 				catch { failed = true }
 			}
-			try { await fetchById(focusPlaylist.id) } catch { failed = true }
+			if (!mountedRef.current) return
+			try {
+				const refreshed = await getPlaylistById(focusPlaylist.id)
+				if (!mountedRef.current) return
+				dispatch(refreshCurrentPlaylist(refreshed))
+			} catch { failed = true }
+			if (!mountedRef.current) return
 			setSteamFailed(failed)
 			setSteamUpdating(false)
 		})()
-	}, [focusPlaylist, playlistLoading, fetchById, visibleItems])
+	}, [focusPlaylist, playlistLoading, dispatch, visibleItems])
 
 	useEffect(() => {
 		if (focusPlaylistId === null) return
@@ -302,6 +318,12 @@ export default function FocusMode() {
 				<header className='focus-heading'>
 					<div className='focus-heading__copy'>
 						<h1>{t('focus.title')}</h1>
+						<span className='focus-sync-indicator-slot'>
+							{(steamUpdating || steamFailed) && <span className={`focus-sync-indicator${steamFailed ? ' is-failed' : ''}`} role='status' title={t(steamFailed ? 'focus.steamSyncPartial' : 'focus.syncingSteam')}>
+								{steamUpdating ? <svg viewBox='0 0 20 20' fill='none' aria-hidden='true'><circle cx='10' cy='10' r='7' stroke='currentColor' strokeWidth='1.5' opacity='.25' /><path d='M10 3a7 7 0 0 1 7 7' stroke='currentColor' strokeWidth='1.5' strokeLinecap='round' /></svg> : <svg viewBox='0 0 20 20' fill='none' aria-hidden='true'><circle cx='10' cy='10' r='7' stroke='currentColor' strokeWidth='1.5' /><path d='M10 6v5m0 2h.01' stroke='currentColor' strokeWidth='1.5' strokeLinecap='round' /></svg>}
+								<span className='sr-only'>{t(steamFailed ? 'focus.steamSyncPartial' : 'focus.syncingSteam')}</span>
+							</span>}
+						</span>
 					</div>
 					{focusPlaylist && (
 						<button type='button' className='focus-add-trigger' aria-expanded={managing} aria-controls='focus-management' onClick={() => setManaging(value => !value)}>
@@ -309,8 +331,6 @@ export default function FocusMode() {
 						</button>
 					)}
 				</header>
-				{steamUpdating && <p className='focus-sync-status' role='status'>{t('focus.syncingSteam')}</p>}
-				{steamFailed && <p className='focus-sync-status' role='status'>{t('focus.steamSyncPartial')}</p>}
 
 				{error && <p className='focus-alert' role='alert'>{error}</p>}
 
