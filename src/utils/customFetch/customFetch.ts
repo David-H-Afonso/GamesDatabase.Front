@@ -174,11 +174,6 @@ const parseResponseData = async (httpResponse: Response): Promise<any> => {
 	return await httpResponse.text()
 }
 
-const createTimeoutPromise = (timeoutMs: number): Promise<never> =>
-	new Promise((_, reject) => {
-		setTimeout(() => reject(new Error(`Request timeout after ${timeoutMs}ms`)), timeoutMs)
-	})
-
 export const customFetch = async <T = any>(endpoint: string, requestOptions: CustomFetchOptions = {}): Promise<T> => {
 	if (refs.handlingUnauthorized) throw new Error('Request cancelled')
 
@@ -199,13 +194,16 @@ export const customFetch = async <T = any>(endpoint: string, requestOptions: Cus
 
 	const controller = new AbortController()
 	refs.pending.add(controller)
+	let timeoutHandle: ReturnType<typeof setTimeout> | undefined
+	let abortListener: (() => void) | undefined
 
 	const signalToUse = controller.signal
 	if (abortSignal) {
 		if (abortSignal.aborted) {
 			controller.abort(abortSignal.reason)
 		} else {
-			abortSignal.addEventListener('abort', () => controller.abort(abortSignal.reason))
+			abortListener = () => controller.abort(abortSignal.reason)
+			abortSignal.addEventListener('abort', abortListener, { once: true })
 		}
 	}
 
@@ -230,7 +228,12 @@ export const customFetch = async <T = any>(endpoint: string, requestOptions: Cus
 	try {
 		const fetchPromise = fetch(completeUrl, fetchConfiguration)
 		const httpResponse = timeoutMs
-			? await Promise.race([fetchPromise, createTimeoutPromise(timeoutMs)])
+			? await Promise.race([fetchPromise, new Promise<never>((_, reject) => {
+				timeoutHandle = setTimeout(() => {
+					reject(new Error(`Request timeout after ${timeoutMs}ms`))
+					controller.abort()
+				}, timeoutMs)
+			})])
 			: await fetchPromise
 		const responseData = await parseResponseData(httpResponse)
 
@@ -263,6 +266,8 @@ export const customFetch = async <T = any>(endpoint: string, requestOptions: Cus
 			throw new Error(`Request failed for ${method} ${completeUrl}: ${fetchError.message}`)
 		throw fetchError
 	} finally {
+		clearTimeout(timeoutHandle)
+		if (abortListener) abortSignal?.removeEventListener('abort', abortListener)
 		refs.pending.delete(controller)
 	}
 }

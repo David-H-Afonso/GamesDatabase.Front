@@ -7,6 +7,7 @@ import { fetchGameById } from '@/store/features/games'
 import { steamService, type SteamAchievementProgress, type SteamDateSuggestion } from '@/services'
 import { SteamAchievements } from './SteamAchievements'
 import './SteamTab.scss'
+import { steamErrorKey } from '@/utils/steamErrors'
 
 export const SteamTab = ({ game }: { game: Game }) => {
 	const { t, i18n } = useTranslation()
@@ -61,8 +62,8 @@ export const SteamTab = ({ game }: { game: Game }) => {
 					setProgress(data)
 					await dispatch(fetchGameById(game.id)).unwrap()
 				}
-			} catch {
-				if (!controller.signal.aborted) setLoadError(true)
+			} catch (error) {
+				if (!controller.signal.aborted && steamErrorKey(error) !== 'steamSync.errors.busy') setLoadError(true)
 			} finally {
 				if (!controller.signal.aborted) setLoading(false)
 			}
@@ -91,8 +92,8 @@ export const SteamTab = ({ game }: { game: Game }) => {
 			setLoadError(false)
 			await dispatch(fetchGameById(game.id)).unwrap()
 			await loadDateSuggestion(signal)
-		} catch {
-			if (!signal.aborted) setSyncMessage(t('steamAchievements.syncFailed'))
+		} catch (error) {
+			if (!signal.aborted) setSyncMessage(t(steamErrorKey(error) === 'steamSync.errors.busy' ? 'steamSync.errors.busy' : 'steamAchievements.syncFailed'))
 		}
 	}
 

@@ -300,6 +300,8 @@ export const handlers = [
 	}),
 
 	// ─── Auth / Users ────────────────────────────────────────
+	http.get(`${API_BASE}/steam/sync/jobs/current`, () => HttpResponse.json({ job: null })),
+
 	http.post(`${API_BASE}/users/login`, async ({ request }) => {
 		const body = (await request.json()) as Record<string, unknown>
 		return HttpResponse.json({

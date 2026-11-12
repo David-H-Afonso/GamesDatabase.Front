@@ -128,6 +128,49 @@
 		"hintSelect": "Select",
 		"hintClose": "Close"
 	},
+	"steamSync": {
+		"title": "Sync library",
+		"description": "Update your Steam games, achievements and sets. Progress is saved game by game.",
+		"starting": "Starting…",
+		"checking": "Checking status…",
+		"inProgress": "Sync in progress",
+		"recover": "Recover status",
+		"progress": "{{processed}} / {{total}} games checked",
+		"progressLabel": "Steam synchronization progress",
+		"currentGame": "Checking: {{name}}",
+		"waiting": "The operation is queued. You do not need to press the button again.",
+		"preparing": "Preparing your Steam library…",
+		"achievements": "Achievements updated",
+		"gamesWithWarnings": "Games with update errors",
+		"warnings": "Warnings",
+		"leaveHint": "You can leave this screen and return: the server continues your requested operation and saves each game separately.",
+		"savedHint": "Saved changes and previous completions are preserved. A new attempt checks the library again without deleting progress.",
+		"connectionHint": "Losing the connection does not necessarily cancel synchronization. Recover its status before trying to start again.",
+		"states": {
+			"idle": "Ready to sync",
+			"queued": "Queued",
+			"running": "Syncing Steam",
+			"completed": "Sync completed",
+			"partial": "Completed with warnings",
+			"failed": "Sync could not finish",
+			"interrupted": "Sync interrupted"
+		},
+		"errors": {
+			"gateway": "The proxy timed out while checking the operation. Your progress has not been deleted.",
+			"busy": "A Steam sync is already running. Wait for it to finish before syncing another game or disconnecting your account.",
+			"queueFull": "The synchronization queue is busy. Try again later.",
+			"unlinked": "No Steam account is linked for synchronization.",
+			"statusLost": "The server no longer has this operation's status; it may have restarted. Games already saved are preserved.",
+			"unavailable": "Could not reach the synchronization server. The last known status is preserved.",
+			"request": "Could not check or complete the Steam operation. The last known status is preserved."
+		},
+		"jobErrors": {
+			"syncFailed": "The operation stopped. Games saved before the error are preserved.",
+			"syncInterrupted": "The operation was interrupted. Recover its status or start a new attempt; games already saved are preserved.",
+			"steamAccountChanged": "The Steam account changed during synchronization. The operation stopped to avoid mixing account data.",
+			"steamNotLinked": "The Steam account was disconnected. Previous progress is preserved."
+		}
+	},
 	"steamAchievements": {
 		"playtime": "Playtime",
 		"hours": "{{hours}} h",

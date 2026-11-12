@@ -1,0 +1,39 @@
+.steam-sync-panel {
+	margin: 1.25rem 0;
+	padding: 1rem;
+	border: 1px solid var(--border-color);
+	border-radius: 10px;
+	background: var(--surface);
+	color: var(--text-primary);
+	min-width: 0;
+
+	h3 { margin: 0 0 0.35rem; font-size: 1rem; }
+	p { margin: 0; line-height: 1.5; font-size: 0.85rem; }
+	&__heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+	&__heading > div { min-width: 0; }
+	&__heading p, &__hint { color: var(--text-secondary); }
+	&__heading > button { flex-shrink: 0; }
+	&__progress { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color); }
+	&__status { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; font-size: 0.9rem; }
+	&__status > span { font-variant-numeric: tabular-nums; color: var(--text-secondary); }
+	progress { display: block; appearance: none; width: 100%; height: 10px; margin: 0.65rem 0; border: 0; border-radius: 999px; overflow: hidden; background: var(--border-color); accent-color: var(--primary, #4287f5); }
+	progress::-webkit-progress-bar { background: var(--border-color); border-radius: 999px; }
+	progress::-webkit-progress-value { background: var(--primary, #4287f5); border-radius: 999px; }
+	progress::-moz-progress-bar { background: var(--primary, #4287f5); border-radius: 999px; }
+	&__current { overflow-wrap: anywhere; }
+	&__counts { display: flex; flex-wrap: wrap; gap: 1.5rem; margin: 0.9rem 0; }
+	&__counts > div { display: flex; flex-direction: column; gap: 0.2rem; }
+	dt { font-size: 0.75rem; color: var(--text-secondary); }
+	dd { margin: 0; font-size: 1rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+	&__notice { padding: 0.8rem; margin-top: 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-secondary, var(--surface)); }
+	&__notice > * + * { margin-top: 0.5rem; }
+	button:focus-visible { outline: 2px solid var(--primary, #4287f5); outline-offset: 3px; }
+}
+
+.admin-steam-import .steam-alert-dismiss { float: right; margin-left: 0.75rem; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.admin-steam-import .steam-alert-dismiss:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+
+@media (max-width: 600px) {
+	.steam-sync-panel__heading { flex-direction: column; }
+	.steam-sync-panel__heading > button { width: 100%; }
+}

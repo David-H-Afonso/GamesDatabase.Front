@@ -48,6 +48,37 @@ export interface SteamSyncResult {
 	errors?: string[]
 	achievementsSyncSucceeded?: boolean
 	warnings?: string[]
+	totalGames?: number
+	processedGames?: number
+	failedGames?: number
+	warningCount?: number
+}
+
+export interface SteamSyncJob {
+	id: string
+	state: 'queued' | 'running' | 'completed' | 'failed' | 'interrupted'
+	createdAt: string
+	startedAt?: string
+	finishedAt?: string
+	totalGames: number
+	processedGames: number
+	gamesUpdated: number
+	achievementsUpdated: number
+	failedGames: number
+	warningCount: number
+	currentGameName?: string
+	error?: string
+	result?: SteamSyncResult
+}
+
+export const isSteamSyncActive = (job: SteamSyncJob | null): boolean => job?.state === 'queued' || job?.state === 'running'
+
+const validateSyncJob = (value: SteamSyncJob): SteamSyncJob => {
+	if (!value || typeof value !== 'object' || typeof value.id !== 'string' || !value.id ||
+		!['queued', 'running', 'completed', 'failed', 'interrupted'].includes(value.state) ||
+		![value.totalGames, value.processedGames, value.gamesUpdated, value.achievementsUpdated, value.failedGames, value.warningCount].every(count => Number.isInteger(count) && count >= 0) ||
+		value.processedGames > value.totalGames) throw new Error('Invalid Steam sync status response')
+	return value
 }
 
 export interface SteamAchievement {
@@ -263,6 +294,20 @@ class SteamService {
 
 	async getAchievements(gameId: number): Promise<SteamAchievement[]> {
 		return customFetch<SteamAchievement[]>(base.achievements(gameId))
+	}
+
+	async startSyncJob(signal?: AbortSignal): Promise<SteamSyncJob> {
+		return validateSyncJob(await customFetch<SteamSyncJob>(base.syncJobs, { method: 'POST', signal, timeout: 15000 }))
+	}
+
+	async getCurrentSyncJob(signal?: AbortSignal): Promise<SteamSyncJob | null> {
+		const response = await customFetch<{ job?: SteamSyncJob }>(base.currentSyncJob, { signal, timeout: 15000 })
+		if (!response || typeof response !== 'object') throw new Error('Invalid Steam sync status response')
+		return response.job ? validateSyncJob(response.job) : null
+	}
+
+	async getSyncJob(id: string, signal?: AbortSignal): Promise<SteamSyncJob> {
+		return validateSyncJob(await customFetch<SteamSyncJob>(base.syncJob(id), { signal, timeout: 15000 }))
 	}
 
 	async getAchievementProgress(gameId: number, signal?: AbortSignal): Promise<SteamAchievementProgress> {

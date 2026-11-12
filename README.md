@@ -31,6 +31,20 @@ Update the API first: the new UI uses
 The backend migration preserves existing completion before importing sets; take a
 consistent database backup before running the updated API, then sync Steam once.
 
+### Large Steam libraries
+
+**Sync all** now starts an explicit server operation instead of holding a long
+HTTP request open. The Steam account screen shows queued/running progress, the
+current game, updated achievements and partial failures. You can leave and return
+without sending another start request. Connection errors retain the last counters
+and offer **Recover status**, without rendering proxy HTML or resubmitting work.
+
+Each game is saved separately. An API restart loses temporary operation status,
+not committed game data; a new pass requires an explicit user action. The observer
+does not poll while idle or after completion and is cleaned up on unmount/account
+change. Update the backend together with the frontend; this correction adds no
+database migration and does not require longer proxy timeouts.
+
 ## Tech Stack
 
 - **Frontend Framework**: React 19 with TypeScript

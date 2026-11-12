@@ -657,6 +657,35 @@ describe('AbortSignal', () => {
 // ── 13. Timeout ───────────────────────────────────────────────────────────────
 
 describe('timeout', () => {
+	it('cleans the timeout and abort subscription after a successful short status request', async () => {
+		vi.useFakeTimers()
+		const controller = new AbortController()
+		const remove = vi.spyOn(controller.signal, 'removeEventListener')
+		const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { headers: { 'Content-Type': 'application/json' } }))
+		try {
+			await customFetch('/job-status', { timeout: 15000, signal: controller.signal })
+			expect(vi.getTimerCount()).toBe(0)
+			expect(remove).toHaveBeenCalledWith('abort', expect.any(Function))
+		} finally { fetchSpy.mockRestore(); remove.mockRestore(); vi.useRealTimers() }
+	})
+
+	it('actually aborts a timed-out request instead of leaving it pending behind the UI', async () => {
+		vi.useFakeTimers()
+		let requestSignal: AbortSignal | undefined
+		const fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation((_input, init) => {
+			requestSignal = init?.signal as AbortSignal
+			return new Promise((_resolve, reject) => requestSignal!.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError'))))
+		})
+		try {
+			const request = customFetch('/job-status', { timeout: 100 })
+			const rejected = expect(request).rejects.toThrow('timeout after 100ms')
+			await vi.advanceTimersByTimeAsync(100)
+			await rejected
+			expect(requestSignal!.aborted).toBe(true)
+			expect(vi.getTimerCount()).toBe(0)
+		} finally { fetchSpy.mockRestore(); vi.useRealTimers() }
+	})
+
 	it('resolves normally when the request completes before the timeout', async () => {
 		server.use(http.get(`${BASE}/fast`, () => HttpResponse.json({ ok: true })))
 		await expect(customFetch('/fast', { timeout: 5000 })).resolves.toEqual({ ok: true })

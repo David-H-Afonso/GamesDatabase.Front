@@ -128,6 +128,49 @@
 		"hintSelect": "Seleccionar",
 		"hintClose": "Cerrar"
 	},
+	"steamSync": {
+		"title": "Sincronizar biblioteca",
+		"description": "Actualiza tus juegos, logros y conjuntos de Steam. El progreso se guarda por juego.",
+		"starting": "Iniciando…",
+		"checking": "Comprobando estado…",
+		"inProgress": "Sincronización en curso",
+		"recover": "Recuperar estado",
+		"progress": "{{processed}} / {{total}} juegos revisados",
+		"progressLabel": "Progreso de sincronización de Steam",
+		"currentGame": "Revisando: {{name}}",
+		"waiting": "La operación está en cola. No necesitas volver a pulsar el botón.",
+		"preparing": "Preparando la biblioteca de Steam…",
+		"achievements": "Logros actualizados",
+		"gamesWithWarnings": "Juegos con errores de actualización",
+		"warnings": "Avisos",
+		"leaveHint": "Puedes salir de esta pantalla y volver: el servidor continúa la operación que has solicitado y guarda cada juego por separado.",
+		"savedHint": "Los cambios guardados y los completados anteriores se conservan. Un nuevo intento vuelve a recorrer la biblioteca sin borrar el progreso.",
+		"connectionHint": "Perder la conexión no cancela necesariamente la sincronización. Recupera el estado antes de iniciar otro intento.",
+		"states": {
+			"idle": "Lista para sincronizar",
+			"queued": "En cola",
+			"running": "Sincronizando Steam",
+			"completed": "Sincronización completada",
+			"partial": "Completada con avisos",
+			"failed": "La sincronización no pudo terminar",
+			"interrupted": "Sincronización interrumpida"
+		},
+		"errors": {
+			"gateway": "El proxy agotó el tiempo de espera al consultar la operación. No se ha borrado tu progreso.",
+			"busy": "Ya hay una sincronización de Steam en curso. Espera a que termine antes de sincronizar otro juego o desconectar la cuenta.",
+			"queueFull": "La cola de sincronización está ocupada. Inténtalo más tarde.",
+			"unlinked": "No hay una cuenta de Steam vinculada para iniciar la sincronización.",
+			"statusLost": "El servidor ya no conserva el estado de esta operación; puede haberse reiniciado. Los juegos ya guardados se conservan.",
+			"unavailable": "No se pudo contactar con el servidor de sincronización. Conservamos el último estado conocido.",
+			"request": "No se pudo consultar o completar la operación con Steam. Conservamos el último estado conocido."
+		},
+		"jobErrors": {
+			"syncFailed": "La operación se ha detenido. Los juegos guardados antes del error no se pierden.",
+			"syncInterrupted": "La operación se interrumpió. Recupera el estado o inicia un nuevo intento; los juegos ya guardados no se pierden.",
+			"steamAccountChanged": "La cuenta de Steam cambió durante la operación. Se ha detenido para no mezclar datos de cuentas diferentes.",
+			"steamNotLinked": "La cuenta de Steam se ha desconectado. No se ha borrado el progreso anterior."
+		}
+	},
 	"steamAchievements": {
 		"playtime": "Tiempo de juego",
 		"hours": "{{hours}} h",

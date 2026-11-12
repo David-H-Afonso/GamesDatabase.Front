@@ -7,7 +7,6 @@ import {
 	clearLastImportResult,
 	fetchSteamProfile,
 	unlinkSteam,
-	syncAllSteam,
 	clearSteamError,
 	markSteamGameLinked,
 } from '@/store/features/steam/steamSlice'
@@ -18,6 +17,9 @@ import type { Game } from '@/models/api/Game'
 import { ConfirmDialog, Toast } from '@/components/elements'
 import './AdminSteam.scss'
 import './AdminSteamImport.scss'
+import { useSteamSyncJob } from './useSteamSyncJob'
+import { SteamSyncPanel } from './SteamSyncPanel'
+import { steamErrorKey } from '@/utils/steamErrors'
 
 type ImportAction = 'create' | 'skip' | 'link'
 type ActiveTab = 'account' | 'library' | 'suggestions' | 'store' | 'storeSuggestions' | 'dateSuggestions'
@@ -33,7 +35,7 @@ export const AdminSteamImport = () => {
 	const dispatch = useAppDispatch()
 	const { t } = useTranslation()
 	const authUser = useAppSelector((state) => state.auth.user)
-	const { profile, library, libraryLoading, profileLoading, syncLoading, importLoading, lastSyncResult, lastImportResult, error } = useAppSelector((state) => state.steam)
+	const { profile, library, libraryLoading, profileLoading, importLoading, lastImportResult, error } = useAppSelector((state) => state.steam)
 
 	const [rowActions, setRowActions] = useState<Map<number, ImportAction>>(new Map())
 	const [linkTargets, setLinkTargets] = useState<Map<number, LinkTarget>>(new Map())
@@ -81,6 +83,7 @@ export const AdminSteamImport = () => {
 	const storeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
 	const isSteamLinked = !!authUser?.steamId
+	const syncJob = useSteamSyncJob(authUser?.id, isSteamLinked)
 
 	useEffect(() => {
 		if (isSteamLinked) {
@@ -164,21 +167,7 @@ export const AdminSteamImport = () => {
 		setTimeout(() => setMessage(null), 3000)
 	}
 
-	const handleSyncAll = async () => {
-		try {
-			const result = await dispatch(syncAllSteam()).unwrap()
-			const syncedGames = result.gamesUpdated ?? result.syncedGames ?? 0
-			const syncedAchievements = result.achievementsUpdated ?? result.syncedAchievements ?? 0
-			setMessage(result.achievementsSyncSucceeded === false ? t('steamAchievements.syncPartial') : t('admin.steam.account.syncDone', { games: syncedGames, achievements: syncedAchievements }))
-			setIsSuccess(result.achievementsSyncSucceeded !== false)
-		} catch {
-			setMessage(t('admin.steam.account.syncError'))
-			setIsSuccess(false)
-		}
-		setTimeout(() => setMessage(null), 5000)
-	}
-
-	const handleClearError = () => dispatch(clearSteamError())
+	const handleClearError = () => { dispatch(clearSteamError()); setMessage(null) }
 
 	const loadSuggestions = async () => {
 		setSuggestionsLoading(true)
@@ -772,25 +761,13 @@ export const AdminSteamImport = () => {
 					</div>
 				) : null}
 
+				<SteamSyncPanel job={syncJob.job} checking={syncJob.checking} starting={syncJob.starting} errorKey={syncJob.errorKey} onStart={() => { handleClearError(); void syncJob.start() }} onRefresh={syncJob.refresh} />
 				<div className='steam-actions'>
-					<button className='btn btn-primary' onClick={handleSyncAll} disabled={syncLoading}>
-						{syncLoading ? t('admin.steam.account.syncing') : t('admin.steam.account.syncAll')}
-					</button>
-					<button className='btn btn-danger' onClick={() => setUnlinkConfirmOpen(true)}>
+					<button className='btn btn-danger' onClick={() => setUnlinkConfirmOpen(true)} disabled={syncJob.busy}>
 						{t('admin.steam.account.disconnect')}
 					</button>
 				</div>
 
-				{lastSyncResult && (
-					<div className='steam-sync-result'>
-						<h4>{t('admin.steam.account.lastSyncTitle')}</h4>
-						<ul>
-							<li>{t('admin.steam.account.syncedGames', { count: lastSyncResult.gamesUpdated ?? lastSyncResult.syncedGames ?? 0 })}</li>
-							<li>{t('admin.steam.account.syncedAchievements', { count: lastSyncResult.achievementsUpdated ?? lastSyncResult.syncedAchievements ?? 0 })}</li>
-							{(lastSyncResult.errors?.length ?? 0) > 0 && <li className='sync-errors'>{t('admin.steam.account.syncErrors', { errors: lastSyncResult.errors?.join(', ') })}</li>}
-						</ul>
-					</div>
-				)}
 			</div>
 		)
 
@@ -835,14 +812,16 @@ export const AdminSteamImport = () => {
 			</div>
 
 			{(activeTab === 'account' || !isSteamLinked) && (error || message) && (
-				<div className={`alert ${isSuccess && !error ? 'alert--success' : 'alert--error'}`} onClick={handleClearError}>
-					{error || message}
+				<div className={`alert ${isSuccess && !error ? 'alert--success' : 'alert--error'}`} role={isSuccess && !error ? 'status' : 'alert'}>
+					<button type='button' className='steam-alert-dismiss' aria-label={t('common.close')} onClick={handleClearError}>×</button>
+					{error ? t(steamErrorKey(error)) : message}
 				</div>
 			)}
 
 			{activeTab !== 'account' && isSteamLinked && error && (
-				<div className='alert alert--error' style={{ cursor: 'pointer' }} onClick={handleClearError}>
-					{error}
+				<div className='alert alert--error' role='alert'>
+					<button type='button' className='steam-alert-dismiss' aria-label={t('common.close')} onClick={handleClearError}>×</button>
+					{t(steamErrorKey(error))}
 				</div>
 			)}
 
