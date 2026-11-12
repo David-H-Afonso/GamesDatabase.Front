@@ -33,6 +33,32 @@
 .admin-steam-import .steam-alert-dismiss { float: right; margin-left: 0.75rem; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; }
 .admin-steam-import .steam-alert-dismiss:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 
+.steam-sync-issues {
+	margin-top: 1rem;
+	padding-top: 0.8rem;
+	border-top: 1px solid var(--border-color);
+	summary { width: fit-content; cursor: pointer; font-size: 0.9rem; font-weight: 600; }
+	> p { margin-top: 0.6rem; }
+	&__summary { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; margin: 0.8rem 0; font-size: 0.8rem; color: var(--text-secondary); }
+	&__filters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; margin: 0.8rem 0; }
+	label { display: flex; flex-direction: column; gap: 0.3rem; min-width: 0; font-size: 0.8rem; color: var(--text-secondary); }
+	:is(input, select) { box-sizing: border-box; min-width: 0; width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; background: var(--surface); color: var(--text-primary); font: inherit; }
+	&__list { display: grid; gap: 0.65rem; list-style: none; padding: 0; margin: 0.75rem 0; max-height: min(60vh, 30rem); overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
+	li { padding: 0.75rem; min-width: 0; border: 1px solid var(--border-color); border-radius: 8px; }
+	li > strong { display: block; font-size: 0.8rem; margin: 0.3rem 0; }
+	li p { font-size: 0.8rem; color: var(--text-secondary); }
+	&__row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: baseline; justify-content: space-between; }
+	a { overflow-wrap: anywhere; color: var(--text-primary); font-size: 0.9rem; font-weight: 600; text-decoration: underline; }
+	&__severity { border: 1px solid var(--border-color); border-radius: 999px; padding: 0.1rem 0.5rem; font-size: 0.72rem; color: var(--text-secondary); }
+	&__severity[data-severity='error'] { border-color: #db6c6c; }
+	&__severity[data-severity='warning'] { border-color: #c99d46; }
+	:is(summary, select, input, a, ul):focus-visible { outline: 2px solid var(--primary, #4287f5); outline-offset: 3px; }
+}
+
+@media (max-width: 600px) {
+	.steam-sync-issues__filters { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 600px) {
 	.steam-sync-panel__heading { flex-direction: column; }
 	.steam-sync-panel__heading > button { width: 100%; }

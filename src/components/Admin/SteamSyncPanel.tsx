@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { isSteamSyncActive, type SteamSyncJob } from '@/services/SteamService/SteamService'
 import './SteamSyncPanel.scss'
+import { SteamSyncIssues } from './SteamSyncIssues'
 
 interface Props {
 	job: SteamSyncJob | null
@@ -33,9 +34,11 @@ export const SteamSyncPanel = ({ job, checking, starting, errorKey, onStart, onR
 				<div><dt>{t('steamSync.achievements')}</dt><dd>{number(job.achievementsUpdated)}</dd></div>
 				<div><dt>{t('steamSync.gamesWithWarnings')}</dt><dd>{number(job.failedGames)}</dd></div>
 				<div><dt>{t('steamSync.warnings')}</dt><dd>{number(job.warningCount)}</dd></div>
+				<div><dt>{t('steamSync.information')}</dt><dd>{number(job.infoCount ?? 0)}</dd></div>
 			</dl>
 			{job.error && <p role='alert'>{t(`steamSync.jobErrors.${job.error}`, { defaultValue: t('steamSync.jobErrors.syncFailed') })}</p>}
 			<p className='steam-sync-panel__hint'>{t(active ? 'steamSync.leaveHint' : 'steamSync.savedHint')}</p>
+			{Boolean(job.issues?.length) && <SteamSyncIssues key={job.id} issues={job.issues!} reasonCounts={job.reasonCounts ?? {}} total={job.failedGames + job.warningCount + (job.infoCount ?? 0)} truncated={job.issuesTruncated ?? false} />}
 		</div>}
 	</section>
 }

@@ -52,6 +52,17 @@ export interface SteamSyncResult {
 	processedGames?: number
 	failedGames?: number
 	warningCount?: number
+	infoCount?: number
+	reasonCounts?: Record<string, number>
+	issues?: SteamSyncIssue[]
+}
+
+export interface SteamSyncIssue {
+	gameId: number
+	steamAppId: number
+	gameName: string
+	severity: 'error' | 'warning' | 'info'
+	code: string
 }
 
 export interface SteamSyncJob {
@@ -66,6 +77,10 @@ export interface SteamSyncJob {
 	achievementsUpdated: number
 	failedGames: number
 	warningCount: number
+	infoCount?: number
+	reasonCounts?: Record<string, number>
+	issues?: SteamSyncIssue[]
+	issuesTruncated?: boolean
 	currentGameName?: string
 	error?: string
 	result?: SteamSyncResult
@@ -78,6 +93,12 @@ const validateSyncJob = (value: SteamSyncJob): SteamSyncJob => {
 		!['queued', 'running', 'completed', 'failed', 'interrupted'].includes(value.state) ||
 		![value.totalGames, value.processedGames, value.gamesUpdated, value.achievementsUpdated, value.failedGames, value.warningCount].every(count => Number.isInteger(count) && count >= 0) ||
 		value.processedGames > value.totalGames) throw new Error('Invalid Steam sync status response')
+	if (value.infoCount !== undefined && (!Number.isInteger(value.infoCount) || value.infoCount < 0)) throw new Error('Invalid Steam sync status response')
+	if (value.reasonCounts !== undefined && (!value.reasonCounts || typeof value.reasonCounts !== 'object' || Array.isArray(value.reasonCounts) ||
+		!Object.values(value.reasonCounts).every(count => Number.isInteger(count) && count >= 0))) throw new Error('Invalid Steam sync status response')
+	if (value.issues !== undefined && (!Array.isArray(value.issues) || !value.issues.every(issue => issue &&
+		Number.isInteger(issue.gameId) && issue.gameId > 0 && Number.isInteger(issue.steamAppId) &&
+		typeof issue.gameName === 'string' && typeof issue.code === 'string' && ['error', 'warning', 'info'].includes(issue.severity)))) throw new Error('Invalid Steam sync status response')
 	return value
 }
 
@@ -115,6 +136,7 @@ export interface SteamAchievementProgress {
 	source: 'none' | 'legacy' | 'sets'
 	lastSynced?: string
 	lastError?: string
+	notice?: 'noPlayerData' | 'unreleased'
 	isCompleted: boolean
 	isFullyCompleted: boolean
 	completionPreserved: boolean

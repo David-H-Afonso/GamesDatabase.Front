@@ -22,6 +22,13 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks())
 
 describe('Steam tab synchronization', () => {
+	it('treats a verified missing-player notice as information and does not auto-retry it on mount', async () => {
+		vi.mocked(steamService.getAchievementProgress).mockResolvedValue({ ...progress, source: 'none', lastSynced: undefined, notice: 'noPlayerData', sets: [], achievements: [] })
+		renderWithProviders(<SteamTab game={{ ...game, steamPlaytimeForever: 14351 }} />)
+		await screen.findByText(/Steam no devuelve progreso verificable para este juego/)
+		expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+		expect(steamService.syncGame).not.toHaveBeenCalled()
+	})
 	it('does not re-sync cached sets merely because the tab opens', async () => {
 		renderWithProviders(<SteamTab game={game} />)
 		await screen.findByText('Saved achievement')

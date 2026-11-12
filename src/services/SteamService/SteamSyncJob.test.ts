@@ -23,7 +23,7 @@ describe('Steam sync job contract', () => {
 		await steamService.getSyncJob('unsafe/id', signal)
 		expect(customFetch).toHaveBeenCalledWith('/steam/sync/jobs/unsafe%2Fid', { signal, timeout: 15000 })
 	})
-	it.each(['<html>PRIVATE_DETAIL</html>', { ...job, processedGames: 10 }, { ...job, state: 'unknown' }])('rejects malformed or inconsistent success payloads', async invalid => {
+	it.each(['<html>PRIVATE_DETAIL</html>', { ...job, processedGames: 10 }, { ...job, state: 'unknown' }, { ...job, infoCount: -1 }, { ...job, issues: 'bad' }, { ...job, reasonCounts: { invalidResponse: -1 } }])('rejects malformed or inconsistent success payloads', async invalid => {
 		vi.mocked(customFetch).mockResolvedValue(invalid)
 		await expect(steamService.startSyncJob()).rejects.toThrow('Invalid Steam sync status response')
 	})

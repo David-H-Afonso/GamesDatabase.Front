@@ -61,6 +61,7 @@ export const SteamAchievements = ({ progress }: { progress: SteamAchievementProg
 
 	return (
 		<div className='steam-achievements'>
+			{progress.notice && <p className='steam-achievement-notice' role='status'>{t(`steamSync.reasons.${progress.notice}`)}</p>}
 			{total === 0 && progress.isCompleted && <p className='achievement-set-message'>{t('steamAchievements.historicalCompletion')}</p>}
 			{progress.lastError && <p className='steam-achievement-notice' role={progress.lastError === 'setsUnavailable' ? 'status' : 'alert'}>{t(`steamAchievements.errors.${progress.lastError}`, { defaultValue: t('steamAchievements.errors.steamUnavailable') })}</p>}
 			{total > 0 && <div className='achievement-summary'>

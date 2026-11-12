@@ -94,6 +94,7 @@ export type {
 	SteamImportGameRequest,
 	SteamSyncResult,
 	SteamSyncJob,
+	SteamSyncIssue,
 	SteamAchievement,
 	SteamAchievementSet,
 	SteamAchievementProgress,

@@ -45,6 +45,15 @@ does not poll while idle or after completion and is cleaned up on unmount/accoun
 change. Update the backend together with the frontend; this correction adds no
 database migration and does not require longer proxy timeouts.
 
+Results distinguish **errors**, **warnings** and **informational cases**. Games
+without readable player progress, without published achievements or not yet
+released do not trigger a misleading warning total. “View reasons by game” shows
+causes and links, with severity/reason/name filters and bounded rendering. Missing
+player data preserves the last saved progress; it is never interpreted as zero
+unlocks or proof that the game has never been played.
+The bounded results list supports mouse and keyboard scrolling. Changing a filter
+returns to the first result; showing more keeps the current list position.
+
 ## Tech Stack
 
 - **Frontend Framework**: React 19 with TypeScript

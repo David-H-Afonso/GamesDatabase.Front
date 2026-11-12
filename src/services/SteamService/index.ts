@@ -7,6 +7,7 @@ export type {
 	SteamImportedGame,
 	SteamSyncResult,
 	SteamSyncJob,
+	SteamSyncIssue,
 	SteamAchievement,
 	SteamAchievementSet,
 	SteamAchievementProgress,

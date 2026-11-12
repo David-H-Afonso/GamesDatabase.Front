@@ -54,7 +54,7 @@ export const SteamTab = ({ game }: { game: Game }) => {
 				setProgress(data)
 				// One on-demand sync for an uncached game. Empty/private/failed games
 				// are not repeatedly retried each time the tab is opened.
-				if (data.source !== 'sets' && game.steamAppId && !data.lastSynced && !data.lastError) {
+				if (data.source !== 'sets' && game.steamAppId && !data.lastSynced && !data.lastError && !data.notice) {
 					await dispatch(syncSteamGame(game.id)).unwrap()
 					if (controller.signal.aborted) return
 					data = await steamService.getAchievementProgress(game.id, controller.signal)
