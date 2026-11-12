@@ -351,6 +351,7 @@ const GameFiltersChips: React.FC<Props> = ({
 			showIncomplete: undefined,
 			hasSteamApp: undefined,
 			fullCompletion: undefined,
+			allAchievements: undefined,
 			missingDuration: undefined,
 			criticProvider: undefined,
 			excludeStatusIds: undefined,
@@ -384,6 +385,7 @@ const GameFiltersChips: React.FC<Props> = ({
 			filters.showIncomplete === true ||
 			(filters.hasSteamApp !== undefined && filters.hasSteamApp !== null) ||
 			filters.fullCompletion === true ||
+			filters.allAchievements === true ||
 			!!filters.missingDuration ||
 			!!filters.criticProvider ||
 			!!filters.excludeStatusIds?.length ||
@@ -770,8 +772,15 @@ const GameFiltersChips: React.FC<Props> = ({
 						<button
 							type='button'
 							className={'game-filters-chips__chip' + (filters.fullCompletion === true ? ' is-active' : '')}
-							onClick={() => setFilters({ fullCompletion: filters.fullCompletion === true ? undefined : true })}>
+							aria-pressed={filters.fullCompletion === true}
+							title={t('home.filters.fullCompletionHint')}
+							onClick={() => setFilters({ fullCompletion: filters.fullCompletion === true ? undefined : true, allAchievements: undefined })}>
 							{t('home.filters.fullCompletion')}
+						</button>
+						<button type='button' className={'game-filters-chips__chip' + (filters.allAchievements === true ? ' is-active' : '')}
+							aria-pressed={filters.allAchievements === true} title={t('home.filters.allAchievementsHint')}
+							onClick={() => setFilters({ allAchievements: filters.allAchievements === true ? undefined : true, fullCompletion: undefined })}>
+							{t('home.filters.allAchievements')}
 						</button>
 					</div>
 					{openPopover && (

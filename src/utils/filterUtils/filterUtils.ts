@@ -38,6 +38,7 @@ const FILTER_KEYS: (keyof GameQueryParameters)[] = [
 	'hasReplays',
 	'hasSteamApp',
 	'fullCompletion',
+	'allAchievements',
 	'missingDuration',
 	'replayMatchMode',
 ]

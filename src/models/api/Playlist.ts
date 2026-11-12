@@ -62,6 +62,7 @@ export interface PlaylistRules {
 	releasedToYear?: number
 	hasSteam?: boolean
 	fullCompletion?: boolean
+	allAchievements?: boolean
 	sortBy: 'Position' | 'Name' | 'Grade' | 'Critic' | 'Score' | 'Released' | 'Story' | 'Updated'
 	sortDescending: boolean
 	limit?: number

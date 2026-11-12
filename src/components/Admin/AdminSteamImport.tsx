@@ -169,8 +169,8 @@ export const AdminSteamImport = () => {
 			const result = await dispatch(syncAllSteam()).unwrap()
 			const syncedGames = result.gamesUpdated ?? result.syncedGames ?? 0
 			const syncedAchievements = result.achievementsUpdated ?? result.syncedAchievements ?? 0
-			setMessage(t('admin.steam.account.syncDone', { games: syncedGames, achievements: syncedAchievements }))
-			setIsSuccess(true)
+			setMessage(result.achievementsSyncSucceeded === false ? t('steamAchievements.syncPartial') : t('admin.steam.account.syncDone', { games: syncedGames, achievements: syncedAchievements }))
+			setIsSuccess(result.achievementsSyncSucceeded !== false)
 		} catch {
 			setMessage(t('admin.steam.account.syncError'))
 			setIsSuccess(false)

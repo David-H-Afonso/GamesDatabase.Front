@@ -2,7 +2,7 @@ import type { Game } from '@/models/api/Game'
 import { useState, useRef, useEffect, memo, type FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import './RowView.scss'
-import { formatToLocaleDate, useClickOutside, getMetacriticColor } from '@/utils'
+import { formatToLocaleDate, useClickOutside, getMetacriticColor, isGameCompleted, isGameFullyCompleted, completionLabelKey, completionTitleKey } from '@/utils'
 import { EditableSelect } from '../../EditableSelect/EditableSelect'
 import { EditableMultiSelect } from '../../EditableMultiSelect/EditableMultiSelect'
 import { OptimizedImage } from '@/components/elements'
@@ -146,8 +146,7 @@ const RowView: FC<RowViewProps> = (props) => {
 	const startedText = formatToLocaleDate(game.started) || dash
 	const finishedText = formatToLocaleDate(game.finished) || dash
 	const hasLogo = Boolean(game.logo) && !logoFailed
-	const hasCompletedSteamAchievements = Boolean(game.steamAchievementsTotal && game.steamAchievementsTotal > 0 && game.steamAchievementsUnlocked === game.steamAchievementsTotal)
-	const isPerfectCompletion = hasCompletedSteamAchievements || Boolean(game.isManuallyCompleted)
+	const isPerfectCompletion = isGameCompleted(game)
 
 	// Helper para formatear múltiples nombres
 	const formatMultipleNames = (names: string[] | undefined): string => {
@@ -160,7 +159,7 @@ const RowView: FC<RowViewProps> = (props) => {
 		<div
 			key={game.id}
 			className={`game-row ${activeSelector ? 'game-row--menu-open' : ''} ${isSelected ? 'game-row--selected' : ''} ${isPerfectCompletion ? 'game-row--steam-complete' : ''}`}
-			title={isPerfectCompletion ? t('game.card.fullCompletionTitle') : undefined}
+			title={isPerfectCompletion ? t(completionTitleKey(game)) : undefined}
 			onClick={() => closeActionMenu(() => openDetails(game))}
 			ref={rowRef}
 			onMouseEnter={(e) => {
@@ -232,7 +231,7 @@ const RowView: FC<RowViewProps> = (props) => {
 					/>
 				)}
 				<h3 title={game.name}>{game.name}</h3>
-				{isPerfectCompletion && <span className='game-row-perfect-badge'>{t('game.card.full')}</span>}
+				{isPerfectCompletion && <span className='game-row-perfect-badge' data-completion={isGameFullyCompleted(game) ? 'full' : 'completed'}>{t(completionLabelKey(game))}</span>}
 			</div>
 
 			{/* Grade */}

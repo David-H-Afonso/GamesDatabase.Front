@@ -35,6 +35,11 @@ export interface Game {
 	steamLastSynced?: string // ISO date string
 	steamAchievementsUnlocked?: number
 	steamAchievementsTotal?: number
+	steamSetsCompleted?: number
+	steamSetsTotal?: number
+	steamCompletionPreserved?: boolean
+	isCompleted?: boolean
+	isFullyCompleted?: boolean
 	steamFinishedSource?: 'steam' | 'manual' | string
 	steamFinishedLastValue?: string
 	steamFinishedSyncedAt?: string
@@ -174,6 +179,7 @@ export interface GameQueryParameters extends QueryParameters {
 	hasReplays?: boolean
 	hasSteamApp?: boolean
 	fullCompletion?: boolean
+	allAchievements?: boolean
 	missingDuration?: 'story' | 'completion' | 'any' | 'both'
 	replayMatchMode?: 'any' | 'all'
 }

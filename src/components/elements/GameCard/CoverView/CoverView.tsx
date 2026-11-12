@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { useAppSelector } from '@/store/hooks'
 import OptimizedImage from '../../OptimizedImage/OptimizedImage'
 import './CoverView.scss'
+import { isGameCompleted, isGameFullyCompleted, completionLabelKey, completionTitleKey } from '@/utils/gameCompletion'
 
 interface CoverViewProps {
 	game: Game
@@ -21,7 +22,7 @@ interface CoverViewProps {
 const CoverView = ({ game, openDetails, isSelected = false, onSelect, index = 0, gameStatusColor, playWithColors = [], onFieldUpdate, hideSelection = false }: CoverViewProps) => {
 	const { t } = useTranslation()
 	const isPriority = index < 8
-	const hasPerfectCompletion = game.completion === 100 || Boolean(game.isManuallyCompleted) || Boolean(game.steamAchievementsTotal && game.steamAchievementsTotal > 0 && game.steamAchievementsUnlocked === game.steamAchievementsTotal)
+	const hasPerfectCompletion = isGameCompleted(game)
 	const [coverFailed, setCoverFailed] = useState(false)
 	const [activeEditor, setActiveEditor] = useState<'status' | 'playWith' | null>(null)
 	const coverRef = useRef<HTMLElement>(null)
@@ -159,7 +160,7 @@ const CoverView = ({ game, openDetails, isSelected = false, onSelect, index = 0,
 						)}
 					</div>
 				)}
-				{hasPerfectCompletion && <span className='game-cover-view__badge'>100%</span>}
+				{hasPerfectCompletion && <span className='game-cover-view__badge' data-completion={isGameFullyCompleted(game) ? 'full' : 'completed'} title={t(completionTitleKey(game))}>{t(completionLabelKey(game))}</span>}
 			</div>
 
 			<footer className='game-cover-view__meta'>

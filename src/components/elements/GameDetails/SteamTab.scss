@@ -113,6 +113,10 @@
 	}
 
 	.achievement-progress-bar {
+		display: block;
+		width: 100%;
+		appearance: none;
+		border: 0;
 		height: 10px;
 		background: var(--border-color);
 		border-radius: 999px;
@@ -226,7 +230,7 @@
 		}
 
 		&.locked {
-			opacity: 0.55;
+			img { opacity: 0.65; }
 		}
 
 		img {
@@ -262,6 +266,41 @@
 		text-align: center;
 		padding: 1rem 0;
 	}
+
+	.achievement-progress-bar::-webkit-progress-bar { background: var(--border-color); border-radius: 999px; }
+	.achievement-progress-bar::-webkit-progress-value { background: #4a90d9; border-radius: 999px; }
+	.achievement-progress-bar::-moz-progress-bar { background: #4a90d9; border-radius: 999px; }
+	&--complete .achievement-progress-bar::-webkit-progress-value { background: linear-gradient(90deg, #b7791f, #f8d46a); }
+	&--complete .achievement-progress-bar::-moz-progress-bar { background: #b7791f; }
+	.achievement-summary__hint { margin: 0.5rem 0 0; font-size: 0.78rem; color: var(--text-secondary); line-height: 1.5; }
+	.achievement-set-message { margin: 0.55rem 0 0; font-size: 0.85rem; font-weight: 600; color: var(--text-primary); }
+	.steam-achievement-notice { padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-secondary); font-size: 0.84rem; line-height: 1.5; }
+	.achievement-sets { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.6rem; margin-bottom: 1rem; }
+	.achievement-set {
+		--set-accent: #4a90d9;
+		display: flex; flex-direction: column; gap: 0.3rem; min-width: 0; padding: 0.7rem;
+		text-align: left; border: 1px solid var(--border-color); border-left: 3px solid var(--set-accent);
+		border-radius: 8px; background: var(--surface); color: var(--text-primary); cursor: pointer;
+		&--dlc { --set-accent: #b06cd4; }
+		&[aria-pressed='true'] { border-color: var(--set-accent); background: color-mix(in srgb, var(--surface) 90%, var(--set-accent) 10%); }
+		strong { font-size: 0.85rem; line-height: 1.3; overflow-wrap: anywhere; }
+	}
+	.achievement-set__kind, .achievement-set__hint { font-size: 0.72rem; color: var(--text-secondary); }
+	.achievement-set__status { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.25rem 0.5rem; font-size: 0.78rem; }
+	.achievement-set__trophy { font-weight: 600; }
+	.achievement-search-controls { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0.6rem; margin-bottom: 0.75rem; }
+	.achievement-search-controls label { display: flex; flex-direction: column; gap: 0.3rem; min-width: 0; font-size: 0.78rem; color: var(--text-secondary); }
+	.achievement-search-controls :is(input, select) { width: 100%; min-width: 0; box-sizing: border-box; padding: 0.55rem 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; background: var(--surface); color: var(--text-primary); font: inherit; }
+	.achievement-global-toggle { display: flex; align-items: center; gap: 0.5rem; margin: 0 0 1rem; color: var(--text-secondary); font-size: 0.8rem; cursor: pointer; }
+	.achievement-group { margin-top: 1rem; }
+	.achievement-group h3 { display: flex; align-items: center; gap: 0.5rem; margin: 0 0 0.65rem; font-size: 0.9rem; color: var(--text-primary); }
+	.achievement-tag { font-size: 0.7rem; font-weight: 500; color: var(--text-secondary); }
+	.achievement-name { color: var(--text-primary); overflow-wrap: anywhere; }
+	.achievement-reveal { align-self: flex-start; padding: 0.25rem 0; color: var(--text-primary); font: inherit; font-size: 0.78rem; text-decoration: underline; background: none; border: 0; cursor: pointer; }
+	.achievement-global-rate { font-size: 0.72rem; color: var(--text-secondary); }
+	.achievement-partial-progress { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; font-size: 0.72rem; color: var(--text-secondary); }
+	.achievement-partial-progress progress { width: 80px; height: 6px; accent-color: #4a90d9; }
+	:is(button, input, select):focus-visible { outline: 2px solid #70b5f9; outline-offset: 3px; }
 }
 
 .steam-tab .btn-sm {
@@ -301,5 +340,10 @@
 		.achievement-grid {
 			grid-template-columns: 1fr;
 		}
+		.achievement-sets, .achievement-search-controls { grid-template-columns: 1fr; }
 	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.steam-tab .achievement-progress-fill { transition: none; }
 }

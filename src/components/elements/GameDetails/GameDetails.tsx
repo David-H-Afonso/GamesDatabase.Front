@@ -724,9 +724,9 @@ export const GameDetails: React.FC<GameDetailsProps> = (props) => {
 								</div>
 								<div className='game-details-content-infoList-item game-details-content-infoList-item--checkbox'>
 									<h3>{t('game.details.manuallyCompleted')}</h3>
-									<label className='game-details-toggle' title={t('game.details.manuallyCompletedTitle')}>
+									<label className='game-details-toggle' title={t(game.steamAppId ? 'game.details.manuallyCompletedSteamTitle' : 'game.details.manuallyCompletedTitle')}>
 										<input type='checkbox' checked={formik.values.isManuallyCompleted ?? false} onChange={(e) => saveField('isManuallyCompleted', e.target.checked)} />
-										<span className='game-details-toggle__label'>{t('game.details.manuallyCompletedLabel')}</span>
+										<span className='game-details-toggle__label'>{t(game.steamAppId ? 'game.details.manuallyCompletedSteamLabel' : 'game.details.manuallyCompletedLabel')}</span>
 									</label>
 								</div>
 								<div className='game-details-content-infoList-item'>

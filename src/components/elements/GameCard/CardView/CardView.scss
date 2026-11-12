@@ -1,3 +1,5 @@
+@use '../GameCompletionBadge';
+
 .game-card-view-container {
 	background: var(--card-bg, var(--surface));
 	border-radius: 18px;

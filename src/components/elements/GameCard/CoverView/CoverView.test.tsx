@@ -44,6 +44,20 @@ describe('CoverView', () => {
 		expect(screen.getByText('100%')).toBeInTheDocument()
 	})
 
+	it('shows completed sets without claiming that every achievement is unlocked', async () => {
+		const { default: CoverView } = await import('./CoverView')
+		renderWithProviders(<CoverView game={{ ...game, steamAppId: 1794680, steamAchievementsUnlocked: 197, steamAchievementsTotal: 243, steamSetsCompleted: 4, isCompleted: true, isFullyCompleted: false }} openDetails={vi.fn()} />, { preloadedState })
+		expect(screen.getByText('Completado')).toBeInTheDocument()
+		expect(screen.queryByText('100%')).not.toBeInTheDocument()
+	})
+
+	it('does not turn a 100-hour duration into a completion badge', async () => {
+		const { default: CoverView } = await import('./CoverView')
+		renderWithProviders(<CoverView game={{ ...game, completion: 100 }} openDetails={vi.fn()} />, { preloadedState })
+		expect(screen.queryByText('100%')).not.toBeInTheDocument()
+		expect(screen.queryByText('Completado')).not.toBeInTheDocument()
+	})
+
 	it('exposes the full game name as a tooltip title', async () => {
 		const { default: CoverView } = await import('./CoverView')
 		renderWithProviders(<CoverView game={game} openDetails={vi.fn()} />, { preloadedState })

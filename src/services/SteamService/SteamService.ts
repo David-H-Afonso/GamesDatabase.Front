@@ -46,6 +46,8 @@ export interface SteamSyncResult {
 	syncedGames?: number
 	syncedAchievements?: number
 	errors?: string[]
+	achievementsSyncSucceeded?: boolean
+	warnings?: string[]
 }
 
 export interface SteamAchievement {
@@ -57,6 +59,40 @@ export interface SteamAchievement {
 	iconUrl?: string
 	iconGrayUrl?: string
 	hidden: boolean
+	groupId?: number
+	archived?: boolean
+	globalPercent?: number
+	progressCurrent?: number
+	progressMin?: number
+	progressMax?: number
+}
+
+export interface SteamAchievementSet {
+	groupId: number
+	displayName: string
+	dlcAppId?: number
+	archived: boolean
+	isAchievable?: boolean
+	isCompleted: boolean
+	completedAt?: string
+	totalAchievements: number
+	unlockedAchievements: number
+}
+
+export interface SteamAchievementProgress {
+	gameId: number
+	source: 'none' | 'legacy' | 'sets'
+	lastSynced?: string
+	lastError?: string
+	isCompleted: boolean
+	isFullyCompleted: boolean
+	completionPreserved: boolean
+	totalAchievements: number
+	unlockedAchievements: number
+	eligibleAchievementsTotal: number
+	eligibleAchievementsUnlocked: number
+	sets: SteamAchievementSet[]
+	achievements: SteamAchievement[]
 }
 
 export interface SteamAppMetadata {
@@ -227,6 +263,10 @@ class SteamService {
 
 	async getAchievements(gameId: number): Promise<SteamAchievement[]> {
 		return customFetch<SteamAchievement[]>(base.achievements(gameId))
+	}
+
+	async getAchievementProgress(gameId: number, signal?: AbortSignal): Promise<SteamAchievementProgress> {
+		return customFetch<SteamAchievementProgress>(base.achievementProgress(gameId), { signal })
 	}
 
 	async getAppMetadata(appId: number): Promise<SteamAppMetadata> {

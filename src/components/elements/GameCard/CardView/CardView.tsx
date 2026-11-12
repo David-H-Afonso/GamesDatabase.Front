@@ -2,7 +2,7 @@ import type { Game } from '@/models/api/Game'
 import { useLayoutEffect, useRef, useState, memo, type FC, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import './CardView.scss'
-import { DEFAULT_PLATFORM_ICON, STEAM_PLATFORM_ICON, formatPlaytime, formatToLocaleDate, useClickOutside, getMetacriticColor } from '@/utils'
+import { DEFAULT_PLATFORM_ICON, STEAM_PLATFORM_ICON, formatPlaytime, formatToLocaleDate, useClickOutside, getMetacriticColor, isGameCompleted, isGameFullyCompleted, completionLabelKey, completionTitleKey } from '@/utils'
 import { EditableSelect } from '../../EditableSelect/EditableSelect'
 import { EditableMultiSelect } from '../../EditableMultiSelect/EditableMultiSelect'
 import { OptimizedImage } from '@/components/elements'
@@ -167,8 +167,7 @@ const CardView: FC<CardViewProps> = (props) => {
 
 	const hasPriceComparison = showPriceComparisonIcon && game.isCheaperByKey !== undefined && game.isCheaperByKey !== null
 	const PriceComparisonIcon = game.isCheaperByKey ? KeyIcon : StoreIcon
-	const hasCompletedSteamAchievements = Boolean(game.steamAchievementsTotal && game.steamAchievementsTotal > 0 && game.steamAchievementsUnlocked === game.steamAchievementsTotal)
-	const isPerfectCompletion = hasCompletedSteamAchievements || Boolean(game.isManuallyCompleted)
+	const isPerfectCompletion = isGameCompleted(game)
 	const platformLogo = platformOptions.find((platform) => platform.id === game.platformId)?.logo
 	const hasManualPlaytime = game.manualPlaytimeMinutes !== null && typeof game.manualPlaytimeMinutes !== 'undefined'
 	const effectivePlaytime = hasManualPlaytime ? game.manualPlaytimeMinutes : game.steamPlaytimeForever
@@ -184,7 +183,7 @@ const CardView: FC<CardViewProps> = (props) => {
 		<div
 			key={game.id}
 			className={`game-card-view-container ${activeSelector ? 'is-open' : ''} ${isPerfectCompletion ? 'game-card-view-container--steam-complete' : ''}`}
-			title={isPerfectCompletion ? t('game.card.fullCompletionTitle') : undefined}
+			title={isPerfectCompletion ? t(completionTitleKey(game)) : undefined}
 			onClick={() => closeActionMenu(() => openDetails(game))}
 			ref={menuRef}
 			onMouseEnter={(e) => {
@@ -268,7 +267,7 @@ const CardView: FC<CardViewProps> = (props) => {
 						</div>
 					</div>
 					{playlistControls}
-					{isPerfectCompletion && <div className='game-card-perfect-badge'>{t('game.card.full')}</div>}
+					{isPerfectCompletion && <div className='game-card-perfect-badge' data-completion={isGameFullyCompleted(game) ? 'full' : 'completed'}>{t(completionLabelKey(game))}</div>}
 					<div className='game-card-header-info'>
 						<div className='game-card-header-info-logo'>
 							{game.logo && (

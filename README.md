@@ -7,13 +7,29 @@ A modern web application for managing and organizing your personal game collecti
 - **Comprehensive Game Management**: Add, edit, and organize your game collection with detailed information
 - **Advanced Filtering & Search**: Search by title with accent-insensitive matching, filter by platform, status, play mode, and more
 - **Custom Views**: Create and save custom filtered views for quick access to specific game lists
-- **Ratings & Reviews**: Track personal grades, critic scores, story ratings, and completion percentages
+- **Ratings & Estimates**: Track personal grades, critic scores, and estimated story/completionist durations in hours
 - **Visual Organization**: Card and row view modes with cover art and logo support
 - **Price Tracking**: Mark games as cheaper via key stores with optional store URLs
 - **Multi-User Support**: User authentication with JWT tokens and personalized game libraries
 - **Data Export**: Export your game data in JSON or CSV formats
 - **Responsive Design**: Optimized for desktop and mobile devices
 - **Dark/Light Themes**: Customizable appearance with theme support
+- **Steam Achievement Sets**: Group base-game/DLC achievements, preserve completed sets, reveal spoilers explicitly and show partial progress/global rarity.
+
+### Completion filters
+
+- **Completed / Completados** includes manual completion, preserved previous
+  completion, any completed Steam set, and current 100% games.
+- **100% total** requires every current public base-game and DLC achievement,
+  including DLC without access; archived/unobtainable content does not block it.
+  Non-Steam games retain their manual 100% declaration.
+- Gold **100%** badges and blue **Completed** badges are deliberately different.
+  A 197/243 game with completed sets qualifies only for the broad filter.
+
+Update the API first: the new UI uses
+`GET /api/steam/achievements/{gameId}/progress` and readonly completion summaries.
+The backend migration preserves existing completion before importing sets; take a
+consistent database backup before running the updated API, then sync Steam once.
 
 ## Tech Stack
 

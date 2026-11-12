@@ -1,0 +1,5 @@
+:is(.game-card-perfect-badge, .game-row-perfect-badge, .game-cover-view__badge)[data-completion='completed'] {
+	background: linear-gradient(135deg, #2375a9, #244e87);
+	border-color: #8fc9ef;
+	color: #fff;
+}

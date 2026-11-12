@@ -32,6 +32,8 @@ vi.mock('react-i18next', () => ({
 				'home.filters.cheaperByKey': 'Cheaper by key',
 				'home.filters.cheaperByStore': 'Cheaper by store',
 				'home.filters.clearFilters': 'Clear filters',
+				'home.filters.fullCompletion': 'Completed',
+				'home.filters.allAchievements': '100% total',
 				'home.filters.closeFilters': 'Close filters',
 				'home.filters.defaultPageSize': '{{size}} per page',
 				'home.filters.excludeReplayDatesShort': 'excluding replays',
@@ -132,6 +134,19 @@ async function loadGameFiltersChips() {
 
 describe('GameFiltersChips', () => {
 	const user = userEvent.setup()
+
+	it('keeps broad completion and strict 100% as separate mutually exclusive filters', async () => {
+		const onFiltersChange = vi.fn()
+		const GameFiltersChips = await loadGameFiltersChips()
+		const props = { onFiltersChange, onSearchChange: vi.fn(), onSortChange: vi.fn() }
+		const { rerender } = renderWithProviders(<GameFiltersChips {...props} filters={{ fullCompletion: true }} />, { preloadedState: defaultState })
+		await user.click(screen.getByText('⚙ Advanced filters'))
+		await user.click(screen.getByRole('button', { name: '100% total' }))
+		expect(onFiltersChange).toHaveBeenLastCalledWith(expect.objectContaining({ fullCompletion: undefined, allAchievements: true }))
+		rerender(<GameFiltersChips {...props} filters={{ allAchievements: true }} />)
+		await user.click(screen.getByRole('button', { name: 'Completed' }))
+		expect(onFiltersChange).toHaveBeenLastCalledWith(expect.objectContaining({ fullCompletion: true, allAchievements: undefined }))
+	})
 
 	it('renders search input', async () => {
 		const GameFiltersChips = await loadGameFiltersChips()

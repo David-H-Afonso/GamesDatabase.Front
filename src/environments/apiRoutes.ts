@@ -168,6 +168,7 @@ export const apiRoutes = {
 		syncAll: '/steam/sync',
 		syncGame: (gameId: number) => `/steam/sync/${gameId}`,
 		achievements: (gameId: number) => `/steam/achievements/${gameId}`,
+		achievementProgress: (gameId: number) => `/steam/achievements/${gameId}/progress`,
 		appMetadata: (appId: number) => `/steam/app/${appId}/metadata`,
 		linkGame: '/steam/link-game',
 		matchSuggestions: '/steam/match-suggestions',

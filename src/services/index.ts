@@ -94,6 +94,8 @@ export type {
 	SteamImportGameRequest,
 	SteamSyncResult,
 	SteamAchievement,
+	SteamAchievementSet,
+	SteamAchievementProgress,
 	SteamAppMetadata,
 	SteamImportRequest,
 	SteamDateSuggestion,

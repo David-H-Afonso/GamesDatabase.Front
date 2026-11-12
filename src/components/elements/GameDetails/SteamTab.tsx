@@ -1,254 +1,143 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { Game } from '@/models/api/Game'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { syncSteamGame } from '@/store/features/steam/steamSlice'
 import { fetchGameById } from '@/store/features/games'
-import { steamService, type SteamAchievement, type SteamDateSuggestion } from '@/services'
+import { steamService, type SteamAchievementProgress, type SteamDateSuggestion } from '@/services'
+import { SteamAchievements } from './SteamAchievements'
 import './SteamTab.scss'
 
-interface Props {
-	game: Game
-}
-
-type AchievementFilter = 'all' | 'unlocked' | 'locked'
-
-export const SteamTab = ({ game }: Props) => {
+export const SteamTab = ({ game }: { game: Game }) => {
+	const { t, i18n } = useTranslation()
 	const dispatch = useAppDispatch()
-	const { syncLoading, lastSyncResult } = useAppSelector((state) => state.steam)
-	const [achievements, setAchievements] = useState<SteamAchievement[]>([])
-	const [achievementsLoading, setAchievementsLoading] = useState(false)
-	const [filter, setFilter] = useState<AchievementFilter>('all')
+	const { syncLoading } = useAppSelector(state => state.steam)
+	const [progress, setProgress] = useState<SteamAchievementProgress | null>(null)
+	const [loading, setLoading] = useState(true)
+	const [loadError, setLoadError] = useState(false)
 	const [syncMessage, setSyncMessage] = useState<string | null>(null)
 	const [dateSuggestion, setDateSuggestion] = useState<SteamDateSuggestion | null>(null)
 	const [dateSuggestionLoading, setDateSuggestionLoading] = useState(false)
 	const [dateSuggestionBusy, setDateSuggestionBusy] = useState(false)
+	const request = useRef<AbortController | null>(null)
+	const locale = i18n.resolvedLanguage ?? i18n.language
+	const formatDate = (date: string) => new Date(date).toLocaleDateString(locale)
 
-	useEffect(() => {
-		const controller = new AbortController()
-		loadAchievementsAndAutoSync()
-		loadDateSuggestion(controller.signal)
-		return () => controller.abort()
-	}, [game.id])
-
-	const loadAchievementsAndAutoSync = async () => {
-		setAchievementsLoading(true)
-		try {
-			const data = await steamService.getAchievements(game.id)
-			setAchievements(data)
-			// Auto-sync if game has steamAppId but no cached achievements yet
-			if (data.length === 0 && game.steamAppId) {
-				await dispatch(syncSteamGame(game.id)).unwrap()
-				const fresh = await steamService.getAchievements(game.id)
-				setAchievements(fresh)
-			}
-		} catch {
-			// No achievements or private profile
-		} finally {
-			setAchievementsLoading(false)
-		}
-	}
-
-	const loadAchievements = async () => {
-		try {
-			const data = await steamService.getAchievements(game.id)
-			setAchievements(data)
-		} catch {
-			// No achievements or private profile
-		}
-	}
-
-	const loadDateSuggestion = async (signal?: AbortSignal) => {
-		if (!game.steamAppId) {
-			setDateSuggestion(null)
-			return
-		}
-
+	const loadDateSuggestion = useCallback(async (signal: AbortSignal) => {
+		if (!game.steamAppId) return
 		setDateSuggestionLoading(true)
 		try {
 			const suggestions = await steamService.getDateSuggestions({ gameId: game.id, includeStarted: false, signal })
-			setDateSuggestion(suggestions.find((suggestion) => suggestion.gameId === game.id && suggestion.proposedFinished) ?? null)
-		} catch (error) {
-			if (error instanceof Error && error.message.includes('Request cancelled')) return
-			setDateSuggestion(null)
+			if (!signal.aborted) setDateSuggestion(suggestions.find(suggestion => suggestion.gameId === game.id && suggestion.proposedFinished) ?? null)
+		} catch {
+			if (!signal.aborted) setDateSuggestion(null)
 		} finally {
-			if (!signal?.aborted) setDateSuggestionLoading(false)
+			if (!signal.aborted) setDateSuggestionLoading(false)
 		}
-	}
+	}, [game.id, game.steamAppId])
+
+	useEffect(() => {
+		const controller = new AbortController()
+		request.current = controller
+		setProgress(null)
+		setLoadError(false)
+		setLoading(true)
+		setDateSuggestion(null)
+		setDateSuggestionLoading(false)
+		setDateSuggestionBusy(false)
+		setSyncMessage(null)
+		const load = async () => {
+			try {
+				let data = await steamService.getAchievementProgress(game.id, controller.signal)
+				if (controller.signal.aborted) return
+				setProgress(data)
+				// One on-demand sync for an uncached game. Empty/private/failed games
+				// are not repeatedly retried each time the tab is opened.
+				if (data.source !== 'sets' && game.steamAppId && !data.lastSynced && !data.lastError) {
+					await dispatch(syncSteamGame(game.id)).unwrap()
+					if (controller.signal.aborted) return
+					data = await steamService.getAchievementProgress(game.id, controller.signal)
+					if (controller.signal.aborted) return
+					setProgress(data)
+					await dispatch(fetchGameById(game.id)).unwrap()
+				}
+			} catch {
+				if (!controller.signal.aborted) setLoadError(true)
+			} finally {
+				if (!controller.signal.aborted) setLoading(false)
+			}
+		}
+		void load()
+		void loadDateSuggestion(controller.signal)
+		return () => controller.abort()
+	}, [game.id, game.steamAppId, dispatch, loadDateSuggestion])
+
+	useEffect(() => {
+		if (!syncMessage) return
+		const timer = setTimeout(() => setSyncMessage(null), 5000)
+		return () => clearTimeout(timer)
+	}, [syncMessage])
 
 	const handleSync = async () => {
+		const signal = request.current?.signal
+		if (!signal) return
 		try {
-			await dispatch(syncSteamGame(game.id)).unwrap()
-			setSyncMessage('Sincronización completada')
-			await loadAchievements()
+			const result = await dispatch(syncSteamGame(game.id)).unwrap()
+			if (signal.aborted) return
+			setSyncMessage(t(result.achievementsSyncSucceeded === false ? 'steamAchievements.syncPartial' : 'steamAchievements.syncDone'))
+			const data = await steamService.getAchievementProgress(game.id, signal)
+			if (signal.aborted) return
+			setProgress(data)
+			setLoadError(false)
 			await dispatch(fetchGameById(game.id)).unwrap()
-			await loadDateSuggestion()
+			await loadDateSuggestion(signal)
 		} catch {
-			setSyncMessage('Error durante la sincronización')
+			if (!signal.aborted) setSyncMessage(t('steamAchievements.syncFailed'))
 		}
-		setTimeout(() => setSyncMessage(null), 3000)
 	}
 
-	const handleApplyFinishedSuggestion = async () => {
+	const handleDateSuggestion = async (apply: boolean) => {
 		if (!dateSuggestion?.proposedFinished) return
-
+		const signal = request.current?.signal
+		if (!signal) return
 		setDateSuggestionBusy(true)
 		try {
-			await steamService.applyDateSuggestions([{ gameId: game.id, finished: dateSuggestion.proposedFinished }])
-			setSyncMessage('Fecha de fin sincronizada con Steam')
+			const changes = [{ gameId: game.id, finished: dateSuggestion.proposedFinished }]
+			if (apply) await steamService.applyDateSuggestions(changes)
+			else await steamService.dismissDateSuggestions(changes)
+			if (signal.aborted) return
+			setSyncMessage(t(apply ? 'steamAchievements.dateApplied' : 'steamAchievements.dateDismissed'))
 			setDateSuggestion(null)
 			await dispatch(fetchGameById(game.id)).unwrap()
 		} catch {
-			setSyncMessage('Error aplicando la fecha de Steam')
+			if (!signal.aborted) setSyncMessage(t('steamAchievements.dateFailed'))
 		} finally {
-			setDateSuggestionBusy(false)
-			setTimeout(() => setSyncMessage(null), 3000)
+			if (!signal.aborted) setDateSuggestionBusy(false)
 		}
 	}
 
-	const handleDismissFinishedSuggestion = async () => {
-		if (!dateSuggestion?.proposedFinished) return
-
-		setDateSuggestionBusy(true)
-		try {
-			await steamService.dismissDateSuggestions([{ gameId: game.id, finished: dateSuggestion.proposedFinished }])
-			setSyncMessage('Sugerencia descartada')
-			setDateSuggestion(null)
-			await dispatch(fetchGameById(game.id)).unwrap()
-		} catch {
-			setSyncMessage('Error descartando la sugerencia')
-		} finally {
-			setDateSuggestionBusy(false)
-			setTimeout(() => setSyncMessage(null), 3000)
-		}
-	}
-
-	const unlockedCount = achievements.filter((a) => a.achieved).length
-	const totalCount = achievements.length
-	const completionPercent = totalCount > 0 ? Math.round((unlockedCount / totalCount) * 100) : 0
-	const isAchievementComplete = totalCount > 0 && unlockedCount === totalCount
-
-	const filteredAchievements = achievements.filter((a) => {
-		if (filter === 'unlocked') return a.achieved
-		if (filter === 'locked') return !a.achieved
-		return true
-	})
-
-	const playtimeHours = game.steamPlaytimeForever ? Math.round(game.steamPlaytimeForever / 60) : null
-	const finishSourceLabel = game.steamFinishedSource === 'steam' ? 'Steam' : game.finished ? 'Manual' : 'Sin fecha'
-	const syncedGames = lastSyncResult?.gamesUpdated ?? lastSyncResult?.syncedGames ?? 0
-	const syncedAchievements = lastSyncResult?.achievementsUpdated ?? lastSyncResult?.syncedAchievements ?? 0
-	const filterOptions: Array<{ value: AchievementFilter; label: string; count: number }> = [
-		{ value: 'all', label: 'Todos', count: totalCount },
-		{ value: 'unlocked', label: 'Desbloqueados', count: unlockedCount },
-		{ value: 'locked', label: 'Bloqueados', count: totalCount - unlockedCount },
-	]
-
+	const lastSynced = progress?.lastSynced
+	const finishSourceLabel = game.steamFinishedSource === 'steam' ? 'Steam' : t(game.finished ? 'steamAchievements.manual' : 'steamAchievements.noDate')
 	return (
-		<div className={`steam-tab ${isAchievementComplete ? 'steam-tab--complete' : ''}`}>
+		<div className={`steam-tab ${progress?.isFullyCompleted ? 'steam-tab--complete' : ''}`}>
 			<div className='steam-tab-header'>
 				<div className='steam-tab-stats'>
-					{playtimeHours !== null && (
-						<div className='stat'>
-							<span className='stat-label'>Tiempo de juego</span>
-							<span className='stat-value'>{playtimeHours}h</span>
-						</div>
-					)}
-					{game.steamPlaytime2Weeks != null && game.steamPlaytime2Weeks > 0 && (
-						<div className='stat'>
-							<span className='stat-label'>Últimas 2 semanas</span>
-							<span className='stat-value'>{Math.round(game.steamPlaytime2Weeks / 60)}h</span>
-						</div>
-					)}
-					{game.steamLastSynced && (
-						<div className='stat'>
-							<span className='stat-label'>Última sync</span>
-							<span className='stat-value'>{new Date(game.steamLastSynced).toLocaleDateString()}</span>
-						</div>
-					)}
-					<div className='stat'>
-						<span className='stat-label'>Fecha fin</span>
-						<span className='stat-value'>{finishSourceLabel}</span>
-					</div>
+					{game.steamPlaytimeForever != null && <div className='stat'><span className='stat-label'>{t('steamAchievements.playtime')}</span><span className='stat-value'>{t('steamAchievements.hours', { hours: Math.round(game.steamPlaytimeForever / 60) })}</span></div>}
+					{game.steamPlaytime2Weeks != null && game.steamPlaytime2Weeks > 0 && <div className='stat'><span className='stat-label'>{t('steamAchievements.recentPlaytime')}</span><span className='stat-value'>{t('steamAchievements.hours', { hours: Math.round(game.steamPlaytime2Weeks / 60) })}</span></div>}
+					{lastSynced && <div className='stat'><span className='stat-label'>{t('steamAchievements.lastSync')}</span><span className='stat-value'>{formatDate(lastSynced)}</span></div>}
+					<div className='stat'><span className='stat-label'>{t('steamAchievements.finishDate')}</span><span className='stat-value'>{finishSourceLabel}</span></div>
 				</div>
-				<button className='btn btn-secondary btn-sm' onClick={handleSync} disabled={syncLoading}>
-					{syncLoading ? 'Sincronizando...' : 'Sync'}
-				</button>
+				<button type='button' className='btn btn-secondary btn-sm' onClick={handleSync} disabled={syncLoading || loading || !game.steamAppId}>{t(syncLoading ? 'steamAchievements.syncing' : 'steamAchievements.sync')}</button>
 			</div>
-
-			{syncMessage && <p className='sync-message'>{syncMessage}</p>}
-			{lastSyncResult && (
-				<p className='sync-message'>
-					Synced: {syncedGames} juegos, {syncedAchievements} logros
-				</p>
-			)}
-
-			{dateSuggestionLoading ? (
-				<p className='sync-message'>Buscando fecha de fin en Steam...</p>
-			) : dateSuggestion?.proposedFinished ? (
+			{syncMessage && <p className='sync-message' role='status'>{syncMessage}</p>}
+			{dateSuggestionLoading ? <p className='sync-message'>{t('steamAchievements.dateLoading')}</p> : dateSuggestion?.proposedFinished ? (
 				<div className={`steam-date-suggestion ${dateSuggestion.isFinishedConflict ? 'steam-date-suggestion--conflict' : ''}`}>
-					<div className='steam-date-suggestion__copy'>
-						<span className='steam-date-suggestion__eyebrow'>{dateSuggestion.isFinishedConflict ? 'Steam propone otra fecha de fin' : 'Steam tiene fecha de fin'}</span>
-						<strong>{dateSuggestion.proposedFinished}</strong>
-						<span>
-							Actual: {game.finished || 'sin fecha'} · Origen actual: {finishSourceLabel}
-						</span>
-					</div>
-					<div className='steam-date-suggestion__actions'>
-						<button className='btn btn-primary btn-sm' onClick={handleApplyFinishedSuggestion} disabled={dateSuggestionBusy}>
-							Usar Steam
-						</button>
-						<button className='btn btn-secondary btn-sm' onClick={handleDismissFinishedSuggestion} disabled={dateSuggestionBusy}>
-							No mostrar más
-						</button>
-					</div>
+					<div className='steam-date-suggestion__copy'><span className='steam-date-suggestion__eyebrow'>{t(dateSuggestion.isFinishedConflict ? 'steamAchievements.dateConflict' : 'steamAchievements.dateSuggestion')}</span><strong>{dateSuggestion.proposedFinished}</strong><span>{t('steamAchievements.currentDate', { date: game.finished || t('steamAchievements.noDate'), source: finishSourceLabel })}</span></div>
+					<div className='steam-date-suggestion__actions'><button type='button' className='btn btn-primary btn-sm' onClick={() => handleDateSuggestion(true)} disabled={dateSuggestionBusy}>{t('steamAchievements.useSteam')}</button><button type='button' className='btn btn-secondary btn-sm' onClick={() => handleDateSuggestion(false)} disabled={dateSuggestionBusy}>{t('steamAchievements.dismissDate')}</button></div>
 				</div>
-			) : game.steamFinishedSource === 'steam' && game.steamFinishedSyncedAt ? (
-				<p className='sync-message'>Fecha de fin gestionada por Steam desde {new Date(game.steamFinishedSyncedAt).toLocaleDateString()}.</p>
 			) : null}
-
-			{totalCount > 0 && (
-				<div className='achievement-summary'>
-					<div className='achievement-summary__topline'>
-						<p className='achievement-progress-label'>
-							{unlockedCount} / {totalCount} logros
-						</p>
-						<span className='achievement-progress-percent'>{completionPercent}%</span>
-					</div>
-					<div className='achievement-progress-bar' aria-label={`${completionPercent}%`}>
-						<div className='achievement-progress-fill' style={{ width: `${completionPercent}%` }} />
-					</div>
-					{isAchievementComplete && <p className='achievement-perfect-message'>Todos los logros completados</p>}
-				</div>
-			)}
-
-			{achievementsLoading ? (
-				<p>Cargando logros...</p>
-			) : totalCount > 0 ? (
-				<>
-					<div className='achievement-filter-tabs'>
-						{filterOptions.map((option) => (
-							<button key={option.value} className={filter === option.value ? 'active' : ''} onClick={() => setFilter(option.value)}>
-								<span>{option.label}</span>
-								<small>{option.count}</small>
-							</button>
-						))}
-					</div>
-					<div className='achievement-grid'>
-						{filteredAchievements.map((a) => (
-							<div key={a.apiName} className={`achievement-item ${a.achieved ? 'achieved' : 'locked'}`} title={a.description ?? a.displayName}>
-								{a.iconUrl && <img src={a.achieved ? a.iconUrl : (a.iconGrayUrl ?? a.iconUrl)} alt={a.displayName} width={40} height={40} loading='lazy' />}
-								<div className='achievement-info'>
-									<span className='achievement-name'>{a.displayName}</span>
-									{a.description && <span className='achievement-description'>{a.description}</span>}
-									{a.unlockTime && <span className='achievement-date'>{new Date(a.unlockTime).toLocaleDateString()}</span>}
-								</div>
-							</div>
-						))}
-					</div>
-				</>
-			) : (
-				<p className='no-achievements'>No hay datos de logros disponibles.</p>
-			)}
+			{loadError && <p className='steam-achievement-notice' role='alert'>{t('steamAchievements.loadFailed')} <button type='button' onClick={handleSync} disabled={syncLoading}>{t('steamAchievements.retry')}</button></p>}
+			{loading && !progress ? <p role='status'>{t('steamAchievements.loading')}</p> : progress && <SteamAchievements key={game.id} progress={progress} />}
 		</div>
 	)
 }

@@ -14,12 +14,12 @@ import OptimizedImage from '@/components/elements/OptimizedImage/OptimizedImage'
 import { steamService } from '@/services/SteamService/SteamService'
 import type { Playlist } from '@/models/api/Playlist'
 import './FocusMode.scss'
+import { isGameCompleted as isCompleted, isGameFullyCompleted, completionTitleKey } from '@/utils/gameCompletion'
 
 const FOCUS_PLAYLIST_NAME = 'Focus'
 const FOCUS_GAME_LIMIT = 4
 const SEARCH_DEBOUNCE_MS = 250
 
-const isCompleted = (game: Game) => Boolean(game.isManuallyCompleted) || Boolean(game.steamAchievementsTotal && game.steamAchievementsTotal > 0 && game.steamAchievementsUnlocked === game.steamAchievementsTotal)
 const SpotlightMark = () => <svg viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' aria-hidden='true'><path d='M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5' /><circle cx='12' cy='12' r='3' /></svg>
 
 const getFocusStorageKey = (userId?: number) => `gdb.focus-playlist.${userId ?? 'guest'}`
@@ -102,7 +102,7 @@ const FocusQueueCard = ({
 				<button type='button' className='focus-icon-button focus-feature-trigger' onClick={onMakeCurrent} aria-label={t('focus.makeCurrentFor', { name: game.name })} title={t('focus.makeCurrent')}><SpotlightMark /></button>
 				{managing && <button type='button' className='focus-icon-button focus-icon-button--remove' onClick={onRemove} aria-label={t('focus.removeGame', { name: game.name })} title={t('focus.remove')} disabled={busy}><RemoveMark /></button>}
 			</div>
-			{isCompleted(game) && <span className='focus-completed' aria-label={t('focus.completed')}>100%</span>}
+			{isCompleted(game) && <span className='focus-completed' aria-label={t(isGameFullyCompleted(game) ? 'focus.completed' : completionTitleKey(game))}>{isGameFullyCompleted(game) ? '100%' : '✓'}</span>}
 		</article>
 	)
 }
@@ -349,7 +349,7 @@ export default function FocusMode() {
 						<section className='focus-stage' aria-label={t('focus.stageLabel')}>
 							<article className={`focus-spotlight${currentGame ? '' : ' focus-spotlight--empty'}`}>
 								{currentGame && <button type='button' className='focus-spotlight__open' aria-label={t('focus.openGame', { name: currentGame.name })} onClick={() => setDetailGame(currentGame)} />}
-								{currentGame && isCompleted(currentGame) && <span className='focus-completed' aria-label={t('focus.completed')}>100%</span>}
+								{currentGame && isCompleted(currentGame) && <span className='focus-completed' aria-label={t(isGameFullyCompleted(currentGame) ? 'focus.completed' : completionTitleKey(currentGame))}>{isGameFullyCompleted(currentGame) ? '100%' : '✓'}</span>}
 								{currentGame && (currentGame.hero || currentGame.cover) && (
 									<OptimizedImage
 										src={currentGame.hero || currentGame.cover!}
