@@ -1,15 +1,17 @@
 # Build stage: Vite produces static assets, so build with the runner's native
 # architecture instead of running npm and the bundler through QEMU for arm64.
-FROM --platform=$BUILDPLATFORM node:20-alpine AS build
+FROM --platform=$BUILDPLATFORM node:22-alpine AS build
 WORKDIR /app
 
 # Install build dependencies for native modules
 RUN apk add --no-cache python3 make g++
 
-# Copy package metadata and install dependencies. The public repository does
-# not version a package-lock.json, so keep npm install for build compatibility.
-COPY package.json ./
-RUN npm install --no-audit --no-fund
+# Use exactly the lock validated by CI, including Alpine/musl native variants.
+COPY package.json package-lock.json ./
+COPY scripts/ci/native-lock.mjs ./scripts/ci/native-lock.mjs
+RUN node scripts/ci/native-lock.mjs \
+    && npm ci --include=optional --no-audit --no-fund \
+    && node scripts/ci/native-lock.mjs --installed
 
 # Copy source code
 COPY . .

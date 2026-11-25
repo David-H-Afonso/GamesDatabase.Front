@@ -56,6 +56,8 @@ logs/
 *.log
 
 # Temporary files
+.tmp/
+.playwright-mcp/
 *.tmp
 *.temp
 *~

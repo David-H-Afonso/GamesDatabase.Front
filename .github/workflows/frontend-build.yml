@@ -29,15 +29,19 @@ jobs:
           node-version: '22'
           cache: npm
           cache-dependency-path: package-lock.json
-      - name: Test portable version rules
-        run: node --test scripts/versioning/core.test.mjs
+      - name: Test versioning and native dependency guards
+        run: node --test scripts/versioning/core.test.mjs scripts/ci/native-lock.test.mjs
       - name: Validate every outgoing commit version
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || '' }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: node scripts/versioning/cli.mjs check-range --from "$BASE_SHA" --to "$HEAD_SHA"
+      - name: Verify the lock contains every native platform target
+        run: node scripts/ci/native-lock.mjs
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --include=optional
+      - name: Exercise installed Rollup, esbuild and embedded Sass
+        run: node scripts/ci/native-lock.mjs --installed
       - name: Lint
         run: npm run lint
       - name: Test
