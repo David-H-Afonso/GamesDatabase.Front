@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "productName": "Games Database Web",
+  "baselineCommit": "69bc19db909919e541ea0916c7107cc92c4b013d",
+  "tagPrefix": "",
+  "allowedTypes": ["feat", "fix", "refactor", "test", "docs", "chore", "build", "ci"],
+  "releaseBranches": ["master"],
+  "files": [
+    { "path": "package.json", "format": "json", "pointers": [["version"]] },
+    { "path": "package-lock.json", "format": "json", "pointers": [["version"], ["packages", "", "version"]] }
+  ]
+}

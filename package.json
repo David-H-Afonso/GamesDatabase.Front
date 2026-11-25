@@ -1,7 +1,7 @@
 {
 	"name": "gamesdatabase-front",
 	"private": true,
-	"version": "2.0.0",
+	"version": "2.0.1",
 	"type": "module",
 	"author": "David H. Afonso",
 	"description": "A modern web application for managing and organizing your personal game collection",
@@ -24,7 +24,12 @@
 		"cypress:open": "cypress open",
 		"cypress:run": "cypress run",
 		"security:deps": "npm audit --audit-level=moderate",
-		"security:all": "npm run security:deps"
+		"security:all": "npm run security:deps",
+		"version:install": "node scripts/versioning/cli.mjs install",
+		"version:plan": "node scripts/versioning/cli.mjs plan",
+		"version:prepare": "node scripts/versioning/cli.mjs prepare",
+		"version:check": "node scripts/versioning/cli.mjs check",
+		"test:versioning": "node --test scripts/versioning/core.test.mjs"
 	},
 	"dependencies": {
 		"@dnd-kit/core": "^6.3.1",
