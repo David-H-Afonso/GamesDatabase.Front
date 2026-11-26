@@ -8,6 +8,18 @@ vi.mock('react-i18next', () => ({
 	useTranslation: () => ({
 		t: (key: string, options?: Record<string, unknown>) => {
 			const translations: Record<string, string> = {
+				'gallery.library.filters': 'Filters',
+				'gallery.library.applyFilters': 'Apply filters',
+				'gallery.library.filterTitle': 'Filter library',
+				'gallery.library.resetFilters': 'Reset',
+				'gallery.library.viewGames': 'View games',
+				'gallery.library.completion': 'Completion',
+				'gallery.library.statusLabel': 'Status',
+				'gallery.library.moreFilters': 'More filters',
+				'gallery.library.onlyFavorites': 'Only my favorites',
+				'gallery.library.historyMaximum': 'Estimated story, at most',
+				'common.close': 'Close',
+				'gallery.library.search': 'Search your library',
 				'common.all': 'All',
 				'common.any': 'Any',
 				'common.clear': 'Clear',
@@ -98,11 +110,12 @@ vi.mock('react-i18next', () => ({
 	}),
 }))
 
+const loaders = vi.hoisted(() => ({ platforms: vi.fn().mockResolvedValue([{ id: 1, name: 'PC' }]), people: vi.fn().mockResolvedValue([{ id: 1, name: 'Solo' }]), statuses: vi.fn().mockResolvedValue([{ id: 1, name: 'Playing' }]), played: vi.fn().mockResolvedValue([{ id: 1, name: 'Finished' }]) }))
 vi.mock('@/hooks', () => ({
-	useGamePlatform: () => ({ fetchList: vi.fn().mockResolvedValue([{ id: 1, name: 'PC' }]) }),
-	useGamePlayWith: () => ({ fetchOptions: vi.fn().mockResolvedValue([{ id: 1, name: 'Solo' }]) }),
-	useGameStatus: () => ({ fetchActiveStatusList: vi.fn().mockResolvedValue([{ id: 1, name: 'Playing' }]) }),
-	useGamePlayedStatus: () => ({ fetchList: vi.fn().mockResolvedValue([{ id: 1, name: 'Finished' }]) }),
+	useGamePlatform: () => ({ fetchList: loaders.platforms }),
+	useGamePlayWith: () => ({ fetchOptions: loaders.people }),
+	useGameStatus: () => ({ fetchActiveStatusList: loaders.statuses }),
+	useGamePlayedStatus: () => ({ fetchList: loaders.played }),
 }))
 
 vi.mock('@/services/GameReplayTypeService', () => ({
@@ -132,6 +145,14 @@ async function loadGameFiltersChips() {
 	return mod.default
 }
 
+const renderLoaded = async (...args: Parameters<typeof renderWithProviders>) => {
+	const result = renderWithProviders(...args)
+	// The real preference thunk and synthetic catalogs must settle before a unit
+	// interaction. The hook loader identities remain stable, like the real hooks.
+	await waitFor(() => expect(result.store.getState().auth.user?.useScoreColors).toBe(false))
+	return result
+}
+
 describe('GameFiltersChips', () => {
 	const user = userEvent.setup()
 
@@ -139,37 +160,47 @@ describe('GameFiltersChips', () => {
 		const onFiltersChange = vi.fn()
 		const GameFiltersChips = await loadGameFiltersChips()
 		const props = { onFiltersChange, onSearchChange: vi.fn(), onSortChange: vi.fn() }
-		const { rerender } = renderWithProviders(<GameFiltersChips {...props} filters={{ fullCompletion: true }} />, { preloadedState: defaultState })
-		await user.click(screen.getByText('⚙ Advanced filters'))
-		await user.click(screen.getByRole('button', { name: '100% total' }))
+		const { rerender } = await renderLoaded(<GameFiltersChips {...props} filters={{ fullCompletion: true }} />, { preloadedState: defaultState })
+		await user.click(screen.getByRole('button', { name: 'Filters' }))
+		await user.selectOptions(screen.getByRole('combobox', { name: 'Completion' }), 'strict')
+		expect(onFiltersChange).not.toHaveBeenCalled()
+		await user.click(screen.getByRole('button', { name: 'View games' }))
 		expect(onFiltersChange).toHaveBeenLastCalledWith(expect.objectContaining({ fullCompletion: undefined, allAchievements: true }))
 		rerender(<GameFiltersChips {...props} filters={{ allAchievements: true }} />)
-		await user.click(screen.getByRole('button', { name: 'Completed' }))
+		await user.click(screen.getByRole('button', { name: 'Filters' }))
+		await user.selectOptions(screen.getByRole('combobox', { name: 'Completion' }), 'broad')
+		await user.click(screen.getByRole('button', { name: 'View games' }))
 		expect(onFiltersChange).toHaveBeenLastCalledWith(expect.objectContaining({ fullCompletion: true, allAchievements: undefined }))
 	})
 
 	it('renders search input', async () => {
 		const GameFiltersChips = await loadGameFiltersChips()
-		renderWithProviders(<GameFiltersChips filters={defaultFilters} onFiltersChange={vi.fn()} onSearchChange={vi.fn()} onSortChange={vi.fn()} />, { preloadedState: defaultState })
+		await renderLoaded(<GameFiltersChips filters={defaultFilters} onFiltersChange={vi.fn()} onSearchChange={vi.fn()} onSortChange={vi.fn()} />, { preloadedState: defaultState })
 
-		expect(screen.getByPlaceholderText('Search games…')).toBeInTheDocument()
+		expect(screen.getByPlaceholderText('Search your library')).toBeInTheDocument()
+		const search = screen.getByRole('searchbox', { name: 'Search' })
+		expect(search).toHaveAttribute('type', 'search')
+		expect(search).toHaveAttribute('autocomplete', 'off')
+		expect(search.closest('.game-filters-chips__search-control')).not.toHaveAttribute('title')
+		expect(search.closest('.game-filters-chips__search-control')?.querySelector('svg')).toHaveAttribute('stroke-width', '1.7')
+		expect(search.closest('.game-filters-chips__search-control')?.querySelector('circle')).toHaveAttribute('r', '6.8')
 	})
 
 	it('calls onSearchChange when typing in search input', async () => {
 		const onSearchChange = vi.fn()
 		const GameFiltersChips = await loadGameFiltersChips()
-		renderWithProviders(<GameFiltersChips filters={defaultFilters} onFiltersChange={vi.fn()} onSearchChange={onSearchChange} onSortChange={vi.fn()} />, {
+		await renderLoaded(<GameFiltersChips filters={defaultFilters} onFiltersChange={vi.fn()} onSearchChange={onSearchChange} onSortChange={vi.fn()} />, {
 			preloadedState: defaultState,
 		})
 
-		await user.type(screen.getByPlaceholderText('Search games…'), 'dark')
+		await user.type(screen.getByPlaceholderText('Search your library'), 'dark')
 
 		await waitFor(() => expect(onSearchChange).toHaveBeenCalled())
 	})
 
 	it('renders sort select with default Nombre option', async () => {
 		const GameFiltersChips = await loadGameFiltersChips()
-		renderWithProviders(<GameFiltersChips filters={defaultFilters} onFiltersChange={vi.fn()} onSearchChange={vi.fn()} onSortChange={vi.fn()} />, { preloadedState: defaultState })
+		await renderLoaded(<GameFiltersChips filters={defaultFilters} onFiltersChange={vi.fn()} onSearchChange={vi.fn()} onSortChange={vi.fn()} />, { preloadedState: defaultState })
 
 		const sortSelect = screen.getByLabelText('Sort by')
 		expect(sortSelect).toBeInTheDocument()
@@ -179,7 +210,7 @@ describe('GameFiltersChips', () => {
 	it('calls onSortChange when sort select changes', async () => {
 		const onSortChange = vi.fn()
 		const GameFiltersChips = await loadGameFiltersChips()
-		renderWithProviders(<GameFiltersChips filters={defaultFilters} onFiltersChange={vi.fn()} onSearchChange={vi.fn()} onSortChange={onSortChange} />, {
+		await renderLoaded(<GameFiltersChips filters={defaultFilters} onFiltersChange={vi.fn()} onSearchChange={vi.fn()} onSortChange={onSortChange} />, {
 			preloadedState: defaultState,
 		})
 
@@ -190,7 +221,7 @@ describe('GameFiltersChips', () => {
 
 	it('orders sort options by the primary collection workflow', async () => {
 		const GameFiltersChips = await loadGameFiltersChips()
-		renderWithProviders(<GameFiltersChips filters={defaultFilters} onFiltersChange={vi.fn()} onSearchChange={vi.fn()} onSortChange={vi.fn()} />, { preloadedState: defaultState })
+		await renderLoaded(<GameFiltersChips filters={defaultFilters} onFiltersChange={vi.fn()} onSearchChange={vi.fn()} onSortChange={vi.fn()} />, { preloadedState: defaultState })
 
 		const options = Array.from(screen.getByLabelText('Sort by').querySelectorAll('option')).map((option) => option.value)
 		expect(options.slice(0, 8)).toEqual(['status', 'updatedat', 'createdat', 'critic', 'score', 'grade', 'storyDuration', 'completionDuration'])
@@ -199,13 +230,15 @@ describe('GameFiltersChips', () => {
 	it('toggles sort direction when arrow button is clicked', async () => {
 		const onSortChange = vi.fn()
 		const GameFiltersChips = await loadGameFiltersChips()
-		renderWithProviders(<GameFiltersChips filters={defaultFilters} onFiltersChange={vi.fn()} onSearchChange={vi.fn()} onSortChange={onSortChange} />, {
+		await renderLoaded(<GameFiltersChips filters={defaultFilters} onFiltersChange={vi.fn()} onSearchChange={vi.fn()} onSortChange={onSortChange} />, {
 			preloadedState: defaultState,
 		})
 
 		const dirBtn = screen.getByTitle('Ascending')
 		expect(dirBtn.nextElementSibling).toBe(screen.getByLabelText('Sort by'))
-		expect(dirBtn.querySelector('path')).toHaveAttribute('d', 'M13 12H21M13 8H21M13 16H21M6 7V17M6 7L3 10M6 7L9 10')
+		expect(dirBtn).toHaveAttribute('aria-pressed', 'false')
+		expect(dirBtn.querySelector('path')).toHaveAttribute('d', 'M5 5v14 m-3-3 3 3 3-3 M11 6h10 M11 12h7 M11 18h4')
+		expect(dirBtn.querySelector('svg')).toHaveAttribute('stroke-width', '1.7')
 		await user.click(dirBtn)
 
 		expect(onSortChange).toHaveBeenCalledWith('name', true)
@@ -213,20 +246,20 @@ describe('GameFiltersChips', () => {
 
 	it('marks the sort direction button as descending when sortDescending is true', async () => {
 		const GameFiltersChips = await loadGameFiltersChips()
-		const { container } = renderWithProviders(<GameFiltersChips filters={{ sortDescending: true }} onFiltersChange={vi.fn()} onSearchChange={vi.fn()} onSortChange={vi.fn()} />, {
+		const { container } = await renderLoaded(<GameFiltersChips filters={{ sortDescending: true }} onFiltersChange={vi.fn()} onSearchChange={vi.fn()} onSortChange={vi.fn()} />, {
 			preloadedState: defaultState,
 		})
 
 		const dirBtn = container.querySelector('.game-filters-chips__sort-direction')
 		expect(dirBtn).toHaveClass('is-descending')
-		expect(dirBtn?.querySelector('path')).toHaveAttribute('d', 'M13 12H21M13 8H21M13 16H21M6 7V17M6 17L3 14M6 17L9 14')
+		expect(dirBtn).toHaveAttribute('aria-pressed', 'true')
 		expect(screen.getByTitle('Descending')).toBeInTheDocument()
 	})
 
 	it('exposes empty, mixed, and complete page selection with matching icons', async () => {
 		const GameFiltersChips = await loadGameFiltersChips()
 		const props = { filters: defaultFilters, onFiltersChange: vi.fn(), onSearchChange: vi.fn(), onSortChange: vi.fn(), onSelectAll: vi.fn(), totalCount: 3 }
-		const { rerender } = renderWithProviders(<GameFiltersChips {...props} selectedCount={0} />, { preloadedState: defaultState })
+		const { rerender } = await renderLoaded(<GameFiltersChips {...props} selectedCount={0} />, { preloadedState: defaultState })
 		const checkbox = screen.getByRole('checkbox', { name: 'Select all' })
 		expect(checkbox).toHaveAttribute('aria-checked', 'false')
 		expect(checkbox.querySelectorAll('svg path')).toHaveLength(1)
@@ -248,7 +281,7 @@ describe('GameFiltersChips', () => {
 		const onBulkEdit = vi.fn()
 		const onBulkDelete = vi.fn()
 		const GameFiltersChips = await loadGameFiltersChips()
-		renderWithProviders(
+		await renderLoaded(
 			<GameFiltersChips
 				filters={defaultFilters}
 				onFiltersChange={vi.fn()}
@@ -271,7 +304,7 @@ describe('GameFiltersChips', () => {
 	it('calls onBulkDelete when Eliminar button is clicked', async () => {
 		const onBulkDelete = vi.fn()
 		const GameFiltersChips = await loadGameFiltersChips()
-		renderWithProviders(
+		await renderLoaded(
 			<GameFiltersChips filters={defaultFilters} onFiltersChange={vi.fn()} onSearchChange={vi.fn()} onSortChange={vi.fn()} selectedCount={2} onBulkDelete={onBulkDelete} />,
 			{ preloadedState: defaultState }
 		)
@@ -284,39 +317,77 @@ describe('GameFiltersChips', () => {
 	it('renders view mode toggle buttons when onViewModeChange is provided', async () => {
 		const onViewModeChange = vi.fn()
 		const GameFiltersChips = await loadGameFiltersChips()
-		renderWithProviders(
+		await renderLoaded(
 			<GameFiltersChips filters={defaultFilters} onFiltersChange={vi.fn()} onSearchChange={vi.fn()} onSortChange={vi.fn()} viewMode='card' onViewModeChange={onViewModeChange} />,
 			{ preloadedState: defaultState }
 		)
 
-		const cardBtn = screen.getByText('Cards')
+		const cardBtn = screen.getByRole('button', { name: 'Cards' })
 		expect(cardBtn).toBeInTheDocument()
 		expect(cardBtn.className).toContain('is-active')
 
-		await user.click(screen.getByText('Row'))
+		await user.click(screen.getByRole('button', { name: 'Row' }))
 		expect(onViewModeChange).toHaveBeenCalledWith('row')
 	})
 
 	it('toggles advanced filters when button is clicked', async () => {
 		const GameFiltersChips = await loadGameFiltersChips()
-		renderWithProviders(<GameFiltersChips filters={defaultFilters} onFiltersChange={vi.fn()} onSearchChange={vi.fn()} onSortChange={vi.fn()} />, { preloadedState: defaultState })
+		await renderLoaded(<GameFiltersChips filters={defaultFilters} onFiltersChange={vi.fn()} onSearchChange={vi.fn()} onSortChange={vi.fn()} />, { preloadedState: defaultState })
 
 		// Advanced filters should not be visible initially
 		expect(screen.queryByText('Clear filters')).not.toBeInTheDocument()
 
 		// Click the toggle button
-		await user.click(screen.getByText('⚙ Advanced filters'))
+		await user.click(screen.getByRole('button', { name: 'Filters' }))
 
-		// Advanced filter chips should now be visible
-		expect(screen.getByText(/Platform:/)).toBeInTheDocument()
-		expect(screen.getByText(/Status:/)).toBeInTheDocument()
-		expect(screen.getByText(/Grade:/)).toBeInTheDocument()
+		expect(screen.getByRole('combobox', { name: 'Platform' })).toBeVisible()
+		expect(screen.getByRole('combobox', { name: 'Status' })).toBeVisible()
+		expect(screen.getByRole('combobox', { name: 'Completion' })).toBeVisible()
+		await user.click(screen.getByText('More filters'))
+		expect(screen.getByText(/Grade:/)).toBeVisible()
+	})
+
+	it('keeps primary edits and Reset as a cancellable draft, including manual zero bounds', async () => {
+		const onFiltersChange = vi.fn()
+		const GameFiltersChips = await loadGameFiltersChips()
+		await renderLoaded(<GameFiltersChips filters={{ favorite: true, maxStory: 20 }} onFiltersChange={onFiltersChange} onSearchChange={vi.fn()} onSortChange={vi.fn()} />, { preloadedState: defaultState })
+		await user.click(screen.getByRole('button', { name: 'Filters' }))
+		await user.selectOptions(screen.getByRole('combobox', { name: 'Status' }), '1')
+		await user.clear(screen.getByRole('spinbutton', { name: 'Estimated story, at most' }))
+		await user.type(screen.getByRole('spinbutton', { name: 'Estimated story, at most' }), '0')
+		await user.click(screen.getByRole('button', { name: 'Reset' }))
+		expect(screen.getByRole('combobox', { name: 'Status' })).toHaveValue('')
+		expect(onFiltersChange).not.toHaveBeenCalled()
+		await user.click(screen.getByRole('button', { name: 'Close' }))
+		expect(onFiltersChange).not.toHaveBeenCalled()
+		await user.click(screen.getByRole('button', { name: 'Filters' }))
+		expect(screen.getByRole('checkbox', { name: 'Only my favorites' })).toBeChecked()
+		expect(screen.getByRole('spinbutton', { name: 'Estimated story, at most' })).toHaveValue(20)
+		await user.clear(screen.getByRole('spinbutton', { name: 'Estimated story, at most' }))
+		await user.type(screen.getByRole('spinbutton', { name: 'Estimated story, at most' }), '0')
+		await user.selectOptions(screen.getByRole('combobox', { name: 'Completion' }), 'unfinished')
+		await user.click(screen.getByRole('button', { name: 'View games' }))
+		expect(onFiltersChange).toHaveBeenLastCalledWith(expect.objectContaining({ favorite: true, maxStory: 0, fullCompletion: false, allAchievements: undefined }))
+	})
+
+	it('closes an advanced filter popover with Escape without closing the draft sheet', async () => {
+		const GameFiltersChips = await loadGameFiltersChips()
+		await renderLoaded(<GameFiltersChips filters={defaultFilters} onFiltersChange={vi.fn()} onSearchChange={vi.fn()} onSortChange={vi.fn()} />, { preloadedState: defaultState })
+		await user.click(screen.getByRole('button', { name: 'Filters' }))
+		await user.click(screen.getByText('More filters'))
+		const grade = screen.getByRole('button', { name: 'Grade: Any' })
+		await user.click(grade)
+		expect(screen.getByText('Grade', { selector: 'strong' })).toBeVisible()
+		await user.keyboard('{Escape}')
+		expect(screen.queryByText('Grade', { selector: 'strong' })).not.toBeInTheDocument()
+		expect(screen.getByRole('dialog', { name: 'Filter library' })).toBeVisible()
+		expect(grade).toHaveFocus()
 	})
 
 	it('renders Exportar button when onBulkExport is provided and items selected', async () => {
 		const onBulkExport = vi.fn()
 		const GameFiltersChips = await loadGameFiltersChips()
-		renderWithProviders(
+		await renderLoaded(
 			<GameFiltersChips filters={defaultFilters} onFiltersChange={vi.fn()} onSearchChange={vi.fn()} onSortChange={vi.fn()} selectedCount={1} onBulkExport={onBulkExport} />,
 			{ preloadedState: defaultState }
 		)
@@ -328,7 +399,7 @@ describe('GameFiltersChips', () => {
 	it('calls onBulkRefreshImages with the selected image field', async () => {
 		const onBulkRefreshImages = vi.fn()
 		const GameFiltersChips = await loadGameFiltersChips()
-		renderWithProviders(
+		await renderLoaded(
 			<GameFiltersChips
 				filters={defaultFilters}
 				onFiltersChange={vi.fn()}
@@ -349,7 +420,7 @@ describe('GameFiltersChips', () => {
 	it('renders "Seleccionar todos" button when onSelectAll provided', async () => {
 		const onSelectAll = vi.fn()
 		const GameFiltersChips = await loadGameFiltersChips()
-		renderWithProviders(<GameFiltersChips filters={defaultFilters} onFiltersChange={vi.fn()} onSearchChange={vi.fn()} onSortChange={vi.fn()} onSelectAll={onSelectAll} />, {
+		await renderLoaded(<GameFiltersChips filters={defaultFilters} onFiltersChange={vi.fn()} onSearchChange={vi.fn()} onSortChange={vi.fn()} onSelectAll={onSelectAll} />, {
 			preloadedState: defaultState,
 		})
 

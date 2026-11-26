@@ -68,6 +68,16 @@ describe('SelectiveImportModal', () => {
 		expect(screen.getByPlaceholderText('Pega el contenido CSV aquí…')).toBeInTheDocument()
 	})
 
+	it('retains the native radio-group keyboard interaction for its source choices', async () => {
+		const C = await loadComponent()
+		const user = userEvent.setup()
+		render(<C isOpen={true} onClose={mockOnClose} />)
+		screen.getByRole('radio', { name: 'Subir Archivo' }).focus()
+		await user.keyboard('{ArrowRight}')
+		expect(screen.getByRole('radio', { name: 'Pegar Texto' })).toBeChecked()
+		expect(screen.getByPlaceholderText('Pega el contenido CSV aquí…')).toBeInTheDocument()
+	})
+
 	it('shows import button', async () => {
 		const C = await loadComponent()
 		render(<C isOpen={true} onClose={mockOnClose} />)

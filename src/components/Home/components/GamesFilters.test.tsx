@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test/utils/renderWithProviders'
 import type { GameQueryParameters } from '@/models/api/Game'
@@ -14,11 +14,12 @@ const mockStatuses = [
 ]
 const mockPlayedStatuses = [{ id: 1, name: 'Finished' }]
 
+const requests = vi.hoisted(() => ({ platforms: vi.fn(), playWith: vi.fn(), statuses: vi.fn(), played: vi.fn() }))
 vi.mock('@/hooks', () => ({
-	useGamePlatform: () => ({ fetchList: vi.fn().mockResolvedValue(mockPlatforms) }),
-	useGamePlayWith: () => ({ fetchOptions: vi.fn().mockResolvedValue(mockPlayWith) }),
-	useGameStatus: () => ({ fetchActiveStatusList: vi.fn().mockResolvedValue(mockStatuses) }),
-	useGamePlayedStatus: () => ({ fetchList: vi.fn().mockResolvedValue(mockPlayedStatuses) }),
+	useGamePlatform: () => ({ fetchList: requests.platforms }),
+	useGamePlayWith: () => ({ fetchOptions: requests.playWith }),
+	useGameStatus: () => ({ fetchActiveStatusList: requests.statuses }),
+	useGamePlayedStatus: () => ({ fetchList: requests.played }),
 }))
 
 vi.mock('./GamesFilters.scss', () => ({}))
@@ -32,10 +33,12 @@ async function loadGamesFilters() {
 
 describe('GamesFilters', () => {
 	const user = userEvent.setup()
+	beforeEach(() => { requests.platforms.mockResolvedValue(mockPlatforms); requests.playWith.mockResolvedValue(mockPlayWith); requests.statuses.mockResolvedValue(mockStatuses); requests.played.mockResolvedValue(mockPlayedStatuses) })
 
 	it('renders all filter inputs and selects', async () => {
 		const GamesFilters = await loadGamesFilters()
 		renderWithProviders(<GamesFilters value={defaultFilters} onChange={vi.fn()} />)
+		await screen.findByText('Finished')
 
 		expect(screen.getByPlaceholderText('Min grade')).toBeInTheDocument()
 		expect(screen.getByPlaceholderText('Max grade')).toBeInTheDocument()
@@ -53,6 +56,7 @@ describe('GamesFilters', () => {
 	it('applies closed class when isOpen is false', async () => {
 		const GamesFilters = await loadGamesFilters()
 		const { container } = renderWithProviders(<GamesFilters value={defaultFilters} onChange={vi.fn()} isOpen={false} />)
+		await screen.findByText('Finished')
 
 		expect(container.querySelector('.games-filters.closed')).toBeInTheDocument()
 	})
@@ -74,7 +78,7 @@ describe('GamesFilters', () => {
 
 		// Wait for options to load
 		const select = screen.getByLabelText('Platform filter')
-		await vi.waitFor(() => {
+		await waitFor(() => {
 			expect(select.querySelectorAll('option').length).toBeGreaterThan(1)
 		})
 
@@ -120,7 +124,7 @@ describe('GamesFilters', () => {
 
 		// Wait for the async options to load
 		const select = screen.getByLabelText('Platform filter')
-		await vi.waitFor(() => {
+		await waitFor(() => {
 			const options = select.querySelectorAll('option')
 			expect(options.length).toBeGreaterThan(1)
 		})
@@ -160,7 +164,7 @@ describe('GamesFilters', () => {
 
 		// Wait for async options to load
 		const platformSelect = screen.getByLabelText('Platform filter')
-		await vi.waitFor(() => {
+		await waitFor(() => {
 			expect(platformSelect.querySelectorAll('option').length).toBeGreaterThan(1)
 		})
 
@@ -175,6 +179,7 @@ describe('GamesFilters', () => {
 	it('renders with isCheaperByKey false', async () => {
 		const GamesFilters = await loadGamesFilters()
 		renderWithProviders(<GamesFilters value={{ isCheaperByKey: false }} onChange={vi.fn()} />)
+		await screen.findByText('Finished')
 
 		expect(screen.getByLabelText('Price filter')).toHaveValue('false')
 	})
@@ -195,7 +200,7 @@ describe('GamesFilters', () => {
 		renderWithProviders(<GamesFilters value={defaultFilters} onChange={onChange} />)
 
 		const select = screen.getByLabelText('Play with filter')
-		await vi.waitFor(() => {
+		await waitFor(() => {
 			expect(select.querySelectorAll('option').length).toBeGreaterThan(1)
 		})
 		await user.selectOptions(select, '1')
@@ -209,7 +214,7 @@ describe('GamesFilters', () => {
 		renderWithProviders(<GamesFilters value={defaultFilters} onChange={onChange} />)
 
 		const select = screen.getByLabelText('Status filter')
-		await vi.waitFor(() => {
+		await waitFor(() => {
 			expect(select.querySelectorAll('option').length).toBeGreaterThan(1)
 		})
 		await user.selectOptions(select, '1')
@@ -223,7 +228,7 @@ describe('GamesFilters', () => {
 		renderWithProviders(<GamesFilters value={defaultFilters} onChange={onChange} />)
 
 		const select = screen.getByLabelText('Played status filter')
-		await vi.waitFor(() => {
+		await waitFor(() => {
 			expect(select.querySelectorAll('option').length).toBeGreaterThan(1)
 		})
 		await user.selectOptions(select, '1')
@@ -267,7 +272,7 @@ describe('GamesFilters', () => {
 
 		// Wait for status options to load in exclude section
 		const excludeSection = container.querySelector('.gf-exclude-status')
-		await vi.waitFor(() => {
+		await waitFor(() => {
 			const labels = excludeSection?.querySelectorAll('label')
 			expect(labels!.length).toBeGreaterThan(1) // header label + status labels
 		})
@@ -285,7 +290,7 @@ describe('GamesFilters', () => {
 		const { container } = renderWithProviders(<GamesFilters value={{ excludeStatusIds: [1, 2] }} onChange={onChange} />)
 
 		const excludeSection = container.querySelector('.gf-exclude-status')
-		await vi.waitFor(() => {
+		await waitFor(() => {
 			const checkboxes = excludeSection?.querySelectorAll('input[type="checkbox"]')
 			expect(checkboxes!.length).toBeGreaterThan(0)
 		})

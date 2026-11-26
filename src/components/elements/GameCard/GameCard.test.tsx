@@ -94,8 +94,8 @@ vi.mock('./RowView/RowView', () => ({
 }))
 
 // Mock GameDetails to avoid rendering its complex internals
-vi.mock('@/components/elements/GameDetails/GameDetails', () => ({
-	GameDetails: ({ game }: { game: { name: string } }) => <div data-testid='game-details'>{game.name} — details</div>,
+vi.mock('@/components/Collection/CollectionGameDetailsLazy', () => ({
+	CollectionGameDetails: ({ game }: { game: { name: string } }) => <div data-testid='game-details'>{game.name} — details</div>,
 }))
 
 describe('GameCard', () => {

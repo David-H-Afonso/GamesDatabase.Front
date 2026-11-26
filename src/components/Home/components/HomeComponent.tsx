@@ -1,6 +1,7 @@
-import { useEffect, useState, useRef, lazy, Suspense } from 'react'
+import { useEffect, useMemo, useState, useSyncExternalStore, lazy, Suspense } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Button, GameCard, GameCardSkeleton, ConfirmDialog, Toast } from '@/components/elements'
+import { GameCard, GameCardSkeleton, ConfirmDialog, Toast } from '@/components/elements'
 import { useGames, useGameViews } from '@/hooks'
 import { useAppSelector, useAppDispatch } from '@/store/hooks'
 import { setCardStyle, setViewMode } from '@/store/features/theme/themeSlice'
@@ -11,7 +12,19 @@ import { steamService } from '@/services'
 import type { BulkEditData } from './BulkEditModal'
 import GameFiltersChips from './GameFiltersChips'
 import SelectiveExportModal from './SelectiveExportModal'
+import { CollectionIcon } from '@/components/Collection/CollectionIcon'
+import { createNameSearch } from '@/utils/nameSearch'
+import { collectionVersion, subscribeCollection } from '@/services/CollectionService/collectionEvents'
+import { getGamesSummary } from '@/services/GamesService/GamesService'
+import { useCollectionResource } from '@/hooks/useCollectionResource'
+import { useDisplayedGames } from '@/hooks/useDisplayedGames'
+import { recentGameViews } from '@/utils/recentGameViews'
+import { recordGameViewUse } from '@/services/GameViewService/GameViewService'
+import { recordViewUsage } from '@/store/features/gameViews/gameViewSlice'
+import { GALLERY_PAGE_SIZE } from '@/utils/constants'
 import './HomeComponent.scss'
+import './GalleryLibrary.scss'
+import { areFiltersEqual } from '@/utils/filterUtils/filterUtils'
 
 const BulkEditModal = lazy(() => import('./BulkEditModal'))
 type BulkImageField = 'logo' | 'hero' | 'cover'
@@ -47,13 +60,16 @@ const rowHeaderColumns = [
 ] as const
 
 const HomeComponent = () => {
-	const { games, error, loading, pagination, fetchGamesList, refreshGames, fetchGameDetails, deleteGameById, bulkUpdateGamesById, updateGameById } = useGames()
+	const { games, error, loading, lastAppliedFilters, pagination, refreshGames, fetchGameDetails, deleteGameById, bulkUpdateGamesById, updateGameById } = useGames()
 	const { publicGameViews, loadPublicGameViews } = useGameViews()
 
 	const { t } = useTranslation()
+	const [searchParams, setSearchParams] = useSearchParams()
+	const collectionRevision = useSyncExternalStore(subscribeCollection, collectionVersion, collectionVersion)
 	const dispatch = useAppDispatch()
 	const cardStyle = useAppSelector((s) => s.theme.cardStyle ?? 'row')
 	const token = useAppSelector((s) => s.auth.token)
+	const ownerId = useAppSelector((s) => s.auth.user?.id)
 	const filters = useAppSelector(selectGamesFilters)
 	const needsRefresh = useAppSelector(selectNeedsRefresh)
 	const viewMode = useAppSelector((s) => s.theme.viewMode ?? 'default')
@@ -65,26 +81,25 @@ const HomeComponent = () => {
 	const [pendingDelete, setPendingDelete] = useState<{ kind: 'bulk' } | { kind: 'single'; id: number } | null>(null)
 	const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
 	const [bulkImageRefreshing, setBulkImageRefreshing] = useState(false)
-	const filtersRef = useRef(filters)
-	useEffect(() => {
-		filtersRef.current = filters
-	}, [filters])
-
-	// Refresh games when the header Import button signals completion via Redux
-	useEffect(() => {
-		if (!needsRefresh) return
-		dispatch(clearGamesRefresh())
-		void refreshGames(viewMode === 'default' ? { ...filtersRef.current } : { ...filtersRef.current, viewName: viewMode })
-	}, [needsRefresh, dispatch, refreshGames, viewMode])
+	const [selecting, setSelecting] = useState(false), [advancedColumns, setAdvancedColumns] = useState(false)
+	const rawViewId = searchParams.get('viewId'), routeViewId = rawViewId ? Number(rawViewId) : undefined
+	const invalidView = rawViewId !== null && (!Number.isSafeInteger(routeViewId) || Number(routeViewId) <= 0)
+	const savedView = Boolean(rawViewId !== null || viewMode !== 'default')
+	const summary = useCollectionResource('collection-summary', getGamesSummary)
+	const query = useMemo<GameQueryParameters>(() => savedView ? { page: filters.page ?? 1, pageSize: filters.pageSize ?? GALLERY_PAGE_SIZE, ...(routeViewId ? { viewId: routeViewId } : { viewName: viewMode }) } : { ...filters, pageSize: filters.pageSize ?? GALLERY_PAGE_SIZE, viewId: undefined, viewName: undefined }, [filters, savedView, routeViewId, viewMode])
 	const [viewError, setViewError] = useState<string | null>(null)
-
-	const prevViewModeRef = useRef<string>(viewMode)
-
-	// Prevent infinite retry loops when view fails
-	const retryCountRef = useRef<Map<string, number>>(new Map())
-	const lastErrorTimeRef = useRef<Map<string, number>>(new Map())
-	const MAX_RETRIES = 2
-	const RETRY_RESET_TIME = 30000 // Reset retry count after 30 seconds
+	const [readRevision, setReadRevision] = useState(0)
+	const readFailed = Boolean(invalidView || viewError || error)
+	const quickViews = recentGameViews(publicGameViews)
+	const [usageError, setUsageError] = useState(false)
+	const usedViewId = savedView && !invalidView ? publicGameViews.find(view => routeViewId ? view.id === routeViewId : view.name === viewMode)?.id : undefined
+	useDisplayedGames(invalidView || viewError || error ? [] : games, JSON.stringify(query), loading || !areFiltersEqual(query, lastAppliedFilters ?? null))
+	useEffect(() => {
+		if (!token || !usedViewId) return
+		const controller = new AbortController(); setUsageError(false)
+		void recordGameViewUse(usedViewId, controller.signal).then(views => { if (!controller.signal.aborted) dispatch(recordViewUsage(views)) }).catch(() => { if (!controller.signal.aborted) setUsageError(true) })
+		return () => controller.abort()
+	}, [usedViewId, dispatch, token])
 
 	// Load public GameViews on mount
 	useEffect(() => {
@@ -92,102 +107,40 @@ const HomeComponent = () => {
 		loadPublicGameViews()
 	}, [loadPublicGameViews, token])
 
-	// Force reload on component mount to handle page refresh (F5)
-	const hasMountedRef = useRef(false)
-
-	// Load current view data with error protection
+	// An unavailable saved view stays unavailable; never silently show the whole library.
 	useEffect(() => {
-		if (!token) return
-
-		const load = async () => {
-			const isFirstMount = !hasMountedRef.current
-			// Mark as mounted after first check
-			if (isFirstMount) {
-				hasMountedRef.current = true
-			}
-
-			try {
-				if (viewMode === 'default') {
-					await refreshGames(filters)
-					setViewError(null)
-					return
-				}
-
-				// Only reset to page 1 when the view actually changes, not on every filter/page update
-				if (prevViewModeRef.current !== viewMode) {
-					prevViewModeRef.current = viewMode
-					if (((filters as any)?.page ?? 1) !== 1) {
-						dispatch(setGamesFilters({ ...filters, page: 1 }))
-						return
-					}
-				}
-
-				// Check retry count for this view
-				const currentTime = Date.now()
-				const lastErrorTime = lastErrorTimeRef.current.get(viewMode) || 0
-				const retryCount = retryCountRef.current.get(viewMode) || 0
-
-				// Reset retry count if enough time has passed
-				if (currentTime - lastErrorTime > RETRY_RESET_TIME) {
-					retryCountRef.current.set(viewMode, 0)
-				}
-
-				// If we've exceeded max retries, fallback to default view
-				if (retryCount >= MAX_RETRIES) {
-					console.error(`View "${viewMode}" failed ${MAX_RETRIES} times. Falling back to default view.`)
-					setViewError(`Failed to load view "${viewMode}". Switched to default view.`)
-					dispatch(setViewMode('default'))
-					retryCountRef.current.delete(viewMode)
-					lastErrorTimeRef.current.delete(viewMode)
-					return
-				}
-
-				// Force refresh on first mount to handle F5 reload, otherwise use cache
-				if (isFirstMount) {
-					await refreshGames({ ...filters, viewName: viewMode })
-				} else {
-					await fetchGamesList({ ...filters, viewName: viewMode })
-				}
-				retryCountRef.current.set(viewMode, 0)
-				setViewError(null)
-			} catch (e) {
-				console.error('Error loading view data', e)
-
-				// Increment retry count
-				const currentRetries = retryCountRef.current.get(viewMode) || 0
-				retryCountRef.current.set(viewMode, currentRetries + 1)
-				lastErrorTimeRef.current.set(viewMode, Date.now())
-
-				// If this was the last retry, the next effect run will trigger fallback
-				if (currentRetries + 1 >= MAX_RETRIES) {
-					setViewError(`View "${viewMode}" failed to load. Switching to default view...`)
-					// Use setTimeout to avoid state update during render
-					setTimeout(() => {
-						dispatch(setViewMode('default'))
-					}, 100)
-				}
-			}
-		}
-		void load()
-	}, [viewMode, filters, refreshGames, fetchGamesList, dispatch, token])
-
-	// Auto-dismiss error after 5 seconds
+		if (!token || invalidView) return
+		const controller = new AbortController()
+		setViewError(null)
+		void refreshGames(query, controller.signal).catch(() => { if (!controller.signal.aborted) setViewError(t('gallery.common.loadError')) })
+		return () => controller.abort()
+	}, [query, refreshGames, token, invalidView, t, collectionRevision, readRevision])
 	useEffect(() => {
-		if (viewError) {
-			const timer = setTimeout(() => {
-				setViewError(null)
-			}, 5000)
-			return () => clearTimeout(timer)
-		}
-	}, [viewError])
+		if (!needsRefresh || invalidView) return
+		dispatch(clearGamesRefresh()); void refreshGames(query).catch(() => setViewError(t('gallery.common.loadError')))
+	}, [needsRefresh, dispatch, refreshGames, query, invalidView, t])
+	const chooseView = (name: string) => {
+		dispatch(setViewMode(name)); setFilters({ ...filters, page: 1 }); setSelectedGames([])
+		const view = publicGameViews.find(value => value.name === name)
+		setSearchParams(current => { if (view) current.set('viewId', String(view.id)); else current.delete('viewId'); return current })
+	}
 
 	const toggleGameSelection = (gameId: number, isSelected: boolean) => {
-		setSelectedGames((prev) => (isSelected ? [...prev, gameId] : prev.filter((id) => id !== gameId)))
+		setSelecting(true)
+		setSelectedGames((prev) => (isSelected ? [...new Set([...prev, gameId])] : prev.filter((id) => id !== gameId)))
 	}
+	const selectionScope = JSON.stringify(query)
+	useEffect(() => { setSelectedGames([]) }, [selectionScope, ownerId])
+	const visibleSelectionIds = JSON.stringify(games.map(game => game.id))
+	useEffect(() => {
+		if (loading) return
+		const visible = new Set<number>(JSON.parse(visibleSelectionIds))
+		setSelectedGames(current => current.every(id => visible.has(id)) ? current : current.filter(id => visible.has(id)))
+	}, [visibleSelectionIds, loading])
 
 	const handleSelectAll = () => {
 		if (selectedGames.length === games.length) setSelectedGames([])
-		else setSelectedGames(games.map((g) => g.id))
+		else { setSelecting(true); setSelectedGames([...new Set(games.map((g) => g.id))]) }
 	}
 
 	const handleBulkDelete = () => setPendingDelete({ kind: 'bulk' })
@@ -215,7 +168,7 @@ const HomeComponent = () => {
 			} else {
 				await deleteGameById(target.id)
 			}
-			await refreshGames(filters)
+			await refreshGames(query)
 		} catch (err) {
 			deleteError = err
 			console.error('Error deleting games', err)
@@ -224,7 +177,7 @@ const HomeComponent = () => {
 	}
 
 	const handlePageChange = (newPage: number) => setFilters({ ...filters, page: newPage })
-	const handleSearchChange = (search: string) => setFilters({ ...filters, search, page: 1 })
+	const handleSearchChange = (search: string) => setFilters({ ...filters, search: undefined, searchMetadata: false, nameSearch: search.trim() ? createNameSearch({ includeTerms: [search] }) : undefined, page: 1 })
 	const handleSortChange = (sortBy: string, sortDescending: boolean) => setFilters({ ...filters, sortBy, sortDescending })
 	const handleRowHeaderSort = (sortBy: string) => {
 		const isCurrentSort = filters.sortBy === sortBy
@@ -268,7 +221,7 @@ const HomeComponent = () => {
 			setToast({ message: t('home.bulkUpdateSuccess', { updated: bulkResult.updatedCount, total: bulkResult.totalRequested }), type: 'success' })
 			setSelectedGames([])
 			setBulkEditOpen(false)
-			await refreshGames(filters)
+			await refreshGames(query)
 		} catch (err) {
 			console.error('Error bulk editing games', err)
 			throw err
@@ -329,7 +282,7 @@ const HomeComponent = () => {
 				type: failed > 0 ? 'error' : 'success',
 			})
 			setSelectedGames([])
-			await refreshGames(filters)
+			await refreshGames(query)
 		} catch (err) {
 			console.error('Error refreshing selected images', err)
 			setToast({ message: t('home.bulkImageRefreshError'), type: 'error' })
@@ -339,22 +292,16 @@ const HomeComponent = () => {
 	}
 
 	return (
-		<div className='home-component'>
-			{viewError && (
-				<div className='home-component__alert home-component__alert--warning'>
-					<span>{viewError}</span>
-					<button className='home-component__alert-close' onClick={() => setViewError(null)} aria-label='Close alert'>
-						×
-					</button>
+		<div className='home-component gdb-page gdb-library' aria-busy={loading}>
+			<div className='gdb-page-heading'>
+				<div className='gdb-page-title'><h1 className='sr-only'>{t('gallery.library.title')}</h1><button type='button' className='gdb-count gdb-count-select' aria-label={`${t('gallery.common.games', { count: pagination.totalCount })} · ${t(selecting ? 'gallery.library.finishSelection' : 'gallery.library.select')}`} title={t(selecting ? 'gallery.library.finishSelection' : 'gallery.library.select')} aria-pressed={selecting} onClick={() => { setSelecting(value => !value); setSelectedGames([]) }}>{summary.data && pagination.totalCount !== summary.data.totalGames ? t('gallery.library.filteredCount', { count: pagination.totalCount, total: summary.data.totalGames }) : t('gallery.common.games', { count: pagination.totalCount })}</button></div>
+				<div className='gdb-saved-views'>
+					<div><button type='button' aria-pressed={!savedView} onClick={() => chooseView('default')}>{t('gallery.library.allGames')}</button>{quickViews.map(view => <button type='button' key={view.id} aria-pressed={routeViewId === view.id || !routeViewId && viewMode === view.name} onClick={() => chooseView(view.name)}>{view.name}</button>)}</div>
+					<label><span className='sr-only'>{t('home.view')}</span><select value={routeViewId ? publicGameViews.find(value => value.id === routeViewId)?.name ?? '__unlisted' : viewMode} onChange={event => chooseView(event.target.value)}><option value='default'>{t('gallery.library.allGames')}</option>{routeViewId && !publicGameViews.some(value => value.id === routeViewId) && <option value='__unlisted'>{t('gallery.home.view')}</option>}{publicGameViews.map(view => <option key={view.id} value={view.name}>{view.name}</option>)}</select></label>
 				</div>
-			)}
-
-			{error && (
-				<div className='home-component' style={{ padding: '1rem' }}>
-					<h1>Error: {error}</h1>
-					<Button title='Retry' onPress={() => fetchGamesList(filters)} />
-				</div>
-			)}
+			</div>
+			{usageError && <p className='gdb-hint' role='status'>{t('gallery.library.recentFailed')}</p>}
+			{readFailed && <div className='gdb-error gdb-library-error' role='alert'><p>{t(invalidView ? 'gallery.library.viewUnavailable' : 'gallery.common.loadError')}</p>{!invalidView && <button type='button' className='gdb-button' disabled={loading} onClick={() => setReadRevision(value => value + 1)}>{t('gallery.common.retry')}</button>}</div>}
 
 			<div className='home-component__main'>
 				<GameFiltersChips
@@ -363,12 +310,15 @@ const HomeComponent = () => {
 					onSearchChange={handleSearchChange}
 					onSortChange={handleSortChange}
 					viewMode={cardStyle}
+					locked={savedView}
+					appliedFilterCount={savedView ? publicGameViews.find(view => view.id === routeViewId || view.name === viewMode)?.filterCount ?? 0 : undefined}
+					selecting={selecting || selectedGames.length > 0}
+					onToggleSelection={() => { setSelecting(value => !value); setSelectedGames([]) }}
+					onToggleColumns={cardStyle === 'row' ? () => setAdvancedColumns(value => !value) : undefined}
 					onViewModeChange={(mode) => dispatch(setCardStyle(mode))}
-					publicGameViews={publicGameViews}
-					currentView={viewMode}
-					onViewChange={(viewName) => dispatch(setViewMode(viewName as any))}
 					selectedCount={selectedGames.length}
 					totalCount={games.length}
+					resultCount={pagination.totalCount}
 					onSelectAll={handleSelectAll}
 					onDeselectAll={() => setSelectedGames([])}
 					onBulkDelete={handleBulkDelete}
@@ -381,9 +331,13 @@ const HomeComponent = () => {
 						setExportModalOpen(true)
 					}}
 				/>
+				{savedView && <p className='gdb-view-explanation'><CollectionIcon name='bookmark' />{t('gallery.library.savedViewHelp')}<button type='button' className='gdb-text-button' onClick={() => chooseView('default')}>{t('gallery.library.backToAll')}</button></p>}
 
+				{cardStyle === 'row' && advancedColumns && <button type='button' className='gdb-text-button gdb-columns-toggle' aria-pressed onClick={() => setAdvancedColumns(false)}><CollectionIcon name='filter' />{t('gallery.library.advancedColumns')}</button>}
+				<div className={`gdb-library-results ${advancedColumns ? 'gdb-library-results--extended' : ''}`}>
+				{cardStyle === 'row' && !advancedColumns && !readFailed && <div className='gdb-row-heading'><span aria-hidden='true'>{t('gallery.library.rowGame')}</span><span aria-hidden='true'>{t('gallery.library.rowStory')}</span><span aria-hidden='true'>{t('gallery.library.rowPlaytime')}</span><span aria-hidden='true'>{t('gallery.library.rowGrade')}</span><span aria-hidden='true'>{t('home.columns.critic')}</span><span aria-hidden='true'>{t('home.columns.score')}</span><button type='button' className='gdb-icon-button' aria-label={t('gallery.library.advancedColumns')} aria-pressed={false} onClick={() => setAdvancedColumns(true)}><CollectionIcon name='filter' /></button></div>}
 				<div className={`home-component-games-${cardStyle}`}>
-					{cardStyle === 'row' && (
+					{cardStyle === 'row' && advancedColumns && !readFailed && (
 						<div className='home-component-games-row-header'>
 							<p className='gr-select'></p>
 							{rowHeaderColumns.map((column) => renderRowHeaderColumn(column))}
@@ -391,6 +345,7 @@ const HomeComponent = () => {
 					)}
 
 					{(() => {
+						if (readFailed) return null
 						const list = games
 						if (loading && list.length === 0) {
 							const skeletonCount = Math.min(pagination.pageSize || 12, 12)
@@ -406,21 +361,24 @@ const HomeComponent = () => {
 								onDelete={() => handleDeleteGame(game.id)}
 								deselectAll={() => setSelectedGames([])}
 								variant={cardStyle}
+								selecting={selecting || selectedGames.length > 0}
+								rowExpanded={advancedColumns}
 								index={index}
 							/>
 						))
 					})()}
 				</div>
+				</div>
 
-				<div className='pagination-controls'>
-					<button className='pagination-btn' disabled={pagination.page <= 1} onClick={() => handlePageChange(pagination.page - 1)}>
+				{!readFailed && <div className='pagination-controls'>
+					<button className='pagination-btn' aria-label={t('gallery.common.previous')} disabled={loading || pagination.page <= 1} onClick={() => handlePageChange(pagination.page - 1)}>
 						&lt;
 					</button>
 					<span className='pagination-info'>{t('home.pagination', { page: pagination.page, total: pagination.totalPages, count: pagination.totalCount })}</span>
-					<button className='pagination-btn' disabled={pagination.page >= pagination.totalPages} onClick={() => handlePageChange(pagination.page + 1)}>
+					<button className='pagination-btn' aria-label={t('gallery.common.next')} disabled={loading || pagination.page >= pagination.totalPages} onClick={() => handlePageChange(pagination.page + 1)}>
 						&gt;
 					</button>
-				</div>
+				</div>}
 			</div>
 
 			<Suspense fallback={null}>

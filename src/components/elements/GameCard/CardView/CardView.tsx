@@ -1,25 +1,21 @@
-import type { Game } from '@/models/api/Game'
-import { useLayoutEffect, useRef, useState, memo, type FC, type ReactNode } from 'react'
+import { memo, useState, type CSSProperties, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import './CardView.scss'
-import { DEFAULT_PLATFORM_ICON, STEAM_PLATFORM_ICON, formatPlaytime, formatToLocaleDate, useClickOutside, getMetacriticColor, isGameCompleted, isGameFullyCompleted, completionLabelKey, completionTitleKey } from '@/utils'
-import { EditableSelect } from '../../EditableSelect/EditableSelect'
-import { EditableMultiSelect } from '../../EditableMultiSelect/EditableMultiSelect'
-import { OptimizedImage } from '@/components/elements'
+import type { Game } from '@/models/api/Game'
 import { useAppSelector } from '@/store/hooks'
-import CalendarIcon from '@/assets/svgs/calendar.svg?react'
-import ScoreIcon from '@/assets/svgs/score.svg?react'
-import CriticIcon from '@/assets/svgs/critic.svg?react'
-import OpenCriticIcon from '@/assets/svgs/opencritic.svg?react'
-import SteamDBIcon from '@/assets/svgs/steamdb.svg?react'
-import KeyIcon from '@/assets/svgs/key.svg?react'
-import StoreIcon from '@/assets/svgs/store.svg?react'
-import PortalDropdown from '../../PortalDropdown'
+import { GameArtwork } from '@/components/Collection/GameArtwork'
+import { GameTitle } from '@/components/Collection/GameTitle'
+import { CollectionIcon } from '@/components/Collection/CollectionIcon'
+import { SampleBadge } from '@/components/Collection/SampleBadge'
+import { formatToLocaleDate, getMetacriticColor, isGameCompleted, completionLabelKey, isGameFullyCompleted } from '@/utils'
+import { effectivePlaytime, formatCollectionNumber, playtimeSourceKey } from '@/utils/collectionFormatting'
 import { getCriticScoreUrl, resolveEffectiveProvider, type CriticProvider } from '@/helpers/criticScoreHelper'
+import './CardView.scss'
+import { CollectionMenu } from '@/components/Collection/CollectionMenu'
 
 interface CardViewProps {
 	game: Game
 	openDetails: (game: Game) => void
+	onAutoFill?: () => void
 	onFieldUpdate?: (gameId: number, field: string, value: number | number[] | boolean | undefined) => Promise<void>
 	playWithColors: (string | undefined)[]
 	gameStatusColor: string | undefined
@@ -32,396 +28,45 @@ interface CardViewProps {
 	hideSelection?: boolean
 }
 
-const CardView: FC<CardViewProps> = (props) => {
-	const isPriority = props.index !== undefined && props.index < 4
-	const { game, openDetails, playWithColors, gameStatusColor, platformColor, onFieldUpdate, isSelected = false, onSelect, deselectAll, playlistControls } = props
-	const [activeSelector, setActiveSelector] = useState<'status' | 'platform' | 'playWith' | null>(null)
-	const { t } = useTranslation()
-
-	// Get options for selectable fields
-	const { activeStatuses: statusOptions } = useAppSelector((state) => state.gameStatus)
-	const { platforms, activePlatforms } = useAppSelector((state) => state.gamePlatform)
-	const platformOptions = platforms.length > 0 ? platforms : activePlatforms
-	const { playWithOptions } = useAppSelector((state) => state.gamePlayWith)
-
-	// Get user preferences
-	const useScoreColors = useAppSelector((state) => state.auth.user?.useScoreColors ?? false)
-	const userScoreProvider = useAppSelector((state) => state.auth.user?.scoreProvider ?? 'Metacritic') as CriticProvider
-	const showPriceComparisonIcon = useAppSelector((state) => state.auth.user?.showPriceComparisonIcon ?? false)
-
-	const released = formatToLocaleDate(game.released) || t('game.card.na')
-
-	// Use per-game provider if set, otherwise fall back to user preference
-	const effectiveProvider = resolveEffectiveProvider(game.criticProvider as CriticProvider | undefined, userScoreProvider)
-
-	// Get critic score color if enabled
-	const criticScoreColor = useScoreColors && game.critic != null ? getMetacriticColor(game.critic) : '#f9fafb'
-
-	// Select icon based on effective provider
-	const ScoreProviderIcon = effectiveProvider === 'OpenCritic' ? OpenCriticIcon : effectiveProvider === 'SteamDB' ? SteamDBIcon : CriticIcon
-
-	const handleCriticScoreClick = (e: React.MouseEvent) => {
-		e.preventDefault()
-		e.stopPropagation()
-		const url = getCriticScoreUrl(game.name, effectiveProvider)
-		window.open(url, '_blank', 'noopener,noreferrer')
+const CardView = ({ game, openDetails, onAutoFill, onFieldUpdate, gameStatusColor, isSelected = false, onSelect, index, playlistControls, hideSelection }: CardViewProps) => {
+	const { t, i18n } = useTranslation(), [saving, setSaving] = useState(false), [error, setError] = useState(false)
+	const statuses = useAppSelector(state => state.gameStatus.activeStatuses)
+	const platforms = useAppSelector(state => state.gamePlatform.platforms.length ? state.gamePlatform.platforms : state.gamePlatform.activePlatforms)
+	const playWith = useAppSelector(state => state.gamePlayWith.playWithOptions)
+	const user = useAppSelector(state => state.auth.user)
+	const minutes = effectivePlaytime(game)
+	const hours = (value: number | null | undefined) => value == null ? '—' : `${formatCollectionNumber(value, i18n.language)} h`
+	const provider = resolveEffectiveProvider(game.criticProvider as CriticProvider | undefined, (user?.scoreProvider ?? 'Metacritic') as CriticProvider)
+	const keyStoreUrl = game.keyStoreUrl && /^https?:\/\//i.test(game.keyStoreUrl) ? game.keyStoreUrl : undefined
+	const update = async (field: string, value: number | number[] | boolean | undefined) => {
+		if (saving || !onFieldUpdate) return
+		setSaving(true); setError(false)
+		try { await onFieldUpdate(game.id, field, value) } catch { setError(true) } finally { setSaving(false) }
 	}
-
-	const menuRef = useClickOutside<HTMLDivElement>(() => {
-		setActiveSelector(null)
-	})
-
-	const statusRef = useClickOutside<HTMLDivElement>(() => {
-		setActiveSelector(null)
-	})
-	const platformRef = useClickOutside<HTMLDivElement>(() => {
-		setActiveSelector(null)
-	})
-	const playWithRef = useClickOutside<HTMLDivElement>(() => {
-		setActiveSelector(null)
-	})
-
-	const statusBtnRef = useRef<HTMLSpanElement | null>(null)
-	const platformBtnRef = useRef<HTMLSpanElement | null>(null)
-	const playWithBtnRef = useRef<HTMLSpanElement | null>(null)
-	const [statusPortalStyle, setStatusPortalStyle] = useState<React.CSSProperties | undefined>()
-	const [platformPortalStyle, setPlatformPortalStyle] = useState<React.CSSProperties | undefined>()
-	const [playWithPortalStyle, setPlayWithPortalStyle] = useState<React.CSSProperties | undefined>()
-
-	const computePortalStyle = (btn: HTMLElement | null, gap = -12, maxHeight = 300) => {
-		if (!btn) return undefined
-		const rect = btn.getBoundingClientRect()
-		const viewportHeight = window.innerHeight || document.documentElement.clientHeight
-		const spaceBelow = viewportHeight - rect.bottom - gap
-		const spaceAbove = rect.top - gap
-		const placeDown = spaceBelow >= 160 || spaceBelow >= spaceAbove
-		const left = rect.left + window.scrollX
-		const minWidth = Math.max(150, rect.width)
-		if (placeDown) {
-			return {
-				position: 'absolute',
-				left: `${left}px`,
-				top: `${rect.bottom + window.scrollY + gap}px`,
-				minWidth: `${minWidth}px`,
-				maxHeight: `${Math.max(0, Math.min(maxHeight, spaceBelow))}px`,
-			} as React.CSSProperties
-		}
-		return {
-			position: 'absolute',
-			left: `${left}px`,
-			top: `${rect.top + window.scrollY - gap}px`,
-			minWidth: `${minWidth}px`,
-			transform: 'translateY(-100%)',
-			maxHeight: `${Math.max(0, Math.min(maxHeight, spaceAbove))}px`,
-		} as React.CSSProperties
-	}
-
-	useLayoutEffect(() => {
-		if (activeSelector === 'status') setStatusPortalStyle(computePortalStyle(statusBtnRef.current))
-		if (activeSelector === 'platform') setPlatformPortalStyle(computePortalStyle(platformBtnRef.current))
-		if (activeSelector === 'playWith') setPlayWithPortalStyle(computePortalStyle(playWithBtnRef.current))
-	}, [activeSelector])
-
-	const closeActionMenu = (callback: () => void) => {
-		deselectAll?.()
-		callback()
-	}
-
-	const handleBadgeClick = (e: React.MouseEvent, selectorType: 'status' | 'platform' | 'playWith') => {
-		e.preventDefault()
-		e.stopPropagation()
-		const nextSelector = activeSelector === selectorType ? null : selectorType
-		if (nextSelector === 'status') setStatusPortalStyle(computePortalStyle(e.currentTarget as HTMLElement))
-		if (nextSelector === 'platform') setPlatformPortalStyle(computePortalStyle(e.currentTarget as HTMLElement))
-		if (nextSelector === 'playWith') setPlayWithPortalStyle(computePortalStyle(e.currentTarget as HTMLElement))
-		setActiveSelector(nextSelector)
-	}
-
-	const handleFieldUpdate = async (field: string, value: number | number[] | boolean | undefined) => {
-		if (onFieldUpdate) {
-			await onFieldUpdate(game.id, field, value)
-		}
-		setActiveSelector(null)
-	}
-
-	// Helper para formatear múltiples nombres
-	const formatMultipleNames = (names: string[] | undefined): string => {
-		if (!names || names.length === 0) return t('game.card.na')
-		if (names.length === 1) return names[0]
-		return `${names[0]} +${names.length - 1}`
-	}
-
-	const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		e.stopPropagation()
-		e.preventDefault()
-		if (onSelect) {
-			onSelect(game.id, e.target.checked)
-		}
-	}
-
-	const handleFavoriteToggle = async (e: React.MouseEvent<HTMLButtonElement>) => {
-		e.preventDefault()
-		e.stopPropagation()
-		await handleFieldUpdate('favorite', !game.favorite)
-	}
-
-	const hasPriceComparison = showPriceComparisonIcon && game.isCheaperByKey !== undefined && game.isCheaperByKey !== null
-	const PriceComparisonIcon = game.isCheaperByKey ? KeyIcon : StoreIcon
-	const isPerfectCompletion = isGameCompleted(game)
-	const platformLogo = platformOptions.find((platform) => platform.id === game.platformId)?.logo
-	const hasManualPlaytime = game.manualPlaytimeMinutes !== null && typeof game.manualPlaytimeMinutes !== 'undefined'
-	const effectivePlaytime = hasManualPlaytime ? game.manualPlaytimeMinutes : game.steamPlaytimeForever
-	const hasPlaytime = effectivePlaytime != null && effectivePlaytime > 0
-	const playtimeIcon = hasManualPlaytime ? platformLogo || DEFAULT_PLATFORM_ICON : STEAM_PLATFORM_ICON
-	const playtimeIconAlt = hasManualPlaytime ? game.platformName || t('game.details.fieldPlatform') : 'Steam'
-	const heroSrc = game.hero || game.cover
-	const playtimeTitle = hasManualPlaytime
-		? t('game.details.platformPlaytimeTooltip', { platform: game.platformName || t('game.details.fieldPlatform') })
-		: t('game.details.steamPlaytimeTooltip')
-
-	return (
-		<div
-			key={game.id}
-			className={`game-card-view-container ${activeSelector ? 'is-open' : ''} ${isPerfectCompletion ? 'game-card-view-container--steam-complete' : ''}`}
-			title={isPerfectCompletion ? t(completionTitleKey(game)) : undefined}
-			onClick={() => closeActionMenu(() => openDetails(game))}
-			ref={menuRef}
-			onMouseEnter={(e) => {
-				const checkbox = e.currentTarget.querySelector('.game-card-view-container__checkbox') as HTMLInputElement
-				if (checkbox) checkbox.style.opacity = '1'
-			}}
-			onMouseLeave={(e) => {
-				const checkbox = e.currentTarget.querySelector('.game-card-view-container__checkbox') as HTMLInputElement
-				if (checkbox && !isSelected) checkbox.style.opacity = '0'
-			}}>
-			<div className='game-card-view-container-hideOverflow'>
-				<div className='game-card-header'>
-					<button
-						type='button'
-						className={'game-card-favorite-toggle' + (game.favorite ? ' is-active' : '')}
-						onClick={handleFavoriteToggle}
-						aria-pressed={game.favorite}
-						aria-label={game.favorite ? t('game.card.removeFavorite') : t('game.card.markFavorite')}
-						title={game.favorite ? t('game.card.removeFavorite') : t('game.card.markFavorite')}
-					>
-						{game.favorite ? '★' : '☆'}
-					</button>
-					{heroSrc && (
-						<OptimizedImage
-							src={heroSrc}
-							alt={t('game.card.heroAlt', { name: game.name })}
-							className='game-card-cover'
-							quality='medium'
-							loading={isPriority ? 'eager' : 'lazy'}
-							fetchPriority={isPriority ? 'high' : undefined}
-							width={350}
-							height={200}
-						/>
-					)}
-					<div className='game-card-header-score'>
-						{!props.hideSelection && <input
-							type='checkbox'
-							checked={isSelected}
-							onClick={(e) => e.stopPropagation()}
-							onChange={(e) => handleCheckboxChange(e)}
-							className='game-card-view-container__checkbox'
-							aria-label={t('game.card.selectGame', { name: game.name })}
-							style={{
-								opacity: isSelected ? 1 : 0,
-								transition: 'opacity 0.2s ease-in-out',
-							}}
-						/>}
-						<div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-							{hasPriceComparison && (
-								<span
-									className='game-card-score game-card-score--price'
-									onClick={(e) => {
-										e.preventDefault()
-										e.stopPropagation()
-										if (game.keyStoreUrl) {
-											window.open(game.keyStoreUrl, '_blank', 'noopener,noreferrer')
-										}
-									}}
-									style={{ cursor: game.keyStoreUrl ? 'pointer' : 'default' }}
-									title={game.isCheaperByKey ? t('game.card.cheaperByKey') : t('game.card.cheaperInStore')}>
-									<PriceComparisonIcon width={16} height={16} color='#f9fafb' focusable={false} />
-								</span>
-							)}
-							{game.grade != null && <span className='game-card-score game-card-score--grade'>{game.grade}</span>}
-							{game.critic != null && !isNaN(game.critic) && (
-								<span
-									className='game-card-score game-card-score--critic'
-									onClick={handleCriticScoreClick}
-									style={{ cursor: 'pointer' }}
-									title={t('game.card.searchOn', { provider: effectiveProvider })}>
-									<ScoreProviderIcon
-										width={13}
-										height={13}
-										color={criticScoreColor === '#f9fafb' ? '#9ca3af' : criticScoreColor}
-										title={t('game.card.providerIcon', { provider: effectiveProvider })}
-										focusable={false}
-									/>
-									<span style={{ fontFamily: 'monospace', color: criticScoreColor }}>{game.critic ?? t('game.card.na')}</span>
-								</span>
-							)}
-						</div>
-					</div>
-					{playlistControls}
-					{isPerfectCompletion && <div className='game-card-perfect-badge' data-completion={isGameFullyCompleted(game) ? 'full' : 'completed'}>{t(completionLabelKey(game))}</div>}
-					<div className='game-card-header-info'>
-						<div className='game-card-header-info-logo'>
-							{game.logo && (
-								<OptimizedImage src={game.logo} alt={t('game.card.logoAlt', { name: game.name })} className='game-card-logo' quality='low' loading='lazy' width={50} height={50} />
-							)}
-						</div>
-						<div className='game-card-header-info-tags'>
-							<h3 className='game-card-title' title={game.name}>
-								{game.name}
-							</h3>
-							<div className='game-card-tags' onClick={(e) => e.stopPropagation()}>
-								<div className='game-card-tag-container'>
-									<span
-										title={game.statusName || t('game.card.noStatus')}
-										className='game-card-tag game-card-tag--clickable'
-										style={{
-											backgroundColor: `${gameStatusColor}44`,
-											borderColor: `${gameStatusColor}99`,
-										}}
-										onClick={(e) => handleBadgeClick(e, 'status')}
-										ref={statusBtnRef}>
-										{game.statusName}
-									</span>
-									{activeSelector === 'status' && (
-										<PortalDropdown style={statusPortalStyle} contentRef={statusRef} onClick={(e) => e.stopPropagation()}>
-											<div className='game-card-tag-selector game-card-tag-selector--portal'>
-												<EditableSelect
-													value={game.statusId}
-													displayValue={game.statusName}
-													options={statusOptions}
-													onSave={(value) => handleFieldUpdate('statusId', value)}
-													placeholder={t('game.details.selectStatus')}
-													dropdownOnly
-												/>
-											</div>
-										</PortalDropdown>
-									)}
-								</div>
-								{game.platformName && (
-									<div className='game-card-tag-container'>
-										<span
-											title={game.platformName || t('game.card.na')}
-											className='game-card-tag game-card-tag--clickable'
-											style={{
-												backgroundColor: `${platformColor}44`,
-												borderColor: `${platformColor}99`,
-											}}
-											onClick={(e) => handleBadgeClick(e, 'platform')}
-											ref={platformBtnRef}>
-											{game.platformName}
-										</span>
-										{activeSelector === 'platform' && (
-											<PortalDropdown style={platformPortalStyle} contentRef={platformRef} onClick={(e) => e.stopPropagation()}>
-												<div className='game-card-tag-selector game-card-tag-selector--portal'>
-													<EditableSelect
-														value={game.platformId}
-														displayValue={game.platformName}
-														options={platformOptions}
-														onSave={(value) => handleFieldUpdate('platformId', value)}
-														placeholder={t('game.details.selectPlatform')}
-														dropdownOnly
-													/>
-												</div>
-											</PortalDropdown>
-										)}
-									</div>
-								)}
-								{game.playWithNames && game.playWithNames.length > 0 && (
-									<div className='game-card-tag-container'>
-										<span
-											title={game.playWithNames.join(', ')}
-											className='game-card-tag game-card-tag--clickable'
-											style={{
-												backgroundColor: `${playWithColors[0] || '#333'}44`,
-												borderColor: `${playWithColors[0] || '#333'}99`,
-											}}
-											onClick={(e) => handleBadgeClick(e, 'playWith')}
-											ref={playWithBtnRef}>
-											{formatMultipleNames(game.playWithNames)}
-										</span>
-										{activeSelector === 'playWith' && (
-											<PortalDropdown style={playWithPortalStyle} contentRef={playWithRef} onClick={(e) => e.stopPropagation()}>
-												<div className='game-card-tag-selector game-card-tag-selector--portal'>
-													<EditableMultiSelect
-														values={game.playWithIds || []}
-														displayValues={game.playWithNames || []}
-														options={playWithOptions}
-														onSave={(values) => handleFieldUpdate('playWithIds', values)}
-														placeholder={t('game.details.selectPlayWith')}
-														dropdownOnly
-													/>
-												</div>
-											</PortalDropdown>
-										)}
-									</div>
-								)}
-							</div>
-						</div>
-					</div>
-				</div>
-
-				<div className='game-card-body'>
-					<div className='game-card-duration'>
-						<div className='game-card-duration-item'>
-							<p className='game-card-duration-label'>{t('game.details.fieldStory')}</p>
-							<p className='game-card-duration-value'>{game.story ? `${game.story}h` : t('game.card.na')}</p>
-						</div>
-						<div className='game-card-duration-item'>
-							<p className='game-card-duration-label'>{t('game.card.full')}</p>
-							<p className='game-card-duration-value'>{game.completion ? `${game.completion}h` : t('game.card.na')}</p>
-						</div>
-					</div>
-					<div className='game-card-metadata' role='group' aria-label={t('game.card.gameMeta')}>
-						<div className='game-card-score' role='group' aria-label={game.score != null ? t('game.card.scoreDisplay', { score: game.score }) : t('game.card.scoreEmpty')}>
-							<ScoreIcon width={20} height={20} color='#9ca3af' title={t('game.card.scoreIcon')} focusable={false} />
-							<div className='game-card-score-value'>
-								<p>{game.score != null ? `${game.score} / 10` : ''}</p>
-							</div>
-						</div>
-						<div className='game-card-release-date' role='group' aria-label={t('game.card.releasedAria', { date: released })}>
-							<CalendarIcon width={20} height={20} color='#9ca3af' title={t('game.card.releasedIcon')} focusable={false} />
-							<p style={hasPlaytime ? { fontSize: '0.8rem' } : {}}>{released}</p>
-							{hasPlaytime && (
-								<div className='game-card-steam-playtime' title={playtimeTitle}>
-									<img
-										className='game-card-playtime-icon'
-										src={playtimeIcon}
-										alt={playtimeIconAlt}
-										width={14}
-										height={14}
-										onError={(event) => {
-											event.currentTarget.src = DEFAULT_PLATFORM_ICON
-										}}
-									/>
-									<p>{hasManualPlaytime ? formatPlaytime(effectivePlaytime) : `${Math.round(effectivePlaytime! / 60)}h`}</p>
-								</div>
-							)}
-						</div>
-					</div>
-				</div>
-			</div>
+	return <article className={`game-card-view-container ${isSelected ? 'is-selected' : ''}`} aria-label={game.name}>
+		<div className='game-card-header'>
+			<GameTitle name={game.name} tooltip='hold' className='gdb-card-art gdb-image-open' ariaLabel={t('gallery.home.openGame', { name: game.name })} onOpen={() => openDetails(game)}><GameArtwork game={game} role='hero' className='game-card-cover' eager={index != null && index < 4} /><span className='gdb-art-hover'>{t('gallery.detail.open')}<CollectionIcon name='arrow' /></span></GameTitle>
+			{!hideSelection && <input type='checkbox' checked={isSelected} onChange={event => onSelect?.(game.id, event.target.checked)} className='game-card-view-container__checkbox' aria-label={t('game.card.selectGame', { name: game.name })} />}
+			<button type='button' className={`game-card-favorite-toggle ${game.favorite ? 'is-active' : ''}`} aria-pressed={game.favorite} aria-label={t(game.favorite ? 'game.card.removeFavorite' : 'game.card.markFavorite')} disabled={saving} onClick={() => { void update('favorite', !game.favorite) }}><CollectionIcon name='star' /></button>
+			<span className='gdb-card-platform'>{game.platformName}</span>
+			{isGameCompleted(game) && <span className='game-card-perfect-badge gdb-completion-badge' data-completion={isGameFullyCompleted(game) ? 'full' : 'completed'}>{t(completionLabelKey(game))}</span>}
+			{playlistControls}
 		</div>
-	)
+		<div className='gdb-card-caption'>
+			<h3 className='game-card-title'><GameTitle name={game.name} onOpen={() => openDetails(game)} /></h3>
+			<div className='gdb-card-meta'><span className='gdb-card-status' style={{ '--gdb-status-color': gameStatusColor } as CSSProperties}><i />{game.statusName}</span><SampleBadge game={game} />{game.grade != null && <span className='game-card-score--grade'><small>{t('gallery.library.rowGrade')}</small><b>{game.grade}</b><small>/100</small></span>}</div>
+			<div className='gdb-card-times'><span title={t(playtimeSourceKey(game))}><CollectionIcon name='clock' />{hours(minutes == null ? null : minutes / 60)} <small>{t('gallery.labels.played')}</small></span><span>{hours(game.story)} <small>{t('gallery.labels.story')}</small></span></div>
+			<CollectionMenu label={t('gallery.detail.gameOptions')} className='gdb-card-tools' panelClassName='gdb-card-tools-panel'>{close => <>
+				{onAutoFill && <button type='button' className='gdb-text-button' onClick={() => { close(); onAutoFill() }}><CollectionIcon name='auto' />{t('metadata.action')}</button>}
+				{error && <p className='gdb-error' role='alert'>{t('gallery.common.saveError')}</p>}
+				<div className='gdb-card-facts'><div className='game-card-score' role='group' aria-label={game.score != null ? t('game.card.scoreDisplay', { score: game.score }) : t('game.card.scoreEmpty')}><CollectionIcon name='statistics' /><span className='game-card-score-value'>{game.score == null ? '' : `${game.score} / 10`}</span></div>{game.critic != null && <button type='button' onClick={() => window.open(getCriticScoreUrl(game.name, provider), '_blank', 'noopener,noreferrer')} title={t('game.card.searchOn', { provider })} style={user?.useScoreColors ? { color: getMetacriticColor(game.critic) } : undefined}>{provider} · {game.critic}/100</button>}<span>{t('game.details.fieldCompletion')}: {hours(game.completion)}</span><span>{formatToLocaleDate(game.released) || t('game.card.na')}</span></div>
+				<label>{t('game.details.fieldStatus')}<select value={game.statusId} disabled={saving} onChange={event => { void update('statusId', Number(event.target.value)) }}>{!statuses.some(value => value.id === game.statusId) && <option value={game.statusId}>{game.statusName}</option>}{statuses.map(value => <option key={value.id} value={value.id}>{value.name}</option>)}</select></label>
+				<label>{t('game.details.fieldPlatform')}<select value={game.platformId ?? ''} disabled={saving} onChange={event => { void update('platformId', event.target.value ? Number(event.target.value) : undefined) }}><option value=''>{t('game.card.na')}</option>{platforms.map(value => <option key={value.id} value={value.id}>{value.name}</option>)}</select></label>
+				<fieldset><legend>{t('game.details.fieldPlayWith')}</legend>{playWith.map(value => <label key={value.id}><input type='checkbox' checked={game.playWithIds?.includes(value.id) ?? false} disabled={saving} onChange={event => { void update('playWithIds', event.target.checked ? [...(game.playWithIds ?? []), value.id] : (game.playWithIds ?? []).filter(id => id !== value.id)) }} />{value.name}</label>)}</fieldset>
+				{user?.showPriceComparisonIcon && game.isCheaperByKey != null && <span>{t(game.isCheaperByKey ? 'game.card.cheaperByKey' : 'game.card.cheaperInStore')}{keyStoreUrl && <a href={keyStoreUrl} target='_blank' rel='noopener noreferrer'>{t('game.details.fieldKeyUrl')}</a>}</span>}
+			</>}</CollectionMenu>
+		</div>
+	</article>
 }
 
-// Memoize CardView to prevent unnecessary re-renders
-export default memo(CardView, (prevProps, nextProps) => {
-	return (
-		prevProps.game.id === nextProps.game.id &&
-		prevProps.game.updatedAt === nextProps.game.updatedAt &&
-		prevProps.game.favorite === nextProps.game.favorite &&
-		prevProps.game.logo === nextProps.game.logo &&
-	prevProps.game.hero === nextProps.game.hero &&
-	prevProps.game.cover === nextProps.game.cover &&
-		prevProps.isSelected === nextProps.isSelected
-	)
-})
+export default memo(CardView)

@@ -1,41 +1,36 @@
-import { screen } from '@testing-library/react'
+import { fireEvent, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders as render } from '@/test/utils/renderWithProviders'
+import i18n from '@/i18n'
 
+const requests = vi.hoisted(() => ({
+	statuses: vi.fn().mockResolvedValue([{ id: 1, name: 'Playing' }, { id: 2, name: 'Completed' }]),
+	platforms: vi.fn().mockResolvedValue([{ id: 10, name: 'PC' }, { id: 11, name: 'PS5' }]),
+	people: vi.fn().mockResolvedValue([{ id: 20, name: 'Solo' }, { id: 21, name: 'Online' }]),
+	played: vi.fn().mockResolvedValue([{ id: 30, name: 'Finished' }]),
+}))
 vi.mock('@/hooks/useGameStatus/useGameStatus', () => ({
 	useGameStatus: () => ({
-		fetchActiveStatusList: vi.fn().mockResolvedValue([
-			{ id: 1, name: 'Playing' },
-			{ id: 2, name: 'Completed' },
-		]),
+		fetchActiveStatusList: requests.statuses,
 	}),
 }))
 
 vi.mock('@/hooks', () => ({
 	useGameStatus: () => ({
-		fetchActiveStatusList: vi.fn().mockResolvedValue([
-			{ id: 1, name: 'Playing' },
-			{ id: 2, name: 'Completed' },
-		]),
+		fetchActiveStatusList: requests.statuses,
 	}),
 	useGamePlatform: () => ({
-		fetchList: vi.fn().mockResolvedValue([
-			{ id: 10, name: 'PC' },
-			{ id: 11, name: 'PS5' },
-		]),
+		fetchList: requests.platforms,
 	}),
 	useGamePlayWith: () => ({
-		fetchOptions: vi.fn().mockResolvedValue([
-			{ id: 20, name: 'Solo' },
-			{ id: 21, name: 'Online' },
-		]),
+		fetchOptions: requests.people,
 	}),
 	useGamePlayedStatus: () => ({
-		fetchActiveList: vi.fn().mockResolvedValue([{ id: 30, name: 'Finished' }]),
+		fetchActiveList: requests.played,
 	}),
 }))
 
-vi.mock('./BulkEditModal.scss', () => ({}))
+vi.mock('./GalleryBulkEdit.scss', () => ({}))
 
 async function loadComponent() {
 	const mod = await import('./BulkEditModal')
@@ -59,25 +54,28 @@ describe('BulkEditModal', () => {
 	it('renders modal when open', async () => {
 		const BulkEditModal = await loadComponent()
 		render(<BulkEditModal isOpen={true} onClose={onClose} selectedCount={3} onSave={onSave} />)
-		expect(screen.getByText('Bulk Edit Games')).toBeInTheDocument()
+		expect(screen.getByRole('dialog', { name: i18n.t('home.bulk.title') })).toBeInTheDocument()
+		await screen.findByText('Finished')
 	})
 
 	it('shows selected count', async () => {
 		const BulkEditModal = await loadComponent()
 		render(<BulkEditModal isOpen={true} onClose={onClose} selectedCount={5} onSave={onSave} />)
-		expect(screen.getByText(/Editing 5 games/)).toBeInTheDocument()
+		expect(screen.getByText(i18n.t('home.bulk.editing', { count: 5 }))).toBeInTheDocument()
+		await screen.findByText('Finished')
 	})
 
 	it('shows singular form for 1 game', async () => {
 		const BulkEditModal = await loadComponent()
 		render(<BulkEditModal isOpen={true} onClose={onClose} selectedCount={1} onSave={onSave} />)
-		expect(screen.getByText(/Editing 1 game$/)).toBeInTheDocument()
+		expect(screen.getByText(i18n.t('home.bulk.editing', { count: 1 }))).toBeInTheDocument()
+		await screen.findByText('Finished')
 	})
 
 	it('loads dropdown options on mount', async () => {
 		const BulkEditModal = await loadComponent()
 		render(<BulkEditModal isOpen={true} onClose={onClose} selectedCount={3} onSave={onSave} />)
-		await vi.waitFor(() => {
+		await waitFor(() => {
 			expect(screen.getByText('Playing')).toBeInTheDocument()
 			expect(screen.getByText('PC')).toBeInTheDocument()
 			expect(screen.getByText('Finished')).toBeInTheDocument()
@@ -88,24 +86,24 @@ describe('BulkEditModal', () => {
 		const BulkEditModal = await loadComponent()
 		const user = userEvent.setup()
 		render(<BulkEditModal isOpen={true} onClose={onClose} selectedCount={3} onSave={onSave} />)
-		await user.click(screen.getByText('×'))
+		await user.click(screen.getByRole('button', { name: i18n.t('common.close') }))
 		expect(onClose).toHaveBeenCalledOnce()
 	})
 
-	it('calls onClose when overlay is clicked', async () => {
+	it('cancels the native dialog without saving any changes', async () => {
 		const BulkEditModal = await loadComponent()
-		const user = userEvent.setup()
 		render(<BulkEditModal isOpen={true} onClose={onClose} selectedCount={3} onSave={onSave} />)
-		const overlay = document.querySelector('.bulk-edit-modal-overlay')!
-		await user.click(overlay)
+		await screen.findByText('Finished')
+		fireEvent(screen.getByRole('dialog'), new Event('cancel', { bubbles: true, cancelable: true }))
 		expect(onClose).toHaveBeenCalledOnce()
+		expect(onSave).not.toHaveBeenCalled()
 	})
 
-	it('shows a warning toast when saving with no changes', async () => {
+	it('shows a visible warning inside the dialog when saving with no changes', async () => {
 		const BulkEditModal = await loadComponent()
 		const user = userEvent.setup()
 		render(<BulkEditModal isOpen={true} onClose={onClose} selectedCount={3} onSave={onSave} />)
-		await user.click(screen.getByText('Save Changes'))
+		await user.click(screen.getByRole('button', { name: i18n.t('home.bulk.save') }))
 		expect(await screen.findByText('No hay cambios que guardar')).toBeInTheDocument()
 		expect(onSave).not.toHaveBeenCalled()
 	})
@@ -114,9 +112,9 @@ describe('BulkEditModal', () => {
 		const BulkEditModal = await loadComponent()
 		const user = userEvent.setup()
 		render(<BulkEditModal isOpen={true} onClose={onClose} selectedCount={3} onSave={onSave} />)
-		await vi.waitFor(() => expect(screen.getByText('Playing')).toBeInTheDocument())
-		await user.selectOptions(screen.getByLabelText('Status'), '1')
-		await user.click(screen.getByText('Save Changes'))
+		await waitFor(() => expect(screen.getByText('Playing')).toBeInTheDocument())
+		await user.selectOptions(screen.getByLabelText(i18n.t('home.bulk.fieldStatus')), '1')
+		await user.click(screen.getByRole('button', { name: i18n.t('home.bulk.save') }))
 		expect(onSave).toHaveBeenCalledWith({ statusId: 1 })
 	})
 
@@ -124,9 +122,9 @@ describe('BulkEditModal', () => {
 		const BulkEditModal = await loadComponent()
 		const user = userEvent.setup()
 		render(<BulkEditModal isOpen={true} onClose={onClose} selectedCount={3} onSave={onSave} />)
-		await vi.waitFor(() => expect(screen.getByText('PC')).toBeInTheDocument())
-		await user.selectOptions(screen.getByLabelText('Platform'), '10')
-		await user.click(screen.getByText('Save Changes'))
+		await waitFor(() => expect(screen.getByText('PC')).toBeInTheDocument())
+		await user.selectOptions(screen.getByLabelText(i18n.t('home.bulk.fieldPlatform')), '10')
+		await user.click(screen.getByRole('button', { name: i18n.t('home.bulk.save') }))
 		expect(onSave).toHaveBeenCalledWith({ platformId: 10 })
 	})
 
@@ -134,9 +132,9 @@ describe('BulkEditModal', () => {
 		const BulkEditModal = await loadComponent()
 		const user = userEvent.setup()
 		render(<BulkEditModal isOpen={true} onClose={onClose} selectedCount={3} onSave={onSave} />)
-		await vi.waitFor(() => expect(screen.getByLabelText('Solo')).toBeInTheDocument())
+		await waitFor(() => expect(screen.getByLabelText('Solo')).toBeInTheDocument())
 		await user.click(screen.getByLabelText('Solo'))
-		await user.click(screen.getByText('Save Changes'))
+		await user.click(screen.getByRole('button', { name: i18n.t('home.bulk.save') }))
 		expect(onSave).toHaveBeenCalledWith({ playWithIds: [20] })
 	})
 })

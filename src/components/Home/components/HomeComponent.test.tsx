@@ -1,10 +1,11 @@
-import { fireEvent, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test/utils/renderWithProviders'
 import type { RootState } from '@/store'
+import { invalidateCollection } from '@/services/CollectionService/collectionEvents'
 
-vi.mock('react-i18next', () => ({
-	useTranslation: () => ({
+vi.mock('react-i18next', () => {
+	const translation = {
 		t: (key: string, options?: Record<string, unknown>) => {
 			const translations: Record<string, string> = {
 				'home.bulkUpdateSuccess': '{{updated}} of {{total}} games updated',
@@ -36,8 +37,9 @@ vi.mock('react-i18next', () => ({
 				.replace('{{page}}', String(options?.page ?? ''))
 				.replace('{{count}}', String(options?.count ?? ''))
 		},
-	}),
-}))
+	}
+	return { useTranslation: () => translation }
+})
 
 const mockGames = [
 	{ id: 1, name: 'Dark Souls', statusId: 1, platformId: 1 },
@@ -46,6 +48,7 @@ const mockGames = [
 ]
 
 let currentGames: any[] = mockGames
+let currentError: string | null = null
 const mockPagination = { page: 1, pageSize: 50, totalCount: 3, totalPages: 1, hasNextPage: false, hasPreviousPage: false }
 let currentPagination = mockPagination
 const mockFetchGamesList = vi.fn().mockResolvedValue(undefined)
@@ -66,7 +69,7 @@ vi.mock('@/services', () => ({
 vi.mock('@/hooks', () => ({
 	useGames: () => ({
 		games: currentGames,
-		error: null,
+		error: currentError,
 		pagination: currentPagination,
 		fetchGamesList: mockFetchGamesList,
 		refreshGames: mockRefreshGames,
@@ -174,6 +177,7 @@ describe('HomeComponent', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
 		currentGames = mockGames
+		currentError = null
 		currentPagination = mockPagination
 		mockFetchGameDetails.mockResolvedValue({ cover: 'https://example.com/refreshed-cover.jpg' })
 		vi.stubGlobal(
@@ -212,6 +216,13 @@ describe('HomeComponent', () => {
 
 		expect(screen.getByText('No games found.')).toBeInTheDocument()
 	})
+	it('keeps a failed read distinct from empty results, hides raw server errors and retries the current query', async () => {
+		currentError = 'INTERNAL fixture detail must not be shown'; currentGames = []
+		const HomeComponent = await loadHomeComponent(), user = userEvent.setup()
+		renderWithProviders(<HomeComponent />, { preloadedState: { ...defaultState, auth: { user: { id: 1, username: 'Error fixture', role: 'Standard' }, token: 'fixture', refreshToken: null, isAuthenticated: true, loading: false, error: null } } })
+		expect(screen.getByRole('alert')).toHaveTextContent('gallery.common.loadError'); expect(screen.queryByText('No games found.')).not.toBeInTheDocument(); expect(screen.queryByText(/INTERNAL fixture/)).not.toBeInTheDocument()
+		await waitFor(() => expect(mockRefreshGames).toHaveBeenCalledOnce()); await user.click(screen.getByRole('button', { name: 'gallery.common.retry' })); await waitFor(() => expect(mockRefreshGames).toHaveBeenCalledTimes(2))
+	})
 
 	it('renders pagination controls with page info', async () => {
 		const HomeComponent = await loadHomeComponent()
@@ -244,6 +255,14 @@ describe('HomeComponent', () => {
 		expect(screen.getByTestId('game-filters-chips')).toBeInTheDocument()
 	})
 
+	it('refreshes Library membership after a successful collection mutation outside its local handlers', async () => {
+		const HomeComponent = await loadHomeComponent()
+		renderWithProviders(<HomeComponent />, { preloadedState: { ...defaultState, auth: { user: { id: 1, username: 'test', role: 'Admin' }, token: 'test', refreshToken: null, isAuthenticated: true, loading: false, error: null } } })
+		await waitFor(() => expect(mockRefreshGames).toHaveBeenCalledOnce())
+		act(invalidateCollection)
+		await waitFor(() => expect(mockRefreshGames).toHaveBeenCalledTimes(2))
+	})
+
 	it('toggles game selection via checkbox', async () => {
 		const user = userEvent.setup()
 		const HomeComponent = await loadHomeComponent()
@@ -253,6 +272,24 @@ describe('HomeComponent', () => {
 		await user.click(checkbox)
 
 		expect(screen.getByTestId('selected-count')).toHaveTextContent('1')
+	})
+
+	it('prunes IDs no longer displayed before a bulk action instead of retaining hidden selections', async () => {
+		const user = userEvent.setup(), HomeComponent = await loadHomeComponent(), view = renderWithProviders(<HomeComponent />, { preloadedState: defaultState })
+		await user.click(screen.getByTestId('select-1')); await user.click(screen.getByTestId('select-2')); expect(screen.getByTestId('selected-count')).toHaveTextContent('2')
+		currentGames = mockGames.slice(1); view.rerender(<HomeComponent />); expect(screen.getByTestId('selected-count')).toHaveTextContent('1'); expect(screen.getByTestId('select-2')).toBeChecked()
+		await user.click(screen.getByTestId('bulk-delete')); await user.click(screen.getByTestId('confirm-ok')); expect(mockDeleteGameById).toHaveBeenCalledExactlyOnceWith(2)
+	})
+
+	it('clears selection on a page/query transition rather than operating on the preceding page', async () => {
+		const user = userEvent.setup(), HomeComponent = await loadHomeComponent(), { store } = renderWithProviders(<HomeComponent />, { preloadedState: defaultState })
+		await user.click(screen.getByTestId('select-1')); expect(screen.getByTestId('selected-count')).toHaveTextContent('1')
+		act(() => { store.dispatch({ type: 'games/setFilters', payload: { ...defaultState.games!.filters, page: 2 } }) }); expect(screen.getByTestId('selected-count')).toHaveTextContent('0'); expect(screen.getByTestId('select-1')).not.toBeChecked()
+	})
+
+	it('keeps selection through a silent token refresh for the same owner and dataset', async () => {
+		const user = userEvent.setup(), HomeComponent = await loadHomeComponent(), { store } = renderWithProviders(<HomeComponent />, { preloadedState: { ...defaultState, auth: { user: { id: 1, username: 'Selection fixture', role: 'Standard' }, token: 'fixture', refreshToken: null, isAuthenticated: true, loading: false, error: null } } })
+		await user.click(screen.getByTestId('select-1')); act(() => { store.dispatch({ type: 'auth/setRefreshedTokens', payload: { token: 'new-fixture-token', refreshToken: 'new-fixture-refresh' } }) }); expect(screen.getByTestId('selected-count')).toHaveTextContent('1'); expect(screen.getByTestId('select-1')).toBeChecked()
 	})
 
 	it('dispatches card style change when view mode toggle is clicked', async () => {
@@ -279,7 +316,7 @@ describe('HomeComponent', () => {
 		})
 
 		await waitFor(() => {
-			expect(mockRefreshGames).toHaveBeenCalledWith(expect.objectContaining({ releasedYear: 2026, viewName: 'goty2025' }))
+			expect(mockRefreshGames).toHaveBeenCalledWith({ page: 1, pageSize: 50, viewName: 'goty2025' })
 		})
 	})
 
@@ -403,7 +440,7 @@ describe('HomeComponent', () => {
 		vi.useFakeTimers()
 		try {
 			fireEvent.click(screen.getByTestId('bulk-refresh-cover'))
-			await vi.runAllTimersAsync()
+			await act(async () => { await vi.runAllTimersAsync() })
 			await Promise.resolve()
 
 			expect(mockSteamService.syncGame).toHaveBeenCalledWith(2)
@@ -426,7 +463,7 @@ describe('HomeComponent', () => {
 		vi.useFakeTimers()
 		try {
 			fireEvent.click(screen.getByTestId('bulk-refresh-cover'))
-			await vi.runAllTimersAsync()
+			await act(async () => { await vi.runAllTimersAsync() })
 			await Promise.resolve()
 
 			expect(mockSteamService.syncGame).toHaveBeenCalledWith(1)
@@ -436,9 +473,10 @@ describe('HomeComponent', () => {
 		}
 	})
 
-	it('renders row header columns when cardStyle is row', async () => {
+	it('retains the extended sortable row columns behind More columns', async () => {
 		const HomeComponent = await loadHomeComponent()
 		renderWithProviders(<HomeComponent />, { preloadedState: defaultState })
+		await userEvent.click(screen.getByRole('button', { name: 'gallery.library.advancedColumns' }))
 
 		expect(screen.getByText('Status')).toBeInTheDocument()
 		expect(screen.getByText('Name')).toBeInTheDocument()
@@ -450,6 +488,7 @@ describe('HomeComponent', () => {
 		const user = userEvent.setup()
 		const HomeComponent = await loadHomeComponent()
 		const { store } = renderWithProviders(<HomeComponent />, { preloadedState: defaultState })
+		await user.click(screen.getByRole('button', { name: 'gallery.library.advancedColumns' }))
 
 		await user.click(screen.getByRole('button', { name: 'Sort by: Name' }))
 
@@ -469,6 +508,7 @@ describe('HomeComponent', () => {
 			},
 		})
 
+		await user.click(screen.getByRole('button', { name: 'gallery.library.advancedColumns' }))
 		await user.click(screen.getByRole('button', { name: 'Sort by: Grade' }))
 
 		expect(store.getState().games.filters).toEqual(expect.objectContaining({ page: 1, sortBy: 'grade', sortDescending: false }))

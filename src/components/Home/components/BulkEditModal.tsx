@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useGamePlatform, useGamePlayWith, useGamePlayedStatus } from '@/hooks'
 import { useGameStatus } from '@/hooks/useGameStatus/useGameStatus'
-import { Toast } from '@/components/elements'
-import './BulkEditModal.scss'
+import { CollectionSheet } from '@/components/Collection/CollectionSheet'
+import { CollectionIcon } from '@/components/Collection/CollectionIcon'
+import './GalleryBulkEdit.scss'
 
 interface Props {
 	isOpen: boolean
@@ -75,6 +76,7 @@ const BulkEditModal: React.FC<Props> = ({ isOpen, onClose, selectedCount, onSave
 	}, [isOpen, fetchActiveStatusList, fetchPlatforms, fetchPlayWithList, fetchPlayedStatusList])
 
 	const handleSave = async () => {
+		if (isSaving) return
 		const updates: BulkEditData = {}
 		if (statusId !== undefined) updates.statusId = statusId
 		if (platformId !== undefined) updates.platformId = platformId
@@ -105,6 +107,7 @@ const BulkEditModal: React.FC<Props> = ({ isOpen, onClose, selectedCount, onSave
 		setPlayWithIds([])
 		setPlayedStatusId(undefined)
 		setIsCheaperByKey(undefined)
+		setToast(null)
 		onClose()
 	}
 
@@ -115,24 +118,15 @@ const BulkEditModal: React.FC<Props> = ({ isOpen, onClose, selectedCount, onSave
 	if (!isOpen) return null
 
 	return (
-		<div className='bulk-edit-modal-overlay' onClick={handleClose}>
-			<div className='bulk-edit-modal' onClick={(e) => e.stopPropagation()}>
-				<div className='bulk-edit-modal__header'>
-					<h2>Bulk Edit Games</h2>
-					<button className='bulk-edit-modal__close' onClick={handleClose}>
-						×
-					</button>
-				</div>
-
-				<div className='bulk-edit-modal__content'>
-					<p className='bulk-edit-modal__info'>
-						Editing {selectedCount} game{selectedCount !== 1 ? 's' : ''}
-					</p>
-
+		<CollectionSheet open={isOpen} onClose={() => { if (!isSaving) handleClose() }} title={t('home.bulk.title')} subtitle={t('home.bulk.editing', { count: selectedCount })} className='bulk-edit-modal'
+			footer={<><button type='button' className='gdb-button' onClick={handleClose} disabled={isSaving}>{t('home.bulk.cancel')}</button><button type='submit' form='gdb-bulk-edit-form' className='gdb-button gdb-button--primary' disabled={isSaving}>{t(isSaving ? 'home.bulk.saving' : 'home.bulk.save')}<CollectionIcon name='check' /></button></>}>
+				<form id='gdb-bulk-edit-form' className='gdb-form' onSubmit={event => { event.preventDefault(); void handleSave() }}>
+					{toast && <p className='gdb-error' role={toast.type === 'error' ? 'alert' : 'status'}>{toast.message}</p>}
+					<fieldset disabled={isSaving} className='bulk-edit-modal__fields'>
 					<div className='bulk-edit-modal__field'>
-						<label htmlFor='bulk-status'>Status</label>
+						<label htmlFor='bulk-status'>{t('home.bulk.fieldStatus')}</label>
 						<select id='bulk-status' value={statusId ?? ''} onChange={(e) => setStatusId(e.target.value ? Number(e.target.value) : undefined)}>
-							<option value=''>-- No change --</option>
+							<option value=''>{t('home.bulk.noChange')}</option>
 							{statusOptions.map((s) => (
 								<option key={s.value} value={s.value}>
 									{s.label}
@@ -142,9 +136,9 @@ const BulkEditModal: React.FC<Props> = ({ isOpen, onClose, selectedCount, onSave
 					</div>
 
 					<div className='bulk-edit-modal__field'>
-						<label htmlFor='bulk-platform'>Platform</label>
+						<label htmlFor='bulk-platform'>{t('home.bulk.fieldPlatform')}</label>
 						<select id='bulk-platform' value={platformId ?? ''} onChange={(e) => setPlatformId(e.target.value ? Number(e.target.value) : undefined)}>
-							<option value=''>-- No change --</option>
+							<option value=''>{t('home.bulk.noChange')}</option>
 							{platformOptions.map((p) => (
 								<option key={p.value} value={p.value}>
 									{p.label}
@@ -154,9 +148,9 @@ const BulkEditModal: React.FC<Props> = ({ isOpen, onClose, selectedCount, onSave
 					</div>
 
 					<div className='bulk-edit-modal__field'>
-						<label htmlFor='bulk-played-status'>Played Status</label>
+						<label htmlFor='bulk-played-status'>{t('home.bulk.fieldPlayedStatus')}</label>
 						<select id='bulk-played-status' value={playedStatusId ?? ''} onChange={(e) => setPlayedStatusId(e.target.value ? Number(e.target.value) : undefined)}>
-							<option value=''>-- No change --</option>
+							<option value=''>{t('home.bulk.noChange')}</option>
 							{playedStatusOptions.map((ps) => (
 								<option key={ps.value} value={ps.value}>
 									{ps.label}
@@ -166,7 +160,7 @@ const BulkEditModal: React.FC<Props> = ({ isOpen, onClose, selectedCount, onSave
 					</div>
 
 					<div className='bulk-edit-modal__field'>
-						<label htmlFor='bulk-cheaper-by'>Cheaper By</label>
+						<label htmlFor='bulk-cheaper-by'>{t('home.bulk.fieldCheaperBy')}</label>
 						<select
 							id='bulk-cheaper-by'
 							value={isCheaperByKey === undefined ? '' : isCheaperByKey ? 'key' : 'store'}
@@ -174,41 +168,30 @@ const BulkEditModal: React.FC<Props> = ({ isOpen, onClose, selectedCount, onSave
 								const val = e.target.value
 								setIsCheaperByKey(val === '' ? undefined : val === 'key')
 							}}>
-							<option value=''>-- No change --</option>
-							<option value='key'>Key (Third-party store)</option>
-							<option value='store'>Official Store</option>
+							<option value=''>{t('home.bulk.noChange')}</option>
+							<option value='key'>{t('home.bulk.cheaperKey')}</option>
+							<option value='store'>{t('home.bulk.cheaperStore')}</option>
 						</select>
 					</div>
 
 					<div className='bulk-edit-modal__field'>
-						<label>Play With</label>
-						<div className='bulk-edit-modal__checkboxes'>
+						<fieldset className='bulk-edit-modal__checkboxes'><legend>{t('home.bulk.fieldPlayWith')}</legend>
 							{playWithOptions.map((pw) => (
-								<label key={pw.value} className='bulk-edit-modal__checkbox'>
+								<label key={pw.value} className='gdb-check-label'>
 									<input type='checkbox' checked={playWithIds.includes(pw.value)} onChange={() => handlePlayWithToggle(pw.value)} />
 									<span>{pw.label}</span>
 								</label>
 							))}
-						</div>
+						</fieldset>
 						{playWithIds.length > 0 && (
-							<button type='button' className='bulk-edit-modal__clear-playwith' onClick={() => setPlayWithIds([])}>
-								Clear selection
+							<button type='button' className='gdb-text-button' onClick={() => setPlayWithIds([])}>
+								{t('home.bulk.clearSelection')}
 							</button>
 						)}
 					</div>
-				</div>
-
-				<div className='bulk-edit-modal__footer'>
-					<button className='bulk-edit-modal__button bulk-edit-modal__button--cancel' onClick={handleClose}>
-						Cancel
-					</button>
-					<button className='bulk-edit-modal__button bulk-edit-modal__button--save' onClick={handleSave} disabled={isSaving}>
-						{isSaving ? 'Saving...' : 'Save Changes'}
-					</button>
-				</div>
-			</div>
-			<Toast isOpen={toast !== null} message={toast?.message ?? ''} type={toast?.type} onClose={() => setToast(null)} />
-		</div>
+					</fieldset>
+				</form>
+		</CollectionSheet>
 	)
 }
 

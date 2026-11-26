@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from '@testing-library/react'
+import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test/utils/renderWithProviders'
 
@@ -26,13 +26,11 @@ vi.mock('@/hooks/useGames', () => ({
 	}),
 }))
 
+const catalogRequests = vi.hoisted(() => ({ active: vi.fn().mockResolvedValue([{ id: 1, name: 'Playing' }, { id: 8, name: 'Not Fulfilled' }]), special: vi.fn().mockResolvedValue([{ id: 8, name: 'Not Fulfilled', statusType: 'NotFulfilled' }]) }))
 vi.mock('@/hooks', () => ({
 	useGameStatus: () => ({
-		fetchActiveStatusList: vi.fn().mockResolvedValue([
-			{ id: 1, name: 'Playing' },
-			{ id: 8, name: 'Not Fulfilled' },
-		]),
-		fetchSpecialStatusList: vi.fn().mockResolvedValue([{ id: 8, name: 'Not Fulfilled', statusType: 'NotFulfilled' }]),
+		fetchActiveStatusList: catalogRequests.active,
+		fetchSpecialStatusList: catalogRequests.special,
 	}),
 }))
 
@@ -98,7 +96,7 @@ describe('CreateGame', () => {
 
 	it('renders the Add Game button', async () => {
 		const CreateGame = await loadCreateGame()
-		renderWithProviders(<CreateGame />)
+		await act(async () => { renderWithProviders(<CreateGame />); await Promise.all(Object.values(catalogRequests).map(request => request.mock.results.at(-1)?.value)) })
 
 		expect(screen.getByRole('button', { name: 'Añadir Juego' })).toBeInTheDocument()
 	})
@@ -136,7 +134,7 @@ describe('CreateGame', () => {
 		await user.click(within(modal).getByRole('button', { name: 'Añadir Juego' }))
 
 		await waitFor(() => {
-			expect(within(modal).getByText('Required')).toBeInTheDocument()
+			expect(within(modal).getByText('Escribe el título del juego.')).toBeInTheDocument()
 		})
 	})
 
@@ -252,7 +250,7 @@ describe('CreateGame', () => {
 
 		await user.click(within(modal).getByTitle('Activar búsqueda de Steam para esta fila'))
 
-		expect(within(modal).queryByText('Required')).not.toBeInTheDocument()
+		expect(within(modal).queryByText('Escribe el título del juego.')).not.toBeInTheDocument()
 	})
 
 	it('mixes Steam imports and manual games while preserving the selected Steam status and cheaper option', async () => {

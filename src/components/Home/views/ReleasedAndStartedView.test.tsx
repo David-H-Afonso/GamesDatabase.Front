@@ -1,10 +1,11 @@
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import ReleasedAndStartedView from './ReleasedAndStartedView'
 
 const mockRefreshGames = vi.fn().mockResolvedValue([])
+const filters = {}
 
 vi.mock('@/hooks', () => ({
-	useGames: () => ({ refreshGames: mockRefreshGames, filters: {} }),
+	useGames: () => ({ refreshGames: mockRefreshGames, filters }),
 }))
 
 vi.mock('@/components/elements', () => ({
@@ -14,13 +15,13 @@ vi.mock('@/components/elements', () => ({
 describe('ReleasedAndStartedView', () => {
 	beforeEach(() => vi.clearAllMocks())
 
-	it('renders heading', () => {
-		render(<ReleasedAndStartedView />)
+	it('renders heading', async () => {
+		await act(async () => { render(<ReleasedAndStartedView />); await mockRefreshGames.mock.results.at(-1)?.value })
 		expect(screen.getByText('Released and Started (2025)')).toBeInTheDocument()
 	})
 
-	it('calls refreshGames on mount with year filters', () => {
-		render(<ReleasedAndStartedView />)
+	it('calls refreshGames on mount with year filters', async () => {
+		await act(async () => { render(<ReleasedAndStartedView />); await mockRefreshGames.mock.results.at(-1)?.value })
 		expect(mockRefreshGames).toHaveBeenCalledWith(expect.objectContaining({ releasedYear: 2025, startedYear: 2025 }))
 	})
 

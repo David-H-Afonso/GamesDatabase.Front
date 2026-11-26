@@ -297,7 +297,7 @@ const PropertyConfigPanel: React.FC<PropertyConfigPanelProps> = ({ panelMode, co
 
 							return (
 								<tr key={field.key} className={`pcp__row ${propMode !== 'asImported' && propMode !== 'asStored' ? 'pcp__row--modified' : ''}`}>
-									<td className='pcp__label'>{t(`home.propertyConfig.fields.${field.key}` as any)}</td>
+									<td className='pcp__label'>{t(field.key === 'developer' ? 'gallery.detail.studio' : `home.propertyConfig.fields.${field.key}` as any)}</td>
 									<td className='pcp__mode-cell'>
 										<select
 											aria-label={t('home.propertyConfig.ariaMode', { field: field.label })}

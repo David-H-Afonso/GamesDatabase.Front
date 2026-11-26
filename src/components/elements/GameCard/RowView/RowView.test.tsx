@@ -2,6 +2,7 @@ import { fireEvent, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test/utils/renderWithProviders'
 import { createGame, resetIdCounter } from '@/test/factories'
+import i18n from '@/i18n'
 
 vi.mock('@/environments', () => ({
 	environment: {
@@ -134,6 +135,17 @@ async function loadComponent() {
 describe('RowView', () => {
 	const mockOpenDetails = vi.fn()
 
+	it.each([false, true])('keeps samples labelled and opens reviewed metadata directly in Row (expanded=%s)', async expanded => {
+		const RowView = await loadComponent(), user = userEvent.setup(), autoFill = vi.fn()
+		renderWithProviders(<RowView game={createGame({ isSample: true })} expanded={expanded} openDetails={mockOpenDetails} onAutoFill={autoFill} playWithColors={[]} gameStatusColor='#4CAF50' platformColor='#2196F3' playedStatusColor='#9C27B0' />, { preloadedState: preloadedState as any })
+		expect(screen.getByText(i18n.t('guide.sampleBadge'))).toBeInTheDocument()
+		const trigger = screen.getByLabelText(i18n.t('gallery.detail.gameOptions'))
+		await user.click(trigger); await user.keyboard('{Escape}'); expect(trigger).toHaveFocus()
+		await user.click(trigger); await user.click(screen.getByRole('button', { name: i18n.t('metadata.action') }))
+		expect(autoFill).toHaveBeenCalledOnce(); expect(mockOpenDetails).not.toHaveBeenCalled()
+		expect(trigger.closest('details')).not.toHaveAttribute('open')
+	})
+
 	beforeEach(() => {
 		vi.clearAllMocks()
 		resetIdCounter()
@@ -200,6 +212,11 @@ describe('RowView', () => {
 			preloadedState: preloadedState as any,
 		})
 		expect(screen.getByLabelText('Historia')).toHaveTextContent('40h')
+	})
+	it('retains an explicitly supplied zero estimate without treating it as missing or using player time', async () => {
+		const RowView = await loadComponent()
+		renderWithProviders(<RowView game={createGame({ story: 0, completion: 0, steamPlaytimeForever: 600 })} openDetails={mockOpenDetails} playWithColors={[]} gameStatusColor='#4CAF50' platformColor='#2196F3' playedStatusColor='#9C27B0' />, { preloadedState: preloadedState as any })
+		expect(screen.getByLabelText(i18n.t('game.details.fieldStory'))).toHaveTextContent('0h'); expect(screen.getByLabelText(i18n.t('game.details.fieldCompletion'))).toHaveTextContent('0h')
 	})
 
 	it('renders platform badge', async () => {

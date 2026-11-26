@@ -1,0 +1,67 @@
+.gdb-sheet.gdb-create-game-sheet{inset:0;margin:auto;width:min(620px,calc(100vw - 40px));height:fit-content;max-height:calc(100dvh - 48px);border:1px solid var(--gdb-line);border-radius:14px;overflow:hidden}
+.gdb-create-game-sheet[open]{display:flex;flex-direction:column}
+.gdb-create-game-sheet>.gdb-sheet__head{position:static;align-items:center;padding:12px 20px;gap:12px;border-radius:0}
+.gdb-create-game-sheet>.gdb-sheet__head h2{padding:0;font-size:23px}
+.gdb-create-game-sheet>.gdb-sheet__body{padding:20px;min-height:0;overflow:auto;overscroll-behavior:contain}
+.gdb-create-game-sheet>.gdb-sheet__footer{position:static;padding:12px 20px;gap:12px}
+.gdb-create-game-sheet>.gdb-sheet__footer>.gdb-button{flex:0 1 auto}
+.gdb-create-game-sheet .gdb-form{gap:10px}
+.gdb-create-rows{display:flex;flex-direction:column;gap:10px;min-width:0}
+.gdb-create-row{display:block;min-width:0;margin:0;padding:0;border:0}
+.gdb-create-row>legend{padding:0}
+.gdb-create-row__main{display:flex;align-items:center;gap:6px;min-width:0}
+.gdb-create-title-field,.gdb-create-steam-title,.gdb-create-saved{flex:1;min-width:0}
+.gdb-create-game-sheet .gdb-create-name{height:44px;min-height:44px;padding:8px 11px}
+.gdb-create-source{position:relative;border:1px solid var(--gdb-control);background:var(--gdb-input)}
+.gdb-create-source>img{width:24px;height:24px;filter:grayscale(1);opacity:.55}
+.gdb-create-source[aria-pressed=true]{border-color:var(--gdb-accent);background:var(--gdb-accent-soft);color:var(--gdb-accent)}
+.gdb-create-source[aria-pressed=true]>img{filter:none;opacity:1}
+.gdb-create-source>.gdb-icon{position:absolute;width:13px;height:13px;right:2px;bottom:2px;border-radius:50%;background:var(--gdb-surface);stroke-width:3}
+.gdb-create-options-toggle[aria-expanded=true]{background:var(--gdb-raised);color:var(--gdb-text)}
+.gdb-create-options-toggle>.gdb-icon{width:17px;height:17px;transition:transform 150ms ease}
+.gdb-create-options-toggle[aria-expanded=true]>.gdb-icon{transform:rotate(180deg)}
+.gdb-create-remove>.gdb-icon{width:17px;height:17px}
+.gdb-create-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px;margin-top:10px;padding:14px;background:var(--gdb-input);border:1px solid var(--gdb-subtle-line);border-radius:8px}
+.gdb-create-options[hidden]{display:none}
+.gdb-create-options .gdb-create-price{grid-column:1/-1}
+.gdb-create-game-sheet .add-game-row__status-select{height:auto;min-height:46px;font-size:16px;background:var(--gdb-input);color:var(--gdb-text);border-color:var(--gdb-control)}
+.gdb-create-game-sheet .add-game-row__status-select:focus{box-shadow:none}
+.gdb-create-add-row{align-self:flex-start;padding-inline:0;font-size:14px;gap:8px}
+.gdb-create-add-row>.gdb-icon{width:18px;height:18px}
+.gdb-create-steam-title{font:550 16px/1.5 var(--gdb-body);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gdb-create-steam-identity{display:flex;align-items:center;gap:10px;min-width:0;font-size:14px;color:var(--gdb-text)}
+.gdb-create-steam-identity>img{width:54px;aspect-ratio:1.9;object-fit:cover;border-radius:4px}
+.gdb-create-steam-identity>span{min-width:0;overflow-wrap:anywhere}
+.gdb-create-steam-identity small{display:block;font-size:12px;color:var(--gdb-secondary);margin-top:4px}
+.gdb-create-row__saved{width:44px;min-width:44px;display:grid;place-items:center;color:var(--gdb-accent)}
+.gdb-create-row__saved>.gdb-icon{width:20px;height:20px}
+.gdb-create-saved{padding:8px 0;color:var(--gdb-text);font:550 16px/1.5 var(--gdb-body)}
+.gdb-create-saved>strong{display:block;overflow-wrap:anywhere}
+.gdb-create-saved>span{display:block;margin-top:4px;color:var(--gdb-secondary);font:450 14px/1.5 var(--gdb-body)}
+.gdb-create-row__status{margin:8px 0 0;color:var(--gdb-secondary);font:450 14px/1.5 var(--gdb-body)}
+.gdb-create-row>.gdb-error{margin-top:8px}
+.gdb-create-game-sheet .gdb-error>.gdb-text-button{margin-left:12px}
+.gdb-create-game-sheet .steam-suggestions{margin:8px 0 0;padding:5px;border-color:var(--gdb-control);border-radius:8px;background:var(--gdb-input);max-width:100%;min-width:0;max-height:min(310px,40dvh)}
+.gdb-create-game-sheet .steam-suggestion{min-height:60px;background:transparent;color:var(--gdb-text);border-radius:5px;grid-template-columns:64px minmax(0,1fr);gap:10px}
+.gdb-create-game-sheet .steam-suggestion__image{width:64px}
+.gdb-create-game-sheet .steam-suggestion__name{color:var(--gdb-text);font-size:15px}
+.gdb-create-game-sheet .steam-suggestions__header,.gdb-create-game-sheet .steam-suggestion__meta{color:var(--gdb-secondary);font-size:13px}
+.gdb-create-game-sheet .steam-suggestions__empty,.gdb-create-game-sheet .steam-suggestions__error{color:var(--gdb-secondary);font-size:14px}
+.gdb-create-game-sheet .steam-suggestions__error>.gdb-text-button{margin-left:12px}
+.gdb-create-game-sheet .steam-suggestion__meta{flex-wrap:wrap}
+.gdb-create-game-sheet .steam-source-badge{font-size:12px;background:var(--gdb-raised);color:var(--gdb-secondary);border:1px solid var(--gdb-subtle-line)}
+.gdb-create-game-sheet .steam-suggestion:focus-visible{outline:2px solid var(--gdb-accent);outline-offset:-2px;background:var(--gdb-raised)}
+@media(hover:hover) and (pointer:fine){.gdb-create-game-sheet .steam-suggestion:hover:not(:disabled){background:var(--gdb-raised)}}
+@media(max-width:650px){
+  .gdb-sheet.gdb-create-game-sheet{inset:0;margin:auto;width:calc(100vw - 24px);height:fit-content;max-height:calc(100dvh - 24px);border-radius:12px}
+  .gdb-create-game-sheet>.gdb-sheet__head{padding:10px 14px}
+  .gdb-create-game-sheet>.gdb-sheet__head h2{font-size:22px;padding:0}
+  .gdb-create-game-sheet>.gdb-sheet__body{padding:16px 14px 10px}
+  .gdb-create-game-sheet>.gdb-sheet__footer{padding:12px 14px max(12px,env(safe-area-inset-bottom,0px))}
+  .gdb-create-game-sheet .gdb-form label,.gdb-create-add-row{font-size:16px}
+  .gdb-create-row__main{gap:4px}
+  .gdb-create-options{padding:12px;gap:12px}
+  .gdb-create-steam-identity{grid-column:1/-1}
+  .gdb-create-game-sheet .steam-suggestion__name{font-size:16px}
+  .gdb-create-game-sheet .steam-suggestion__meta{font-size:14px}
+}

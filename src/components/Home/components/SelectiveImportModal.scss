@@ -58,13 +58,22 @@
 	&__source-toggle {
 		display: flex;
 		gap: 0.5rem;
+		flex-wrap: wrap;
 
 		input[type='radio'] {
-			display: none;
+			width: 1rem;
+			height: 1rem;
+			margin: 0;
+			accent-color: currentColor;
 		}
 	}
 
 	&__source-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.45rem;
+		min-height: 44px;
+		box-sizing: border-box;
 		cursor: pointer;
 		padding: 0.35rem 0.9rem;
 		border-radius: 999px;
@@ -78,6 +87,11 @@
 			color 0.15s,
 			border-color 0.15s;
 		user-select: none;
+
+		&:has(input:focus-visible) {
+			outline: 2px solid var(--primary, #61afef);
+			outline-offset: 3px;
+		}
 
 		&:hover {
 			border-color: var(--color-accent, #61afef);

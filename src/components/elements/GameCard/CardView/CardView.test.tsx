@@ -147,7 +147,7 @@ describe('CardView', () => {
 		renderWithProviders(<CardView game={game} openDetails={mockOpenDetails} playWithColors={[]} gameStatusColor='#4CAF50' platformColor='#2196F3' />, {
 			preloadedState: preloadedState as any,
 		})
-		expect(screen.getByText('Elden Ring')).toBeInTheDocument()
+		expect(screen.getByRole('heading', { name: 'Elden Ring', level: 3 })).toBeInTheDocument()
 	})
 
 	it('renders status badge', async () => {
@@ -156,7 +156,7 @@ describe('CardView', () => {
 		renderWithProviders(<CardView game={game} openDetails={mockOpenDetails} playWithColors={[]} gameStatusColor='#4CAF50' platformColor='#2196F3' />, {
 			preloadedState: preloadedState as any,
 		})
-		expect(screen.getByText('Playing')).toBeInTheDocument()
+		expect(screen.getByText('Playing', { selector: '.gdb-card-status' })).toBeInTheDocument()
 	})
 
 	it('renders grade or N/A', async () => {
@@ -183,16 +183,19 @@ describe('CardView', () => {
 		renderWithProviders(<CardView game={game} openDetails={mockOpenDetails} playWithColors={[]} gameStatusColor='#4CAF50' platformColor='#2196F3' />, {
 			preloadedState: preloadedState as any,
 		})
+		expect(screen.queryByRole('group', { name: /Score: 7 \/ 10/ })).not.toBeInTheDocument()
+		await userEvent.click(screen.getByRole('button', { name: 'Game options' }))
 		expect(screen.getByRole('group', { name: /Score: 7 \/ 10/ })).toBeInTheDocument()
 	})
 
 	it('renders the score icon and an empty score box when score is null', async () => {
 		const CardView = await loadComponent()
 		const game = createGame({ score: undefined })
-		const { container } = renderWithProviders(<CardView game={game} openDetails={mockOpenDetails} playWithColors={[]} gameStatusColor='#4CAF50' platformColor='#2196F3' />, {
+		renderWithProviders(<CardView game={game} openDetails={mockOpenDetails} playWithColors={[]} gameStatusColor='#4CAF50' platformColor='#2196F3' />, {
 			preloadedState: preloadedState as any,
 		})
-		const scoreBox = container.querySelector('.game-card-score-value')
+		await userEvent.click(screen.getByRole('button', { name: 'Game options' }))
+		const scoreBox = screen.getByRole('dialog', { name: 'Game options' }).querySelector('.game-card-score-value')
 		expect(scoreBox).toBeInTheDocument()
 		expect(scoreBox?.textContent).toBe('')
 		expect(scoreBox?.closest('.game-card-score')?.querySelector('svg')).toBeInTheDocument()
@@ -204,7 +207,7 @@ describe('CardView', () => {
 		renderWithProviders(<CardView game={game} openDetails={mockOpenDetails} playWithColors={[]} gameStatusColor='#4CAF50' platformColor='#2196F3' />, {
 			preloadedState: preloadedState as any,
 		})
-		expect(screen.getByText('PC')).toBeInTheDocument()
+		expect(screen.getByText('PC', { selector: '.gdb-card-platform' })).toBeInTheDocument()
 	})
 
 	it('renders story and completion hours', async () => {
@@ -213,8 +216,9 @@ describe('CardView', () => {
 		renderWithProviders(<CardView game={game} openDetails={mockOpenDetails} playWithColors={[]} gameStatusColor='#4CAF50' platformColor='#2196F3' />, {
 			preloadedState: preloadedState as any,
 		})
-		expect(screen.getByText('40h')).toBeInTheDocument()
-		expect(screen.getByText('60h')).toBeInTheDocument()
+		expect(screen.getByText('40 h')).toBeInTheDocument()
+		await userEvent.click(screen.getByRole('button', { name: 'Game options' }))
+		expect(screen.getByText(/60 h/)).toBeInTheDocument()
 	})
 
 	it('renders selection checkbox with correct aria label', async () => {
@@ -233,7 +237,7 @@ describe('CardView', () => {
 		renderWithProviders(<CardView game={game} openDetails={mockOpenDetails} playWithColors={[]} gameStatusColor='#4CAF50' platformColor='#2196F3' />, {
 			preloadedState: preloadedState as any,
 		})
-		await user.click(screen.getByText('Hades'))
+		await user.click(screen.getByRole('button', { name: 'Hades' }))
 		expect(mockOpenDetails).toHaveBeenCalledWith(game)
 	})
 
@@ -243,30 +247,30 @@ describe('CardView', () => {
 		renderWithProviders(<CardView game={game} openDetails={mockOpenDetails} playWithColors={[]} gameStatusColor='#4CAF50' platformColor='#2196F3' />, {
 			preloadedState: preloadedState as any,
 		})
-		expect(screen.getByText('92')).toBeInTheDocument()
+		await userEvent.click(screen.getByRole('button', { name: 'Game options' }))
+		expect(screen.getByRole('button', { name: /Metacritic · 92/ })).toBeInTheDocument()
 	})
 
-	it('uses manual playtime before Steam playtime and shows the platform icon', async () => {
+	it('uses manual playtime before Steam playtime without conflating platform artwork', async () => {
 		const CardView = await loadComponent()
 		const game = createGame({ platformId: 1, platformName: 'PC', manualPlaytimeMinutes: 120, steamPlaytimeForever: 600 })
 		renderWithProviders(<CardView game={game} openDetails={mockOpenDetails} playWithColors={[]} gameStatusColor='#4CAF50' platformColor='#2196F3' />, {
 			preloadedState: preloadedState as any,
 		})
 
-		expect(screen.getByText('2h')).toBeInTheDocument()
-		expect(screen.queryByText('10h')).not.toBeInTheDocument()
-		expect(screen.getByAltText('PC')).toHaveAttribute('src', 'https://example.com/platform.png')
+		expect(screen.getByText('2 h')).toBeInTheDocument()
+		expect(screen.queryByText('10 h')).not.toBeInTheDocument()
+		expect(screen.getByText('PC', { selector: '.gdb-card-platform' })).toBeInTheDocument()
 	})
 
-	it('falls back to the default platform icon for manual playtime without a logo', async () => {
+	it('shows manual time even without an available platform logo', async () => {
 		const CardView = await loadComponent()
 		const game = createGame({ platformId: 99, platformName: 'Unknown', manualPlaytimeMinutes: 60, steamPlaytimeForever: 600 })
 		renderWithProviders(<CardView game={game} openDetails={mockOpenDetails} playWithColors={[]} gameStatusColor='#4CAF50' platformColor='#2196F3' />, {
 			preloadedState: preloadedState as any,
 		})
 
-		const icon = screen.getByAltText('Unknown') as HTMLImageElement
-		expect(icon.src).toContain('/platform-icons/')
-		expect(screen.getByText('1h')).toBeInTheDocument()
+		expect(screen.getByText('Unknown', { selector: '.gdb-card-platform' })).toBeInTheDocument()
+		expect(screen.getByText('1 h')).toBeInTheDocument()
 	})
 })

@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test/utils/renderWithProviders'
 import type { Game } from '@/models/api/Game'
 import type { RootState } from '@/store'
+import i18n from '@/i18n'
 
 vi.mock('../../OptimizedImage/OptimizedImage', () => ({
 	default: ({ alt }: any) => <img alt={alt} />,
@@ -58,14 +59,15 @@ describe('CoverView', () => {
 		expect(screen.queryByText('Completado')).not.toBeInTheDocument()
 	})
 
-	it('exposes the full game name as a tooltip title', async () => {
+	it('keeps the complete accessible title without a duplicate native tooltip', async () => {
 		const { default: CoverView } = await import('./CoverView')
 		renderWithProviders(<CoverView game={game} openDetails={vi.fn()} />, { preloadedState })
 
-		expect(screen.getByText(game.name)).toHaveAttribute('title', game.name)
+		expect(screen.getByRole('button', { name: game.name })).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: game.name })).not.toHaveAttribute('title')
 	})
 
-	it('updates status from the hover quick editor', async () => {
+	it('opens status editing only after an explicit click', async () => {
 		const onFieldUpdate = vi.fn().mockResolvedValue(undefined)
 		const user = userEvent.setup()
 		const { default: CoverView } = await import('./CoverView')
@@ -80,13 +82,14 @@ describe('CoverView', () => {
 		expect(onFieldUpdate).toHaveBeenCalledWith(game.id, 'statusId', 2)
 	})
 
-	it('updates play-with values from the hover quick editor', async () => {
+	it('updates play-with values from the explicit options panel', async () => {
 		const onFieldUpdate = vi.fn().mockResolvedValue(undefined)
 		const { default: CoverView } = await import('./CoverView')
 		renderWithProviders(<CoverView game={game} openDetails={vi.fn()} onFieldUpdate={onFieldUpdate} />, { preloadedState })
 
-		fireEvent.click(screen.getByRole('button', { name: 'Friends' }))
-		fireEvent.click(screen.getByRole('checkbox', { name: /Family/ }))
+		fireEvent.click(screen.getByRole('button', { name: i18n.t('gallery.detail.gameOptions') }))
+		fireEvent.click(screen.getByRole('button', { name: new RegExp(i18n.t('game.details.fieldPlayWith')) }))
+		await userEvent.click(screen.getByRole('checkbox', { name: /Family/ }))
 
 		expect(onFieldUpdate).toHaveBeenCalledWith(game.id, 'playWithIds', [1, 2])
 	})

@@ -1,15 +1,18 @@
 import type { Game } from '@/models/api/Game'
-import type { CSSProperties, MouseEvent } from 'react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type MouseEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAppSelector } from '@/store/hooks'
-import OptimizedImage from '../../OptimizedImage/OptimizedImage'
-import './CoverView.scss'
+import { GameArtwork } from '@/components/Collection/GameArtwork'
+import { CollectionIcon } from '@/components/Collection/CollectionIcon'
+import { GameTitle } from '@/components/Collection/GameTitle'
+import { SampleBadge } from '@/components/Collection/SampleBadge'
 import { isGameCompleted, isGameFullyCompleted, completionLabelKey, completionTitleKey } from '@/utils/gameCompletion'
+import './CoverView.scss'
 
 interface CoverViewProps {
 	game: Game
 	openDetails: (game: Game) => void
+	onAutoFill?: () => void
 	isSelected?: boolean
 	onSelect?: (gameId: number, isSelected: boolean) => void
 	index?: number
@@ -19,154 +22,198 @@ interface CoverViewProps {
 	hideSelection?: boolean
 }
 
-const CoverView = ({ game, openDetails, isSelected = false, onSelect, index = 0, gameStatusColor, playWithColors = [], onFieldUpdate, hideSelection = false }: CoverViewProps) => {
+const CoverView = ({ game, openDetails, onAutoFill, isSelected = false, onSelect, index = 0, gameStatusColor, onFieldUpdate, hideSelection = false }: CoverViewProps) => {
 	const { t } = useTranslation()
-	const isPriority = index < 8
-	const hasPerfectCompletion = isGameCompleted(game)
-	const [coverFailed, setCoverFailed] = useState(false)
-	const [activeEditor, setActiveEditor] = useState<'status' | 'playWith' | null>(null)
-	const coverRef = useRef<HTMLElement>(null)
-	const { activeStatuses: statusOptions } = useAppSelector((state) => state.gameStatus)
-	const { playWithOptions } = useAppSelector((state) => state.gamePlayWith)
-	const artSrc = coverFailed ? game.hero : game.cover || game.hero
-	const visiblePlayWith = game.playWithNames?.slice(0, 2) ?? []
-	const extraPlayWithCount = Math.max(0, (game.playWithNames?.length ?? 0) - visiblePlayWith.length)
-
+	const [editor, setEditor] = useState<'options' | 'status' | 'playWith' | null>(null)
+	const [saving, setSaving] = useState(false),
+		[error, setError] = useState(false)
+	const cover = useRef<HTMLElement>(null),
+		panel = useRef<HTMLDivElement>(null),
+		opener = useRef<HTMLButtonElement | null>(null)
+	const statuses = useAppSelector((state) => state.gameStatus.activeStatuses)
+	const playWith = useAppSelector((state) => state.gamePlayWith.playWithOptions)
+	const edit = (value: typeof editor, event: MouseEvent<HTMLButtonElement>) => {
+		opener.current = event.currentTarget
+		setError(false)
+		setEditor((current) => (current === value ? null : value))
+	}
+	const close = () => {
+		setEditor(null)
+		if (opener.current?.isConnected) opener.current.focus({ preventScroll: true })
+	}
 	useEffect(() => {
-		setCoverFailed(false)
-	}, [game.cover])
-
-	useEffect(() => {
-		if (!activeEditor) return
-
-		const closeEditorOnOutsidePointer = (event: PointerEvent) => {
-			if (event.target instanceof Node && !coverRef.current?.contains(event.target)) setActiveEditor(null)
+		if (!editor) return
+		panel.current?.querySelector<HTMLElement>('button[aria-pressed="true"], button, input')?.focus({ preventScroll: true })
+		const outside = (event: PointerEvent) => {
+			if (!cover.current?.contains(event.target as Node)) setEditor(null)
 		}
-
-		document.addEventListener('pointerdown', closeEditorOnOutsidePointer)
-		return () => document.removeEventListener('pointerdown', closeEditorOnOutsidePointer)
-	}, [activeEditor])
-
-	const updatePlayWith = (optionId: number, checked: boolean) => {
-		const current = game.playWithIds ?? []
-		const next = checked ? Array.from(new Set([...current, optionId])) : current.filter((id) => id !== optionId)
-		void onFieldUpdate?.(game.id, 'playWithIds', next)
+		document.addEventListener('pointerdown', outside)
+		return () => document.removeEventListener('pointerdown', outside)
+	}, [editor])
+	const update = async (field: string, value: number | number[] | boolean, closeAfter = false) => {
+		if (saving || !onFieldUpdate) return
+		setSaving(true)
+		setError(false)
+		try {
+			await onFieldUpdate(game.id, field, value)
+			if (closeAfter) close()
+		} catch {
+			setError(true)
+		} finally {
+			setSaving(false)
+		}
 	}
-
-	const toggleFavorite = (event: MouseEvent<HTMLButtonElement>) => {
-		event.preventDefault()
-		event.stopPropagation()
-		void onFieldUpdate?.(game.id, 'favorite', !game.favorite)
-	}
-
-	const selectStatus = (statusId: number, event: MouseEvent<HTMLButtonElement>) => {
-		event.preventDefault()
-		event.stopPropagation()
-		void onFieldUpdate?.(game.id, 'statusId', statusId)
-	}
-
 	return (
-		<article ref={coverRef} className={`game-cover-view ${isSelected ? 'is-selected' : ''}`} onClick={() => openDetails(game)}>
+		<article
+			ref={cover}
+			className={`game-cover-view ${isSelected ? 'is-selected' : ''}`}
+			aria-label={game.name}
+			onBlur={(event) => {
+				if (event.relatedTarget instanceof Node && !event.currentTarget.contains(event.relatedTarget)) setEditor(null)
+			}}>
 			{!hideSelection && (
-				<label className='game-cover-view__select' onClick={(event) => event.stopPropagation()}>
-					<input type='checkbox' checked={isSelected} onChange={(event) => onSelect?.(game.id, event.target.checked)} aria-label={`Select ${game.name}`} />
+				<label className='game-cover-view__select'>
+					<input type='checkbox' checked={isSelected} onChange={(event) => onSelect?.(game.id, event.target.checked)} aria-label={t('game.card.selectGame', { name: game.name })} />
 				</label>
 			)}
-
 			<div className='game-cover-view__art-frame'>
+				<GameTitle
+					name={game.name}
+					tooltip='hold'
+					className='game-cover-view__open-art gdb-image-open'
+					onOpen={() => openDetails(game)}
+					ariaLabel={t('gallery.home.openGame', { name: game.name })}>
+					<GameArtwork game={game} role='cover' className='game-cover-view__art' eager={index < 8} />
+					<span className='gdb-art-hover'>
+						{t('gallery.detail.open')}
+						<CollectionIcon name='arrow' />
+					</span>
+				</GameTitle>
 				<button
 					type='button'
-					className={'game-cover-view__favorite' + (game.favorite ? ' is-active' : '')}
-					onClick={toggleFavorite}
+					className={`game-cover-view__favorite ${game.favorite ? 'is-active' : ''}`}
 					aria-pressed={game.favorite}
-					aria-label={game.favorite ? t('game.card.removeFavorite') : t('game.card.markFavorite')}
-					title={game.favorite ? t('game.card.removeFavorite') : t('game.card.markFavorite')}
-					disabled={!onFieldUpdate}>
-					{game.favorite ? '★' : '☆'}
+					aria-label={t(game.favorite ? 'game.card.removeFavorite' : 'game.card.markFavorite')}
+					disabled={!onFieldUpdate || saving}
+					onClick={() => {
+						void update('favorite', !game.favorite)
+					}}>
+					<CollectionIcon name='star' />
 				</button>
-				{artSrc ? (
-					<OptimizedImage
-						src={artSrc}
-						alt={`${game.name} cover art`}
-						className='game-cover-view__art'
-						quality='medium'
-						loading={isPriority ? 'eager' : 'lazy'}
-						fetchPriority={isPriority ? 'high' : undefined}
-						width={300}
-						height={450}
-						onError={() => {
-							if (artSrc === game.cover && game.hero) setCoverFailed(true)
-						}}
-					/>
-				) : null}
-				<div className='game-cover-view__spine' />
-				<div className='game-cover-view__shine' />
-				{(game.statusName || visiblePlayWith.length > 0) && (
-					<div className='game-cover-view__hover-info' onClick={(event) => event.stopPropagation()}>
-						{game.statusName && (
+				{isGameCompleted(game) && (
+					<span className='game-cover-view__badge gdb-completion-badge' data-completion={isGameFullyCompleted(game) ? 'full' : 'completed'} title={t(completionTitleKey(game))}>
+						{t(completionLabelKey(game))}
+					</span>
+				)}
+			</div>
+			<footer className='game-cover-view__meta'>
+				<h3>
+					<GameTitle name={game.name} onOpen={() => openDetails(game)} />
+				</h3>
+				<SampleBadge game={game} />
+				<div className='game-cover-view__meta-line'>
+					{game.platformName && <span title={game.platformName}>{game.platformName}</span>}
+					{game.statusName && (
+						<button
+							type='button'
+							className='game-cover-view__status'
+							style={{ '--gdb-status-color': gameStatusColor || '#81958c' } as CSSProperties}
+							onClick={(event) => edit('status', event)}
+							disabled={!onFieldUpdate}
+							aria-expanded={editor === 'status'}>
+							<i aria-hidden='true' />
+							{game.statusName}
+						</button>
+					)}
+				</div>
+				{onFieldUpdate && (
+					<button
+						type='button'
+						className='game-cover-view__options-trigger'
+						aria-label={t('gallery.detail.gameOptions')}
+						aria-expanded={editor !== null}
+						onClick={(event) => edit('options', event)}>
+						<CollectionIcon name='more' />
+					</button>
+				)}
+			</footer>
+			{editor && (
+				<div
+					ref={panel}
+					className='game-cover-view__quick-editor'
+					role='dialog'
+					aria-label={t('gallery.detail.gameOptions')}
+					onKeyDown={(event) => {
+						if (event.key === 'Escape') {
+							event.preventDefault()
+							event.stopPropagation()
+							close()
+						}
+					}}>
+					<div className='game-cover-view__editor-head'>
+						<strong>{t(editor === 'status' ? 'game.details.fieldStatus' : editor === 'playWith' ? 'game.details.fieldPlayWith' : 'gallery.detail.gameOptions')}</strong>
+						<button type='button' aria-label={t('common.close')} onClick={close}>
+							<CollectionIcon name='close' />
+						</button>
+					</div>
+					{error && (
+						<p className='gdb-error' role='alert'>
+							{t('gallery.common.saveError')}
+						</p>
+					)}
+					{editor === 'options' ? (
+						<>
+							{onAutoFill && <button type='button' onClick={() => { close(); onAutoFill() }}>{t('metadata.action')}<CollectionIcon name='auto' /></button>}
+							<button type='button' onClick={() => setEditor('status')}>
+								{t('game.details.fieldStatus')}
+								<span>{game.statusName}</span>
+							</button>
+							<button type='button' onClick={() => setEditor('playWith')}>
+								{t('game.details.fieldPlayWith')}
+								<span>{game.playWithNames?.join(', ') || '—'}</span>
+							</button>
 							<button
 								type='button'
-								className='game-cover-view__hover-chip game-cover-view__hover-chip--status'
-								style={{ '--cover-chip-color': gameStatusColor || '#7c3aed' } as CSSProperties}
-								onClick={() => setActiveEditor('status')}>
-								{game.statusName}
+								onClick={() => {
+									setEditor(null)
+									openDetails(game)
+								}}>
+								{t('gallery.detail.open')}
+								<CollectionIcon name='arrow' />
 							</button>
-						)}
-						{visiblePlayWith.length > 0 && (
-							<div className='game-cover-view__hover-playwith'>
-								{visiblePlayWith.map((name, chipIndex) => (
-									<button
-										type='button'
-										key={name}
-										className='game-cover-view__hover-chip'
-										style={{ '--cover-chip-color': playWithColors[chipIndex] || '#6b7280' } as CSSProperties}
-										onClick={() => setActiveEditor(activeEditor === 'playWith' ? null : 'playWith')}>
-										{name}
-									</button>
-								))}
-								{extraPlayWithCount > 0 && (
-									<button type='button' className='game-cover-view__hover-chip game-cover-view__hover-chip--more' onClick={() => setActiveEditor(activeEditor === 'playWith' ? null : 'playWith')}>
-										+{extraPlayWithCount}
-									</button>
-								)}
-							</div>
-						)}
-						{activeEditor === 'status' && (
-							<div className='game-cover-view__quick-editor' onClick={(event) => event.stopPropagation()}>
-								{statusOptions.map((status) => (
-									<button
-										key={status.id}
-										type='button'
-										className={status.id === game.statusId ? 'is-active' : ''}
-										onMouseDown={(event) => selectStatus(status.id, event)}
-										onClick={(event) => {
-											if (event.detail === 0) selectStatus(status.id, event)
-											else event.stopPropagation()
-										}}>
-										{status.name}
-									</button>
-								))}
-							</div>
-						)}
-						{activeEditor === 'playWith' && (
-							<div className='game-cover-view__quick-editor game-cover-view__quick-editor--checks'>
-								{playWithOptions.map((option) => (
-									<label key={option.id}>
-										<input type='checkbox' checked={game.playWithIds?.includes(option.id) ?? false} onChange={(event) => updatePlayWith(option.id, event.target.checked)} />
-										<span>{option.name}</span>
-									</label>
-								))}
-							</div>
-						)}
-					</div>
-				)}
-				{hasPerfectCompletion && <span className='game-cover-view__badge' data-completion={isGameFullyCompleted(game) ? 'full' : 'completed'} title={t(completionTitleKey(game))}>{t(completionLabelKey(game))}</span>}
-			</div>
-
-			<footer className='game-cover-view__meta'>
-				<h3 title={game.name}>{game.name}</h3>
-				{game.platformName && <span title={game.platformName}>{game.platformName}</span>}
-			</footer>
+						</>
+					) : editor === 'status' ? (
+						statuses.map((status) => (
+							<button
+								key={status.id}
+								type='button'
+								aria-pressed={game.statusId === status.id}
+								disabled={saving}
+								onClick={() => {
+									void update('statusId', status.id, true)
+								}}>
+								<i style={{ background: status.color }} />
+								{status.name}
+							</button>
+						))
+					) : (
+						playWith.map((value) => (
+							<label key={value.id}>
+								<input
+									type='checkbox'
+									checked={game.playWithIds?.includes(value.id) ?? false}
+									disabled={saving}
+									onChange={(event) => {
+										const ids = game.playWithIds ?? []
+										void update('playWithIds', event.target.checked ? [...new Set([...ids, value.id])] : ids.filter((id) => id !== value.id))
+									}}
+								/>
+								{value.name}
+							</label>
+						))
+					)}
+				</div>
+			)}
 		</article>
 	)
 }

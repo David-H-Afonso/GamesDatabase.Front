@@ -2,6 +2,7 @@ import type { Game } from '@/models/api/Game'
 import { useState, useRef, useEffect, memo, type FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import './RowView.scss'
+import './GalleryRow.scss'
 import { formatToLocaleDate, useClickOutside, getMetacriticColor, isGameCompleted, isGameFullyCompleted, completionLabelKey, completionTitleKey } from '@/utils'
 import { EditableSelect } from '../../EditableSelect/EditableSelect'
 import { EditableMultiSelect } from '../../EditableMultiSelect/EditableMultiSelect'
@@ -9,10 +10,16 @@ import { OptimizedImage } from '@/components/elements'
 import { useAppSelector } from '@/store/hooks'
 import PortalDropdown from '../../PortalDropdown'
 import { getCriticScoreUrl, resolveEffectiveProvider, type CriticProvider } from '@/helpers/criticScoreHelper'
+import { GameArtwork } from '@/components/Collection/GameArtwork'
+import { GameTitle } from '@/components/Collection/GameTitle'
+import { CollectionIcon } from '@/components/Collection/CollectionIcon'
+import { SampleBadge } from '@/components/Collection/SampleBadge'
+import { effectivePlaytime, formatCollectionNumber } from '@/utils/collectionFormatting'
 
 interface RowViewProps {
 	game: Game
 	openDetails: (game: Game) => void
+	onAutoFill?: () => void
 	onFieldUpdate?: (gameId: number, field: string, value: number | number[] | boolean | undefined) => Promise<void>
 	playWithColors: (string | undefined)[]
 	gameStatusColor: string | undefined
@@ -22,12 +29,14 @@ interface RowViewProps {
 	onSelect?: (gameId: number, isSelected: boolean) => void
 	deselectAll?: () => void
 	index?: number
+	expanded?: boolean
+	hideSelection?: boolean
 }
 
 const RowView: FC<RowViewProps> = (props) => {
 	const isPriority = props.index !== undefined && props.index < 4
-	const { game, openDetails, playWithColors, gameStatusColor, platformColor, playedStatusColor, onFieldUpdate, isSelected = false, onSelect, deselectAll } = props
-	const { t } = useTranslation()
+	const { game, openDetails, onAutoFill, playWithColors, gameStatusColor, platformColor, playedStatusColor, onFieldUpdate, isSelected = false, onSelect, deselectAll } = props
+	const { t, i18n } = useTranslation()
 	const [activeSelector, setActiveSelector] = useState<'status' | 'platform' | 'playWith' | 'playStatus' | null>(null)
 	const [logoFailed, setLogoFailed] = useState(false)
 
@@ -136,12 +145,12 @@ const RowView: FC<RowViewProps> = (props) => {
 	const dash = '—'
 	const gradeText = game.grade ?? dash
 	const criticText = game.critic ?? dash
-	const storyText = game.story ? `${game.story}h` : dash
-	const completionText = game.completion ? `${game.completion}h` : dash
+	const storyText = game.story == null ? dash : `${formatCollectionNumber(game.story, i18n.language)}h`
+	const completionText = game.completion == null ? dash : `${formatCollectionNumber(game.completion, i18n.language)}h`
 	const scoreText = game.score ?? dash
 
 	// Get critic score color if enabled
-	const criticScoreColor = useScoreColors && game.critic != null ? getMetacriticColor(game.critic) : '#f9fafb'
+	const criticScoreColor = useScoreColors && game.critic != null ? getMetacriticColor(game.critic) : 'var(--gdb-text, #f9fafb)'
 	const releasedText = formatToLocaleDate(game.released) || dash
 	const startedText = formatToLocaleDate(game.started) || dash
 	const finishedText = formatToLocaleDate(game.finished) || dash
@@ -155,6 +164,29 @@ const RowView: FC<RowViewProps> = (props) => {
 		return `${names[0]} +${names.length - 1}`
 	}
 
+	const options = onAutoFill && <details className='gdb-row-tools' onClick={event => event.stopPropagation()} onKeyDown={event => {
+		if (event.key === 'Escape' && event.currentTarget.open) { event.preventDefault(); event.stopPropagation(); event.currentTarget.open = false; event.currentTarget.querySelector('summary')?.focus() }
+	}}><summary aria-label={t('gallery.detail.gameOptions')}><CollectionIcon name='more' /></summary><div>
+		<button type='button' className='gdb-text-button' onClick={event => {
+			const menu = event.currentTarget.closest('details'); if (menu) { menu.open = false; menu.querySelector('summary')?.focus() }; onAutoFill()
+		}}><CollectionIcon name='auto' />{t('metadata.action')}</button>
+		<button type='button' className='gdb-text-button' onClick={() => openDetails(game)}>{t('gallery.detail.open')}<CollectionIcon name='arrow' /></button>
+	</div></details>
+
+	if (props.expanded === false) {
+		const minutes = effectivePlaytime(game)
+		return <article className={`gdb-game-row ${isSelected ? 'is-selected' : ''}`} aria-label={game.name}>
+			{!props.hideSelection && <input type='checkbox' checked={isSelected} onChange={handleCheckboxChange} aria-label={t('game.card.selectGame', { name: game.name })} />}
+			<GameTitle name={game.name} tooltip='hold' ariaLabel={t('gallery.home.openGame', { name: game.name })} className='gdb-game-row__art' onOpen={() => openDetails(game)}><GameArtwork game={game} width={90} eager={isPriority} /></GameTitle>
+			<div className='gdb-game-row__name'><div className='gdb-game-row__title'><h3><GameTitle name={game.name} onOpen={() => openDetails(game)} /></h3><button type='button' className={`gdb-icon-button gdb-game-row__favorite ${game.favorite ? 'is-active' : ''}`} aria-pressed={game.favorite} aria-label={t(game.favorite ? 'game.card.removeFavorite' : 'game.card.markFavorite')} onClick={() => { void handleFieldUpdate('favorite', !game.favorite) }}><CollectionIcon name='star' /></button></div><div className='gdb-game-row__meta'><span>{game.platformName}</span><span className='gdb-game-row__status'><i style={{ background: gameStatusColor }} />{game.statusName}</span><SampleBadge game={game} />{isPerfectCompletion && <span className='gdb-row-completion' data-completion={isGameFullyCompleted(game) ? 'full' : 'completed'}>{t(completionLabelKey(game))}</span>}</div></div>
+			<div className='gdb-game-row__duration'><strong>{game.story == null ? '—' : `${formatCollectionNumber(game.story, i18n.language)} h`}</strong><small>{t('gallery.detail.story')}</small></div>
+			<div className='gdb-game-row__time'><strong>{minutes == null ? '—' : `${formatCollectionNumber(minutes / 60, i18n.language)} h`}</strong><small>{t('gallery.home.played', { value: '' }).trim()}</small></div>
+			<div className='gdb-game-row__grade'><span className='sr-only'>{t('gallery.library.rowGrade')} </span><strong>{gradeText}</strong>{game.grade != null && <small>/100</small>}</div>
+			<div className='gdb-game-row__critic'><span className='sr-only'>{t('home.columns.critic')} </span><strong>{game.critic ?? '—'}</strong>{game.critic != null && <small>/100</small>}</div>
+			<div className='gdb-game-row__score'><span className='sr-only'>{t('home.columns.score')} </span><strong>{game.score == null ? '—' : formatCollectionNumber(game.score, i18n.language, 2)}</strong>{game.score != null && <small>/10</small>}</div>
+			{options || <button type='button' className='gdb-icon-button gdb-game-row__open' aria-label={t('gallery.home.openGame', { name: game.name })} onClick={() => openDetails(game)}><CollectionIcon name='arrow' /></button>}
+		</article>
+	}
 	return (
 		<div
 			key={game.id}
@@ -176,14 +208,14 @@ const RowView: FC<RowViewProps> = (props) => {
 				onClick={(e) => {
 					e.stopPropagation()
 				}}>
-				<input
+				{!props.hideSelection && <input
 					type='checkbox'
 					checked={isSelected}
 					onChange={handleCheckboxChange}
 					className='game-row-checkbox'
 					aria-label={t('game.card.selectRow')}
 					style={{ opacity: isSelected ? 1 : 0, transition: 'opacity .2s ease' }}
-				/>
+				/>}
 			</div>
 
 			{/* STATUS */}
@@ -192,7 +224,7 @@ const RowView: FC<RowViewProps> = (props) => {
 					<span
 						className='badge'
 						title={game.statusName || t('game.card.noStatus')}
-						style={{ backgroundColor: `${gameStatusColor}88`, borderColor: `${gameStatusColor}99` }}
+						style={{ backgroundColor: `${gameStatusColor}2e`, borderColor: `${gameStatusColor}99` }}
 						onClick={(e) => handleBadgeClick(e, 'status')}
 						ref={statusBtnRef}>
 						{game.statusName ?? t('game.card.na')}
@@ -231,13 +263,15 @@ const RowView: FC<RowViewProps> = (props) => {
 					/>
 				)}
 				<h3 title={game.name}>{game.name}</h3>
+				<SampleBadge game={game} />
+				{options}
 				{isPerfectCompletion && <span className='game-row-perfect-badge' data-completion={isGameFullyCompleted(game) ? 'full' : 'completed'}>{t(completionLabelKey(game))}</span>}
 			</div>
 
 			{/* Grade */}
 			<div className='game-row-grade'>
 				<div aria-label={t('game.details.fieldGrade')} title={`${t('game.details.fieldGrade')}: ${gradeText}`}>
-					<span>{gradeText}</span>
+					<span>{gradeText}{game.grade != null && <small> /100</small>}</span>
 				</div>
 			</div>
 
@@ -248,7 +282,7 @@ const RowView: FC<RowViewProps> = (props) => {
 					title={t('game.card.searchOn', { provider: effectiveProvider })}
 					onClick={handleCriticScoreClick}
 					style={{ cursor: 'pointer' }}>
-					<span style={{ color: criticScoreColor, fontWeight: useScoreColors ? 600 : 'normal' }}>{criticText}</span>
+					<span style={{ color: criticScoreColor, fontWeight: useScoreColors ? 600 : 'normal' }}>{criticText}{game.critic != null && <small> /100</small>}</span>
 				</div>
 			</div>
 
@@ -264,7 +298,7 @@ const RowView: FC<RowViewProps> = (props) => {
 
 			{/* Score */}
 			<div className='game-row-score' aria-label={t('game.details.fieldScore')} title={`${t('game.details.fieldScore')}: ${scoreText}`}>
-				<span>{scoreText}</span>
+				<span>{scoreText}{game.score != null && <small> /10</small>}</span>
 			</div>
 
 			{/* Platform */}
@@ -273,7 +307,7 @@ const RowView: FC<RowViewProps> = (props) => {
 					<span
 						className='badge'
 						title={game.platformName}
-						style={{ backgroundColor: `${platformColor}88`, borderColor: `${platformColor}99` }}
+						style={{ backgroundColor: `${platformColor}2e`, borderColor: `${platformColor}99` }}
 						onClick={(e) => handleBadgeClick(e, 'platform')}
 						ref={platformBtnRef}>
 						{game.platformName ?? t('game.card.na')}
@@ -311,7 +345,7 @@ const RowView: FC<RowViewProps> = (props) => {
 						className='badge'
 						title={game.playedStatusName}
 						style={{
-							backgroundColor: `${playedStatusColor}88`,
+							backgroundColor: `${playedStatusColor}2e`,
 							borderColor: `${playedStatusColor}99`,
 						}}
 						onClick={(e) => handleBadgeClick(e, 'playStatus')}
@@ -347,7 +381,7 @@ const RowView: FC<RowViewProps> = (props) => {
 						className='badge'
 						title={game.playWithNames?.join(', ')}
 						style={{
-							backgroundColor: `${playWithColors[0] || '#333'}88`,
+							backgroundColor: `${playWithColors[0] || '#333'}2e`,
 							borderColor: `${playWithColors[0] || '#333'}99`,
 						}}
 						onClick={(e) => handleBadgeClick(e, 'playWith')}
@@ -375,6 +409,4 @@ const RowView: FC<RowViewProps> = (props) => {
 }
 
 // Memoize RowView to prevent unnecessary re-renders
-export default memo(RowView, (prevProps, nextProps) => {
-	return prevProps.game.id === nextProps.game.id && prevProps.game.updatedAt === nextProps.game.updatedAt && prevProps.game.favorite === nextProps.game.favorite && prevProps.isSelected === nextProps.isSelected
-})
+export default memo(RowView)

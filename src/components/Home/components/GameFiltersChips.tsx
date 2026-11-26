@@ -1,11 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useId } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { GameQueryParameters } from '@/models/api/Game'
 import { useGamePlatform, useGamePlayedStatus, useGamePlayWith, useGameStatus } from '@/hooks'
-import { DEFAULT_PAGE_SIZE } from '@/utils'
+import { GALLERY_PAGE_SIZE } from '@/utils'
 import { useAppSelector, useAppDispatch } from '@/store/hooks'
 import { fetchUserPreferences } from '@/store/features/auth/authSlice'
 import { getActiveGameReplayTypes } from '@/services/GameReplayTypeService'
+import { CollectionIcon } from '@/components/Collection/CollectionIcon'
+import { CollectionSheet } from '@/components/Collection/CollectionSheet'
+import { NameSearchField, type NameSearchFieldHandle } from '@/components/Collection/NameSearchField'
+import { createNameSearch } from '@/utils/nameSearch'
+import { cloneFilters } from '@/utils/filterUtils/filterUtils'
+import { countGameFilters } from '@/utils/countGameFilters'
+import { setCardColumns } from '@/store/features/theme/themeSlice'
 import './GameFiltersChips.scss'
 
 interface Props {
@@ -20,6 +27,7 @@ interface Props {
 	onViewChange?: (viewName: string) => void
 	selectedCount?: number
 	totalCount?: number
+	resultCount?: number
 	onSelectAll?: () => void
 	onDeselectAll?: () => void
 	onBulkDelete?: () => void
@@ -28,6 +36,11 @@ interface Props {
 	bulkImagesDisabled?: boolean
 	/** Open the Export modal for the currently selected games */
 	onBulkExport?: () => void
+	locked?: boolean
+	appliedFilterCount?: number
+	selecting?: boolean
+	onToggleSelection?: () => void
+	onToggleColumns?: () => void
 }
 
 type PopoverKey =
@@ -67,24 +80,14 @@ const sortOptions = [
 	{ value: 'favorite', labelKey: 'home.filters.fieldFavorite' },
 ] as const
 
-const SortDirectionButton: React.FC<{ descending: boolean; title: string; onToggle: () => void }> = ({ descending, title, onToggle }) => (
-	<button type='button' className={'game-filters-chips__sort-direction' + (descending ? ' is-descending' : '')} onClick={onToggle} title={title} aria-label={title}>
-		<svg
-			className='game-filters-chips__sort-icon'
-			viewBox='2 3 20 18'
-			fill='none'
-			stroke='currentColor'
-			strokeWidth='2'
-			strokeLinecap='round'
-			strokeLinejoin='round'
-			aria-hidden='true'>
-			{descending ? <path d='M13 12H21M13 8H21M13 16H21M6 7V17M6 17L3 14M6 17L9 14' /> : <path d='M13 12H21M13 8H21M13 16H21M6 7V17M6 7L3 10M6 7L9 10' />}
-		</svg>
+const SortDirectionButton: React.FC<{ descending: boolean; title: string; onToggle: () => void; disabled?: boolean }> = ({ descending, title, onToggle, disabled }) => (
+	<button type='button' disabled={disabled} className={'game-filters-chips__sort-direction' + (descending ? ' is-descending' : '')} onClick={onToggle} title={title} aria-label={title} aria-pressed={descending}>
+		<CollectionIcon name='sort' />
 	</button>
 )
 
 const GameFiltersChips: React.FC<Props> = ({
-	filters,
+	filters: appliedFilters,
 	onFiltersChange,
 	onSearchChange,
 	onSortChange,
@@ -95,6 +98,7 @@ const GameFiltersChips: React.FC<Props> = ({
 	onViewChange,
 	selectedCount = 0,
 	totalCount = 0,
+	resultCount = totalCount,
 	onSelectAll,
 	onDeselectAll,
 	onBulkDelete,
@@ -102,15 +106,42 @@ const GameFiltersChips: React.FC<Props> = ({
 	onBulkRefreshImages,
 	bulkImagesDisabled = false,
 	onBulkExport,
+	locked = false,
+	appliedFilterCount,
+	selecting = false,
+	onToggleSelection,
 }) => {
 	const [openPopover, setOpenPopover] = useState<PopoverKey | null>(null)
 	const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
+	const [draft, setDraft] = useState(() => cloneFilters(appliedFilters)), [validationError, setValidationError] = useState(false)
+	const filters = showAdvancedFilters ? draft : appliedFilters
+	const nameSearchRef = useRef<NameSearchFieldHandle>(null)
+	const appliedCountId = useId()
+	const appliedCount = appliedFilterCount ?? (locked ? 0 : countGameFilters(appliedFilters))
+	const extraFiltersRef = useRef<HTMLDetailsElement>(null)
+	const popoverOpenerRef = useRef<HTMLElement | null>(null)
 	const [bulkImageField, setBulkImageField] = useState<'logo' | 'hero' | 'cover'>('cover')
 	const { t } = useTranslation()
 	const popoverRef = useRef<HTMLDivElement | null>(null)
 	const chipsContainerRef = useRef<HTMLDivElement | null>(null)
+	const selectionMenu = useRef<HTMLDetailsElement>(null)
+	useEffect(() => {
+		const close = (event: PointerEvent) => { if (selectionMenu.current && !selectionMenu.current.contains(event.target as Node)) selectionMenu.current.open = false }
+		document.addEventListener('pointerdown', close)
+		return () => document.removeEventListener('pointerdown', close)
+	}, [])
+	useEffect(() => {
+		const focusSearch = (event: KeyboardEvent) => {
+			if (locked || event.key !== '/' || event.ctrlKey || event.metaKey || event.altKey || document.querySelector('dialog[open]')) return
+			if (event.target instanceof HTMLElement && event.target.closest('input,textarea,select,[contenteditable="true"]')) return
+			event.preventDefault(); document.getElementById('search-input')?.focus()
+		}
+		window.addEventListener('keydown', focusSearch)
+		return () => window.removeEventListener('keydown', focusSearch)
+	}, [locked])
 
 	const dispatch = useAppDispatch()
+	const cardColumns = useAppSelector(state => state.theme.cardColumns === 4 ? 4 : 3)
 	const currentUser = useAppSelector((state) => state.auth.user)
 	const token = useAppSelector((state) => state.auth.token)
 	const { fetchList: fetchPlatforms } = useGamePlatform()
@@ -128,7 +159,8 @@ const GameFiltersChips: React.FC<Props> = ({
 	const selectionLabel = allGamesSelected ? t('home.deselectAll') : t('home.selectAll')
 
 	// ── Search debounce: local state prevents list re-renders on every keystroke ──
-	const [localSearch, setLocalSearch] = useState(() => filters.search || '')
+	const searchText = appliedFilters.nameSearch?.includeTerms.join(' · ') ?? appliedFilters.search ?? ''
+	const [localSearch, setLocalSearch] = useState(searchText)
 	const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 	// Tracks whether the next filters.search change was initiated by us (debounce)
 	// so we don't echo it back and reset the input to a stale value.
@@ -196,12 +228,18 @@ const GameFiltersChips: React.FC<Props> = ({
 	useEffect(() => {
 		const handler = (ev: KeyboardEvent) => {
 			if (ev.key === 'Escape') {
+				ev.preventDefault()
+				ev.stopPropagation()
 				setOpenPopover(null)
+				popoverOpenerRef.current?.focus()
 			}
 		}
-		if (openPopover) document.addEventListener('keydown', handler)
-		return () => document.removeEventListener('keydown', handler)
+		if (openPopover) document.addEventListener('keydown', handler, true)
+		return () => document.removeEventListener('keydown', handler, true)
 	}, [openPopover])
+	useEffect(() => {
+		if (validationError && openPopover === 'grades') popoverRef.current?.querySelector<HTMLInputElement>('input')?.focus()
+	}, [validationError, openPopover])
 
 	// Sync local search state when filters.search changes from outside
 	// (e.g. "reset all filters" resets it to undefined).
@@ -213,8 +251,9 @@ const GameFiltersChips: React.FC<Props> = ({
 			return
 		}
 		if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
-		setLocalSearch(filters.search || '')
-	}, [filters.search])
+		setLocalSearch(searchText)
+	}, [searchText])
+	useEffect(() => () => { if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current) }, [])
 
 	const handleLocalSearchChange = (value: string) => {
 		setLocalSearch(value)
@@ -226,7 +265,8 @@ const GameFiltersChips: React.FC<Props> = ({
 	}
 
 	const setFilters = (partial: Partial<GameQueryParameters>) => {
-		onFiltersChange({ ...partial, page: 1 })
+		if (showAdvancedFilters) setDraft(current => ({ ...current, ...partial, page: 1 }))
+		else onFiltersChange({ ...partial, page: 1 })
 	}
 
 	// Label helpers
@@ -256,9 +296,9 @@ const GameFiltersChips: React.FC<Props> = ({
 
 	const gradesLabel = () => {
 		const { minGrade, maxGrade } = filters
-		if (!minGrade && !maxGrade) return t('common.any')
-		if (minGrade && maxGrade) return `${minGrade} – ${maxGrade}`
-		if (minGrade) return t('home.filters.gradeFrom', { value: minGrade })
+		if (minGrade == null && maxGrade == null) return t('common.any')
+		if (minGrade != null && maxGrade != null) return `${minGrade} – ${maxGrade}`
+		if (minGrade != null) return t('home.filters.gradeFrom', { value: minGrade })
 		return t('home.filters.gradeTo', { value: maxGrade })
 	}
 
@@ -330,12 +370,15 @@ const GameFiltersChips: React.FC<Props> = ({
 	}
 
 	const pageSizeLabel = () => {
-		if (!filters.pageSize) return t('home.filters.defaultPageSize', { size: DEFAULT_PAGE_SIZE })
+		if (!filters.pageSize) return t('home.filters.defaultPageSize', { size: GALLERY_PAGE_SIZE })
 		return t('home.filters.gamesPerPage', { size: filters.pageSize })
 	}
 
 	const resetAllFilters = () => {
-		onFiltersChange({
+		setFilters({
+			search: undefined,
+			nameSearch: undefined,
+			maxStory: undefined,
 			platformId: undefined,
 			playWithId: undefined,
 			statusId: undefined,
@@ -370,12 +413,13 @@ const GameFiltersChips: React.FC<Props> = ({
 
 	const hasAnyActiveFilter = () => {
 		return (
+			!!filters.search || !!filters.nameSearch?.includeTerms.length || !!filters.nameSearch?.excludeTerms.length || filters.maxStory != null ||
 			!!filters.platformId ||
 			!!filters.playWithId ||
 			!!filters.statusId ||
 			!!filters.playedStatusId ||
-			!!filters.minGrade ||
-			!!filters.maxGrade ||
+			filters.minGrade != null ||
+			filters.maxGrade != null ||
 			!!filters.releasedYear ||
 			!!filters.startedYear ||
 			!!filters.finishedYear ||
@@ -384,8 +428,8 @@ const GameFiltersChips: React.FC<Props> = ({
 			(filters.favorite !== undefined && filters.favorite !== null) ||
 			filters.showIncomplete === true ||
 			(filters.hasSteamApp !== undefined && filters.hasSteamApp !== null) ||
-			filters.fullCompletion === true ||
-			filters.allAchievements === true ||
+			typeof filters.fullCompletion === 'boolean' ||
+			typeof filters.allAchievements === 'boolean' ||
 			!!filters.missingDuration ||
 			!!filters.criticProvider ||
 			!!filters.excludeStatusIds?.length ||
@@ -393,8 +437,8 @@ const GameFiltersChips: React.FC<Props> = ({
 			!!filters.replayTypeId ||
 			!!filters.replayStartedFrom ||
 			!!filters.replayFinishedFrom ||
-			!!filters.replayGradeMin ||
-			!!filters.replayGradeMax
+			filters.replayGradeMin != null ||
+			filters.replayGradeMax != null
 		)
 	}
 
@@ -409,7 +453,7 @@ const GameFiltersChips: React.FC<Props> = ({
 			case 'playedStatus':
 				return !!filters.playedStatusId
 			case 'grades':
-				return !!filters.minGrade || !!filters.maxGrade
+				return filters.minGrade != null || filters.maxGrade != null
 			case 'years':
 				return !!filters.releasedYear || !!filters.startedYear || !!filters.finishedYear || filters.includeReplayDates === false
 			case 'replay':
@@ -417,9 +461,11 @@ const GameFiltersChips: React.FC<Props> = ({
 					filters.hasReplays !== undefined ||
 					!!filters.replayTypeId ||
 					!!filters.replayStartedFrom ||
+					!!filters.replayStartedTo ||
 					!!filters.replayFinishedFrom ||
-					!!filters.replayGradeMin ||
-					!!filters.replayGradeMax
+					!!filters.replayFinishedTo ||
+					filters.replayGradeMin != null ||
+					filters.replayGradeMax != null
 				)
 			case 'price':
 				return filters.isCheaperByKey !== undefined && filters.isCheaperByKey !== null
@@ -441,6 +487,7 @@ const GameFiltersChips: React.FC<Props> = ({
 	}
 
 	const togglePopover = (key: PopoverKey) => {
+		popoverOpenerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
 		if (openPopover === key) {
 			setOpenPopover(null)
 		} else {
@@ -464,43 +511,45 @@ const GameFiltersChips: React.FC<Props> = ({
 	return (
 		<section className='game-filters-chips'>
 			{/* SELECTION CONTROLS */}
-			{selectedCount > 0 && (
+			{(selectedCount > 0 || selecting) && (
 				<div className='game-filters-chips__selection'>
 					<span className='game-filters-chips__selection-count'>{t('home.chips.selected', { count: selectedCount })}</span>
+					{onToggleSelection && onSelectAll && <button type='button' className='game-filters-chips__selection-btn' onClick={onSelectAll}>{t('gallery.library.selectVisible')}</button>}
 					{onDeselectAll && (
 						<button type='button' className='game-filters-chips__selection-btn' onClick={onDeselectAll}>
 							{t('home.chips.deselect')}
 						</button>
 					)}
 					{onBulkEdit && (
-						<button type='button' className='game-filters-chips__selection-btn' onClick={onBulkEdit}>
+						<button type='button' className='game-filters-chips__selection-btn' disabled={!selectedCount} onClick={onBulkEdit}>
 							{t('home.chips.bulkEdit')}
 						</button>
 					)}
+					<details ref={selectionMenu} className='gdb-selection-more' onKeyDown={event => { if (event.key === 'Escape' && event.currentTarget.open) { event.preventDefault(); event.stopPropagation(); event.currentTarget.open = false; event.currentTarget.querySelector('summary')?.focus() } }}><summary aria-label={t('gallery.library.moreActions')}><CollectionIcon name='more' /></summary><div>
 					{onBulkRefreshImages && (
 						<div className='game-filters-chips__selection-image-refresh'>
 							<select
 								className='game-filters-chips__selection-select'
 								value={bulkImageField}
 								onChange={(event) => setBulkImageField(event.target.value as 'logo' | 'hero' | 'cover')}
-								disabled={bulkImagesDisabled}
+									disabled={bulkImagesDisabled || !selectedCount}
 								aria-label={t('home.chips.bulkImageField')}>
 								<option value='cover'>{t('home.imageFields.cover')}</option>
 								<option value='hero'>{t('home.imageFields.hero')}</option>
 								<option value='logo'>{t('home.imageFields.logo')}</option>
 							</select>
-							<button type='button' className='game-filters-chips__selection-btn' onClick={() => onBulkRefreshImages(bulkImageField)} disabled={bulkImagesDisabled}>
+							<button type='button' className='game-filters-chips__selection-btn' onClick={() => onBulkRefreshImages(bulkImageField)} disabled={bulkImagesDisabled || !selectedCount}>
 								{bulkImagesDisabled ? t('home.chips.bulkImagesRefreshing') : t('home.chips.bulkImages')}
 							</button>
 						</div>
 					)}
 					{onBulkDelete && (
-						<button type='button' className='game-filters-chips__selection-btn game-filters-chips__selection-btn--danger' onClick={onBulkDelete}>
+						<button type='button' className='game-filters-chips__selection-btn game-filters-chips__selection-btn--danger' disabled={!selectedCount} onClick={onBulkDelete}>
 							{t('home.chips.bulkDelete')}
 						</button>
 					)}
 					{onBulkExport && (
-						<button type='button' className='game-filters-chips__selection-btn' onClick={onBulkExport}>
+						<button type='button' className='game-filters-chips__selection-btn' disabled={!selectedCount} onClick={onBulkExport}>
 							<svg width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2.5' strokeLinecap='round' strokeLinejoin='round' aria-hidden='true'>
 								<path d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4' />
 								<polyline points='17 8 12 3 7 8' />
@@ -509,6 +558,8 @@ const GameFiltersChips: React.FC<Props> = ({
 							{t('home.chips.bulkExport')}
 						</button>
 					)}
+					</div></details>
+					{onToggleSelection && <button type='button' className='gdb-text-button gdb-selection-done' onClick={onToggleSelection}>{t('gallery.common.done')}<CollectionIcon name='close' /></button>}
 				</div>
 			)}
 
@@ -519,35 +570,45 @@ const GameFiltersChips: React.FC<Props> = ({
 						<label className='sr-only' htmlFor='search-input'>
 							{t('home.chips.searchLabel')}
 						</label>
-						<div className='game-filters-chips__search-control' title={t('home.chips.searchLabel')}>
-							<svg className='game-filters-chips__control-icon' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' aria-hidden='true'>
-								<path d='M15.7955 15.8111L21 21M18 10.5C18 14.6421 14.6421 18 10.5 18C6.35786 18 3 14.6421 3 10.5C3 6.35786 6.35786 3 10.5 3C14.6421 3 18 6.35786 18 10.5Z' />
+						<div className='game-filters-chips__search-control'>
+							<svg className='gdb-icon' viewBox='0 0 24 24' width='20' height='20' fill='none' stroke='currentColor' strokeWidth='1.7' strokeLinecap='round' strokeLinejoin='round' aria-hidden='true'>
+								<circle cx='10.8' cy='10.8' r='6.8' /><path d='m16 16 4 4' />
 							</svg>
 							<input
 								id='search-input'
+								type='search'
+								autoComplete='off'
 								className='game-filters-chips__input-search'
-								placeholder={t('home.searchPlaceholder')}
+								placeholder={t(locked ? 'gallery.home.view' : 'gallery.library.search')}
 								value={localSearch}
+								disabled={locked}
+								maxLength={250}
+								aria-keyshortcuts={locked ? undefined : '/'}
 								onChange={(e) => handleLocalSearchChange(e.target.value)}
 							/>
+							<kbd aria-hidden='true'>/</kbd>
 						</div>
 					</div>
 
+					{onToggleSelection ? <button type='button' className='gdb-phone-count' aria-label={t(selecting ? 'gallery.library.finishSelection' : 'gallery.library.select')} title={t(selecting ? 'gallery.library.finishSelection' : 'gallery.library.select')} aria-pressed={selecting} onClick={onToggleSelection}>{t('gallery.common.games', { count: resultCount })}</button> : <span className='gdb-phone-count'>{t('gallery.common.games', { count: resultCount })}</span>}
 					<div className='game-filters-chips__field game-filters-chips__field--inline game-filters-chips__field--sort'>
 						<label className='sr-only' htmlFor='sort-select'>
 							{t('home.filters.sortBy')}
 						</label>
-						<SortDirectionButton
+						{locked ? <span className='gdb-sort-marker' aria-hidden='true'><CollectionIcon name='sort' /></span> : <SortDirectionButton
+							disabled={locked}
 							descending={!!filters.sortDescending}
 							title={filters.sortDescending ? t('home.sorting.descending') : t('home.sorting.ascending')}
 							onToggle={() => onSortChange(filters.sortBy || 'name', !filters.sortDescending)}
-						/>
+						/>}
 						<select
 							id='sort-select'
+							disabled={locked}
 							className='game-filters-chips__select-pill'
-							value={filters.sortBy || 'name'}
+							value={locked ? '__view' : filters.sortBy || 'name'}
 							onChange={(e) => onSortChange(e.target.value, filters.sortDescending || false)}>
-							{sortOptions.map((option) => (
+							{locked && <option value='__view'>{t('gallery.library.savedViewOrder')}</option>}
+							{!locked && sortOptions.map((option) => (
 								<option key={option.value} value={option.value}>
 									{t(option.labelKey)}
 								</option>
@@ -555,7 +616,7 @@ const GameFiltersChips: React.FC<Props> = ({
 						</select>
 					</div>
 
-					{onSelectAll && (
+					{onSelectAll && !onToggleSelection && (
 						<button
 							type='button'
 							className={'game-filters-chips__action-btn game-filters-chips__selection-toggle' + (selectionIsMixed ? ' is-mixed' : '')}
@@ -609,33 +670,53 @@ const GameFiltersChips: React.FC<Props> = ({
 
 					{onViewModeChange && viewMode && (
 						<div className='game-filters-chips__mobile-controls-viewtoggle game-filters-chips__view-toggle'>
-							<button type='button' className={'game-filters-chips__view-btn' + (viewMode === 'card' ? ' is-active' : '')} onClick={() => onViewModeChange('card')}>
-								{t('home.viewCard')}
+							<button type='button' aria-label={t('home.viewCard')} aria-pressed={viewMode === 'card'} title={t('home.viewCard')} className={'game-filters-chips__view-btn' + (viewMode === 'card' ? ' is-active' : '')} onClick={() => onViewModeChange('card')}>
+								<CollectionIcon name='cards' />
+								<span className='gdb-library-layout-name'>Cards</span>
 							</button>
-							<button type='button' className={'game-filters-chips__view-btn' + (viewMode === 'row' ? ' is-active' : '')} onClick={() => onViewModeChange('row')}>
-								{t('home.viewRow')}
+							<button type='button' aria-label={t('home.viewRow')} aria-pressed={viewMode === 'row'} title={t('home.viewRow')} className={'game-filters-chips__view-btn' + (viewMode === 'row' ? ' is-active' : '')} onClick={() => onViewModeChange('row')}>
+								<CollectionIcon name='row' />
+								<span className='gdb-library-layout-name'>Row</span>
 							</button>
-							<button type='button' className={'game-filters-chips__view-btn' + (viewMode === 'cover' ? ' is-active' : '')} onClick={() => onViewModeChange('cover')}>
-								{t('home.viewCover')}
+							<button type='button' aria-label={t('home.viewCover')} aria-pressed={viewMode === 'cover'} title={t('home.viewCover')} className={'game-filters-chips__view-btn' + (viewMode === 'cover' ? ' is-active' : '')} onClick={() => onViewModeChange('cover')}>
+								<CollectionIcon name='covers' />
+								<span className='gdb-library-layout-name'>Covers</span>
 							</button>
 						</div>
 					)}
 
 					<button
 						type='button'
+						disabled={locked}
+						aria-expanded={showAdvancedFilters}
+								aria-label={t('gallery.library.filters')}
+								aria-describedby={appliedCount ? appliedCountId : undefined}
 						className={'game-filters-chips__advanced-btn' + (showAdvancedFilters ? ' is-active' : '')}
-						onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}>
-						<span className='game-filters-chips__advanced-btn__text'>{showAdvancedFilters ? `✕ ${t('home.filters.closeFilters')}` : `⚙ ${t('home.filters.advancedFilters')}`}</span>
-						<span className='game-filters-chips__advanced-btn__icon'>⚙</span>
+						onClick={() => { setDraft(cloneFilters(appliedFilters)); setValidationError(false); setShowAdvancedFilters(true) }}>
+						<CollectionIcon name='filter' /><span>{t('gallery.library.filters')}</span>{appliedCount > 0 && <b className='gdb-applied-filter-count' aria-hidden='true'>{appliedCount}</b>}
 					</button>
+					{appliedCount > 0 && <span id={appliedCountId} className='sr-only'>{t('gallery.library.appliedFilters', { count: appliedCount })}</span>}
+					{onToggleSelection && <button type='button' className='gdb-icon-button gdb-select-mode' aria-pressed={selecting} onClick={onToggleSelection} aria-label={t(selecting ? 'gallery.library.finishSelection' : 'gallery.library.select')}><CollectionIcon name='select' /></button>}
 				</div>
 			</div>
 
 			{/* ADVANCED FILTERS */}
 			{showAdvancedFilters && (
-				<>
+				<CollectionSheet open onClose={() => setShowAdvancedFilters(false)} title={t('gallery.library.filterTitle')} className='gdb-library-filter-sheet' footer={<><button type='button' className='gdb-button' onClick={() => { resetAllFilters(); setValidationError(false); setOpenPopover(null) }}>{t('gallery.library.resetFilters')}</button><button type='submit' form='gdb-library-filters' className='gdb-button gdb-button--primary'>{t('gallery.library.viewGames')}<CollectionIcon name='arrow' /></button></>}>
+					{viewMode === 'card' && <label className='gdb-card-density'>{t('gallery.library.cardsPerRow')}<select aria-label={t('gallery.library.cardsPerRow')} value={cardColumns} onChange={event => dispatch(setCardColumns(Number(event.target.value) as 3 | 4))}><option value={3}>3</option><option value={4}>4</option></select></label>}
+				<form id='gdb-library-filters' className='gdb-form' onSubmit={event => { event.preventDefault(); const invalidGrades = draft.minGrade != null && draft.maxGrade != null && draft.minGrade > draft.maxGrade; if (!event.currentTarget.reportValidity() || invalidGrades) { setValidationError(true); if (extraFiltersRef.current) extraFiltersRef.current.open = true; if (invalidGrades) setOpenPopover('grades'); return } const nameSearch = nameSearchRef.current?.getValue(); onFiltersChange({ ...draft, search: undefined, searchMetadata: false, nameSearch, page: 1 }); setShowAdvancedFilters(false) }}>
+					<NameSearchField ref={nameSearchRef} value={createNameSearch(filters.nameSearch ?? (filters.search ? { includeTerms: [filters.search] } : {}))} onChange={nameSearch => setDraft(current => ({ ...current, nameSearch, search: undefined }))} />
+					<label>{t('gallery.library.statusLabel')}<select aria-label={t('gallery.library.statusLabel')} value={filters.statusId ?? ''} onChange={event => setFilters({ statusId: event.target.value ? Number(event.target.value) : undefined })}><option value=''>{t('gallery.library.anyStatus')}</option>{statusOptions.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
+					<label>{t('home.filters.platform')}<select aria-label={t('home.filters.platform')} value={filters.platformId ?? ''} onChange={event => setFilters({ platformId: event.target.value ? Number(event.target.value) : undefined })}><option value=''>{t('gallery.library.allPlatforms')}</option>{platformOptions.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
+					<label>{t('home.filters.playedStatus')}<select aria-label={t('home.filters.playedStatus')} value={filters.playedStatusId ?? ''} onChange={event => setFilters({ playedStatusId: event.target.value ? Number(event.target.value) : undefined })}><option value=''>{t('gallery.library.anyPlayedStatus')}</option>{playedStatusOptions.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
+					<label>{t('gallery.library.completion')}<select aria-label={t('gallery.library.completion')} value={filters.allAchievements === true ? 'strict' : filters.fullCompletion === true ? 'broad' : filters.fullCompletion === false ? 'unfinished' : filters.allAchievements === false ? 'not-strict' : 'all'} onChange={event => setFilters({ fullCompletion: event.target.value === 'broad' ? true : event.target.value === 'unfinished' ? false : undefined, allAchievements: event.target.value === 'strict' ? true : event.target.value === 'not-strict' ? false : undefined })}><option value='all'>{t('gallery.library.allGames')}</option><option value='broad'>{t('home.filters.fullCompletion')}</option><option value='strict'>{t('gallery.statistics.strict')}</option><option value='unfinished'>{t('gallery.library.unfinished')}</option>{filters.allAchievements === false && <option value='not-strict'>{t('gallery.library.notStrict')}</option>}</select></label>
+					<label>{t('gallery.library.historyMaximum')}<span className='gdb-filter-unit'><input type='number' min={0} step={1} aria-label={t('gallery.library.historyMaximum')} placeholder={t('gallery.library.noLimit')} value={filters.maxStory ?? ''} onChange={event => setFilters({ maxStory: event.target.value === '' ? undefined : Number(event.target.value) })} /><span>{t('gallery.library.hoursUnit')}</span></span></label>
+					<label className='gdb-check-label gdb-filter-favorites'><input type='checkbox' checked={filters.favorite === true} onChange={event => setFilters({ favorite: event.target.checked ? true : undefined })} /><span>{t('gallery.library.onlyFavorites')}</span><CollectionIcon name='star' /></label>
+					{onToggleSelection && <button type='button' className='gdb-text-button gdb-filter-select' onClick={() => { setShowAdvancedFilters(false); onToggleSelection() }}><CollectionIcon name='select' />{t(selecting ? 'gallery.library.finishSelection' : 'gallery.library.select')}</button>}
+					{validationError && <p className='gdb-error' role='alert'>{t('gallery.rules.invalidBounds')}</p>}
+					<details ref={extraFiltersRef} className='gdb-library-extra-filters' onToggle={event => { if (!event.currentTarget.open) setOpenPopover(null) }}><summary>{t('gallery.library.moreFilters')}<CollectionIcon name='down' /></summary><div>
 					{/* MOVED CONTROLS (hidden controls from top row) */}
-					<div className='game-filters-chips__moved-controls'>
+					{!onToggleSelection && <div className='game-filters-chips__moved-controls'>
 						{onViewChange && (
 							<div className='game-filters-chips__moved-controls-view game-filters-chips__field game-filters-chips__field--inline'>
 								<label htmlFor='view-select-mobile'>{t('home.view')}</label>
@@ -709,7 +790,7 @@ const GameFiltersChips: React.FC<Props> = ({
 								))}
 							</select>
 						</div>
-					</div>
+					</div>}
 
 					{/* CHIPS ROW */}
 					<div className='game-filters-chips__chips-row' ref={chipsContainerRef}>
@@ -1303,8 +1384,8 @@ const GameFiltersChips: React.FC<Props> = ({
 									<div className='game-filters-chips__popover-options'>
 										<button
 											type='button'
-											className={'game-filters-chips__option' + (!filters.pageSize || filters.pageSize === 50 ? ' is-active' : '')}
-											onClick={() => setFilters({ pageSize: 50 })}>
+											className={'game-filters-chips__option' + (!filters.pageSize || filters.pageSize === GALLERY_PAGE_SIZE ? ' is-active' : '')}
+											onClick={() => setFilters({ pageSize: undefined })}>
 											{t('common.default')}
 										</button>
 										{[10, 25, 50, 100, 200].map((size) => (
@@ -1355,7 +1436,9 @@ const GameFiltersChips: React.FC<Props> = ({
 							</button>
 						)}
 					</div>
-				</>
+					</div></details>
+				</form>
+				</CollectionSheet>
 			)}
 		</section>
 	)

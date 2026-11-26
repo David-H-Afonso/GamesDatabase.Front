@@ -1,12 +1,13 @@
-import { render, screen, fireEvent } from '@testing-library/react'
+import { act, render, screen, fireEvent } from '@testing-library/react'
 import PropertyConfigPanel from './PropertyConfigPanel'
 import type { GameImportConfig, GameExportConfig } from '@/models/api/ImportExport'
 
+const loaders = vi.hoisted(() => ({ status: vi.fn().mockResolvedValue([]), platforms: vi.fn().mockResolvedValue([]), people: vi.fn().mockResolvedValue([]), played: vi.fn().mockResolvedValue([]) }))
 vi.mock('@/hooks', () => ({
-	useGameStatus: () => ({ fetchActiveStatusList: vi.fn().mockResolvedValue([]) }),
-	useGamePlatform: () => ({ fetchList: vi.fn().mockResolvedValue([]) }),
-	useGamePlayWith: () => ({ fetchOptions: vi.fn().mockResolvedValue([]) }),
-	useGamePlayedStatus: () => ({ fetchActiveList: vi.fn().mockResolvedValue([]) }),
+	useGameStatus: () => ({ fetchActiveStatusList: loaders.status }),
+	useGamePlatform: () => ({ fetchList: loaders.platforms }),
+	useGamePlayWith: () => ({ fetchOptions: loaders.people }),
+	useGamePlayedStatus: () => ({ fetchActiveList: loaders.played }),
 }))
 
 vi.mock('./PropertyConfigPanel.scss', () => ({}))
@@ -49,9 +50,9 @@ describe('PropertyConfigPanel', () => {
 		expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ mode: 'priceOnly' }))
 	})
 
-	it('shows property table when mode is custom', () => {
+	it('shows property table when mode is custom', async () => {
 		const customConfig: GameImportConfig = { mode: 'custom' } as any
-		render(<PropertyConfigPanel panelMode='import' config={customConfig} onChange={vi.fn()} />)
+		await act(async () => { render(<PropertyConfigPanel panelMode='import' config={customConfig} onChange={vi.fn()} />); await Promise.all(Object.values(loaders).map(loader => loader.mock.results.at(-1)?.value)) })
 		expect(screen.getByText('Propiedad')).toBeInTheDocument()
 		expect(screen.getByText('Modo')).toBeInTheDocument()
 	})
