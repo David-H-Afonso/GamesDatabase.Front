@@ -1,0 +1,55 @@
+.gdb-onboarding {
+	.gdb-sheet__footer { gap: 8px; flex-wrap: wrap; }
+	.gdb-sheet__footer .gdb-button--primary { margin-left: auto; }
+}
+.gdb-guide-progress {
+	display: flex; gap: 0; list-style: none; padding: 0 0 20px; margin: 0 0 26px; border-bottom: 1px solid var(--gdb-line);
+	li { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; }
+	li + li::before { content: ''; width: 100%; position: absolute; top: 15px; right: 50%; height: 1px; background: var(--gdb-line); z-index: 0; }
+	span { display: grid; place-items: center; width: 31px; height: 31px; border: 1px solid var(--gdb-line); border-radius: 50%; background: var(--gdb-surface); color: var(--gdb-secondary); font-size: 12px; z-index: 1; }
+	b { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+	[aria-current] span { background: var(--gdb-accent); border-color: var(--gdb-accent); color: var(--gdb-accent-ink); font-weight: 650; }
+}
+.gdb-guide-chapter {
+	> h3 { font: 550 30px/1.15 var(--gdb-display); letter-spacing: -.6px; margin: 0 0 12px; }
+	> h3:focus { outline: none; }
+	> p { color: var(--gdb-secondary); line-height: 1.65; margin-bottom: 24px; max-width: 58ch; }
+}
+.gdb-guide-data-choice {
+	display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px;
+	> div { padding: 22px 18px; border: 1px solid var(--gdb-line); border-radius: 9px; background: var(--gdb-input); display: flex; flex-direction: column; align-items: flex-start; }
+	> div > .gdb-icon { width: 26px; height: 26px; color: var(--gdb-accent); margin-bottom: 16px; }
+	h4 { font: 550 19px/1.3 var(--gdb-display); margin: 0 0 10px; }
+	p { color: var(--gdb-secondary); font-size: 14px; line-height: 1.6; margin-bottom: 20px; }
+	.gdb-button { margin-top: auto; font-size: 13px; width: 100%; justify-content: space-between; }
+}
+.gdb-guide-instructions {
+	padding-left: 23px; margin: 0 0 26px;
+	li { padding-left: 7px; color: var(--gdb-secondary); line-height: 1.65; }
+	li + li { margin-top: 15px; }
+	li::marker { color: var(--gdb-accent); font-weight: 550; }
+}
+.gdb-guide-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+.gdb-guide-game-preview {
+	display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 17px; padding: 20px; background: var(--gdb-input); border: 1px solid var(--gdb-line); border-radius: 8px;
+	> button { min-width: 0; border: 0; background: transparent; color: var(--gdb-text); text-align: left; padding: 0; cursor: pointer; }
+	.optimized-image-container, .gdb-art-empty { aspect-ratio: 2/3; width: 100%; border-radius: 5px; overflow: hidden; }
+	img { width: 100%; height: 100%; object-fit: cover; }
+	b { display: block; margin-top: 9px; font-size: 14px; font-weight: 550; line-height: 1.4; }
+	small { color: var(--gdb-secondary); font-size: 12px; }
+}
+.gdb-guide-password { padding: 18px; margin-bottom: 20px; border: 1px solid var(--gdb-line); border-radius: 8px; h4 { margin: 0 0 9px; font-size: 17px; } .gdb-form-grid { margin-block: 15px; } }
+.gdb-guide-samples { padding: 20px; border: 1px solid var(--gdb-line); border-radius: 8px; background: var(--gdb-input); h4 { margin: 0 0 10px; font: 550 20px var(--gdb-display); } p { color: var(--gdb-secondary); line-height: 1.6; } }
+.gdb-guide-error { margin-bottom: 20px; padding: 15px; border: 1px solid var(--gdb-line); border-radius: 7px; p { margin-bottom: 10px; } }
+.gdb-guide-loading { display: grid; place-items: center; min-height: 240px; color: var(--gdb-secondary); gap: 15px; .gdb-icon { width: 32px; height: 32px; } }
+.gdb-guide-message { margin-block: 18px; color: var(--gdb-secondary); }
+.gdb-guide-sample-review { max-height: 220px; overflow: auto; padding-left: 20px; line-height: 1.8; margin-block: 14px; }
+.gdb-learning-notice { display: flex; align-items: center; gap: 14px; justify-content: space-between; padding: 8px var(--gdb-gutter); border-bottom: 1px solid var(--gdb-subtle-line); color: var(--gdb-secondary); font-size: 13px; .gdb-text-button { font-size: 13px; min-height: 44px; } }
+@media (max-width: 650px) {
+	.gdb-guide-chapter > h3 { font-size: 27px; }
+	.gdb-guide-data-choice { grid-template-columns: minmax(0, 1fr); > div { padding: 18px; } p, .gdb-button { font-size: 16px; } }
+	.gdb-guide-actions .gdb-button { flex: 1; font-size: 15px; }
+	.gdb-guide-game-preview { padding: 14px; gap: 12px; }
+	.gdb-onboarding .gdb-sheet__footer > .gdb-text-button { display: none; }
+	.gdb-learning-notice { gap: 10px; font-size: 14px; }
+}

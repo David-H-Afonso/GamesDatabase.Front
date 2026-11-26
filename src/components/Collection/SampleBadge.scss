@@ -1,0 +1,6 @@
+.gdb-sample-badge { display: inline-flex; align-items: center; min-height: 20px; padding: 2px 7px; border: 1px solid var(--gdb-line); border-radius: 4px; font: 450 11px/1.3 var(--gdb-body); color: var(--gdb-secondary); white-space: nowrap; vertical-align: middle; }
+.game-cover-view__meta > .gdb-sample-badge { margin-block: 5px 3px; }
+.gdb-card-meta > .gdb-sample-badge { color: inherit; border-color: var(--gdb-card-line); }
+.focus-spotlight__content > .gdb-sample-badge { color: #e3dce8; border-color: #ffffff55; background: #16121ddd; }
+@media (min-width: 651px) { .gdb-home-spotlight__content > .gdb-sample-badge { color: #e3dce8; border-color: #ffffff55; background: #16121ddd; } }
+@media (max-width: 650px) { .gdb-sample-badge { font-size: 12px; } }
