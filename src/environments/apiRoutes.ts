@@ -3,6 +3,9 @@
  * Centralized location for all API routes used across the application
  */
 export const apiRoutes = {
+	home: { config: '/home/config', resolve: '/home/rows/resolve', games: (id: string) => `/home/rows/${encodeURIComponent(id)}/games` },
+	collection: { statistics: '/collection/statistics', games: '/collection/games', goty: '/collection/goty', gotyYear: (year: number) => `/collection/goty/${year}`, randomGame: '/collection/random-game', recommendations: '/collection/recommendations/preview' },
+	onboarding: { base: '/onboarding', start: '/onboarding/start', samples: '/onboarding/samples', keep: '/onboarding/samples/keep' },
 	/** Games endpoints */
 	games: {
 		base: '/games',
@@ -12,6 +15,8 @@ export const apiRoutes = {
 		create: '/games',
 		update: (id: number) => `/games/${id}`,
 		delete: (id: number) => `/games/${id}`,
+		metadataPreview: (id: number) => `/games/${id}/metadata/preview`,
+		metadataApply: (id: number) => `/games/${id}/metadata/apply`,
 	},
 
 	/** Game Status endpoints */
@@ -90,6 +95,7 @@ export const apiRoutes = {
 	/** Playlist endpoints */
 	playlists: {
 		base: '/playlists',
+		preview: '/playlists/preview',
 		byId: (id: number) => `/playlists/${id}`,
 		create: '/playlists',
 		update: (id: number) => `/playlists/${id}`,
@@ -173,6 +179,7 @@ export const apiRoutes = {
 		achievements: (gameId: number) => `/steam/achievements/${gameId}`,
 		achievementProgress: (gameId: number) => `/steam/achievements/${gameId}/progress`,
 		appMetadata: (appId: number) => `/steam/app/${appId}/metadata`,
+		appArtwork: (appId: number) => `/steam/app/${appId}/artwork`,
 		linkGame: '/steam/link-game',
 		matchSuggestions: '/steam/match-suggestions',
 		storeMatchSuggestions: '/steam/store-match-suggestions',

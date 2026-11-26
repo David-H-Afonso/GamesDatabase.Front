@@ -1,18 +1,20 @@
 import { customFetch } from '@/utils/customFetch'
 import { environment } from '@/environments'
 import type { GameView, GameViewCreateDto, GameViewUpdateDto, GameViewQueryParameters } from '@/models/api/GameView'
+import { collectionChanged } from '@/services/CollectionService/collectionEvents'
 
 const BASE = environment.apiRoutes.gameViews.base
 
 /**
  * Fetch paged GameViews with optional query parameters
  */
-export const getGameViews = async (params?: GameViewQueryParameters): Promise<GameView[]> => {
+export const getGameViews = async (params?: GameViewQueryParameters, signal?: AbortSignal): Promise<GameView[]> => {
 	const endpoint = BASE
 	const response = await customFetch<GameView[]>(endpoint, {
 		method: 'GET',
 		params: params as Record<string, string | number | boolean> | undefined,
 		baseURL: environment.baseUrl,
+		...(signal ? { signal } : {}),
 	})
 
 	return response
@@ -71,7 +73,7 @@ export const createGameView = async (gameViewData: GameViewCreateDto): Promise<G
 		method: 'POST',
 		body: payload,
 		baseURL: environment.baseUrl,
-	})
+	}).then(collectionChanged)
 }
 
 /**
@@ -114,7 +116,7 @@ export const updateGameView = async (id: number, gameViewData: GameViewUpdateDto
 		method: 'PUT',
 		body: payload,
 		baseURL: environment.baseUrl,
-	})
+	}).then(collectionChanged)
 }
 
 /**
@@ -125,7 +127,7 @@ export const deleteGameView = async (id: number): Promise<void> => {
 	await customFetch<void>(endpoint, {
 		method: 'DELETE',
 		baseURL: environment.baseUrl,
-	})
+	}).then(collectionChanged)
 }
 
 /**
@@ -136,8 +138,11 @@ export const getPublicGameViews = async (): Promise<GameView[]> => {
 		isPublic: true,
 		pageSize: 100, // Assume we won't have more than 100 public views
 	})
-	return response
+	return response.filter(view => view.isPublic)
 }
+
+/** Usage is separate from view configuration and does not invalidate game results. */
+export const recordGameViewUse = (id: number, signal?: AbortSignal) => customFetch<GameView[]>(`${BASE}/${id}/use`, { method: 'POST', body: {}, signal })
 
 /**
  * Update only the configuration for a GameView.
@@ -153,7 +158,7 @@ export const updateGameViewConfiguration = async (id: number, configuration: any
 		method: 'PUT',
 		body,
 		baseURL: environment.baseUrl,
-	})
+	}).then(collectionChanged)
 }
 
 /**

@@ -1,6 +1,10 @@
-import { screen } from '@testing-library/react'
+import { act, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders as render } from '@/test/utils/renderWithProviders'
+import { getActiveGameReplayTypes } from '@/services/GameReplayTypeService'
+import i18n from '@/i18n'
+
+const settleReplayTypeFixture = async () => { await act(async () => { await vi.mocked(getActiveGameReplayTypes).mock.results.at(-1)?.value }) }
 
 const mockCreateGameView = vi.fn().mockResolvedValue({ id: 1 })
 const mockUpdateGameView = vi.fn().mockResolvedValue(undefined)
@@ -67,6 +71,7 @@ describe('GameViewModal', () => {
 		const C = await loadComponent()
 		render(<C onClose={mockOnClose} onSave={mockOnSave} />)
 		expect(screen.getByText('Nueva Vista')).toBeInTheDocument()
+		await settleReplayTypeFixture()
 	})
 
 	it('renders edit view heading when gameView provided', async () => {
@@ -75,12 +80,14 @@ describe('GameViewModal', () => {
 		render(<C gameView={view as any} onClose={mockOnClose} onSave={mockOnSave} />)
 		expect(screen.getByText('Editar')).toBeInTheDocument()
 		expect(screen.getByDisplayValue('Test View')).toBeInTheDocument()
+		await settleReplayTypeFixture()
 	})
 
 	it('renders name input with placeholder', async () => {
 		const C = await loadComponent()
 		render(<C onClose={mockOnClose} onSave={mockOnSave} />)
 		expect(screen.getByPlaceholderText('Nombre de la vista')).toBeInTheDocument()
+		await settleReplayTypeFixture()
 	})
 
 	it('renders filter and sorting sections', async () => {
@@ -88,12 +95,27 @@ describe('GameViewModal', () => {
 		render(<C onClose={mockOnClose} onSave={mockOnSave} />)
 		expect(screen.getByText('Filtros')).toBeInTheDocument()
 		expect(screen.getByText('Ordenación')).toBeInTheDocument()
+		await settleReplayTypeFixture()
+	})
+
+	it('names its filter/value/sort controls and exposes playtime filter values explicitly in minutes', async () => {
+		const C = await loadComponent(), user = userEvent.setup()
+		render(<C onClose={mockOnClose} onSave={mockOnSave} />); await settleReplayTypeFixture()
+		expect(screen.getByLabelText(/Nombre/)).toBeInTheDocument()
+		await user.click(screen.getAllByRole('button', { name: i18n.t('game.filters.addFilter') })[0])
+		const field = screen.getByRole('combobox', { name: i18n.t('game.filters.fieldLabel') })
+		expect(screen.getByRole('option', { name: i18n.t('game.filters.fieldSteamPlaytime') })).toHaveTextContent('minutos')
+		expect(screen.getByRole('combobox', { name: i18n.t('game.filters.operatorLabel') })).toBeInTheDocument()
+		await user.selectOptions(field, screen.getByRole('option', { name: i18n.t('game.filters.fieldFavorite') })); expect(screen.getByRole('combobox', { name: i18n.t('game.filters.valueLabel') })).toBeInTheDocument()
+		await user.click(screen.getByRole('button', { name: i18n.t('game.sorting.addSort') })); expect(screen.getByRole('combobox', { name: i18n.t('game.sorting.fieldLabel') })).toBeInTheDocument(); expect(screen.getByRole('combobox', { name: i18n.t('game.sorting.directionLabel') })).toBeInTheDocument()
+		expect(mockCreateGameView).not.toHaveBeenCalled(); expect(mockUpdateGameView).not.toHaveBeenCalled()
 	})
 
 	it('shows empty state for sorting', async () => {
 		const C = await loadComponent()
 		render(<C onClose={mockOnClose} onSave={mockOnSave} />)
 		expect(screen.getByText('Sin ordenaciones configuradas')).toBeInTheDocument()
+		await settleReplayTypeFixture()
 	})
 
 	it('has add group and add sorting buttons', async () => {
@@ -101,6 +123,7 @@ describe('GameViewModal', () => {
 		render(<C onClose={mockOnClose} onSave={mockOnSave} />)
 		expect(screen.getByText('Añadir Grupo')).toBeInTheDocument()
 		expect(screen.getByText('Añadir Ordenación')).toBeInTheDocument()
+		await settleReplayTypeFixture()
 	})
 
 	it('calls onClose when close button is clicked', async () => {
@@ -116,6 +139,7 @@ describe('GameViewModal', () => {
 		render(<C onClose={mockOnClose} onSave={mockOnSave} />)
 		const saveBtn = screen.getByText('Guardar')
 		expect(saveBtn).toBeDisabled()
+		await settleReplayTypeFixture()
 	})
 
 	it('saves new view when name is provided', async () => {

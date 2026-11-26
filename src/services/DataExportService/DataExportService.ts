@@ -1,5 +1,6 @@
 import { environment } from '@/environments'
 import { customFetch } from '@/utils/customFetch'
+import { collectionChanged } from '@/services/CollectionService/collectionEvents'
 import type { SelectiveExportRequest, SelectiveImportRequest, SelectiveImportResult } from '@/models/api/ImportExport'
 
 export interface DatabaseDuplicateGameDetails {
@@ -80,7 +81,7 @@ export const importGamesCSV = async (csvFile: File): Promise<any> => {
 		body: formData,
 		baseURL: environment.baseUrl,
 		timeout: environment.api?.timeout,
-	})
+	}).then(collectionChanged)
 }
 
 /**
@@ -131,7 +132,7 @@ export const importFullDatabase = async (
 		body: formData,
 		baseURL: environment.baseUrl,
 		timeout: environment.api?.timeout,
-	})
+	}).then(collectionChanged)
 }
 
 /**
@@ -270,7 +271,7 @@ export const deleteDuplicateGame = async (gameId: number): Promise<{ gameId: num
 		method: 'DELETE',
 		baseURL: environment.baseUrl,
 		timeout: environment.api?.timeout,
-	})
+	}).then(collectionChanged)
 }
 
 export const dismissDuplicateGames = async (gameIds: number[]): Promise<{ dismissed: number; message: string }> => {
@@ -307,7 +308,7 @@ export const updateImageUrls = async (
 		params: imageBaseUrl ? { imageBaseUrl } : undefined,
 		baseURL: environment.baseUrl,
 		timeout: environment.api?.timeout,
-	})
+	}).then(collectionChanged)
 }
 
 /**
@@ -404,7 +405,7 @@ export const selectiveImportGames = async (source: File | string, config: Select
 		body: formData,
 		baseURL: environment.baseUrl,
 		timeout: environment.api?.timeout,
-	})
+	}).then(collectionChanged)
 }
 
 /**

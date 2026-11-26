@@ -236,7 +236,7 @@ describe('gamesSlice — extraReducers', () => {
 		const games = createGameList(2)
 		const payload = makePagedResult(games)
 		const action = fetchGames.fulfilled(payload, '', {})
-		const next = gamesReducer(state, action)
+		const next = gamesReducer(gamesReducer(state, fetchGames.pending('', {})), action)
 		expect(next.loading).toBe(false)
 		expect(next.games).toHaveLength(2)
 		expect(next.pagination.totalCount).toBe(2)
@@ -245,7 +245,7 @@ describe('gamesSlice — extraReducers', () => {
 
 	it('fetchGames.rejected sets loading=false and error', () => {
 		const action = fetchGames.rejected(null, '', {}, 'fetch error')
-		const next = gamesReducer(state, action)
+		const next = gamesReducer(gamesReducer(state, fetchGames.pending('', {})), action)
 		expect(next.loading).toBe(false)
 		expect(next.error).toBe('fetch error')
 	})
@@ -412,7 +412,7 @@ describe('gamesSlice — selectors', () => {
 describe('gamesSlice — uncovered branches', () => {
 	it('fetchGames.rejected with null payload uses fallback message', () => {
 		const action = fetchGames.rejected(null, '', undefined as any)
-		const next = gamesReducer(undefined, action)
+		const next = gamesReducer(gamesReducer(undefined, fetchGames.pending('', undefined as any)), action)
 		expect(next.error).toBe('Failed to fetch games')
 	})
 
@@ -443,7 +443,7 @@ describe('gamesSlice — uncovered branches', () => {
 	it('fetchGames.fulfilled with undefined arg falls back to empty lastAppliedFilters', () => {
 		const paged = makePagedResult()
 		const action = fetchGames.fulfilled(paged, '', undefined as any)
-		const next = gamesReducer(undefined, action)
+		const next = gamesReducer(gamesReducer(undefined, fetchGames.pending('', undefined as any)), action)
 		expect(next.lastAppliedFilters).toEqual({})
 	})
 

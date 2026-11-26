@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useId } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Modal } from '@/components/elements'
 import { useGameViews, useGamePlatform, useGamePlayedStatus, useGamePlayWith } from '@/hooks'
@@ -17,6 +17,7 @@ interface Props {
 
 const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 	const { t } = useTranslation()
+	const fieldId = useId()
 	const { createGameView, updateGameView } = useGameViews()
 	const { activeStatuses, loadActiveStatuses } = useGameStatus()
 	const { activeItems: activePlatforms, loadActivePlatforms } = useGamePlatform()
@@ -593,7 +594,7 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 
 		if (isDropdownField(filter.field)) {
 			return (
-				<select value={filter.value} onChange={(e) => updateFilter(groupIndex, filterIndex, 'value', e.target.value)}>
+				<select aria-label={t('game.filters.valueLabel')} value={filter.value} onChange={(e) => updateFilter(groupIndex, filterIndex, 'value', e.target.value)}>
 					<option value=''>{t('common.selectOption')}</option>
 					{getDropdownOptions(filter.field).map((option) => (
 						<option key={option.value} value={option.value}>
@@ -612,14 +613,14 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 				const secondValue = filter.secondValue ? String(filter.secondValue).split('T')[0] : ''
 				return (
 					<>
-						<input type='date' value={value} onChange={(e) => updateFilter(groupIndex, filterIndex, 'value', e.target.value)} title='Desde' />
+						<input type='date' aria-label={t('game.filters.valueFrom')} value={value} onChange={(e) => updateFilter(groupIndex, filterIndex, 'value', e.target.value)} />
 						<span style={{ margin: '0 4px' }}>—</span>
-						<input type='date' value={secondValue} onChange={(e) => updateFilter(groupIndex, filterIndex, 'secondValue', e.target.value)} title='Hasta' />
+						<input type='date' aria-label={t('game.filters.valueTo')} value={secondValue} onChange={(e) => updateFilter(groupIndex, filterIndex, 'secondValue', e.target.value)} />
 					</>
 				)
 			}
 
-			return <input type='date' value={value} onChange={(e) => updateFilter(groupIndex, filterIndex, 'value', e.target.value)} />
+			return <input type='date' aria-label={t('game.filters.valueLabel')} value={value} onChange={(e) => updateFilter(groupIndex, filterIndex, 'value', e.target.value)} />
 		}
 
 		if (isDateTimeField(filter.field)) {
@@ -637,12 +638,12 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 				}
 			}
 
-			return <input type='datetime-local' value={value} onChange={(e) => updateFilter(groupIndex, filterIndex, 'value', e.target.value)} />
+			return <input type='datetime-local' aria-label={t('game.filters.valueLabel')} value={value} onChange={(e) => updateFilter(groupIndex, filterIndex, 'value', e.target.value)} />
 		}
 
 		if (filter.field === FilterField.Favorite) {
 			return (
-				<select value={String(filter.value ?? true)} onChange={(e) => updateFilter(groupIndex, filterIndex, 'value', e.target.value === 'true')}>
+				<select aria-label={t('game.filters.valueLabel')} value={String(filter.value ?? true)} onChange={(e) => updateFilter(groupIndex, filterIndex, 'value', e.target.value === 'true')}>
 					<option value='true'>{t('common.yes')}</option>
 					<option value='false'>{t('common.no')}</option>
 				</select>
@@ -650,18 +651,18 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 		}
 
 		// Default text input
-		return <input type='text' value={filter.value} onChange={(e) => updateFilter(groupIndex, filterIndex, 'value', e.target.value)} placeholder={t('common.value')} />
+		return <input type='text' aria-label={t('game.filters.valueLabel')} value={filter.value} onChange={(e) => updateFilter(groupIndex, filterIndex, 'value', e.target.value)} placeholder={t('common.value')} />
 	}
 
 	return (
 		<Modal
 			isOpen
-			onClose={onClose}
+			onClose={() => !loading && onClose()}
 			title={gameView ? t('admin.gameViews.editView') : t('admin.gameViews.newView')}
 			maxWidth='900px'
 			footer={
 				<>
-					<button className='btn btn-secondary' onClick={onClose}>
+					<button className='btn btn-secondary' disabled={loading} onClick={onClose}>
 						{t('common.cancel')}
 					</button>
 					<button className='btn btn-primary' onClick={handleSave} disabled={loading || !formData.name.trim()}>
@@ -669,10 +670,10 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 					</button>
 				</>
 			}>
-			<div className='game-view-modal-body'>
+			<div className='game-view-modal-body' aria-busy={loading}>
 				<div className='form-group'>
-					<label>{t('common.name')} *</label>
-					<input type='text' value={formData.name} onChange={(e) => handleInputChange('name', e.target.value)} placeholder={t('game.viewNamePlaceholder')} />
+					<label htmlFor={`${fieldId}-name`}>{t('common.name')} *</label>
+					<input id={`${fieldId}-name`} type='text' value={formData.name} onChange={(e) => handleInputChange('name', e.target.value)} placeholder={t('game.viewNamePlaceholder')} />
 				</div>
 
 				<div className='configuration-section'>
@@ -686,7 +687,7 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 					{filterGroups.length > 1 && (
 						<div className='global-combine'>
 							<label>{t('game.filters.combineGroups')}:</label>
-							<select value={groupCombineWith} onChange={(e) => setGroupCombineWith(e.target.value as CombineWith)}>
+							<select aria-label={t('game.filters.combineGroups')} value={groupCombineWith} onChange={(e) => setGroupCombineWith(e.target.value as CombineWith)}>
 								<option value={CombineWith.And}>{t('game.filters.combineAnd')} (AND)</option>
 								<option value={CombineWith.Or}>{t('game.filters.combineOr')} (OR)</option>
 							</select>
@@ -705,7 +706,7 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 									{group.filters.length > 1 && (
 										<>
 											<label>{t('game.filters.combineWith')}:</label>
-											<select value={group.combineWith} onChange={(e) => updateFilterGroup(groupIndex, 'combineWith', e.target.value)}>
+											<select aria-label={t('game.filters.combineWith')} value={group.combineWith} onChange={(e) => updateFilterGroup(groupIndex, 'combineWith', e.target.value)}>
 												<option value={CombineWith.And}>{t('game.filters.combineAnd')}</option>
 												<option value={CombineWith.Or}>{t('game.filters.combineOr')}</option>
 											</select>
@@ -730,6 +731,7 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 										group.filters.map((filter, filterIndex) => (
 											<div key={filterIndex} className='filter-item'>
 												<select
+													aria-label={t('game.filters.fieldLabel')}
 													value={isReplayField(filter.field) ? 'ReplayGroup' : filter.field}
 													onChange={(e) => {
 														const val = e.target.value
@@ -742,7 +744,7 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 													))}
 												</select>
 												{isReplayField(filter.field) && (
-													<select value={filter.field} onChange={(e) => updateFilter(groupIndex, filterIndex, 'field', e.target.value)}>
+													<select aria-label={t('game.filters.fieldReplay')} value={filter.field} onChange={(e) => updateFilter(groupIndex, filterIndex, 'field', e.target.value)}>
 														{getReplaySubOptions().map((opt) => (
 															<option key={opt.value} value={opt.value}>
 																{opt.label}
@@ -750,7 +752,7 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 														))}
 													</select>
 												)}
-												<select value={filter.operator} onChange={(e) => updateFilter(groupIndex, filterIndex, 'operator', e.target.value)}>
+												<select aria-label={t('game.filters.operatorLabel')} value={filter.operator} onChange={(e) => updateFilter(groupIndex, filterIndex, 'operator', e.target.value)}>
 													{getOperatorsForField(filter.field).map((option) => (
 														<option key={option.value} value={option.value}>
 															{option.label}
@@ -804,18 +806,18 @@ const GameViewModal: React.FC<Props> = ({ gameView, onClose, onSave }) => {
 										</svg>
 									</button>
 								</div>
-								<select value={sort.field} onChange={(e) => updateSort(index, 'field', e.target.value)}>
+								<select aria-label={t('game.sorting.fieldLabel')} value={sort.field} onChange={(e) => updateSort(index, 'field', e.target.value)}>
 									{getSortFieldOptions().map((option) => (
 										<option key={option.value} value={option.value}>
 											{option.label}
 										</option>
 									))}
 								</select>
-								<select value={sort.direction} onChange={(e) => updateSort(index, 'direction', e.target.value)}>
+								<select aria-label={t('game.sorting.directionLabel')} value={sort.direction} onChange={(e) => updateSort(index, 'direction', e.target.value)}>
 									<option value={SortDirection.Ascending}>{t('game.sorting.ascending')}</option>
 									<option value={SortDirection.Descending}>{t('game.sorting.descending')}</option>
 								</select>
-								<button className='remove-btn' onClick={() => removeSort(index)}>
+								<button className='remove-btn' aria-label={t('game.sorting.removeSort')} onClick={() => removeSort(index)}>
 									×
 								</button>
 							</div>

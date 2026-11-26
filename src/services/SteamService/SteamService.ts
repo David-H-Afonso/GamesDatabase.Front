@@ -1,5 +1,7 @@
 import { environment } from '@/environments'
 import { customFetch } from '@/utils/customFetch/customFetch'
+import { collectionChanged } from '@/services/CollectionService/collectionEvents'
+import type { SteamArtwork } from '@/models/api/SteamArtwork'
 
 const base = environment.apiRoutes.steam
 
@@ -243,15 +245,15 @@ class SteamService {
 		return customFetch<SteamImportResult>(base.import, {
 			method: 'POST',
 			body: request,
-		})
+		}).then(collectionChanged)
 	}
 
 	async syncAll(): Promise<SteamSyncResult> {
-		return customFetch<SteamSyncResult>(base.syncAll, { method: 'POST' })
+		return customFetch<SteamSyncResult>(base.syncAll, { method: 'POST' }).then(collectionChanged)
 	}
 
 	async syncGame(gameId: number): Promise<SteamSyncResult> {
-		return customFetch<SteamSyncResult>(base.syncGame(gameId), { method: 'POST' })
+		return customFetch<SteamSyncResult>(base.syncGame(gameId), { method: 'POST' }).then(collectionChanged)
 	}
 
 	async getLinkUrl(): Promise<{ url: string }> {
@@ -263,7 +265,7 @@ class SteamService {
 		await customFetch(base.linkGame, {
 			method: 'POST',
 			body: { appId, gameId },
-		})
+		}).then(collectionChanged)
 	}
 
 	async getMatchSuggestions(): Promise<SteamMatchSuggestion[]> {
@@ -286,7 +288,7 @@ class SteamService {
 		return customFetch<SteamApplyDateSuggestionsResult>(base.applyDateSuggestions, {
 			method: 'POST',
 			body: { suggestions },
-		})
+		}).then(collectionChanged)
 	}
 
 	async dismissDateSuggestions(suggestions: Array<{ gameId: number; started?: string; finished?: string }>): Promise<{ dismissed: number }> {
@@ -303,15 +305,16 @@ class SteamService {
 		})
 	}
 
-	async searchStore(query: string): Promise<SteamStoreSearchResult[]> {
-		return customFetch<SteamStoreSearchResult[]>(`${base.storeSearch}?q=${encodeURIComponent(query)}`)
+	async searchStore(query: string, signal?: AbortSignal): Promise<SteamStoreSearchResult[]> {
+		const url = `${base.storeSearch}?q=${encodeURIComponent(query)}`
+		return signal ? customFetch<SteamStoreSearchResult[]>(url, { signal }) : customFetch<SteamStoreSearchResult[]>(url)
 	}
 
 	async addStoreGame(appId: number, assets?: { logoUrl?: string; heroUrl?: string; coverUrl?: string }): Promise<SteamImportedGame> {
 		return customFetch<SteamImportedGame>(base.storeAdd, {
 			method: 'POST',
 			body: { appId, ...assets },
-		})
+		}).then(collectionChanged)
 	}
 
 	async getAchievements(gameId: number): Promise<SteamAchievement[]> {
@@ -338,6 +341,16 @@ class SteamService {
 
 	async getAppMetadata(appId: number): Promise<SteamAppMetadata> {
 		return customFetch<SteamAppMetadata>(base.appMetadata(appId))
+	}
+
+	async getAppArtwork(appId: number, signal?: AbortSignal): Promise<SteamArtwork> {
+		if (!Number.isSafeInteger(appId) || appId <= 0 || appId > 2147483647) throw new RangeError('Invalid Steam App ID')
+		const result = await customFetch<SteamArtwork>(base.appArtwork(appId), { signal, timeout: 15000 })
+		if (!result || typeof result !== 'object' || Array.isArray(result) || ['logoUrl', 'heroUrl', 'coverUrl'].some(key => {
+			const value = result[key as keyof SteamArtwork]
+			return value != null && typeof value !== 'string'
+		})) throw new Error('Invalid artwork response')
+		return result
 	}
 }
 

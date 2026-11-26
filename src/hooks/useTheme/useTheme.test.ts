@@ -1,5 +1,6 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
+import { createElement, StrictMode, type ReactNode } from 'react'
 import { createTestStore } from '@/test/utils/createTestStore'
 import { createWrapperWithStore } from '@/test/utils/createWrapperWithStore'
 import { useTheme } from './useTheme'
@@ -97,6 +98,14 @@ describe('useTheme', () => {
 		expect(result.current.currentTheme).toBe('dark')
 	})
 
+	it('preserves saved appearance when StrictMode replays mount effects over a different persisted state', () => {
+		localStorage.setItem('theme', 'steam'); localStorage.setItem('cardStyle', 'row')
+		const Wrapper = createWrapperWithStore(store)
+		const { result } = renderHook(() => useTheme(), { wrapper: ({ children }: { children: ReactNode }) => createElement(StrictMode, null, createElement(Wrapper, { children })) })
+		expect(result.current.currentTheme).toBe('steam'); expect(result.current.cardStyle).toBe('row')
+		expect(localStorage.getItem('theme')).toBe('steam'); expect(localStorage.getItem('cardStyle')).toBe('row')
+	})
+
 	it('reads saved cardStyle from localStorage on mount', () => {
 		localStorage.setItem('cardStyle', 'row')
 
@@ -140,7 +149,7 @@ describe('useTheme', () => {
 
 	// ── System preference fallback ─────────────────────────────────────────────
 
-	it('uses dark theme when system prefers dark and no localStorage value set', () => {
+	it('uses Gallery when there is no saved theme, even if the system prefers dark', () => {
 		// Override matchMedia to simulate prefers-color-scheme: dark
 		Object.defineProperty(globalThis, 'matchMedia', {
 			writable: true,
@@ -162,7 +171,7 @@ describe('useTheme', () => {
 		})
 
 		// initializeTheme should detect dark system preference
-		expect(result.current.currentTheme).toBe('dark')
+		expect(result.current.currentTheme).toBe('gallery')
 
 		// Restore default stub (prefers-color-scheme: light)
 		Object.defineProperty(globalThis, 'matchMedia', {

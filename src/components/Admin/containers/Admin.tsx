@@ -43,6 +43,7 @@ const Admin = () => {
 					<Route key={tab.path} path={tab.path} element={TAB_ELEMENTS[tab.path]} />
 				))}
 				<Route path='steam-import' element={<Navigate to='/admin/steam' replace />} />
+				<Route path='*' element={<Navigate to='/admin/platforms' replace />} />
 			</Route>
 		</Routes>
 	)

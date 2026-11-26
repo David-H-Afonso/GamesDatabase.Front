@@ -15,7 +15,8 @@ export default function PortalDropdown({ children, style, containerId = 'dropdow
 	if (!elRef.current) elRef.current = document.createElement('div')
 
 	useEffect(() => {
-		const container = document.getElementById(containerId) || document.body
+		const nativeLayers = document.querySelectorAll('dialog[open] [data-gdb-modal-layer]')
+		const container = nativeLayers[nativeLayers.length - 1] || document.getElementById(containerId) || document.body
 		const el = elRef.current!
 		container.appendChild(el)
 		return () => {
@@ -24,7 +25,7 @@ export default function PortalDropdown({ children, style, containerId = 'dropdow
 	}, [containerId])
 
 	return createPortal(
-		<div style={style} ref={contentRef} onClick={onClick} onMouseDown={(e) => e.stopPropagation()}>
+		<div style={document.querySelector('dialog[open]') && style ? { ...style, position: 'fixed', ...(style.left ? { left: `${parseFloat(String(style.left)) - window.scrollX}px` } : {}), ...(style.top ? { top: `${parseFloat(String(style.top)) - window.scrollY}px` } : {}) } : style} ref={contentRef} onClick={onClick} onMouseDown={(e) => e.stopPropagation()}>
 			{children}
 		</div>,
 		elRef.current

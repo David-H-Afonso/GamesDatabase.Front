@@ -1,3 +1,5 @@
+import type { NameSearch } from './NameSearch'
+
 // Main Game interface
 export interface Game {
 	comment?: string
@@ -11,6 +13,7 @@ export interface Game {
 	hero?: string
 	logo?: string
 	name: string
+	developer?: string | null
 	platformId?: number
 	platformName?: string
 	platformLogo?: string
@@ -19,7 +22,7 @@ export interface Game {
 	playedStatusId?: number
 	playedStatusName?: string
 	released?: string // ISO date string
-	score?: number // 0-100
+	score?: number // calculated /10; not the personal grade
 	started?: string // ISO date string
 	statusId: number
 	statusName?: string
@@ -29,6 +32,8 @@ export interface Game {
 	isCheaperByKey?: boolean // true if game is cheaper by key, false if cheaper in official store
 	keyStoreUrl?: string // URL to key store (only if isCheaperByKey is true)
 	favorite: boolean
+	isSample?: boolean
+	sampleArtworkKey?: string | null
 	steamAppId?: number
 	steamPlaytimeForever?: number // minutes
 	steamPlaytime2Weeks?: number // minutes
@@ -44,14 +49,17 @@ export interface Game {
 	steamFinishedLastValue?: string
 	steamFinishedSyncedAt?: string
 	steamFinishedRejectedValue?: string
-	manualPlaytimeMinutes?: number
+	manualPlaytimeMinutes?: number | null
+	manualPlaytimeIsAdditive?: boolean
 	isManuallyCompleted?: boolean
 }
 
 // DTOs for create and update operations
 export interface GameCreateDto {
+	creationRequestId?: string
 	statusId: number
 	name: string
+	developer?: string
 	grade?: number
 	critic?: number
 	criticProvider?: string
@@ -73,12 +81,14 @@ export interface GameCreateDto {
 	favorite?: boolean
 	steamAppId?: number
 	manualPlaytimeMinutes?: number
+	manualPlaytimeIsAdditive?: boolean
 	isManuallyCompleted?: boolean
 }
 
-export interface GameUpdateDto extends GameCreateDto {
-	id: number
-}
+type NonNullableGamePatchKeys = 'name' | 'statusId' | 'favorite' | 'isManuallyCompleted' | 'playWithIds' | 'manualPlaytimeIsAdditive'
+export type GameUpdateDto = Partial<Pick<GameCreateDto, NonNullableGamePatchKeys>> & {
+	[K in Exclude<keyof GameCreateDto, NonNullableGamePatchKeys | 'creationRequestId'>]?: GameCreateDto[K] | null
+} & { id?: number }
 
 export interface BulkUpdateGameDto {
 	gameIds: number[]
@@ -142,6 +152,10 @@ export interface QueryParameters {
 }
 
 export interface GameQueryParameters extends QueryParameters {
+	nameSearch?: NameSearch
+	searchMetadata?: boolean
+	maxStory?: number
+	viewId?: number
 	statusId?: number
 	platformId?: number
 	playWithId?: number

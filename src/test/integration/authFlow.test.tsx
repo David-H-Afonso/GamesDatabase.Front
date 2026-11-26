@@ -101,6 +101,7 @@ vi.mock('@/environments', () => ({
 				adminGlobal: '/admin/history',
 			},
 			users: {
+				setupStatus: '/users/setup-status',
 				login: '/users/login',
 				base: '/users',
 				byId: (id: number) => `/users/${id}`,
@@ -170,6 +171,7 @@ describe('Auth Flow — Integration', () => {
 	it('navigates to / and sets isAuthenticated after successful login', async () => {
 		server.use(
 			http.post(`${BASE}/users/login`, () => HttpResponse.json({ userId: 1, username: 'Admin', role: 'Admin', token: 'test-token' })),
+			http.get(`${BASE}/users/setup-status`, () => HttpResponse.json({ defaultCredentialsAvailable: false, defaultUsername: null })),
 			http.get(`${BASE}/users/:id`, () =>
 				HttpResponse.json({
 					id: 1,

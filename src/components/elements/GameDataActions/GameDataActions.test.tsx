@@ -9,7 +9,7 @@ vi.mock('@/components/Home/components/SelectiveExportModal', () => ({
 }))
 
 vi.mock('@/components/Home/components/SelectiveImportModal', () => ({
-	default: ({ isOpen }: { isOpen: boolean }) => (isOpen ? <div data-testid='import-modal'>Import Modal</div> : null),
+	default: ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => (isOpen ? <div data-testid='import-modal'>Import Modal<button onClick={onClose}>Close import</button></div> : null),
 }))
 
 async function loadComponent() {
@@ -53,5 +53,17 @@ describe('GameDataActions', () => {
 		await user.click(screen.getByTitle('Importar / Exportar'))
 		await user.click(screen.getByText('Importar'))
 		expect(screen.getByTestId('import-modal')).toBeInTheDocument()
+	})
+
+	it('uses the persistent custom trigger as the focus-return target instead of a removed menu item', async () => {
+		const C = await loadComponent()
+		const user = userEvent.setup()
+		renderWithProviders(<C renderTrigger={toggle => <button onClick={toggle}>Data tools</button>} />)
+		const trigger = screen.getByRole('button', { name: 'Data tools' })
+		await user.click(trigger)
+		await user.click(screen.getByText('Importar'))
+		expect(trigger).toHaveFocus()
+		await user.click(screen.getByRole('button', { name: 'Close import' }))
+		expect(screen.queryByTestId('import-modal')).not.toBeInTheDocument()
 	})
 })

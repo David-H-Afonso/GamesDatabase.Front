@@ -1,30 +1,6 @@
-import { configureStore, combineReducers } from '@reduxjs/toolkit'
-import gamesReducer from '@/store/features/games/gamesSlice'
-import gameStatusReducer from '@/store/features/gameStatus/gameStatusSlice'
-import gamePlatformReducer from '@/store/features/gamePlatform/gamePlatformSlice'
-import gamePlayWithReducer from '@/store/features/gamePlayWith/gamePlayWithSlice'
-import gamePlayedStatusReducer from '@/store/features/gamePlayedStatus/gamePlayedStatusSlice'
-import gameReplayTypeReducer from '@/store/features/gameReplayType/gameReplayTypeSlice'
-import gameViewsReducer from '@/store/features/gameViews/gameViewSlice'
-import themeReducer from '@/store/features/theme/themeSlice'
-import authReducer from '@/store/features/auth/authSlice'
-import recentUsersReducer from '@/store/features/recentUsers/recentUsersSlice'
-import steamReducer from '@/store/features/steam/steamSlice'
+import { configureStore } from '@reduxjs/toolkit'
+import { rootReducer } from '@/store/rootReducer'
 import type { RootState } from '@/store'
-
-const rootReducer = combineReducers({
-	games: gamesReducer,
-	gameStatus: gameStatusReducer,
-	gamePlatform: gamePlatformReducer,
-	gamePlayWith: gamePlayWithReducer,
-	gamePlayedStatus: gamePlayedStatusReducer,
-	gameReplayType: gameReplayTypeReducer,
-	gameViews: gameViewsReducer,
-	theme: themeReducer,
-	auth: authReducer,
-	recentUsers: recentUsersReducer,
-	steam: steamReducer,
-})
 
 /**
  * Create a fresh Redux store for testing.

@@ -158,7 +158,7 @@ export function DataTable<T>({ columns, items, getRowId, loading = false, skelet
 
 	return (
 		<div className='data-table'>
-			<div className='data-table__scroll'>
+			<div className='data-table__scroll' tabIndex={0}>
 				{dndEnabled ? (
 					<DndContext sensors={sensors} collisionDetection={closestCenter} modifiers={[restrictToVerticalAxis, restrictToParentElement]} onDragEnd={handleDragEnd}>
 						{table}

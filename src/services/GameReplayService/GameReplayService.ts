@@ -1,6 +1,7 @@
 import { customFetch } from '@/utils/customFetch'
 import { environment } from '@/environments'
 import type { GameReplay, GameReplayCreateDto, GameReplayUpdateDto } from '@/models/api/GameReplay'
+import { collectionChanged } from '@/services/CollectionService/collectionEvents'
 
 const routes = environment.apiRoutes.gameReplays
 
@@ -9,13 +10,13 @@ export const getReplaysByGameId = async (gameId: number): Promise<GameReplay[]> 
 }
 
 export const createGameReplay = async (gameId: number, dto: GameReplayCreateDto): Promise<GameReplay> => {
-	return await customFetch<GameReplay>(routes.byGameId(gameId), { method: 'POST', body: dto, baseURL: environment.baseUrl })
+	return await customFetch<GameReplay>(routes.byGameId(gameId), { method: 'POST', body: dto, baseURL: environment.baseUrl }).then(collectionChanged)
 }
 
 export const updateGameReplay = async (gameId: number, id: number, dto: GameReplayUpdateDto): Promise<void> => {
-	await customFetch<void>(routes.byId(gameId, id), { method: 'PUT', body: dto, baseURL: environment.baseUrl })
+	await customFetch<void>(routes.byId(gameId, id), { method: 'PUT', body: dto, baseURL: environment.baseUrl }).then(collectionChanged)
 }
 
 export const deleteGameReplay = async (gameId: number, id: number): Promise<void> => {
-	await customFetch<void>(routes.byId(gameId, id), { method: 'DELETE', baseURL: environment.baseUrl })
+	await customFetch<void>(routes.byId(gameId, id), { method: 'DELETE', baseURL: environment.baseUrl }).then(collectionChanged)
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import gameViewReducer, { setLoading, setError, updateGameView, removeGameView, setFilters, resetFilters } from '../gameViewSlice'
+import gameViewReducer, { setLoading, setError, updateGameView, removeGameView, setFilters, resetFilters, recordViewUsage } from '../gameViewSlice'
 import type { GameViewState } from '@/models/store/GameViewState'
 import { fetchGameViews, fetchPublicGameViews, fetchGameViewById, createGameViewThunk, updateGameViewThunk, deleteGameViewThunk, updateGameViewConfiguration } from '../thunk'
 import { selectGameViews, selectPublicGameViews, selectCurrentGameView, selectGameViewsLoading, selectGameViewsError, selectGameViewById } from '../selector'
@@ -20,6 +20,13 @@ describe('gameViewSlice — initial state', () => {
 
 describe('gameViewSlice — sync reducers', () => {
 	beforeEach(() => resetIdCounter())
+	it('merges newer usage only, repairs missing/invalid dates and never replaces configuration or manual order', () => {
+		const first = createGameView({ id: 1, lastUsedAt: 'invalid' }), second = createGameView({ id: 2, lastUsedAt: '2026-11-26T12:00:00Z' })
+		const state = { ...initialState, gameViews: [first, second], publicGameViews: [first, second], currentGameView: second }
+		const next = gameViewReducer(state, recordViewUsage([{ id: 1, lastUsedAt: '2026-11-26T13:00:00Z' }, { id: 2, lastUsedAt: '2026-11-26T11:00:00Z' }, { id: 99, lastUsedAt: '2026-11-26T14:00:00Z' }]))
+		expect(next.gameViews.map(view => view.id)).toEqual([1, 2]); expect(next.gameViews[0]).toEqual({ ...first, lastUsedAt: '2026-11-26T13:00:00Z' }); expect(next.currentGameView).toEqual(second)
+		expect(gameViewReducer(next, recordViewUsage([{ id: 1, lastUsedAt: 'invalid' }])).gameViews[0].lastUsedAt).toBe('2026-11-26T13:00:00Z')
+	})
 
 	it('setCurrentGameView sets the current view', () => {
 		const view = createGameView({ id: 1 })

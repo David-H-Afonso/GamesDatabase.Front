@@ -25,6 +25,7 @@ export type ConfigurableGameProperty =
 	| 'started'
 	| 'finished'
 	| 'comment'
+	| 'developer'
 	| 'logo'
 	| 'hero'
 	| 'cover'
@@ -36,6 +37,7 @@ export type ConfigurableGameProperty =
 	| 'steamPlaytime2Weeks'
 	| 'steamLastSynced'
 	| 'manualPlaytimeMinutes'
+	| 'manualPlaytimeIsAdditive'
 
 // ─── Per-property overrides ───────────────────────────────────────────────────
 
@@ -128,6 +130,7 @@ export const GAME_PROPERTY_FIELDS: PropertyFieldMeta[] = [
 	{ key: 'started', label: 'Started Date', inputType: 'date', canCleanOnImport: true, canCustomOnImport: true, canCleanOnExport: true },
 	{ key: 'finished', label: 'Finished Date', inputType: 'date', canCleanOnImport: true, canCustomOnImport: true, canCleanOnExport: true },
 	{ key: 'comment', label: 'Comment', inputType: 'text', canCleanOnImport: true, canCustomOnImport: true, canCleanOnExport: true },
+	{ key: 'developer', label: 'Studio', inputType: 'text', canCleanOnImport: true, canCustomOnImport: true, canCleanOnExport: true },
 	{ key: 'logo', label: 'Logo URL', inputType: 'none', canCleanOnImport: true, canCustomOnImport: false, canCleanOnExport: true },
 	{ key: 'hero', label: 'Hero URL', inputType: 'none', canCleanOnImport: true, canCustomOnImport: false, canCleanOnExport: true },
 	{ key: 'cover', label: 'Cover Art URL', inputType: 'none', canCleanOnImport: true, canCustomOnImport: false, canCleanOnExport: true },
@@ -139,4 +142,5 @@ export const GAME_PROPERTY_FIELDS: PropertyFieldMeta[] = [
 	{ key: 'steamPlaytime2Weeks', label: 'Steam Playtime (2 weeks)', inputType: 'number', canCleanOnImport: true, canCustomOnImport: true, canCleanOnExport: true },
 	{ key: 'steamLastSynced', label: 'Steam Last Sync', inputType: 'date', canCleanOnImport: true, canCustomOnImport: true, canCleanOnExport: true },
 	{ key: 'manualPlaytimeMinutes', label: 'Manual Playtime (minutes)', inputType: 'number', canCleanOnImport: true, canCustomOnImport: true, canCleanOnExport: true, numberMin: 0 },
+	{ key: 'manualPlaytimeIsAdditive', label: 'Add manual time to Steam', inputType: 'boolean', canCleanOnImport: true, canCustomOnImport: true, canCleanOnExport: true },
 ]

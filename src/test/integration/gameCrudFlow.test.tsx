@@ -6,8 +6,8 @@
  * the panel shows the correct game data, and the close button dismisses it.
  * API calls are intercepted by MSW.
  */
-import { vi, describe, it, expect, beforeEach } from 'vitest'
-import { screen, waitFor } from '@testing-library/react'
+import { vi, describe, it, expect, beforeAll, beforeEach } from 'vitest'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { server } from '@/test/mocks/server'
@@ -31,6 +31,7 @@ vi.mock('@/environments', () => ({
 				update: (id: number) => `/games/${id}`,
 				delete: (id: number) => `/games/${id}`,
 				bulkUpdate: '/games/bulk',
+				summary: '/games/summary',
 			},
 			gameStatus: {
 				base: '/gamestatus',
@@ -157,14 +158,21 @@ const authenticatedState = {
 
 describe('Game CRUD Flow — Integration', () => {
 	let store: ReturnType<typeof createTestStore>
+	// This suite checks the real detail interactions, not cold module compilation.
+	// Preload its module before the timed user assertions; production stays lazy
+	// and the browser journeys separately exercise that lazy loading boundary.
+	beforeAll(async () => { await import('@/components/Collection/CollectionGameDetails') }, 20000)
 
 	beforeEach(() => {
 		store = createTestStore(authenticatedState)
 		initCustomFetch(store, mockPersistor, mockForceLogout, () => ({ type: 'auth/setRefreshedTokens', payload: { token: '', refreshToken: '' } }))
 		// getPublicGameViews expects GameView[] directly (not paged result)
 		server.use(
+			http.get(`${BASE}/users/1`, () => HttpResponse.json({ ...authenticatedState.auth.user, useScoreColors: false, scoreProvider: 'Metacritic', showPriceComparisonIcon: false })),
 			http.get(`${BASE}/gameviews`, () => HttpResponse.json([])),
-			http.get(`${BASE}/games`, () => HttpResponse.json(GAMES_RESPONSE))
+			http.get(`${BASE}/games/summary`, () => HttpResponse.json({ totalGames: 2 })),
+			http.get(`${BASE}/games`, () => HttpResponse.json(GAMES_RESPONSE)),
+			http.get(`${BASE}/games/:id`, ({ params }) => HttpResponse.json(GAMES_RESPONSE.data.find(game => game.id === Number(params.id))))
 		)
 	})
 
@@ -173,8 +181,8 @@ describe('Game CRUD Flow — Integration', () => {
 	it('renders game names from the API in the game list', async () => {
 		renderWithProviders(<HomeComponent />, { store })
 
-		await screen.findByText('Dark Souls')
-		expect(screen.getByText('Hollow Knight')).toBeInTheDocument()
+		await screen.findByRole('heading', { level: 3, name: 'Dark Souls' })
+		expect(screen.getByRole('heading', { level: 3, name: 'Hollow Knight' })).toBeInTheDocument()
 	})
 
 	// ── 5.1 Ver detalles: click opens GameDetails ─────────────────────────────
@@ -183,10 +191,12 @@ describe('Game CRUD Flow — Integration', () => {
 		renderWithProviders(<HomeComponent />, { store })
 
 		const gameName = await screen.findByRole('heading', { level: 3, name: 'Dark Souls' })
-		await userEvent.click(gameName)
+		await userEvent.click(gameName.querySelector('button')!)
 
-		// GameDetails renders an sr-only h2 with "Detalles del juego: <name>"
-		await screen.findByRole('heading', { name: /Detalles del juego: Dark Souls/i })
+		// The production detail is a lazy chunk. Wait for its actual dialog, not
+		// Testing Library's 1s default while a cold import competes with the suite.
+		const details = await screen.findByRole('dialog', { name: 'Dark Souls' }, { timeout: 5000 })
+		expect(within(details).getByRole('heading', { level: 2, name: 'Dark Souls' })).toBeInTheDocument()
 	})
 
 	// ── 5.1 Ver detalles: panel shows correct data ────────────────────────────
@@ -195,11 +205,10 @@ describe('Game CRUD Flow — Integration', () => {
 		renderWithProviders(<HomeComponent />, { store })
 
 		const gameName = await screen.findByRole('heading', { level: 3, name: 'Dark Souls' })
-		await userEvent.click(gameName)
+		await userEvent.click(gameName.querySelector('button')!)
 
-		await waitFor(() => {
-			expect(screen.getByRole('heading', { name: /Detalles del juego: Dark Souls/i })).toBeInTheDocument()
-		})
+		const details = await screen.findByRole('dialog', { name: 'Dark Souls' }, { timeout: 5000 })
+		expect(within(details).getByRole('heading', { level: 2, name: 'Dark Souls' })).toBeInTheDocument()
 	})
 
 	// ── 5.1 Ver detalles: close button dismisses panel ────────────────────────
@@ -208,18 +217,18 @@ describe('Game CRUD Flow — Integration', () => {
 		renderWithProviders(<HomeComponent />, { store })
 
 		const gameName = await screen.findByRole('heading', { level: 3, name: 'Dark Souls' })
-		await userEvent.click(gameName)
+		await userEvent.click(gameName.querySelector('button')!)
 
 		// Verify panel is open
-		await screen.findByRole('heading', { name: /Detalles del juego: Dark Souls/i })
+		const details = await screen.findByRole('dialog', { name: 'Dark Souls' }, { timeout: 5000 })
 
 		// Close the panel
-		const closeBtn = screen.getByRole('button', { name: /cerrar detalles/i })
+		const closeBtn = within(details).getByRole('button', { name: /^cerrar$/i })
 		await userEvent.click(closeBtn)
 
 		// Panel should be gone (or in closing animation — but with css:false it disappears)
 		await waitFor(() => {
-			expect(screen.queryByRole('heading', { name: /Detalles del juego: Dark Souls/i })).not.toBeInTheDocument()
+			expect(screen.queryByRole('dialog', { name: 'Dark Souls' })).not.toBeInTheDocument()
 		})
 	})
 })

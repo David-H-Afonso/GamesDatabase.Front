@@ -1,41 +1,45 @@
 import { customFetch } from '@/utils/customFetch'
 import { environment } from '@/environments'
 import type { Game, GameCreateDto, GameUpdateDto, GameQueryParameters, PagedResult, GameSummary, GameStatusPatchDto } from '@/models/api/Game'
+import { invalidateCollection, collectionChanged } from '@/services/CollectionService/collectionEvents'
 
 const BASE = environment.apiRoutes.games.base
 
 /**
  * Fetch paged games with optional query parameters (filter, sort, page, etc.).
  */
-export const getGames = async (params?: GameQueryParameters): Promise<PagedResult<Game>> => {
+export const getGames = async (params?: GameQueryParameters, signal?: AbortSignal): Promise<PagedResult<Game>> => {
 	const endpoint = BASE
+	const { nameSearch, ...flat } = params ?? {}
 	return await customFetch<PagedResult<Game>>(endpoint, {
 		method: 'GET',
-		params: params as Record<string, string | number | boolean> | undefined,
+		params: params ? { ...flat, ...(nameSearch ? { nameSearchJson: JSON.stringify(nameSearch) } : {}) } : undefined,
+		signal,
 		baseURL: environment.baseUrl,
 	})
 }
 
 /** Fetch the ownership-scoped summary exposed for server integrations. */
-export const getGamesSummary = async (): Promise<GameSummary> => {
-	return await customFetch<GameSummary>(environment.apiRoutes.games.summary, { method: 'GET', baseURL: environment.baseUrl })
+export const getGamesSummary = async (signal?: AbortSignal): Promise<GameSummary> => {
+	return await customFetch<GameSummary>(environment.apiRoutes.games.summary, { method: 'GET', baseURL: environment.baseUrl, ...(signal ? { signal } : {}) })
 }
 
 /**
  * Fetch a single game by id.
  */
-export const getGameById = async (id: number): Promise<Game> => {
+export const getGameById = async (id: number, signal?: AbortSignal): Promise<Game> => {
 	const endpoint = environment.apiRoutes.games.byId(id)
-	return await customFetch<Game>(endpoint, { method: 'GET', baseURL: environment.baseUrl })
+	return await customFetch<Game>(endpoint, { method: 'GET', baseURL: environment.baseUrl, ...(signal ? { signal } : {}) })
 }
 
 /** Update only a game's status; the API records the change in history. */
 export const patchGameStatus = async (id: number, patch: GameStatusPatchDto): Promise<Game> => {
-	return await customFetch<Game>(environment.apiRoutes.games.status(id), {
+	const updated = await customFetch<Game>(environment.apiRoutes.games.status(id), {
 		method: 'PATCH',
 		body: patch,
 		baseURL: environment.baseUrl,
 	})
+	invalidateCollection(); return updated
 }
 
 /**
@@ -43,11 +47,12 @@ export const patchGameStatus = async (id: number, patch: GameStatusPatchDto): Pr
  */
 export const createGame = async (game: GameCreateDto): Promise<Game> => {
 	const endpoint = environment.apiRoutes.games.create
-	return await customFetch<Game>(endpoint, {
+	const created = await customFetch<Game>(endpoint, {
 		method: 'POST',
 		body: game,
 		baseURL: environment.baseUrl,
 	})
+	invalidateCollection(); return created
 }
 
 /**
@@ -56,6 +61,7 @@ export const createGame = async (game: GameCreateDto): Promise<Game> => {
 export const updateGame = async (id: number, game: GameUpdateDto): Promise<void> => {
 	const endpoint = environment.apiRoutes.games.update(id)
 	await customFetch<void>(endpoint, { method: 'PUT', body: game, baseURL: environment.baseUrl })
+	invalidateCollection()
 }
 
 /**
@@ -64,6 +70,7 @@ export const updateGame = async (id: number, game: GameUpdateDto): Promise<void>
 export const deleteGame = async (id: number): Promise<void> => {
 	const endpoint = environment.apiRoutes.games.delete(id)
 	await customFetch<void>(endpoint, { method: 'DELETE', baseURL: environment.baseUrl })
+	invalidateCollection()
 }
 
 /**
@@ -75,5 +82,5 @@ export const bulkUpdateGames = async (data: import('@/models/api/Game').BulkUpda
 		method: 'PATCH',
 		body: data,
 		baseURL: environment.baseUrl,
-	})
+	}).then(collectionChanged)
 }

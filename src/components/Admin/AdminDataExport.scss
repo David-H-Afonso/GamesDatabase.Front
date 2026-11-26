@@ -120,8 +120,8 @@
 	}
 
 	.highlight-section {
-		border: 2px solid var(--primary);
-		background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+		border: 1px solid var(--gdb-line);
+		background: var(--gdb-surface);
 	}
 
 	.action-group {
@@ -386,8 +386,8 @@
 		}
 
 		&.btn-primary {
-			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-			color: white;
+			background: var(--gdb-button);
+			color: var(--gdb-button-ink);
 
 			&:hover:not(:disabled) {
 				box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
@@ -395,8 +395,8 @@
 		}
 
 		&.btn-success {
-			background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-			color: white;
+			background: var(--gdb-button);
+			color: var(--gdb-button-ink);
 
 			&:hover:not(:disabled) {
 				box-shadow: 0 4px 12px rgba(56, 239, 125, 0.4);

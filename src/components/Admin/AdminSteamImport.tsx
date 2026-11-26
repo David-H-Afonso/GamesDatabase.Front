@@ -626,7 +626,7 @@ export const AdminSteamImport = () => {
 		const filtered = library.filter((g) => !filterUnmatched || !g.gdbGameId).filter((g) => !normalizedSearch || g.name.toLowerCase().includes(normalizedSearch))
 
 		const sorted = [...filtered].sort((left, right) => {
-			let comparison = 0
+			let comparison: number
 
 			switch (librarySort.key) {
 				case 'name':

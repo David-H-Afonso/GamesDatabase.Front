@@ -11,6 +11,13 @@ function getApiBaseUrl(): string {
 	// Debe ir ANTES del check de window.ENV porque public/env-config.js
 	// puede tener la URL de producción y este fichero solo se usa en dev.
 	if (import.meta.env.DEV) {
+		const configured = import.meta.env.VITE_API_URL
+		if (configured) {
+			try {
+				const url = new URL(configured)
+				if (['localhost', '127.0.0.1', '[::1]'].includes(url.hostname) && ['http:', 'https:'].includes(url.protocol)) return configured.replace(/\/$/, '')
+			} catch { /* Invalid development overrides do not replace the loopback default. */ }
+		}
 		return 'https://localhost:7245/api'
 	}
 

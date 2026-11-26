@@ -61,7 +61,8 @@ export const ConfirmDialog: FC<ConfirmDialogProps> = ({ isOpen, title, message, 
 		}
 	}
 
-	const portalTarget = (typeof document !== 'undefined' && document.getElementById('modal-portal')) || document.body
+	const nativeLayers = document.querySelectorAll('dialog[open] [data-gdb-modal-layer]')
+	const portalTarget = nativeLayers[nativeLayers.length - 1] || document.getElementById('modal-portal') || document.body
 
 	return createPortal(
 		<div className='confirm-dialog' role='alertdialog' aria-modal='true' aria-labelledby={titleId} aria-describedby={messageId} onKeyDown={handleKeyDown}>

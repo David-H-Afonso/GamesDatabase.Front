@@ -1,4 +1,4 @@
-import { fireEvent, screen, within } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import React from 'react'
 import { renderWithProviders } from '@/test/utils/renderWithProviders'
 
@@ -64,11 +64,11 @@ vi.mock('@/hooks/useGames/useGames', async () => {
 	}
 })
 
-vi.mock('@/components/elements/GameDetails/GameDetails', async () => {
-	const actual = await vi.importActual<typeof import('@/components/elements/GameDetails/GameDetails')>('@/components/elements/GameDetails/GameDetails')
+vi.mock('@/components/Collection/CollectionGameDetailsLazy', async () => {
+	const actual = await vi.importActual<typeof import('@/components/Collection/CollectionGameDetailsLazy')>('@/components/Collection/CollectionGameDetailsLazy')
 	return {
 		...actual,
-		GameDetails: ({ game }: { game: { name: string } }) => React.createElement('div', { 'data-testid': 'game-details' }, game.name),
+		CollectionGameDetails: ({ game }: { game: { name: string } }) => React.createElement('div', { 'data-testid': 'game-details' }, game.name),
 	}
 })
 
@@ -99,12 +99,13 @@ describe('AdminAuditLog', () => {
 		const C = await loadComponent()
 		renderWithProviders(<C />, { preloadedState: adminState as any })
 		expect(screen.getByText(/Auditoría|Audit/i)).toBeInTheDocument()
+		await screen.findByText('Elden Ring')
 	})
 
 	it('loads and displays entries', async () => {
 		const C = await loadComponent()
 		renderWithProviders(<C />, { preloadedState: adminState as any })
-		await vi.waitFor(() => {
+		await waitFor(() => {
 			expect(screen.getByText('Elden Ring')).toBeInTheDocument()
 			expect(screen.getByText('Zelda')).toBeInTheDocument()
 		})
@@ -113,7 +114,7 @@ describe('AdminAuditLog', () => {
 	it('shows action type labels', async () => {
 		const C = await loadComponent()
 		renderWithProviders(<C />, { preloadedState: adminState as any })
-		await vi.waitFor(() => {
+		await waitFor(() => {
 			expect(screen.getByText('Actualizado')).toBeInTheDocument()
 			expect(screen.getByText('Creado')).toBeInTheDocument()
 		})
@@ -122,7 +123,7 @@ describe('AdminAuditLog', () => {
 	it('shows field changes for updates', async () => {
 		const C = await loadComponent()
 		renderWithProviders(<C />, { preloadedState: adminState as any })
-		await vi.waitFor(() => {
+		await waitFor(() => {
 			expect(screen.getByText('Status')).toBeInTheDocument()
 		})
 	})
@@ -130,7 +131,7 @@ describe('AdminAuditLog', () => {
 	it('shows pagination info', async () => {
 		const C = await loadComponent()
 		renderWithProviders(<C />, { preloadedState: adminState as any })
-		await vi.waitFor(() => {
+		await waitFor(() => {
 			expect(screen.getByText(/Página 1 de 1/)).toBeInTheDocument()
 		})
 	})
@@ -140,6 +141,7 @@ describe('AdminAuditLog', () => {
 		renderWithProviders(<C />, { preloadedState: adminState as any })
 		expect(screen.getByRole('combobox', { name: 'Filtrar por campo' })).toBeInTheDocument()
 		expect(screen.getByPlaceholderText('Buscar por juego, campo, acción, descripción o valores...')).toBeInTheDocument()
+		await screen.findByText('Elden Ring')
 	})
 
 	it('can filter by Comment field', async () => {
@@ -149,7 +151,7 @@ describe('AdminAuditLog', () => {
 
 		fireEvent.change(screen.getByRole('combobox', { name: 'Filtrar por campo' }), { target: { value: 'Comment' } })
 
-		await vi.waitFor(() => {
+		await waitFor(() => {
 			expect(getAdminHistory).toHaveBeenLastCalledWith(expect.objectContaining({ field: 'Comment' }))
 		})
 	})
@@ -158,7 +160,7 @@ describe('AdminAuditLog', () => {
 		const C = await loadComponent()
 		renderWithProviders(<C />, { preloadedState: adminState as any })
 
-		await vi.waitFor(() => {
+		await waitFor(() => {
 			expect(screen.getByText('The Alters')).toBeInTheDocument()
 		})
 
@@ -168,7 +170,7 @@ describe('AdminAuditLog', () => {
 		const dialog = await screen.findByRole('alertdialog')
 		fireEvent.click(within(dialog).getByRole('button', { name: 'Confirmar' }))
 
-		await vi.waitFor(() => {
+		await waitFor(() => {
 			expect(mockUpdateGame).toHaveBeenCalledWith(12, { comment: 'De la librería de Kayko' })
 		})
 	})

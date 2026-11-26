@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useAppSelector, useAppDispatch } from '@/store/hooks'
 import { initializeTheme, setTheme, setCardStyle, setViewMode } from '@/store/features/theme/themeSlice'
 import type { ViewMode } from '@/models/ViewMode'
@@ -10,9 +10,12 @@ import type { ViewMode } from '@/models/ViewMode'
 export const useTheme = () => {
 	const { currentTheme, availableThemes, cardStyle, viewMode } = useAppSelector((state) => state.theme)
 	const dispatch = useAppDispatch()
+	const initialized = useRef(false)
 
 	// Initialize theme state from system/local values via slice initializer
 	useEffect(() => {
+		if (initialized.current) return
+		initialized.current = true
 		dispatch(initializeTheme())
 		// load persisted values from localStorage and dispatch into Redux
 		if (typeof window !== 'undefined') {

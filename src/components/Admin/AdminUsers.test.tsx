@@ -41,21 +41,24 @@ describe('AdminUsers', () => {
 	it('renders users title', async () => {
 		const C = await loadComponent()
 		renderWithProviders(<C />, { preloadedState: adminState as any })
+		await screen.findByText('Player1')
 		expect(screen.getByText('Gestión de Usuarios')).toBeInTheDocument()
 	})
 
 	it('loads and displays users', async () => {
 		const C = await loadComponent()
 		renderWithProviders(<C />, { preloadedState: adminState as any })
-		await vi.waitFor(() => {
+		await waitFor(() => {
 			expect(screen.getByText('Player1')).toBeInTheDocument()
 		})
+		expect(screen.getByText('Tú')).toBeInTheDocument()
+		expect(screen.queryByText('users.badgeYou')).not.toBeInTheDocument()
 	})
 
 	it('shows user roles', async () => {
 		const C = await loadComponent()
 		renderWithProviders(<C />, { preloadedState: adminState as any })
-		await vi.waitFor(() => {
+		await waitFor(() => {
 			expect(screen.getAllByText('Admin').length).toBeGreaterThanOrEqual(1)
 			expect(screen.getByText('Standard')).toBeInTheDocument()
 		})
@@ -64,6 +67,7 @@ describe('AdminUsers', () => {
 	it('has search functionality', async () => {
 		const C = await loadComponent()
 		renderWithProviders(<C />, { preloadedState: adminState as any })
+		await screen.findByText('Player1')
 		const searchInput = screen.getByPlaceholderText('Buscar usuarios por nombre o rol...')
 		expect(searchInput).toBeInTheDocument()
 	})
@@ -72,7 +76,7 @@ describe('AdminUsers', () => {
 		const C = await loadComponent()
 		const user = userEvent.setup()
 		renderWithProviders(<C />, { preloadedState: adminState as any })
-		await vi.waitFor(() => expect(screen.getByText('Player1')).toBeInTheDocument())
+		await waitFor(() => expect(screen.getByText('Player1')).toBeInTheDocument())
 		const searchInput = screen.getByPlaceholderText('Buscar usuarios por nombre o rol...')
 		await user.type(searchInput, 'Player')
 		expect(screen.getByText('Player1')).toBeInTheDocument()
@@ -90,7 +94,7 @@ describe('AdminUsers', () => {
 		const C = await loadComponent()
 		const user = userEvent.setup()
 		renderWithProviders(<C />, { preloadedState: adminState as any })
-		await vi.waitFor(() => expect(screen.getByText('Player1')).toBeInTheDocument())
+		await waitFor(() => expect(screen.getByText('Player1')).toBeInTheDocument())
 		const editButtons = screen.getAllByText('Editar')
 		await user.click(editButtons[0])
 		expect(screen.getByText('Editar Usuario')).toBeInTheDocument()
@@ -115,10 +119,10 @@ describe('AdminUsers', () => {
 		const C = await loadComponent()
 		const user = userEvent.setup()
 		renderWithProviders(<C />, { preloadedState: adminState as any })
-		await vi.waitFor(() => expect(screen.getByText('Player1')).toBeInTheDocument())
+		await waitFor(() => expect(screen.getByText('Player1')).toBeInTheDocument())
 		const editButtons = screen.getAllByText('Editar')
 		await user.click(editButtons[editButtons.length - 1])
-		await vi.waitFor(() => expect(screen.getByText('Editar Usuario')).toBeInTheDocument())
+		await waitFor(() => expect(screen.getByText('Editar Usuario')).toBeInTheDocument())
 		await user.click(screen.getByText('Actualizar'))
 		await waitFor(() => {
 			expect(mockService.updateUser).toHaveBeenCalled()
@@ -129,7 +133,7 @@ describe('AdminUsers', () => {
 		const C = await loadComponent()
 		const user = userEvent.setup()
 		renderWithProviders(<C />, { preloadedState: adminState as any })
-		await vi.waitFor(() => expect(screen.getByText('Player1')).toBeInTheDocument())
+		await waitFor(() => expect(screen.getByText('Player1')).toBeInTheDocument())
 		const deleteButtons = screen.getAllByText('Eliminar')
 		await user.click(deleteButtons[deleteButtons.length - 1])
 		expect(screen.getByText(/¿estás seguro/i)).toBeInTheDocument()
@@ -139,10 +143,10 @@ describe('AdminUsers', () => {
 		const C = await loadComponent()
 		const user = userEvent.setup()
 		renderWithProviders(<C />, { preloadedState: adminState as any })
-		await vi.waitFor(() => expect(screen.getByText('Player1')).toBeInTheDocument())
+		await waitFor(() => expect(screen.getByText('Player1')).toBeInTheDocument())
 		const deleteButtons = screen.getAllByText('Eliminar')
 		await user.click(deleteButtons[deleteButtons.length - 1])
-		await vi.waitFor(() => expect(screen.getByText(/¿estás seguro/i)).toBeInTheDocument())
+		await waitFor(() => expect(screen.getByText(/¿estás seguro/i)).toBeInTheDocument())
 		await user.click(screen.getByText('Sí, Eliminar Usuario'))
 		await waitFor(() => {
 			expect(mockService.deleteUser).toHaveBeenCalledWith(2)
@@ -153,7 +157,7 @@ describe('AdminUsers', () => {
 		const C = await loadComponent()
 		const user = userEvent.setup()
 		renderWithProviders(<C />, { preloadedState: adminState as any })
-		await vi.waitFor(() => expect(screen.getByText('Player1')).toBeInTheDocument())
+		await waitFor(() => expect(screen.getByText('Player1')).toBeInTheDocument())
 		const pwButtons = screen.getAllByText('Cambiar Contraseña')
 		await user.click(pwButtons[0])
 		expect(screen.getByText(/nueva contraseña/i)).toBeInTheDocument()
@@ -163,7 +167,7 @@ describe('AdminUsers', () => {
 		mockService.getAllUsers.mockRejectedValueOnce(new Error('Network error'))
 		const C = await loadComponent()
 		renderWithProviders(<C />, { preloadedState: adminState as any })
-		await vi.waitFor(() => {
+		await waitFor(() => {
 			expect(screen.getByText(/network error/i)).toBeInTheDocument()
 		})
 	})

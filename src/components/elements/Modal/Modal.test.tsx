@@ -70,6 +70,13 @@ describe('Modal', () => {
 		expect(screen.getByRole('button', { name: /confirm/i })).toBeInTheDocument()
 	})
 
+	it('lets Escape dismiss an open native select before closing its parent modal', () => {
+		const onClose = vi.fn(); render(<Modal {...defaultProps} onClose={onClose}><select aria-label='Fixture select'><option>One</option><option>Two</option></select></Modal>)
+		const select = screen.getByRole('combobox', { name: 'Fixture select' }), matches = vi.spyOn(select, 'matches').mockReturnValue(true)
+		expect(fireEvent.keyDown(select, { key: 'Escape' })).toBe(true); expect(onClose).not.toHaveBeenCalled(); expect(matches).toHaveBeenCalledWith(':open')
+		matches.mockReturnValue(false); fireEvent.keyDown(select, { key: 'Escape' }); expect(onClose).toHaveBeenCalledOnce(); matches.mockRestore()
+	})
+
 	it('moves focus into the dialog when opened', () => {
 		render(<Modal {...defaultProps} />)
 		expect(screen.getByRole('button', { name: closeName() })).toHaveFocus()
@@ -86,5 +93,24 @@ describe('Modal', () => {
 		expect(close).toHaveFocus()
 		await userEvent.tab({ shift: true })
 		expect(confirm).toHaveFocus()
+	})
+
+	it('recovers focus lost while an async action is disabled so Escape still closes this layer', async () => {
+		const onClose = vi.fn()
+		const { rerender } = render(<Modal {...defaultProps} onClose={onClose} footer={<button>Save</button>} />)
+		const save = screen.getByRole('button', { name: 'Save' })
+		save.focus(); save.blur()
+		rerender(<Modal {...defaultProps} onClose={onClose} footer={<button disabled>Save</button>} />)
+		expect(screen.getByRole('button', { name: closeName() })).toHaveFocus()
+		await userEvent.keyboard('{Escape}')
+		expect(onClose).toHaveBeenCalledOnce()
+	})
+
+	it('does not steal focus from a later nested modal when the parent rerenders', () => {
+		const layers = (title: string) => <><Modal {...defaultProps} title={title} /><Modal {...defaultProps} title='Nested' /></>
+		const { rerender } = render(layers('Parent'))
+		const nested = screen.getByRole('dialog', { name: 'Nested' })
+		rerender(layers('Updated parent'))
+		expect(nested.contains(document.activeElement)).toBe(true)
 	})
 })

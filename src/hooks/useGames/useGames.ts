@@ -19,7 +19,7 @@ import {
 	bulkUpdateGames,
 } from '@/store/features/games'
 import { areFiltersEqual } from '@/utils'
-import type { Game, GameCreateDto, GameUpdateDto, GameQueryParameters, BulkUpdateGameDto } from '@/models/api/Game'
+import type { Game, GameCreateDto, GameUpdateDto, GameQueryParameters, BulkUpdateGameDto, BulkUpdateResult } from '@/models/api/Game'
 import { dispatchAndUnwrapAsync } from '@/utils'
 
 /**
@@ -51,7 +51,7 @@ export const useGames = () => {
 	)
 
 	// Force a fresh fetch ignoring cache
-	const refreshGames = useCallback(async (params: GameQueryParameters = {}) => dispatchAndUnwrapAsync(dispatch, fetchGames(params)), [dispatch])
+	const refreshGames = useCallback(async (params: GameQueryParameters = {}, signal?: AbortSignal) => dispatchAndUnwrapAsync(dispatch, fetchGames(params, signal ? { signal } : undefined)), [dispatch])
 
 	// Fetch details for a single game
 	const fetchGameDetails = useCallback(
@@ -77,7 +77,7 @@ export const useGames = () => {
 
 	const bulkUpdateGamesById = useCallback(
 		async (data: BulkUpdateGameDto) => {
-			return dispatchAndUnwrapAsync(dispatch, bulkUpdateGames(data))
+			return dispatchAndUnwrapAsync<BulkUpdateResult>(dispatch, bulkUpdateGames(data))
 		},
 		[dispatch]
 	)

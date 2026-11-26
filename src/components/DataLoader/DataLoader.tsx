@@ -63,7 +63,7 @@ export const DataLoader = () => {
 	useEffect(() => {
 		const currentPath = location.pathname
 		const wasInAdmin = previousPath.current.startsWith('/admin/')
-		const isNowHome = currentPath === '/' || currentPath === '/home'
+		const isNowHome = currentPath === '/' || currentPath === '/home' || currentPath.startsWith('/library') || currentPath.startsWith('/statistics') || currentPath.startsWith('/focus') || currentPath.startsWith('/playlists')
 
 		if (wasInAdmin && isNowHome && token) {
 			void loadCatalogData()

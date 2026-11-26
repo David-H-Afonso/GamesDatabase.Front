@@ -4,6 +4,7 @@ export interface ThemeState {
 	currentTheme: string
 	availableThemes: string[]
 	cardStyle?: 'card' | 'row' | 'cover'
+	cardColumns?: 3 | 4
 	viewMode?: ViewMode
 	/**
 	 * Selected background image id per theme key. `'none'` (or a missing entry)

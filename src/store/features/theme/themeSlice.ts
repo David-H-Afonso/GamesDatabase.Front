@@ -6,7 +6,7 @@ import { NO_BACKGROUND, resolveBackgroundValue } from '@/assets/styles/themes/th
 
 // Function to get initial theme
 const getInitialTheme = (): string => {
-	if (typeof window === 'undefined') return 'light'
+	if (typeof window === 'undefined') return 'gallery'
 
 	try {
 		const savedTheme = normalizeThemeKey(localStorage.getItem('theme'))
@@ -14,10 +14,9 @@ const getInitialTheme = (): string => {
 			return savedTheme
 		}
 
-		const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-		return systemPrefersDark ? 'dark' : 'light'
+		return 'gallery'
 	} catch {
-		return 'light'
+		return 'gallery'
 	}
 }
 
@@ -34,7 +33,8 @@ const applyBackground = (theme: string, backgroundByTheme?: Record<string, strin
 const initialState: ThemeState = {
 	currentTheme: getInitialTheme(),
 	availableThemes: [...AVAILABLE_THEMES],
-	cardStyle: 'card',
+	cardStyle: 'cover',
+	cardColumns: 3,
 	viewMode: 'default',
 	backgroundByTheme: {},
 }
@@ -85,16 +85,12 @@ const themeSlice = createSlice({
 			if (!state.backgroundByTheme) state.backgroundByTheme = {}
 
 			// Get theme from localStorage or system preference
-			let themeToSet = 'dark' // default fallback
+			let themeToSet = 'gallery'
 
 			if (typeof window !== 'undefined') {
 				const savedTheme = normalizeThemeKey(localStorage.getItem('theme'))
-				const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-
 				if (savedTheme && state.availableThemes.includes(savedTheme)) {
 					themeToSet = savedTheme
-				} else if (systemPrefersDark && state.availableThemes.includes('dark')) {
-					themeToSet = 'dark'
 				}
 			}
 
@@ -109,6 +105,7 @@ const themeSlice = createSlice({
 		setCardStyle: (state, action: PayloadAction<'card' | 'row' | 'cover'>) => {
 			state.cardStyle = action.payload
 		},
+		setCardColumns: (state, action: PayloadAction<3 | 4>) => { if (action.payload === 3 || action.payload === 4) state.cardColumns = action.payload },
 		setViewMode: (state, action: PayloadAction<ViewMode>) => {
 			state.viewMode = action.payload
 		},
@@ -116,6 +113,6 @@ const themeSlice = createSlice({
 	},
 })
 
-export const { setTheme, setThemeBackground, addTheme, removeTheme, initializeTheme, setCardStyle, setViewMode, reset } = themeSlice.actions
+export const { setTheme, setThemeBackground, addTheme, removeTheme, initializeTheme, setCardStyle, setCardColumns, setViewMode, reset } = themeSlice.actions
 
 export default themeSlice.reducer

@@ -23,6 +23,7 @@ export const AdminUsers = () => {
 		username: '',
 		password: '',
 		role: 'Standard',
+		tutorialEnabled: true,
 	})
 	const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false)
 	const [passwordChangeUserId, setPasswordChangeUserId] = useState<number | null>(null)
@@ -65,6 +66,7 @@ export const AdminUsers = () => {
 			setFormData({
 				username: user.username,
 				role: user.role,
+				tutorialEnabled: user.tutorialEnabled ?? false,
 			})
 		} else {
 			setEditingUser(null)
@@ -72,6 +74,7 @@ export const AdminUsers = () => {
 				username: '',
 				password: '',
 				role: 'Standard',
+				tutorialEnabled: true,
 			})
 		}
 		setIsModalOpen(true)
@@ -92,6 +95,7 @@ export const AdminUsers = () => {
 				await userService.updateUser(editingUser.id, {
 					username: formData.username,
 					role: formData.role,
+					tutorialEnabled: formData.tutorialEnabled,
 				})
 				showToast(`${t('admin.users.toastUpdated', { username: formData.username })}`, 'success')
 			} else {
@@ -226,7 +230,7 @@ export const AdminUsers = () => {
 								<tr key={user.id}>
 									<td>
 										{user.username}
-										{user.id === currentUser?.id && <span className='badge badge-info'>{t('users.badgeYou')}</span>}
+										{user.id === currentUser?.id && <span className='badge badge-info'>{t('admin.users.badgeYou')}</span>}
 									</td>
 									<td>
 										<span className={`badge badge-${user.role === 'Admin' ? 'admin' : 'standard'}`}>{user.role}</span>
@@ -257,14 +261,15 @@ export const AdminUsers = () => {
 			<Modal isOpen={isModalOpen} onClose={handleCloseModal} title={editingUser ? t('admin.users.editTitle') : t('admin.users.createTitle')} maxWidth='500px'>
 				<form onSubmit={handleSubmit} className='admin-users-modal'>
 					<div className='form-group'>
-						<label>{t('admin.users.usernameLabel')}</label>
-						<input type='text' value={formData.username} onChange={(e) => setFormData({ ...formData, username: e.target.value })} required />
+						<label htmlFor='gdb-user-name'>{t('admin.users.usernameLabel')}</label>
+						<input id='gdb-user-name' type='text' value={formData.username} onChange={(e) => setFormData({ ...formData, username: e.target.value })} required />
 					</div>
 
 					{!editingUser && (
 						<div className='form-group'>
-							<label>{t('admin.users.passwordLabel')}</label>
+							<label htmlFor='gdb-user-password'>{t('admin.users.passwordLabel')}</label>
 							<input
+								id='gdb-user-password'
 								type='password'
 								value={formData.password || ''}
 								onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -274,12 +279,14 @@ export const AdminUsers = () => {
 					)}
 
 					<div className='form-group'>
-						<label>{t('admin.users.roleLabel')}</label>
-						<select value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}>
+						<label htmlFor='gdb-user-role'>{t('admin.users.roleLabel')}</label>
+						<select id='gdb-user-role' value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}>
 							<option value='Standard'>{t('admin.users.roleStandard')}</option>
 							<option value='Admin'>{t('admin.users.roleAdmin')}</option>
 						</select>
 					</div>
+					<label className='gdb-check-label'><input type='checkbox' checked={formData.tutorialEnabled ?? false} onChange={event => setFormData({ ...formData, tutorialEnabled: event.target.checked })} />{t('guide.enableForUser')}</label>
+					<p className='gdb-hint'>{t('guide.enableForUserHelp')}</p>
 
 					<div className='modal-actions'>
 						<button type='button' className='btn btn-secondary' onClick={handleCloseModal} disabled={actionLoading}>

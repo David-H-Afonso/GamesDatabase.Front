@@ -15,6 +15,7 @@ export interface User {
 	useScoreColors: boolean
 	scoreProvider: string
 	showPriceComparisonIcon: boolean
+	tutorialEnabled?: boolean
 	steamId?: string
 	steamNickname?: string
 	steamAvatarUrl?: string
@@ -43,6 +44,7 @@ export interface UserCreateDto {
 	username: string
 	password?: string
 	role: UserRole
+	tutorialEnabled?: boolean
 }
 
 export interface UserUpdateDto {
@@ -51,6 +53,7 @@ export interface UserUpdateDto {
 	useScoreColors?: boolean
 	scoreProvider?: string
 	showPriceComparisonIcon?: boolean
+	tutorialEnabled?: boolean
 }
 
 export interface ChangePasswordDto {

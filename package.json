@@ -1,7 +1,7 @@
 {
 	"name": "gamesdatabase-front",
 	"private": true,
-	"version": "2.0.4",
+	"version": "2.0.5",
 	"type": "module",
 	"author": "David H. Afonso",
 	"description": "A self-hosted game library for organizing collections, playthroughs and Steam progress",

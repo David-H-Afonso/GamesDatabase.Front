@@ -69,6 +69,14 @@ const gameViewSlice = createSlice({
 			state.filters = {}
 		},
 		resetState: () => initialState,
+		recordViewUsage: (state, action: PayloadAction<Array<Pick<GameView, 'id' | 'lastUsedAt'>>>) => {
+			const byId = new Map(action.payload.map(view => [view.id, view.lastUsedAt]))
+			for (const view of [...state.gameViews, ...state.publicGameViews, ...(state.currentGameView ? [state.currentGameView] : [])]) {
+				const timestamp = byId.get(view.id)
+				const next = Date.parse(timestamp ?? ''), previous = Date.parse(view.lastUsedAt ?? '')
+				if (timestamp && Number.isFinite(next) && (!Number.isFinite(previous) || next > previous)) view.lastUsedAt = timestamp
+			}
+		},
 	},
 	extraReducers: (builder) => {
 		// Fetch GameViews
@@ -200,6 +208,6 @@ const gameViewSlice = createSlice({
 	},
 })
 
-export const { setLoading, setError, setCurrentGameView, addGameView, updateGameView, removeGameView, setFilters, resetFilters, resetState } = gameViewSlice.actions
+export const { setLoading, setError, setCurrentGameView, addGameView, updateGameView, removeGameView, setFilters, resetFilters, resetState, recordViewUsage } = gameViewSlice.actions
 
 export default gameViewSlice.reducer

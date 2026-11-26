@@ -2,7 +2,7 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import type { GamesState } from '@/models/store/GamesState'
 import type { Game, GameQueryParameters, PagedResult } from '@/models/api/Game'
 import { fetchGames, fetchGameById, createGame, updateGame, updateGameStatus, deleteGame } from './thunk'
-import { DEFAULT_PAGE_SIZE } from '@/utils'
+import { DEFAULT_PAGE_SIZE, areFiltersEqual } from '@/utils'
 
 const initialState: GamesState = {
 	games: [],
@@ -100,11 +100,15 @@ const gamesSlice = createSlice({
 	extraReducers: (builder) => {
 		// Fetch games
 		builder
-			.addCase(fetchGames.pending, (state) => {
+			.addCase(fetchGames.pending, (state, action) => {
+				state.activeListRequestId = action.meta.requestId
+				if (!areFiltersEqual(action.meta.arg ?? {}, state.lastAppliedFilters)) state.games = []
 				state.loading = true
 				state.error = null
 			})
 			.addCase(fetchGames.fulfilled, (state, action) => {
+				if (state.activeListRequestId !== action.meta.requestId) return
+				state.activeListRequestId = undefined
 				state.loading = false
 				state.games = action.payload.data
 				state.pagination = {
@@ -120,7 +124,10 @@ const gamesSlice = createSlice({
 				state.isDataFresh = true
 			})
 			.addCase(fetchGames.rejected, (state, action) => {
+				if (state.activeListRequestId !== action.meta.requestId) return
+				state.activeListRequestId = undefined
 				state.loading = false
+				if (action.meta.aborted) return
 				state.error = (action.payload as string) || 'Failed to fetch games'
 			})
 
@@ -151,8 +158,9 @@ const gamesSlice = createSlice({
 			})
 			.addCase(createGame.fulfilled, (state, action) => {
 				state.loading = false
-				state.games.unshift(action.payload)
-				state.pagination.totalCount += 1
+				const existing = state.games.findIndex(game => game.id === action.payload.id)
+				if (existing >= 0) state.games[existing] = action.payload
+				else { state.games.unshift(action.payload); state.pagination.totalCount += 1 }
 				// Invalidar caché porque la lista cambió
 				state.isDataFresh = false
 			})
@@ -221,6 +229,7 @@ const gamesSlice = createSlice({
 				state.loading = false
 				state.error = (action.payload as string) || 'Failed to delete game'
 			})
+		builder.addMatcher(action => ['auth/forceLogout', 'auth/logout/pending', 'auth/login/fulfilled', 'auth/steamLogin/fulfilled'].includes(action.type), () => initialState)
 	},
 })
 

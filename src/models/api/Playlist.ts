@@ -1,4 +1,5 @@
 import type { Game } from './Game'
+import type { NameSearch } from './NameSearch'
 
 export interface PlaylistItem {
 	id: number
@@ -20,6 +21,7 @@ export interface PlaylistSummary {
 	coverUrlOverride?: string
 	logoUrlOverride?: string
 	isAutomatic: boolean
+	isSample?: boolean
 	rules?: PlaylistRules
 	sortOrder: number
 	gameCount: number
@@ -47,11 +49,15 @@ export interface PlaylistCreateDto {
 export type PlaylistUpdateDto = Partial<PlaylistCreateDto>
 
 export interface PlaylistRules {
+	nameSearch?: NameSearch | null
 	search?: string
 	statusIds: number[]
 	platformIds: number[]
 	playedStatusIds: number[]
 	favorite?: boolean
+	playingNow?: boolean
+	upcomingReleases?: boolean
+	releaseTimeZone?: string | null
 	minGrade?: number
 	maxGrade?: number
 	minCritic?: number
@@ -70,6 +76,12 @@ export interface PlaylistRules {
 	statusPriorityIds?: number[]
 	groupByStatus?: boolean
 	excludedGameIds?: number[]
+}
+
+export interface PlaylistPreview {
+	totalMatches: number
+	returnedCount: number
+	games: Game[]
 }
 
 export interface PlaylistTransfer {

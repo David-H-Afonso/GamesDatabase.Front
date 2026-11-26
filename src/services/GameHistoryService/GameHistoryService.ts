@@ -2,6 +2,7 @@ import { customFetch } from '@/utils/customFetch'
 import { environment } from '@/environments'
 import type { GameHistoryEntry, GameHistoryQueryParameters } from '@/models/api/GameHistoryEntry'
 import type { PagedResult } from '@/models/api/Game'
+import { collectionChanged } from '@/services/CollectionService/collectionEvents'
 
 const routes = environment.apiRoutes.gameHistory
 
@@ -14,11 +15,11 @@ export const getHistoryByGameId = async (gameId: number, page = 1, pageSize = 50
 }
 
 export const deleteHistoryEntry = async (gameId: number, entryId: number): Promise<void> => {
-	await customFetch<void>(routes.entryById(gameId, entryId), { method: 'DELETE', baseURL: environment.baseUrl })
+	await customFetch<void>(routes.entryById(gameId, entryId), { method: 'DELETE', baseURL: environment.baseUrl }).then(collectionChanged)
 }
 
 export const clearGameHistory = async (gameId: number): Promise<void> => {
-	await customFetch<void>(routes.byGameId(gameId), { method: 'DELETE', baseURL: environment.baseUrl })
+	await customFetch<void>(routes.byGameId(gameId), { method: 'DELETE', baseURL: environment.baseUrl }).then(collectionChanged)
 }
 
 export const getGlobalHistory = async (params?: GameHistoryQueryParameters): Promise<PagedResult<GameHistoryEntry>> => {

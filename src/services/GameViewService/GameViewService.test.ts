@@ -105,10 +105,11 @@ describe('GameViewService', () => {
 	})
 
 	it('getPublicGameViews calls getGameViews with isPublic', async () => {
-		mockFetch.mockResolvedValue([{ id: 1, name: 'Public' }])
+		mockFetch.mockResolvedValue([{ id: 1, name: 'Public', isPublic: true }, { id: 2, name: 'Private', isPublic: false }])
 		const result = await getPublicGameViews()
 		expect(mockFetch).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({ params: expect.objectContaining({ isPublic: true }) }))
 		expect(result).toHaveLength(1)
+		expect(result[0].id).toBe(1)
 	})
 
 	it('updateGameViewConfiguration calls PUT on /configuration', async () => {

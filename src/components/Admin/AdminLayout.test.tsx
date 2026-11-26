@@ -45,6 +45,8 @@ describe('AdminLayout', () => {
 	it('renders sidebar with title', () => {
 		renderWithProviders(<AdminLayout />, { preloadedState: adminState as any, route: '/admin/platforms' })
 		expect(screen.getByText('Administración')).toBeInTheDocument()
+		expect(screen.getByRole('main')).toHaveAttribute('id', 'main-content')
+		expect(screen.getByRole('main')).toHaveAttribute('tabindex', '-1')
 	})
 
 	it('renders all nav links', () => {

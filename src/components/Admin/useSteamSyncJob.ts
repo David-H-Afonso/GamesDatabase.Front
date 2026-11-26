@@ -3,6 +3,7 @@ import { useAppDispatch } from '@/store/hooks'
 import { invalidateCache, triggerGamesRefresh } from '@/store/features/games/gamesSlice'
 import { steamService, isSteamSyncActive, type SteamSyncJob } from '@/services/SteamService/SteamService'
 import { steamErrorKey } from '@/utils/steamErrors'
+import { invalidateCollection } from '@/services/CollectionService/collectionEvents'
 
 interface Session {
 	controller: AbortController
@@ -40,6 +41,7 @@ export const useSteamSyncJob = (userId: number | undefined, linked: boolean) => 
 				current.invalidated = value.processedGames
 				dispatch(invalidateCache())
 				dispatch(triggerGamesRefresh())
+				invalidateCollection()
 			}
 			current.job = value
 			setJob(value)

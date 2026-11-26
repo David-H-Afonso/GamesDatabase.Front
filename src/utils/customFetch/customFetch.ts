@@ -13,6 +13,8 @@ type FetchRefs = {
 	pending: Set<AbortController>
 	/** Shared promise while a refresh is in-flight — prevents multiple parallel refresh calls */
 	refreshPromise: Promise<boolean> | null
+	refreshStore?: AnyStore | null
+	refreshUserId?: number
 }
 
 const refs: FetchRefs = ((globalThis as any).__customFetchRefs ??= {
@@ -84,11 +86,12 @@ const handleUnauthorizedAccess = () => {
  * Returns true if the token was refreshed and stored, false otherwise.
  */
 const tryRefreshToken = (): Promise<boolean> => {
-	if (refs.refreshPromise) return refs.refreshPromise
+	const requestStore = refs.store, userId = requestStore?.getState().auth?.user?.id
+	if (refs.refreshPromise && refs.refreshStore === requestStore && refs.refreshUserId === userId) return refs.refreshPromise
 
-	refs.refreshPromise = (async (): Promise<boolean> => {
+	const promise = (async (): Promise<boolean> => {
 		try {
-			const refreshToken = refs.store?.getState().auth?.refreshToken
+			const refreshToken = requestStore?.getState().auth?.refreshToken
 			if (!refreshToken) return false
 
 			const baseUrl = environment.baseUrl
@@ -101,6 +104,7 @@ const tryRefreshToken = (): Promise<boolean> => {
 			if (!response.ok) return false
 
 			const data: { token: string; refreshToken: string } = await response.json()
+			if (refs.store !== requestStore || requestStore?.getState().auth?.user?.id !== userId || requestStore?.getState().auth?.refreshToken !== refreshToken) return false
 
 			if (refs.store && refs.setRefreshedTokens) {
 				refs.store.dispatch(refs.setRefreshedTokens({ token: data.token, refreshToken: data.refreshToken }))
@@ -109,12 +113,11 @@ const tryRefreshToken = (): Promise<boolean> => {
 			return true
 		} catch {
 			return false
-		} finally {
-			refs.refreshPromise = null
 		}
 	})()
-
-	return refs.refreshPromise
+	refs.refreshStore = requestStore; refs.refreshUserId = userId; refs.refreshPromise = promise
+	void promise.finally(() => { if (refs.refreshPromise === promise) refs.refreshPromise = null })
+	return promise
 }
 
 // ── Main fetch wrapper ────────────────────────────────────────────────────────
@@ -191,6 +194,8 @@ export const customFetch = async <T = any>(endpoint: string, requestOptions: Cus
 	const completeUrl = baseUrl + endpoint + buildQueryString(queryParams)
 	const token = refs.store?.getState().auth?.token
 	const hasAuthToken = Boolean(token)
+	const requestStore = refs.store, userId = requestStore?.getState().auth?.user?.id
+	const assertOwner = () => { if (hasAuthToken && (refs.store !== requestStore || requestStore?.getState().auth?.user?.id !== userId)) throw new Error('Request cancelled after account change') }
 
 	const controller = new AbortController()
 	refs.pending.add(controller)
@@ -235,7 +240,9 @@ export const customFetch = async <T = any>(endpoint: string, requestOptions: Cus
 				}, timeoutMs)
 			})])
 			: await fetchPromise
+		assertOwner()
 		const responseData = await parseResponseData(httpResponse)
+		assertOwner()
 
 		if (!httpResponse.ok) {
 			if (httpResponse.status === 401) {
@@ -243,6 +250,7 @@ export const customFetch = async <T = any>(endpoint: string, requestOptions: Cus
 				// Only attempt refresh once per request (skipRefresh guards the retry)
 				if (hasAuthToken && !_skipRefresh) {
 					const refreshed = await tryRefreshToken()
+					assertOwner()
 					if (refreshed) {
 						// Retry the original request with the newly stored token
 						return customFetch<T>(endpoint, { ...requestOptions, _skipRefresh: true })
@@ -256,14 +264,14 @@ export const customFetch = async <T = any>(endpoint: string, requestOptions: Cus
 				throw new Error('Authentication required. Please login.')
 			}
 			const errorMessage = typeof responseData === 'string' ? responseData : JSON.stringify(responseData)
-			throw new Error(`HTTP ${httpResponse.status} ${httpResponse.statusText}: ${errorMessage}`)
+			throw Object.assign(new Error(`HTTP ${httpResponse.status} ${httpResponse.statusText}: ${errorMessage}`), { status: httpResponse.status, ...(responseData && typeof responseData === 'object' && typeof responseData.code === 'string' ? { code: responseData.code } : {}) })
 		}
 
 		return responseData as T
 	} catch (fetchError) {
-		if (fetchError instanceof Error && fetchError.name === 'AbortError') throw new Error('Request cancelled')
+		if (fetchError instanceof Error && fetchError.name === 'AbortError') throw new Error('Request cancelled', { cause: fetchError })
 		if (fetchError instanceof Error)
-			throw new Error(`Request failed for ${method} ${completeUrl}: ${fetchError.message}`)
+			throw Object.assign(new Error(`Request failed for ${method} ${completeUrl}: ${fetchError.message}`, { cause: fetchError }), 'status' in fetchError ? { status: fetchError.status } : {}, 'code' in fetchError ? { code: fetchError.code } : {})
 		throw fetchError
 	} finally {
 		clearTimeout(timeoutHandle)

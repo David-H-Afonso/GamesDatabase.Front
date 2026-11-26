@@ -4,7 +4,7 @@ import { getGlobalHistory, getAdminHistory } from '@/services/GameHistoryService
 import { updateGame } from '@/services/GamesService'
 import { useAppSelector } from '@/store/hooks'
 import { selectIsAdmin } from '@/store/features/auth/selector'
-import { GameDetails } from '@/components/elements/GameDetails/GameDetails'
+import { CollectionGameDetails as GameDetails } from '@/components/Collection/CollectionGameDetailsLazy'
 import { ConfirmDialog } from '@/components/elements'
 import { useGames } from '@/hooks/useGames/useGames'
 import type { Game } from '@/models/api/Game'
@@ -75,6 +75,7 @@ const FIELD_TO_UPDATE_KEY: Record<string, string> = {
 	IsCheaperByKey: 'isCheaperByKey',
 	KeyStoreUrl: 'keyStoreUrl',
 	ManualPlaytimeMinutes: 'manualPlaytimeMinutes',
+	ManualPlaytimeIsAdditive: 'manualPlaytimeIsAdditive',
 	Favorite: 'favorite',
 }
 

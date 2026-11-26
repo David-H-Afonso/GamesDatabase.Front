@@ -27,6 +27,7 @@ const GameDataActions: React.FC<GameDataActionsProps> = ({ renderTrigger }) => {
 	const [importOpen, setImportOpen] = useState(false)
 	const [menuOpen, setMenuOpen] = useState(false)
 	const btnRef = useRef<HTMLButtonElement>(null)
+	const triggerContainer = useRef<HTMLDivElement>(null)
 
 	const handleImportComplete = () => {
 		dispatch(triggerGamesRefresh())
@@ -35,25 +36,27 @@ const GameDataActions: React.FC<GameDataActionsProps> = ({ renderTrigger }) => {
 	useEffect(() => {
 		if (!menuOpen) return
 		const onKey = (e: KeyboardEvent) => {
-			if (e.key === 'Escape') setMenuOpen(false)
+			if (e.key === 'Escape' && !e.defaultPrevented) { e.preventDefault(); setMenuOpen(false) }
 		}
 		window.addEventListener('keydown', onKey)
 		return () => window.removeEventListener('keydown', onKey)
 	}, [menuOpen])
 
 	const openExport = () => {
+		triggerContainer.current?.querySelector<HTMLButtonElement>('button')?.focus()
 		setMenuOpen(false)
 		setExportOpen(true)
 	}
 
 	const openImport = () => {
+		triggerContainer.current?.querySelector<HTMLButtonElement>('button')?.focus()
 		setMenuOpen(false)
 		setImportOpen(true)
 	}
 
 	return (
 		<>
-			<div className='game-data-actions'>
+			<div className='game-data-actions' ref={triggerContainer}>
 				{renderTrigger ? (
 					renderTrigger(() => setMenuOpen((v) => !v), menuOpen)
 				) : (

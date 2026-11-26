@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test/utils/renderWithProviders'
 
@@ -36,7 +36,7 @@ describe('AdminReplayTypes', () => {
 	it('renders table with replay type data', async () => {
 		const C = await loadComponent()
 		renderWithProviders(<C />)
-		await vi.waitFor(() => {
+		await waitFor(() => {
 			expect(screen.getByText('New Game+')).toBeInTheDocument()
 			expect(screen.getByText('Speedrun')).toBeInTheDocument()
 		})
@@ -45,7 +45,7 @@ describe('AdminReplayTypes', () => {
 	it('shows active/inactive badges', async () => {
 		const C = await loadComponent()
 		renderWithProviders(<C />)
-		await vi.waitFor(() => {
+		await waitFor(() => {
 			expect(screen.getByText('Activo')).toBeInTheDocument()
 			expect(screen.getByText('Inactivo')).toBeInTheDocument()
 		})
@@ -55,7 +55,7 @@ describe('AdminReplayTypes', () => {
 		const C = await loadComponent()
 		const user = userEvent.setup()
 		renderWithProviders(<C />)
-		await vi.waitFor(() => expect(screen.getByText('New Game+')).toBeInTheDocument())
+		await waitFor(() => expect(screen.getByText('New Game+')).toBeInTheDocument())
 		await user.click(screen.getByText('Nuevo Tipo'))
 		expect(screen.getByText('Nuevo Tipo', { selector: 'h2' })).toBeInTheDocument()
 	})
@@ -64,7 +64,7 @@ describe('AdminReplayTypes', () => {
 		const C = await loadComponent()
 		const user = userEvent.setup()
 		renderWithProviders(<C />)
-		await vi.waitFor(() => expect(screen.getByText('New Game+')).toBeInTheDocument())
+		await waitFor(() => expect(screen.getByText('New Game+')).toBeInTheDocument())
 		const editButtons = screen.getAllByRole('button', { name: 'Editar' })
 		await user.click(editButtons[0])
 		expect(screen.getByDisplayValue('New Game+')).toBeInTheDocument()
@@ -75,7 +75,7 @@ describe('AdminReplayTypes', () => {
 		const C = await loadComponent()
 		const user = userEvent.setup()
 		renderWithProviders(<C />)
-		await vi.waitFor(() => expect(screen.getByText('New Game+')).toBeInTheDocument())
+		await waitFor(() => expect(screen.getByText('New Game+')).toBeInTheDocument())
 		const deleteButtons = screen.getAllByRole('button', { name: 'Eliminar' })
 		await user.click(deleteButtons[0])
 		const dialog = screen.getByRole('alertdialog')
@@ -86,7 +86,7 @@ describe('AdminReplayTypes', () => {
 	it('hides pagination when there is a single page', async () => {
 		const C = await loadComponent()
 		renderWithProviders(<C />)
-		await vi.waitFor(() => expect(screen.getByText('New Game+')).toBeInTheDocument())
+		await waitFor(() => expect(screen.getByText('New Game+')).toBeInTheDocument())
 		expect(screen.queryByText(/Página/)).not.toBeInTheDocument()
 	})
 
@@ -94,5 +94,6 @@ describe('AdminReplayTypes', () => {
 		const C = await loadComponent()
 		renderWithProviders(<C />)
 		expect(document.querySelector('.data-table__skeleton')).not.toBeNull()
+		await screen.findByText('New Game+')
 	})
 })

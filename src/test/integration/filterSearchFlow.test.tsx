@@ -15,6 +15,7 @@ import { renderWithProviders } from '@/test/utils/renderWithProviders'
 import { createTestStore } from '@/test/utils/createTestStore'
 import { initCustomFetch } from '@/utils/customFetch'
 import HomeComponent from '@/components/Home/components/HomeComponent'
+import i18n from '@/i18n'
 
 vi.mock('@/navigation/router', () => ({ router: { navigate: vi.fn() } }))
 
@@ -26,6 +27,7 @@ vi.mock('@/environments', () => ({
 		apiRoutes: {
 			games: {
 				base: '/games',
+				summary: '/games/summary',
 				byId: (id: number) => `/games/${id}`,
 				create: '/games',
 				update: (id: number) => `/games/${id}`,
@@ -184,23 +186,25 @@ describe('Filter & Search Flow — Integration', () => {
 
 		renderWithProviders(<HomeComponent />, { store })
 
-		await screen.findByText('Dark Souls')
-		await screen.findByText('Hollow Knight')
+		await screen.findByRole('heading', { level: 3, name: 'Dark Souls' })
+		await screen.findByRole('heading', { level: 3, name: 'Hollow Knight' })
 	})
 
 	// ── 5.3.1 Búsqueda texto ─────────────────────────────────────────────────
 
-	it('typing in the search input updates filters.search in the Redux store', async () => {
+	it('typing in the search input creates one literal name phrase in the Redux store', async () => {
 		renderWithProviders(<HomeComponent />, { store })
 
 		// Wait for the component to fully mount
 		await screen.findByText(EMPTY_GAMES_TEXT)
 
-		const searchInput = screen.getByPlaceholderText(/buscar juegos/i)
+		const searchInput = screen.getByPlaceholderText(/buscar en tu biblioteca/i)
 		await userEvent.type(searchInput, 'zelda')
 
 		await waitFor(() => {
-			expect(store.getState().games.filters.search).toBe('zelda')
+			expect(store.getState().games.filters.nameSearch?.includeTerms).toEqual(['zelda'])
+			expect(store.getState().games.filters.searchMetadata).toBe(false)
+			expect(store.getState().games.filters.search).toBeUndefined()
 		})
 	})
 
@@ -236,9 +240,9 @@ describe('Filter & Search Flow — Integration', () => {
 		renderWithProviders(<HomeComponent />, { store })
 
 		// Wait for the game to render so pagination reflects loaded data
-		await screen.findByText('Game One')
+		await screen.findByRole('heading', { level: 3, name: 'Game One' })
 
-		const nextBtn = screen.getByRole('button', { name: '>' })
+		const nextBtn = screen.getByRole('button', { name: i18n.t('gallery.common.next') })
 		await userEvent.click(nextBtn)
 
 		await waitFor(() => {

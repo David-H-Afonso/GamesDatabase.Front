@@ -7,6 +7,11 @@ const FILTER_KEYS: (keyof GameQueryParameters)[] = [
 	'page',
 	'pageSize',
 	'search',
+	'nameSearch',
+	'searchMetadata',
+	'maxStory',
+	'viewId',
+	'favorite',
 	'sortBy',
 	'sortDescending',
 	'isActive',
@@ -59,6 +64,7 @@ const areValuesEqual = (a: unknown, b: unknown): boolean => {
 
 	// One is array, other is not
 	if (Array.isArray(normalizedA) || Array.isArray(normalizedB)) return false
+	if (normalizedA && normalizedB && typeof normalizedA === 'object' && typeof normalizedB === 'object') return JSON.stringify(normalizedA) === JSON.stringify(normalizedB)
 
 	return normalizedA === normalizedB
 }
@@ -104,4 +110,5 @@ export const cloneFilters = (filters: GameQueryParameters): GameQueryParameters 
 	finishedYear: filters.finishedYear,
 	includeReplayDates: filters.includeReplayDates,
 	excludeStatusIds: filters.excludeStatusIds ? [...filters.excludeStatusIds] : undefined,
+	nameSearch: filters.nameSearch ? { ...filters.nameSearch, includeTerms: [...filters.nameSearch.includeTerms], excludeTerms: [...filters.nameSearch.excludeTerms] } : undefined,
 })

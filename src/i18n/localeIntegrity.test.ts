@@ -1,6 +1,12 @@
 import { describe, it, expect } from 'vitest'
 import en from './locales/en.json'
 import es from './locales/es.json'
+import galleryEn from './locales/gallery.en.json'
+import galleryEs from './locales/gallery.es.json'
+import guideEn from './locales/guide.en.json'
+import guideEs from './locales/guide.es.json'
+import metadataEn from './locales/metadata.en.json'
+import metadataEs from './locales/metadata.es.json'
 
 type Json = Record<string, unknown>
 
@@ -20,8 +26,22 @@ function flatten(obj: Json, prefix = ''): Record<string, string> {
 
 const enFlat = flatten(en as Json)
 const esFlat = flatten(es as Json)
+const catalogs = [
+	{ name: 'base', en: enFlat, es: esFlat },
+	{ name: 'gallery', en: flatten(galleryEn), es: flatten(galleryEs) },
+	{ name: 'guide', en: flatten(guideEn), es: flatten(guideEs) },
+	{ name: 'metadata', en: flatten(metadataEn), es: flatten(metadataEs) },
+]
 
 describe('i18n locale integrity', () => {
+	it.each(catalogs)('$name has complete nonempty EN/ES keys with matching interpolation variables', ({ en, es }) => {
+		expect(Object.keys(en).sort()).toEqual(Object.keys(es).sort())
+		const tokens = (value: string) => [...value.matchAll(/{{-?\s*(\w+)(?:\s*,[^}]*)?\s*}}/g)].map(match => match[1]).sort()
+		for (const [key, value] of Object.entries(en)) {
+			expect(value.trim(), `Empty English key: ${key}`).not.toBe(''); expect(es[key].trim(), `Empty Spanish key: ${key}`).not.toBe('')
+			expect(tokens(value), `Different variables for ${key}`).toEqual(tokens(es[key]))
+		}
+	})
 	it('has exact key parity between English and Spanish', () => {
 		const enKeys = Object.keys(enFlat).sort()
 		const esKeys = Object.keys(esFlat).sort()

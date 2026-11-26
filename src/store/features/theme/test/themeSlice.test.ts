@@ -32,8 +32,8 @@ describe('themeSlice — initial state', () => {
 		expect(initialState.availableThemes).toContain('gta-vi')
 	})
 
-	it('cardStyle defaults to card', () => {
-		expect(initialState.cardStyle).toBe('card')
+	it('new collections default to Covers', () => {
+		expect(initialState.cardStyle).toBe('cover')
 	})
 
 	it('viewMode defaults to default', () => {
@@ -117,14 +117,14 @@ describe('themeSlice — initializeTheme', () => {
 		expect(next.currentTheme).toBe('gta-vice-city')
 	})
 
-	it('falls back to dark when localStorage is empty and no system preference', () => {
+	it('defaults to Gallery when localStorage is empty', () => {
 		// jsdom matchMedia returns false by default
 		const next = themeReducer({ ...initialState, availableThemes: ['light', 'dark'] }, initializeTheme())
-		// Either dark (fallback) or whatever the logic picks - just verify it's in availableThemes
-		expect(['light', 'dark']).toContain(next.currentTheme)
+		expect(next.currentTheme).toBe('gallery')
+		expect(next.availableThemes).toContain('gallery')
 	})
 
-	it('uses system dark preference when no saved theme', () => {
+	it('uses the approved Gallery default independently of system dark preference', () => {
 		vi.spyOn(globalThis, 'matchMedia').mockReturnValueOnce({
 			matches: true,
 			media: '(prefers-color-scheme: dark)',
@@ -136,10 +136,10 @@ describe('themeSlice — initializeTheme', () => {
 			dispatchEvent: vi.fn(),
 		})
 		const next = themeReducer({ ...initialState, availableThemes: ['light', 'dark'] }, initializeTheme())
-		expect(next.currentTheme).toBe('dark')
+		expect(next.currentTheme).toBe('gallery')
 	})
 
-	it('ignores invalid saved theme and falls back to system preference', () => {
+	it('ignores invalid saved theme and falls back to Gallery', () => {
 		localStorage.setItem('theme', 'nonexistent-theme')
 		vi.spyOn(globalThis, 'matchMedia').mockReturnValueOnce({
 			matches: true,
@@ -152,7 +152,7 @@ describe('themeSlice — initializeTheme', () => {
 			dispatchEvent: vi.fn(),
 		})
 		const next = themeReducer({ ...initialState, availableThemes: ['light', 'dark'] }, initializeTheme())
-		expect(next.currentTheme).toBe('dark')
+		expect(next.currentTheme).toBe('gallery')
 	})
 })
 
@@ -176,7 +176,7 @@ describe('themeSlice — setCardStyle / setViewMode / reset', () => {
 		let s = themeReducer(initialState, setCardStyle('row'))
 		s = themeReducer(s, setViewMode('goty2025'))
 		const next = themeReducer(s, reset())
-		expect(next.cardStyle).toBe('card')
+		expect(next.cardStyle).toBe('cover')
 		expect(next.viewMode).toBe('default')
 	})
 })

@@ -12,7 +12,7 @@ export const AdminLayout = () => {
 	const tabs = ADMIN_TABS.filter((tab) => !tab.adminOnly || isAdmin)
 
 	return (
-		<div className='admin-layout'>
+		<div className='admin-layout gallery-app'>
 			<Header />
 			<div className='admin-body'>
 				<div className='admin-sidebar'>
@@ -32,9 +32,9 @@ export const AdminLayout = () => {
 						<span>{__BUILD_DATE__}</span>
 					</div>
 				</div>
-				<div className='admin-content'>
+				<main id='main-content' tabIndex={-1} className='admin-content'>
 					<Outlet />
-				</div>
+				</main>
 			</div>
 		</div>
 	)

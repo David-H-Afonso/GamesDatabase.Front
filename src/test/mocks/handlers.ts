@@ -9,6 +9,7 @@ const API_BASE = 'https://localhost:7245/api'
  */
 export const handlers = [
 	// ─── Games ───────────────────────────────────────────────
+	http.get(`${API_BASE}/games/summary`, () => HttpResponse.json({ totalGames: 0, completedGames: 0, fullyCompletedGames: 0, favoriteGames: 0, timedGames: 0, effectivePlaytimeMinutes: 0, steamPlaytimeMinutes: 0, ratedGames: 0, averageGrade: null, achievementsUnlocked: 0, achievementsTotal: 0, lastUpdatedAt: null })),
 	http.get(`${API_BASE}/games`, () => {
 		return HttpResponse.json({
 			data: [],
@@ -190,17 +191,7 @@ export const handlers = [
 	}),
 
 	// ─── Game Views ──────────────────────────────────────────
-	http.get(`${API_BASE}/gameviews`, () => {
-		return HttpResponse.json({
-			data: [],
-			totalCount: 0,
-			page: 1,
-			pageSize: 50,
-			totalPages: 0,
-			hasNextPage: false,
-			hasPreviousPage: false,
-		})
-	}),
+	http.get(`${API_BASE}/gameviews`, () => HttpResponse.json([])),
 
 	http.post(`${API_BASE}/gameviews`, async ({ request }) => {
 		const body = (await request.json()) as Record<string, unknown>
@@ -300,6 +291,9 @@ export const handlers = [
 	}),
 
 	// ─── Auth / Users ────────────────────────────────────────
+	http.get(`${API_BASE}/onboarding`, () => HttpResponse.json({ version: '3.0.0', revision: 0, enabled: false, step: 'welcome', hasSamples: false, sampleGames: [], samplePlaylists: 0, sampleLists: [] })),
+	http.get(`${API_BASE}/users/setup-status`, () => HttpResponse.json({ defaultCredentialsAvailable: false, defaultUsername: null })),
+	http.get(`${API_BASE}/users/:id`, ({ params }) => HttpResponse.json({ id: Number(params.id), username: 'Fixture user', role: 'Admin', isDefault: false, hasPassword: true, useScoreColors: false, scoreProvider: 'Metacritic', showPriceComparisonIcon: false, tutorialEnabled: false })),
 	http.get(`${API_BASE}/steam/sync/jobs/current`, () => HttpResponse.json({ job: null })),
 
 	http.post(`${API_BASE}/users/login`, async ({ request }) => {

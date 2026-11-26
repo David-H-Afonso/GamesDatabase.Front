@@ -12,11 +12,11 @@ import type { GameCreateDto, GameUpdateDto, GameQueryParameters, BulkUpdateGameD
 import { DEFAULT_PAGE_SIZE } from '@/utils'
 
 // Async thunk for fetching games with pagination and filters
-export const fetchGames = createAsyncThunk('games/fetchGames', async (params: GameQueryParameters = {}, { rejectWithValue }) => {
+export const fetchGames = createAsyncThunk('games/fetchGames', async (params: GameQueryParameters = {}, { rejectWithValue, signal }) => {
 	try {
 		const query = { pageSize: DEFAULT_PAGE_SIZE, ...(params || {}) }
 		if (query.viewName === 'default') delete query.viewName
-		const response = await getGames(query)
+		const response = await getGames(query, signal)
 		return response
 	} catch (error: any) {
 		return rejectWithValue(error.message || 'Failed to fetch games')

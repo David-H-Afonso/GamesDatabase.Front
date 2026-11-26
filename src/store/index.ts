@@ -1,18 +1,7 @@
-import { configureStore, combineReducers } from '@reduxjs/toolkit'
+import { configureStore } from '@reduxjs/toolkit'
 import { persistStore, persistReducer, createTransform } from 'redux-persist'
 import storage from 'redux-persist/lib/storage'
-import gamesReducer from './features/games/gamesSlice'
-import gameStatusReducer from './features/gameStatus/gameStatusSlice'
-import gamePlatformReducer from './features/gamePlatform/gamePlatformSlice'
-import gamePlayWithReducer from './features/gamePlayWith/gamePlayWithSlice'
-import gamePlayedStatusReducer from './features/gamePlayedStatus/gamePlayedStatusSlice'
-import gameReplayTypeReducer from './features/gameReplayType/gameReplayTypeSlice'
-import gameViewsReducer from './features/gameViews/gameViewSlice'
-import themeReducer from './features/theme/themeSlice'
-import authReducer from './features/auth/authSlice'
-import recentUsersReducer from './features/recentUsers/recentUsersSlice'
-import steamReducer from './features/steam/steamSlice'
-import playlistsReducer from './features/playlists/playlistSlice'
+import { rootReducer } from './rootReducer'
 
 /**
  * CENTRALIZED PERSISTENCE CONFIGURATION
@@ -31,6 +20,8 @@ const gamesTransform = createTransform(
 	(state: any) => ({
 		...state,
 		games: [],
+		currentGame: null,
+		activeListRequestId: undefined,
 		loading: false,
 		error: null,
 		isDataFresh: false,
@@ -51,6 +42,8 @@ const gamesTransform = createTransform(
 	(state: any) => ({
 		...state,
 		games: [],
+		currentGame: null,
+		activeListRequestId: undefined,
 		loading: true,
 		error: null,
 		isDataFresh: false,
@@ -74,7 +67,7 @@ const gamesTransform = createTransform(
 let _persistorFlush: (() => void) | null = null
 const filterFlushMiddleware = (_storeApi: any) => (next: any) => (action: any) => {
 	const result = next(action)
-	if (action.type === 'games/setFilters' || action.type === 'games/resetFilters') {
+	if (action.type === 'games/setFilters' || action.type === 'games/resetFilters' || action.type === 'theme/setCardColumns') {
 		_persistorFlush?.()
 	}
 	return result
@@ -99,22 +92,6 @@ const persistConfig = {
 	],
 	transforms: [gamesTransform],
 }
-
-// Combine reducers - Add your reducers here
-const rootReducer = combineReducers({
-	games: gamesReducer,
-	gameStatus: gameStatusReducer,
-	gamePlatform: gamePlatformReducer,
-	gamePlayWith: gamePlayWithReducer,
-	gamePlayedStatus: gamePlayedStatusReducer,
-	gameReplayType: gameReplayTypeReducer,
-	gameViews: gameViewsReducer,
-	playlists: playlistsReducer,
-	theme: themeReducer,
-	auth: authReducer,
-	recentUsers: recentUsersReducer,
-	steam: steamReducer,
-})
 
 // Create persisted reducer - Single point of persistence configuration
 // rootReducer has a 3-generic Reducer<S, A, PreloadedState> type from combineReducers

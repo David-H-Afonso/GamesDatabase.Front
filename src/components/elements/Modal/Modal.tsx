@@ -48,14 +48,28 @@ export const Modal: FC<ModalProps> = ({ isOpen, onClose, title, children, footer
 		document.body.style.overflow = 'hidden'
 		return () => {
 			document.body.style.overflow = previousOverflow
-			previouslyFocused?.focus?.()
+			if (previouslyFocused?.isConnected) previouslyFocused.focus()
 		}
 	}, [isOpen])
+
+	// Disabling the focused submit button during an async operation can leave focus
+	// on body. Recover it after renders, but never steal it from a newer overlay.
+	useEffect(() => {
+		const panel = panelRef.current
+		if (!isOpen || !panel || panel.contains(document.activeElement)) return
+		const layers = document.querySelectorAll('[aria-modal="true"], dialog[open]')
+		if (layers[layers.length - 1] === panel) (panel.querySelector<HTMLElement>(FOCUSABLE_SELECTOR) ?? panel).focus()
+	})
 
 	if (!isOpen) return null
 
 	const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+		if (event.defaultPrevented) return
 		if (event.key === 'Escape') {
+			// Enhanced native pickers dispatch Escape through their select before
+			// the browser dismisses it. Do not cancel the whole editing workflow.
+			const select = event.target instanceof Element ? event.target.closest('select') : null
+			try { if (select?.matches(':open')) { event.stopPropagation(); return } } catch { /* Older native engines consume their popup Escape outside the DOM. */ }
 			event.preventDefault()
 			onClose()
 		} else if (event.key === 'Tab') {
@@ -63,7 +77,8 @@ export const Modal: FC<ModalProps> = ({ isOpen, onClose, title, children, footer
 		}
 	}
 
-	const portalTarget = (typeof document !== 'undefined' && document.getElementById('modal-portal')) || document.body
+	const nativeLayers = typeof document !== 'undefined' ? document.querySelectorAll('dialog[open] [data-gdb-modal-layer]') : []
+	const portalTarget = nativeLayers[nativeLayers.length - 1] || (typeof document !== 'undefined' && document.getElementById('modal-portal')) || document.body
 
 	return createPortal(
 		<div className='modal-overlay' onClick={onClose} onKeyDown={handleKeyDown} role='presentation'>
