@@ -42,6 +42,7 @@ docker-compose*.yml
 .dockerignore
 
 # Testing
+cypress/
 coverage/
 .nyc_output/
 *.test.ts

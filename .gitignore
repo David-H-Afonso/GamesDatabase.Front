@@ -14,6 +14,27 @@ dist-ssr
 *.local
 coverage
 .tmp/
+.playwright-mcp/
+BEFORE_READY.md
+# Generated reports and obsolete local artefacts; source tests remain versioned.
+test-results/
+coverage_full*.txt
+test-out.txt
+/res.json
+*.tsbuildinfo
+*.backup
+*.lscache
+public/*_deprecated.*
+src/assets/pngs/*_deprecated.*
+public/aandroid-chrome-512x512.png
+PENDING_FEATURES.md
+# Private local review/evidence records, not product documentation.
+SECURITY_REVIEW.md
+docs/GALLERY_FIDELITY_REPAIR.md
+docs/GALLERY_IMPLEMENTATION.md
+docs/GALLERY_ROLLOUT.md
+docs/OWNER_FOLLOWUP*.md
+docs/TOOLBAR_EDITOR_COMPLETION*.md
 
 # Editor directories and files
 .vscode/*
@@ -34,6 +55,9 @@ resources/
 ELECTRON_*.md
 
 # Environment variables
+.env
+.env.*
+!.env.example
 .env.local
 .env.production
 

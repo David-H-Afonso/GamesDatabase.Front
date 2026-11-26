@@ -1,0 +1,3 @@
+# Preserve the original font notices byte-for-byte, including upstream spacing.
+src/assets/fonts/*-OFL.txt -text whitespace=-blank-at-eol
+public/licenses/fonts/*-OFL.txt -text whitespace=-blank-at-eol
