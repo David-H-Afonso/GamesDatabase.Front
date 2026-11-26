@@ -1,16 +1,16 @@
 {
 	"name": "gamesdatabase-front",
 	"private": true,
-	"version": "2.0.3",
+	"version": "2.0.4",
 	"type": "module",
 	"author": "David H. Afonso",
-	"description": "A modern web application for managing and organizing your personal game collection",
+	"description": "A self-hosted game library for organizing collections, playthroughs and Steam progress",
 	"homepage": "https://github.com/David-H-Afonso/GamesDatabase.Front",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/David-H-Afonso/GamesDatabase.Front.git"
 	},
-	"license": "GPL-3.0",
+	"license": "GPL-3.0-or-later",
 	"scripts": {
 		"dev": "vite",
 		"build": "tsc -b && vite build",
@@ -21,6 +21,7 @@
 		"test:watch": "vitest",
 		"test:coverage": "vitest run --coverage",
 		"test:ui": "vitest --ui",
+		"test:i18n": "node --test scripts/i18n/catalog.test.mjs",
 		"cypress:open": "cypress open",
 		"cypress:run": "cypress run",
 		"security:deps": "npm audit --audit-level=moderate",
@@ -29,7 +30,7 @@
 		"version:plan": "node scripts/versioning/cli.mjs plan",
 		"version:prepare": "node scripts/versioning/cli.mjs prepare",
 		"version:check": "node scripts/versioning/cli.mjs check",
-		"test:versioning": "node --test scripts/versioning/core.test.mjs"
+		"test:versioning": "node --test scripts/versioning/core.test.mjs scripts/versioning/release.test.mjs"
 	},
 	"dependencies": {
 		"@dnd-kit/core": "^6.3.1",
@@ -48,7 +49,7 @@
 		"vite-plugin-svgr": "^4.5.0"
 	},
 	"devDependencies": {
-		"@eslint/js": "^9.33.0",
+		"@eslint/js": "^10.0.1",
 		"@testing-library/cypress": "^10.1.0",
 		"@testing-library/jest-dom": "^6.9.1",
 		"@testing-library/react": "^16.3.2",
@@ -59,8 +60,8 @@
 		"@vitejs/plugin-react": "^5.0.0",
 		"@vitest/coverage-v8": "^4.1.2",
 		"cypress": "^15.13.0",
-		"eslint": "^9.33.0",
-		"eslint-plugin-react-hooks": "^5.2.0",
+		"eslint": "^10.15.0",
+		"eslint-plugin-react-hooks": "^7.1.1",
 		"eslint-plugin-react-refresh": "^0.4.20",
 		"eslint-plugin-sonarjs": "^4.0.2",
 		"globals": "^16.3.0",
@@ -71,6 +72,11 @@
 		"typescript": "~5.8.3",
 		"typescript-eslint": "^8.39.1",
 		"vite": "^7.1.2",
-		"vitest": "^4.1.2"
+		"vitest": "^4.1.12"
+	},
+	"overrides": {
+		"eslint-plugin-sonarjs": {
+			"minimatch": "^11.0.1"
+		}
 	}
 }

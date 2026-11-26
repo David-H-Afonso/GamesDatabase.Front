@@ -1,0 +1,13 @@
+Games Database Web
+
+Application license: app-GPL-3.0.txt (the existing repository license).
+
+The locally bundled, unmodified interface fonts retain their original licenses:
+- DM Sans: fonts/dm-sans-OFL.txt
+- Outfit: fonts/outfit-OFL.txt
+
+The font copyrights and SIL Open Font License texts accompany each distribution.
+The application license does not replace the font licenses.
+
+The bundled sample-artwork SVG illustrations accompany the opt-in tutorial under
+the application GPL license. They illustrate fictional examples, not commercial games.

@@ -21,28 +21,20 @@
 		<!-- Apply theme IMMEDIATELY before any rendering to prevent FOUC -->
 		<script>
 			;(function () {
-				var saved = localStorage.getItem('theme')
-				var theme = saved === 'light' || saved === 'dark' || saved === 'steam' ? saved : window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+				var saved = null
+				try { saved = localStorage.getItem('theme') } catch (_) { /* Appearance still works without storage. */ }
+				var aliases = { original: 'gallery', wolverine: 'wolverine-classic', gta: 'gta-vice-city' }
+				saved = aliases[saved] || saved
+				var known = ['gallery','light','dark','steam','wolverine-classic','wolverine-modern','gta-vice-city','gta-iv','gta-v','gta-vi','nintendo','playstation','xbox']
+				var theme = known.indexOf(saved) >= 0 ? saved : 'gallery'
 				document.documentElement.setAttribute('data-theme', theme)
+				document.documentElement.setAttribute('data-experience', 'gallery')
 				// Add a class to prevent transitions on initial load
 				document.documentElement.classList.add('preload')
 			})()
 		</script>
-		<!-- fonts.googleapis.com serves a stylesheet (no CORS needed, no crossorigin).
-		     fonts.gstatic.com serves the actual font files (cross-origin fetch, needs crossorigin). -->
-		<link rel="preconnect" href="https://fonts.googleapis.com" />
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-		<link
-			rel="preload"
-			href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-			as="style"
-			onload="
-				this.onload = null
-				this.rel = 'stylesheet'
-			" />
-		<noscript>
-			<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-		</noscript>
+		<link rel="preload" as="font" type="font/woff2" href="/src/assets/fonts/dm-sans.woff2" crossorigin />
+		<link rel="preload" as="font" type="font/woff2" href="/src/assets/fonts/outfit.woff2" crossorigin />
 	</head>
 	<body>
 		<div id="root"></div>

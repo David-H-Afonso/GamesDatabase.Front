@@ -25,10 +25,10 @@ export default mergeConfig(
 				include: ['src/**/*.{ts,tsx}'],
 				exclude: ['src/**/*.test.{ts,tsx}', 'src/**/*.spec.{ts,tsx}', 'src/test/**', 'src/vite-env.d.ts', 'src/main.tsx', 'src/types/**'],
 				thresholds: {
-					lines: 45,
+					lines: 70,
 					branches: 30,
 					functions: 40,
-					statements: 45,
+					statements: 70,
 				},
 			},
 		},

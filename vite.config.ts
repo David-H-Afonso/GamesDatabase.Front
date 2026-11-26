@@ -34,6 +34,22 @@ export default defineConfig({
 				return html
 			},
 		},
+		{
+			name: 'verify-static-chunk-order',
+			generateBundle(_options, bundle) {
+				const complete = new Set<string>(), active = new Set<string>()
+				const visit = (file: string, path: string[]) => {
+					if (complete.has(file)) return
+					if (active.has(file)) this.error(`Static chunk cycle can break module initialization: ${[...path, file].join(' -> ')}`)
+					const chunk = bundle[file]
+					if (!chunk || chunk.type !== 'chunk') return
+					active.add(file)
+					for (const dependency of chunk.imports) visit(dependency, [...path, file])
+					active.delete(file); complete.add(file)
+				}
+				for (const file of Object.keys(bundle)) visit(file, [])
+			},
+		},
 	],
 	define: {
 		__APP_VERSION__: JSON.stringify(pkg.version),
@@ -78,11 +94,17 @@ export default defineConfig({
 		rollupOptions: {
 			output: {
 				manualChunks(id) {
+					// Leaf translation catalogs cache independently without enlarging the application chunk.
+					const locale = /src\/i18n\/locales\/(?:gallery\.|guide\.|metadata\.)?(en|es)\.json$/.exec(id)
+					if (locale) return `locale-${locale[1]}`
+					// Rollup's shared CJS helpers must not be assigned to Formik and imported back by React.
+					if (id.includes('commonjsHelpers')) return 'vendor-runtime'
 					if (!id.includes('node_modules')) return undefined
 					if (id.includes('react-dom') || (id.includes('/react/') && !id.includes('react-router'))) return 'vendor-react'
 					if (id.includes('react-router')) return 'vendor-router'
 					if (id.includes('@reduxjs') || id.includes('react-redux') || id.includes('redux-persist')) return 'vendor-redux'
 					if (id.includes('formik')) return 'vendor-formik'
+					if (id.includes('i18next')) return 'vendor-i18n'
 					return undefined
 				},
 			},
@@ -92,6 +114,9 @@ export default defineConfig({
 		port: 5173,
 		strictPort: false, // Vite increments to 5174, 5175… when 5173 is busy — keep in sync with API CORS
 		host: true,
+		// Browser evidence and other scratch files are not application sources.
+		// Chromium may briefly lock downloads on Windows while finalizing them.
+		watch: { ignored: ['**/.tmp/**', '**/.playwright-mcp/**'] },
 		proxy: {
 			// Forward /game-images requests to the local API in dev.
 			// OptimizedImage strips the origin from all game-image URLs so they
