@@ -30,7 +30,7 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
       - name: Test versioning and native dependency guards
-        run: node --test scripts/versioning/core.test.mjs scripts/ci/native-lock.test.mjs
+        run: node --test scripts/versioning/core.test.mjs scripts/versioning/release.test.mjs scripts/ci/native-lock.test.mjs
       - name: Validate every outgoing commit version
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || '' }}
@@ -42,12 +42,42 @@ jobs:
         run: npm ci --include=optional
       - name: Exercise installed Rollup, esbuild and embedded Sass
         run: node scripts/ci/native-lock.mjs --installed
+      - name: Dependency security gate
+        run: npm run security:all
       - name: Lint
         run: npm run lint
-      - name: Test
-        run: npm run test
+      - name: Literal translation references in English and Spanish
+        run: npm run test:i18n
+      - name: Tests and coverage gates
+        run: npm run test:coverage
+      - name: Retain coverage evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-coverage
+          path: coverage/lcov.info
+          if-no-files-found: ignore
       - name: Build
         run: npm run build
+      - name: Browser E2E against the compiled artifact with isolated fixtures
+        run: |
+          npm run preview -- --host 127.0.0.1 --port 5173 --strictPort > cypress-preview.log 2>&1 &
+          PREVIEW_PID=$!
+          trap 'kill "$PREVIEW_PID" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:5173/ > /dev/null; then break; fi
+            sleep 1
+          done
+          npm run cypress:run -- --browser electron --config baseUrl=http://127.0.0.1:5173
+      - name: Retain browser diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-browser-e2e
+          path: |
+            cypress/screenshots/
+            cypress-preview.log
+          if-no-files-found: ignore
       - name: Committed artifact version
         id: version
         run: node scripts/versioning/cli.mjs release-info | node -e "let s='';process.stdin.on('data',c=>s+=c).on('end',()=>{const v=JSON.parse(s);console.log('version='+v.version);console.log('already_published='+v.alreadyPublished)})" >> "$GITHUB_OUTPUT"

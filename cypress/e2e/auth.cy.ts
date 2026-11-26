@@ -12,7 +12,7 @@ export {}
  * - Admin routes block non-admin users
  */
 
-const API = 'https://localhost:7245/api'
+const API = '**/api'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -45,10 +45,12 @@ function mockLoginFail() {
 }
 
 function mockHomeApis() {
-	cy.intercept('GET', `${API}/games*`, { fixture: 'games.json' }).as('getGames')
-	cy.intercept('GET', `${API}/gamestatus/active`, { fixture: 'catalog.json#statuses' })
-	cy.intercept('GET', `${API}/gamestatus/special`, { fixture: 'catalog.json#specialStatuses' })
-	cy.intercept('GET', `${API}/gameplatforms/active`, { fixture: 'catalog.json#platforms' })
+	cy.intercept('GET', /\/api\/games(\?.*)?$/, { fixture: 'games.json' }).as('getGames')
+	cy.fixture('catalog.json').then(catalog => {
+		cy.intercept('GET', `${API}/gamestatus/active`, catalog.statuses)
+		cy.intercept('GET', `${API}/gamestatus/special`, catalog.specialStatuses)
+		cy.intercept('GET', `${API}/gameplatforms/active`, catalog.platforms)
+	})
 	cy.intercept('GET', `${API}/gameplaywith/active`, [])
 	cy.intercept('GET', `${API}/gameplayedstatus/active`, [])
 	cy.intercept('GET', `${API}/gamereplaytypes/active`, [])
@@ -60,6 +62,7 @@ function mockHomeApis() {
 describe('Authentication Journeys', () => {
 	beforeEach(() => {
 		cy.clearLocalStorage()
+		cy.mockApiRoutes()
 		// Default: configured installation → no bootstrap credentials offered.
 		cy.intercept('GET', `${API}/users/setup-status`, { defaultCredentialsAvailable: false, defaultUsername: null }).as('setupStatus')
 	})
@@ -72,13 +75,13 @@ describe('Authentication Journeys', () => {
 
 		cy.visit('/#/login')
 		cy.get('#username').type('Admin')
-		cy.get('#password').type('{selectall}{backspace}')
+		cy.get('#password').clear().type('Cypress-fixture-only')
 		cy.get('button[type="submit"]').should('contain.text', 'Sign In').click()
 
 		cy.wait('@loginRequest')
 		cy.url().should('include', '/#/')
 		cy.url().should('not.include', 'login')
-		cy.get('.home-component').should('exist')
+		cy.get('.gdb-home-page').should('exist')
 	})
 
 	// ── 6.2 Login inválido → ver error ────────────────────────────────────────
@@ -104,14 +107,14 @@ describe('Authentication Journeys', () => {
 
 		cy.visit('/')
 		cy.url().should('not.include', 'login')
-		cy.get('.home-component').should('exist')
+		cy.get('.gdb-home-page').should('exist')
 
 		cy.reload()
 
 		// After reload, the app should rehydrate from localStorage and stay on home
 		mockHomeApis()
 		cy.url().should('not.include', 'login')
-		cy.get('.home-component').should('exist')
+		cy.get('.gdb-home-page').should('exist')
 	})
 
 	// ── 6.2 Logout → redirect a login ─────────────────────────────────────────
@@ -121,8 +124,9 @@ describe('Authentication Journeys', () => {
 		mockHomeApis()
 		cy.visit('/')
 
-		cy.get('.home-component').should('exist')
-		cy.get('button[title="Logout"]').click()
+		cy.get('.gdb-home-page').should('exist')
+		cy.get('.gdb-profile-button').click()
+		cy.contains('button', 'Logout').click()
 		cy.url().should('include', '/#/login')
 	})
 
@@ -135,14 +139,16 @@ describe('Authentication Journeys', () => {
 
 	// ── 6.2 No acceder a admin como Standard ──────────────────────────────────
 
-	it('standard user is redirected from admin route to home', () => {
+	it('standard user cannot access the privileged Users administration', () => {
 		cy.login('StandardUser', 'Standard')
 		mockHomeApis()
 
-		cy.visit('/#/admin')
-		// ProtectedRoute with adminOnly redirects non-admins to /
-		cy.url().should('not.include', '/admin')
-		cy.get('.home-component').should('exist')
+		cy.visit('/#/admin/users')
+		// Personal catalog administration is allowed; privileged user routes are not mounted.
+		cy.get('.admin-sidebar a[href$="/users"]').should('not.exist')
+		cy.get('.admin-users').should('not.exist')
+		cy.url().should('include', '/admin/platforms')
+		cy.get('.admin-body').should('be.visible')
 	})
 
 	// ── Default-credentials hint is gated by setup status ─────────────────────
