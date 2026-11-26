@@ -1,215 +1,186 @@
-# Games Database - Frontend
+# Games Database
 
-A modern web application for managing and organizing your personal game collection. Built with React 19 and TypeScript, this application provides an intuitive interface for cataloging games, tracking playtime, managing ratings, and organizing your gaming library.
+**A personal game library that keeps your collection, progress and next game in one place.**
 
-## Features
+Games Database is a self-hosted React application backed by a multi-user ASP.NET
+Core API. Organize games your way, keep playthrough records, connect Steam when
+you want to, and revisit the games already in your library.
 
-- **Comprehensive Game Management**: Add, edit, and organize your game collection with detailed information
-- **Advanced Filtering & Search**: Search by title with accent-insensitive matching, filter by platform, status, play mode, and more
-- **Custom Views**: Create and save custom filtered views for quick access to specific game lists
-- **Ratings & Estimates**: Track personal grades, critic scores, and estimated story/completionist durations in hours
-- **Visual Organization**: Card and row view modes with cover art and logo support
-- **Price Tracking**: Mark games as cheaper via key stores with optional store URLs
-- **Multi-User Support**: User authentication with JWT tokens and personalized game libraries
-- **Data Export**: Export your game data in JSON or CSV formats
-- **Responsive Design**: Optimized for desktop and mobile devices
-- **Dark/Light Themes**: Customizable appearance with theme support
-- **Steam Achievement Sets**: Group base-game/DLC achievements, preserve completed sets, reveal spoilers explicitly and show partial progress/global rarity.
+[Español](README.es.md) · [Get started](docs/GETTING_STARTED.md) ·
+[User guide](docs/USER_GUIDE.md) · [API](https://github.com/David-H-Afonso/GamesDatabase.Api)
 
-### Completion filters
+![Games Database Home: featured game, Playing now and collection shelves](docs/images/home.webp)
 
-- **Completed / Completados** includes manual completion, preserved previous
-  completion, any completed Steam set, and current 100% games.
-- **100% total** requires every current public base-game and DLC achievement,
-  including DLC without access; archived/unobtainable content does not block it.
-  Non-Steam games retain their manual 100% declaration.
-- Gold **100%** badges and blue **Completed** badges are deliberately different.
-  A 197/243 game with completed sets qualifies only for the broad filter.
+Screenshots show the running application with isolated synthetic records and
+the bundled fictional sample artwork, not personal player data or production.
 
-Update the API first: the new UI uses
-`GET /api/steam/achievements/{gameId}/progress` and readonly completion summaries.
-The backend migration preserves existing completion before importing sets; take a
-consistent database backup before running the updated API, then sync Steam once.
+## What you can do
 
-### Large Steam libraries
+- **Build your library:** compact single/batch creation with an adjacent Steam
+  toggle and folded options; edit grades, dates, notes, estimates and independent
+  Logo, Hero and Cover artwork.
+- **Find and organize:** literal phrase/exclusion search, advanced filters, saved
+  views, manual/automatic playlists, folders and cover shelves.
+- **Choose your presentation:** Covers, Cards and compact/extended Row; thirteen
+  themes, optional backgrounds and English/Spanish throughout the interface.
+- **Keep your progress:** separate playthroughs/Replays, change history, manual
+  time that replaces or adds to Steam, and distinct base-game/DLC achievement sets.
+- **Make Home yours:** reorder, hide and configure rows without changing their
+  source playlists. Playing now has a separate, unobtrusive game list.
+- **Discover your next game:** daily recommendations with included/excluded
+  statuses, and a dice action scoped to the whole library or the current page.
+- **Fill metadata faster:** Steam-first, Wikidata-second lookups with field-level
+  sources, empty-only/overwrite choices and an explicit review before saving.
+- **Learn at your pace:** an optional, resumable guide for new or existing users.
+   Example games require opt-in and can be kept or reviewed for removal.
+- **Move and protect your data:** CSV/JSON/ZIP tools, ownership-aware imports,
+  backup controls and administration for users and personal catalogs.
 
-**Sync all** now starts an explicit server operation instead of holding a long
-HTTP request open. The Steam account screen shows queued/running progress, the
-current game, updated achievements and partial failures. You can leave and return
-without sending another start request. Connection errors retain the last counters
-and offer **Recover status**, without rendering proxy HTML or resubmitting work.
+![Library in Cards layout with search, filters and game actions](docs/images/library.webp)
 
-Each game is saved separately. An API restart loses temporary operation status,
-not committed game data; a new pass requires an explicit user action. The observer
-does not poll while idle or after completion and is cleaned up on unmount/account
-change. Update the backend together with the frontend; this correction adds no
-database migration and does not require longer proxy timeouts.
+## Quick start
 
-Results distinguish **errors**, **warnings** and **informational cases**. Games
-without readable player progress, without published achievements or not yet
-released do not trigger a misleading warning total. “View reasons by game” shows
-causes and links, with severity/reason/name filters and bounded rendering. Missing
-player data preserves the last saved progress; it is never interpreted as zero
-unlocks or proof that the game has never been played.
-The bounded results list supports mouse and keyboard scrolling. Changing a filter
-returns to the first result; showing more keeps the current list position.
+### Requirements
 
-## Tech Stack
+- Node.js **22.13+** or a newer supported release; CI uses Node 22.
+- npm **10+** and the committed root `package-lock.json`.
+- [GamesDatabase.Api](https://github.com/David-H-Afonso/GamesDatabase.Api) **3.0**
+  running at a URL your browser can reach.
 
-- **Frontend Framework**: React 19 with TypeScript
-- **State Management**: Redux Toolkit with RTK Query
-- **Routing**: React Router DOM 7
-- **Styling**: SCSS with custom themes
-- **Build Tool**: Vite 7
-- **Package Manager**: npm
-
-## Prerequisites
-
-- Node.js 18.x or higher
-- npm 9.x or higher
-- A compatible backend API (see [GamesDatabase.Api](https://github.com/David-H-Afonso/GamesDatabase.Api))
-
-## Local Installation
-
-### Setup
-
-1. **Clone the repository**
-
-   ```bash
-   git clone https://github.com/David-H-Afonso/GamesDatabase.Front
-   cd GamesDatabase.Front
-   ```
-
-2. **Install dependencies**
-
-   ```bash
-   npm install
-   ```
-
-3. **Configure environment**
-
-   Create a `.env` file in the root directory:
-
-   ```env
-   VITE_API_URL=http://localhost:8080/api
-   ```
-
-## Development
-
-### Start Development Server
-
-```bash
+```sh
+git clone https://github.com/David-H-Afonso/GamesDatabase.Front.git
+cd GamesDatabase.Front
+npm ci --include=optional
 npm run dev
 ```
 
-The application will be available at `http://localhost:5173`
+Open `http://localhost:5173`. The development API defaults to local HTTPS on port 7245,
+with HTTP on port 5011 as fallback. To choose the local HTTP API explicitly, use a private
+local `.env` containing the browser-public URL:
 
-### Available Scripts
+```env
+VITE_API_URL=http://127.0.0.1:5011/api
+```
 
-```bash
-# Type checking and build
+Do not put JWT signing keys, Steam keys or other server secrets in Front variables.
+Vite proxies `/game-images` to the local API in development. For the full paired
+setup and a fresh account, follow [Get started](docs/GETTING_STARTED.md).
+
+## First use
+
+1. Sign in to your own account. A fresh installation offers the bootstrap
+   administrator; set its password before sharing access.
+2. Choose **Use my library** or explicitly add six labelled example games in the
+   guide. Skipping the guide never adds sample records.
+3. Add a game, open its detail and use **Edit game** to save changed fields.
+4. Create playlists or add a small selection to Focus. Customize Home separately.
+5. Use recommendations or the dice when you want to revisit your collection.
+
+The profile menu can resume/restart the guide and manage remaining examples.
+Administrators can enable the guide when creating or editing a user.
+
+![Compact Add Game dialog with the Steam toggle beside the title and folded options](docs/images/create.webp)
+
+![The optional getting-started guide with progress and explicit data choices](docs/images/guide.webp)
+
+## Development and verification
+
+```sh
 npm run build
-
-# Linting
 npm run lint
-
-# Preview production build
-npm run preview
+npm run test
+npm run test:coverage
+npm run test:i18n
+npm run test:versioning
+node scripts/ci/native-lock.mjs
+node scripts/ci/native-lock.mjs --installed
+npm run security:all
 ```
 
-## Production Build
+For browser tests, build first, start the static preview in another terminal and
+run Cypress against that artifact:
 
-### Create Production Build
-
-```bash
+```sh
 npm run build
+npm run preview -- --host 127.0.0.1 --port 5174 --strictPort
 ```
 
-The build output will be generated in the `dist/` directory, ready for deployment to any static hosting service.
-
-### Environment Configuration
-
-For production deployments, ensure the `VITE_API_URL` environment variable points to your backend API endpoint.
-
-## Project Structure
-
-```
-src/
-├── assets/          # Static assets (images, icons, styles)
-├── components/      # React components
-│   ├── elements/    # Reusable UI elements
-│   └── Home/        # Main application views
-├── hooks/           # Custom React hooks
-├── layouts/         # Layout components
-├── models/          # TypeScript interfaces and types
-├── navigation/      # Routing configuration
-├── providers/       # Context providers
-├── services/        # API services
-├── store/           # Redux store configuration
-└── utils/           # Utility functions
+```sh
+npm run cypress:run -- --browser electron --config baseUrl=http://127.0.0.1:5174
 ```
 
-## Key Features
+Cypress uses synthetic authentication and intercepted, contract-shaped API
+fixtures. Unmatched API traffic is blocked; never point these tests at personal
+or production data. Its Electron test browser is not the separate desktop app.
 
-### Game Cataloging
+## Architecture and decisions
 
-- Add games with comprehensive metadata (title, release date, platforms, etc.)
-- Upload or link cover art and logos
-- Track played status, completion dates, and playtime
-- Organize games with custom tags and categories
+React 19/TypeScript/Vite 7, Redux Toolkit, React Router 7, SCSS, Vitest, Testing
+Library, MSW and Cypress. DM Sans and Outfit are served locally.
 
-### Filtering and Search
+The frontend keeps HTTP contracts in `src/services` and `src/models`. Collection
+reads are keyed by account/query, cancelled when stale, and separated from
+explicit mutations. Detail and metadata hosts live outside replaceable result
+cards so a list refresh does not discard an open workflow.
 
-- Real-time search with accent-insensitive matching
-- Multi-criteria filtering (status, platform, year, ratings)
-- Exclude specific statuses from results
-- Save custom filter combinations as views
+- **Sparse editing:** Save sends changed fields, not a whole stale game snapshot.
+- **Independent artwork:** a missing Hero is not substituted with a vertical Cover.
+- **Explicit data changes:** lookups do not sync players; templates and samples
+  are not silently created; concurrent saves are surfaced for review.
+- **Server-owned discovery:** all accounts share the UTC day boundary, while each
+  recommendation pool and random result is scoped to its own collection.
 
-### User Management
+See [Architecture](docs/ARCHITECTURE.md) and [Contributing](CONTRIBUTING.md).
 
-- Secure authentication with JWT tokens
-- User-specific game libraries and preferences
-- Remember recent users for quick switching
+## Data definitions and boundaries
 
-### Data Management
+Positive manual minutes replace Steam lifetime minutes by default. **Zero or
+empty manual time uses Steam**; **Add manual time to Steam** sums both sources.
+Raw Steam/manual values remain separate in the editor and transfers.
+Story/completionist estimates are hours, not progress percentages. Completed
+includes preserved/manual/set completion; strict 100% requires all current public
+base-game and DLC achievements. Replays retain their own dates and grades, not an
+invented duration or monthly-session history.
 
-- Export game data in JSON or CSV formats
-- Batch operations for multiple games
-- Duplicate detection and management
+Metadata sources do not provide verified story/completionist estimates; those
+values remain unchanged. Steam Store availability and Wikidata coverage can vary.
+The reviewed lookup retains existing fields when a source is missing or ambiguous.
+Examples are labelled library records and count in totals until kept or removed.
 
-## Upcoming Features
+This repository is the **web frontend**, not an Electron release. A local passing
+test run is not certification of deployment, physical devices or screen readers.
+Production requires review of its actual hosting, access policy and recovery plan.
 
-The following features are planned for future releases:
+## Deploying and releasing
 
-- First-time setup wizard for new users
-- Enhanced card UI with better overflow handling
-- Custom score calculation formulas
-- Game duplication functionality
-- Internationalization (i18n) support
-- Keyboard shortcuts for common actions
+`npm run build` produces `dist/`. The web container injects the public
+`window.ENV.VITE_API_URL`; `API_IMAGES_URL` configures its Nginx image upstream.
+Browser and container URLs are separate concerns.
 
-For a detailed list of pending features, see [PENDING_FEATURES.md](PENDING_FEATURES.md).
+Adopt the compatible API first and follow [Deployment and recovery](docs/DEPLOYMENT.md).
+A push may publish images/releases but does not authorize production startup or
+database restoration. Versions are checked per commit by the
+[version kit](scripts/versioning/README.md). An explicit `Release-As: 3.0.0`
+trailer records the owner's product milestone without inventing an API break.
 
-## API Integration
+## Troubleshooting and support
 
-This frontend application requires the Games Database API backend. Ensure the API is running and accessible at the URL specified in your environment configuration.
+- **Native module missing:** use the portable lock and `npm ci --include=optional`;
+  do not regenerate it from platform-pruned dependencies. Run the native guards.
+- **API/images unavailable:** check the browser API URL and image proxy separately.
+- **409 conflict:** reload the latest data and review the draft; do not force overwrite.
+- **No recommendations:** adjust statuses or add eligible games. A small pool may
+  repeat games; selection ordering rotates daily.
+- **Example cleanup conflict:** reload/review; another edit must not be discarded.
 
-For backend setup instructions, visit: [GamesDatabase.Api](https://github.com/David-H-Afonso/GamesDatabase.Api)
-
-## Contributing
-
-Contributions are welcome. Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/new-feature`)
-3. Commit your changes (`git commit -m 'Add new feature'`)
-4. Push to the branch (`git push origin feature/new-feature`)
-5. Open a Pull Request
+Report reproducible bugs in [Issues](https://github.com/David-H-Afonso/GamesDatabase.Front/issues).
+For contribution checks, see [Contributing](CONTRIBUTING.md). Sensitive reports
+follow [Security](SECURITY.md), not public issue disclosure.
 
 ## License
 
-This project is licensed under the GPL-3.0 License - see the [LICENSE.md](LICENSE.md) file for details.
-
----
-
-**Built with ❤️ for Gamers worldwide**
+The application retains its [GPL-3.0 license](LICENSE.md). Bundled fonts retain
+their original SIL Open Font License notices in `public/licenses/fonts/`; those
+notices and the application license ship with the static artifact. Game artwork
+belongs to its respective rights holders. The opt-in sample illustrations are
+distributed with the application, not presented as third-party game editions.
