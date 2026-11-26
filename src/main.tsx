@@ -10,6 +10,10 @@ import { ThemeProvider } from './providers'
 import { restoreAuth, forceLogout, setRefreshedTokens } from './store/features/auth/authSlice'
 import { initCustomFetch } from '@/utils/customFetch'
 import '@/assets/styles/index.scss'
+import '@/assets/styles/gallery-experience.scss'
+import { OnboardingProvider } from '@/components/Onboarding/OnboardingProvider'
+import { GameMetadataProvider } from '@/components/Collection/GameMetadataProvider'
+import { DisplayedGamesProvider } from '@/components/Collection/DisplayedGamesProvider'
 
 initCustomFetch(store, persistor, forceLogout, setRefreshedTokens)
 
@@ -40,11 +44,11 @@ window.addEventListener('pagehide', flushPersistor)
 createRoot(document.getElementById('root')!).render(
 	<StrictMode>
 		<Provider store={store}>
-			<ThemeProvider>
-				<PersistGate loading={<div>Loading...</div>} persistor={persistor}>
-					<RouterProvider router={router} />
-				</PersistGate>
-			</ThemeProvider>
+			<PersistGate loading={null} persistor={persistor}>
+				<ThemeProvider>
+					<OnboardingProvider><GameMetadataProvider><DisplayedGamesProvider><RouterProvider router={router} /></DisplayedGamesProvider></GameMetadataProvider></OnboardingProvider>
+				</ThemeProvider>
+			</PersistGate>
 		</Provider>
 	</StrictMode>
 )

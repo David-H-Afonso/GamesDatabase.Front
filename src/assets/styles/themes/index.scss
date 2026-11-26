@@ -7,11 +7,12 @@
 @use './nintendo.scss';
 @use './playstation.scss';
 @use './xbox.scss';
+@use './gallery.scss';
 
 // Default theme - applies when no data-theme is set or as fallback
-:root {
-	// Set default theme to light
-	@extend [data-theme='light'];
+:root:not([data-theme]) {
+	// An explicit palette must never be overridden by a later :root @extend.
+	@extend [data-theme='gallery'];
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -122,21 +123,21 @@ body.has-app-bg .login-container {
 	background-color: transparent;
 }
 
-body.has-app-bg .home-component[data-theme],
-body.has-app-bg [data-theme='dark'] .home-component,
-body.has-app-bg [data-theme='steam'] .home-component,
-body.has-app-bg .home-component,
-body.has-app-bg .playlists-page {
+html:not([data-experience='gallery']) body.has-app-bg .home-component[data-theme],
+html:not([data-experience='gallery']) body.has-app-bg [data-theme='dark'] .home-component,
+html:not([data-experience='gallery']) body.has-app-bg [data-theme='steam'] .home-component,
+html:not([data-experience='gallery']) body.has-app-bg .home-component,
+html:not([data-experience='gallery']) body.has-app-bg .playlists-page {
 	background-image: none;
 	background-color: transparent;
 	color: #f8fafc;
 	text-shadow: 0 1px 3px rgba(0, 0, 0, .45);
 }
 
-body.has-app-bg .home-component .game-card,
-body.has-app-bg .home-component .game-card h3,
-body.has-app-bg .home-component .game-card p,
-body.has-app-bg .playlists-page h1 {
+html:not([data-experience='gallery']) body.has-app-bg .home-component .game-card,
+html:not([data-experience='gallery']) body.has-app-bg .home-component .game-card h3,
+html:not([data-experience='gallery']) body.has-app-bg .home-component .game-card p,
+html:not([data-experience='gallery']) body.has-app-bg .playlists-page h1 {
 	color: #f8fafc;
 }
 

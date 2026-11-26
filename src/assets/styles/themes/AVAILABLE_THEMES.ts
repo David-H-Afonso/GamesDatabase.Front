@@ -1,6 +1,7 @@
-export const AVAILABLE_THEMES = ['light', 'dark', 'steam', 'wolverine-classic', 'wolverine-modern', 'gta-vice-city', 'gta-iv', 'gta-v', 'gta-vi', 'nintendo', 'playstation', 'xbox'] as const
+export const AVAILABLE_THEMES = ['gallery', 'light', 'dark', 'steam', 'wolverine-classic', 'wolverine-modern', 'gta-vice-city', 'gta-iv', 'gta-v', 'gta-vi', 'nintendo', 'playstation', 'xbox'] as const
 
 export const THEME_FAMILIES = [
+	{ key: 'gallery', variants: ['gallery'], defaultTheme: 'gallery' },
 	{ key: 'light', variants: ['light'], defaultTheme: 'light' },
 	{ key: 'dark', variants: ['dark'], defaultTheme: 'dark' },
 	{ key: 'steam', variants: ['steam'], defaultTheme: 'steam' },
@@ -12,6 +13,7 @@ export const THEME_FAMILIES = [
 ] as const
 
 export const THEME_VARIANTS_BY_FAMILY: Record<string, readonly string[]> = {
+	gallery: ['gallery'],
 	light: ['light'],
 	dark: ['dark'],
 	steam: ['steam'],
@@ -23,6 +25,7 @@ export const THEME_VARIANTS_BY_FAMILY: Record<string, readonly string[]> = {
 }
 
 export const DEFAULT_THEME_BY_FAMILY: Record<string, string> = {
+	gallery: 'gallery',
 	light: 'light',
 	dark: 'dark',
 	steam: 'steam',
@@ -34,6 +37,7 @@ export const DEFAULT_THEME_BY_FAMILY: Record<string, string> = {
 }
 
 export const THEME_FAMILY_BY_THEME: Record<string, string> = {
+	gallery: 'gallery',
 	light: 'light',
 	dark: 'dark',
 	steam: 'steam',
@@ -49,6 +53,7 @@ export const THEME_FAMILY_BY_THEME: Record<string, string> = {
 }
 
 export const LEGACY_THEME_ALIASES: Record<string, string> = {
+	original: 'gallery',
 	wolverine: 'wolverine-classic',
 	gta: 'gta-vice-city',
 }

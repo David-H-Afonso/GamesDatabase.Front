@@ -1,0 +1,9 @@
+.gdb-context-menu{display:inline-flex;flex-shrink:0}
+.gdb-context-menu__panel{position:fixed;z-index:10020;box-sizing:border-box;display:flex;flex-direction:column;gap:3px;padding:7px;border:1px solid var(--gdb-control);border-radius:10px;background:var(--gdb-surface);color:var(--gdb-text);box-shadow:0 12px 30px #0005;font:450 14px/1.5 var(--gdb-body);overflow:auto;overscroll-behavior:contain}
+.gdb-context-menu__panel>:is(button,a){display:flex;align-items:center;justify-content:flex-start;gap:10px;flex-shrink:0;width:100%;min-height:44px;margin:0;padding:10px;border:0;border-radius:5px;background:transparent;color:inherit;font:inherit;text-align:left;text-decoration:none;cursor:pointer}
+.gdb-context-menu__panel>:is(button,a)>.gdb-icon{width:17px;height:17px}
+.gdb-context-menu__panel>button:disabled{opacity:.45;cursor:default}
+.gdb-context-menu__panel>p{margin:0;padding:8px 10px;font:450 12px/1.6 var(--gdb-body);color:var(--gdb-secondary)}
+.gdb-context-menu__panel>:is(button,a):focus-visible{outline:2px solid var(--gdb-accent);outline-offset:-2px}
+@media(hover:hover) and (pointer:fine){.gdb-context-menu__panel>:is(button,a):not(:disabled):hover{background:var(--gdb-raised)}}
+@media(max-width:650px){.gdb-context-menu__panel{font-size:16px}}

@@ -7,10 +7,15 @@ import { RouteError, NotFound } from '@/components/errors'
 import AdminFallback from './AdminFallback'
 import GameDeepLink from '@/components/Games/GameDeepLink'
 import HouseholdConsent from '@/components/Integrations/HouseholdConsent'
-import Playlists from '@/components/Playlists/Playlists'
-import FocusMode from '@/components/Focus/FocusMode'
+import CollectionHome from '@/components/Collection/CollectionHome'
+import HomeRowLibrary from '@/components/Collection/HomeRowLibrary'
+import CollectionFallback from './CollectionFallback'
 
 const Admin = lazy(() => import('@/components/Admin/containers/Admin'))
+const Playlists = lazy(() => import('@/components/Playlists/Playlists'))
+const FocusMode = lazy(() => import('@/components/Focus/FocusMode'))
+const CollectionStatistics = lazy(() => import('@/components/Collection/CollectionStatistics'))
+const CollectionShelves = lazy(() => import('@/components/Collection/CollectionShelves'))
 
 export const router = createHashRouter([
 	{
@@ -29,7 +34,7 @@ export const router = createHashRouter([
 		element: (
 			<ProtectedRoute>
 				<AppLayout>
-					<Home />
+					<CollectionHome />
 				</AppLayout>
 			</ProtectedRoute>
 		),
@@ -50,7 +55,7 @@ export const router = createHashRouter([
 		element: (
 			<ProtectedRoute>
 				<AppLayout>
-					<FocusMode />
+					<Suspense fallback={<CollectionFallback />}><FocusMode /></Suspense>
 				</AppLayout>
 			</ProtectedRoute>
 		),
@@ -66,6 +71,26 @@ export const router = createHashRouter([
 				</AppLayout>
 			</ProtectedRoute>
 		),
+		errorElement: <RouteError />,
+	},
+	{
+		path: '/library',
+		element: <ProtectedRoute><AppLayout><Home /></AppLayout></ProtectedRoute>,
+		errorElement: <RouteError />,
+	},
+	{
+		path: '/library/rows/:rowId',
+		element: <ProtectedRoute><AppLayout><HomeRowLibrary /></AppLayout></ProtectedRoute>,
+		errorElement: <RouteError />,
+	},
+	{
+		path: '/statistics',
+		element: <ProtectedRoute><AppLayout><Suspense fallback={<CollectionFallback />}><CollectionStatistics /></Suspense></AppLayout></ProtectedRoute>,
+		errorElement: <RouteError />,
+	},
+	{
+		path: '/shelves',
+		element: <ProtectedRoute><AppLayout><Suspense fallback={<CollectionFallback />}><CollectionShelves /></Suspense></AppLayout></ProtectedRoute>,
 		errorElement: <RouteError />,
 	},
 	{
@@ -95,7 +120,7 @@ export const router = createHashRouter([
 		element: (
 			<ProtectedRoute>
 				<AppLayout>
-					<Playlists />
+					<Suspense fallback={<CollectionFallback />}><Playlists /></Suspense>
 				</AppLayout>
 			</ProtectedRoute>
 		),
@@ -106,7 +131,7 @@ export const router = createHashRouter([
 		element: (
 			<ProtectedRoute>
 				<AppLayout>
-					<Playlists />
+					<Suspense fallback={<CollectionFallback />}><Playlists /></Suspense>
 				</AppLayout>
 			</ProtectedRoute>
 		),

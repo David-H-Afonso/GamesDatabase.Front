@@ -1,0 +1,9 @@
+.gdb-row-library__back{padding-left:0;margin:-8px 0 12px}
+.gdb-row-library__toolbar{display:flex;align-items:center;gap:18px;margin-bottom:22px}
+.gdb-row-library__toolbar>.gdb-search-input{flex:1;max-width:none}
+.gdb-layout-control{display:flex;align-items:center;border:1px solid var(--gdb-subtle-line);border-radius:8px;padding:3px;gap:2px;background:var(--gdb-input)}
+.gdb-layout-control>button{width:44px;min-width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:5px;color:var(--gdb-quiet);padding:0 9px;border:0;background:transparent;cursor:pointer}
+.gdb-layout-control>button[aria-pressed=true]{background:var(--gdb-raised);color:var(--gdb-text)}
+.gdb-layout-control .gdb-icon{width:17px;height:17px}
+.gdb-row-library__games{padding:0!important;margin:0!important}
+@media(max-width:650px){.gdb-row-library__toolbar{flex-wrap:wrap;gap:12px}.gdb-row-library__toolbar>.gdb-search-input{width:100%;flex:auto}.gdb-layout-control{margin-left:auto}}

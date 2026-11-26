@@ -125,6 +125,7 @@ export const ThemeLanguageControls: React.FC = () => {
 	}, [open])
 
 	const themeLabels: Record<string, string> = {
+		gallery: t('gallery.theme.original'),
 		light: t('nav.themeLight'),
 		dark: t('nav.themeDark'),
 		steam: t('nav.themeSteam'),

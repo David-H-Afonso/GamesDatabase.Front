@@ -3,7 +3,6 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { setTheme } from '@/store/features/theme/themeSlice'
 import { useTranslation } from 'react-i18next'
 import './ThemeSelector.scss'
-import { AVAILABLE_THEMES } from '@/assets/styles/themes/AVAILABLE_THEMES'
 
 const SunIcon = () => (
 	<svg width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round' aria-hidden='true'>
@@ -30,10 +29,10 @@ export const ThemeSelector: React.FC = () => {
 	const dispatch = useAppDispatch()
 	const { currentTheme } = useAppSelector((state) => state.theme)
 
-	const isDark = currentTheme === AVAILABLE_THEMES[1]
+	const isDark = currentTheme === 'dark'
 
 	const toggle = () => {
-		dispatch(setTheme(isDark ? AVAILABLE_THEMES[0] : AVAILABLE_THEMES[1]))
+		dispatch(setTheme(isDark ? 'light' : 'dark'))
 	}
 
 	return (

@@ -1,0 +1,9 @@
+.gdb-collection-rail{position:relative;min-width:0;--gdb-rail-art-height:210px}
+.gdb-rail-edge{position:absolute;z-index:5;top:calc(var(--gdb-rail-art-height)/2 - 18px);display:grid;place-items:center;width:44px;height:44px;padding:0;border:1px solid var(--gdb-line);border-radius:50%;background:var(--gdb-surface);color:var(--gdb-text);box-shadow:0 3px 14px #0005;cursor:pointer}
+.gdb-rail-edge[hidden]{display:none}
+.gdb-rail-edge--previous{left:-20px}
+.gdb-rail-edge--next{right:-20px}
+.gdb-rail-edge:disabled{opacity:0;pointer-events:none}
+.gdb-rail-edge:focus-visible{outline:2px solid var(--gdb-accent);outline-offset:3px}
+.gdb-rail-edge>.gdb-icon{width:18px;height:18px}
+@media(max-width:650px){.gdb-rail-edge--previous{left:-10px}.gdb-rail-edge--next{right:-10px}}

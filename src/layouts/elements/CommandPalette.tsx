@@ -1,18 +1,27 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { setTheme } from '@/store/features/theme/themeSlice'
+import { setTheme, setViewMode } from '@/store/features/theme/themeSlice'
 import { setFilters } from '@/store/features/games/gamesSlice'
 import { logoutUser } from '@/store/features/auth/authSlice'
 import { selectIsAdmin } from '@/store/features/auth/selector'
 import type { Game } from '@/models/api/Game'
 import { getGames } from '@/services/GamesService/GamesService'
+import { getPlaylists } from '@/services/PlaylistService/PlaylistService'
+import { getPlaylistGroups } from '@/services/PlaylistService/PlaylistGroupService'
+import { getGameViews } from '@/services/GameViewService/GameViewService'
+import { useCollectionResource } from '@/hooks/useCollectionResource'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
+import { createNameSearch, matchesNameSearch, hasSearchTerms } from '@/utils/nameSearch'
+import { NameSearchField } from '@/components/Collection/NameSearchField'
+import { CollectionIcon } from '@/components/Collection/CollectionIcon'
+import type { NameSearch } from '@/models/api/NameSearch'
+import { CollectionSheet } from '@/components/Collection/CollectionSheet'
+import { GameArtwork } from '@/components/Collection/GameArtwork'
 import './CommandPalette.scss'
 
-const SEARCH_LIMIT = 7
-const SEARCH_DEBOUNCE_MS = 250
+const SEARCH_LIMIT = 8
 
 interface CommandPaletteProps {
 	isOpen: boolean
@@ -85,45 +94,7 @@ const IconLogout = (
 		<line x1='21' y1='12' x2='9' y2='12' />
 	</Svg>
 )
-const IconGame = (
-	<Svg>
-		<rect x='2' y='6' width='20' height='12' rx='4' />
-		<path d='M7 11v2M6 12h2' />
-		<circle cx='16' cy='11' r='1' fill='currentColor' stroke='none' />
-		<circle cx='18' cy='13' r='1' fill='currentColor' stroke='none' />
-	</Svg>
-)
 const IconPlus = <Svg d='M12 5v14M5 12h14' />
-
-function useLibrarySearch(query: string, enabled: boolean) {
-	const [games, setGames] = useState<Game[]>([])
-	const [searching, setSearching] = useState(false)
-	const requestId = useRef(0)
-
-	useEffect(() => {
-		const term = query.trim()
-		if (!enabled || term.length < 1) {
-			setGames([])
-			setSearching(false)
-			return
-		}
-		setSearching(true)
-		const id = ++requestId.current
-		const timer = window.setTimeout(async () => {
-			try {
-				const { data } = await getGames({ search: term, pageSize: SEARCH_LIMIT, page: 1 })
-				if (requestId.current === id) setGames(data ?? [])
-			} catch {
-				if (requestId.current === id) setGames([])
-			} finally {
-				if (requestId.current === id) setSearching(false)
-			}
-		}, SEARCH_DEBOUNCE_MS)
-		return () => window.clearTimeout(timer)
-	}, [query, enabled])
-
-	return { games, searching }
-}
 
 export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose, onOpenGame, onCreateGame }) => {
 	const { t, i18n } = useTranslation()
@@ -133,54 +104,120 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
 	const filters = useAppSelector((s) => s.games?.filters ?? {})
 	const currentTheme = useAppSelector((s) => s.theme?.currentTheme ?? 'dark')
 
-	const [query, setQuery] = useState('')
-	const [activeIndex, setActiveIndex] = useState(0)
-	const { games: apiGames, searching } = useLibrarySearch(query, isOpen)
+	const [phrases, setPhrases] = useState<NameSearch>(() => createNameSearch()),
+		[effectivePhrases, setEffectivePhrases] = useState<NameSearch>(() => createNameSearch())
+	const search = createNameSearch(effectivePhrases),
+		searchKey = JSON.stringify(search),
+		query = search.includeTerms.join(' ')
+	const debouncedKey = useDebouncedValue(searchKey),
+		searchActive = hasSearchTerms(search)
+	const [activeIndex, setActiveIndex] = useState(-1)
+	const games = useCollectionResource(
+		`global-games:${debouncedKey}`,
+		(signal) =>
+			getGames({ nameSearch: JSON.parse(debouncedKey) as NameSearch, searchMetadata: true, sortBy: 'name', sortDescending: false, pageSize: SEARCH_LIMIT, page: 1 }, signal),
+		isOpen
+	)
+	const playlists = useCollectionResource('global-playlists', (signal) => getPlaylists(signal), isOpen)
+	const folders = useCollectionResource('global-folders', () => getPlaylistGroups(), isOpen)
+	const views = useCollectionResource('global-views', (signal) => getGameViews({ pageSize: 200 }, signal), isOpen)
+	const apiGames = debouncedKey === searchKey ? (games.data?.data ?? []) : [],
+		searching = games.loading || playlists.loading || folders.loading || views.loading || debouncedKey !== searchKey
 	const inputRef = useRef<HTMLInputElement>(null)
 	const listRef = useRef<HTMLDivElement>(null)
+	const keyboardSelection = useRef(false)
 
 	const go = (to: string) => {
 		navigate(to)
 		onClose()
 	}
 
-	const applySearch = (search: string | undefined) => {
-		dispatch(setFilters({ ...filters, search, page: 1 }))
-		go('/')
+	const applySearch = () => {
+		dispatch(setViewMode('default'))
+		dispatch(setFilters({ ...filters, search: undefined, nameSearch: search, searchMetadata: true, viewName: undefined, viewId: undefined, page: 1 }))
+		go('/library')
 	}
 
 	const items = useMemo<CommandItem[]>(() => {
 		const raw = query.trim()
-		const q = raw.toLowerCase()
 		const list: CommandItem[] = []
 
-		if (raw.length >= 1) {
-			apiGames.slice(0, 7).forEach((g) =>
-				list.push({
-					id: `game-${g.id}`,
-					group: t('command.games'),
-					label: g.name,
-					icon: IconGame,
-					keywords: g.name,
-					run: () => {
-						onClose()
-						onOpenGame(g)
-					},
-				})
-			)
+		apiGames.slice(0, SEARCH_LIMIT).forEach((g) =>
+			list.push({
+				id: `game-${g.id}`,
+				group: t('command.games'),
+				label: g.name,
+				icon: (
+					<span className='gdb-mini-cover'>
+						<GameArtwork game={g} width={66} />
+					</span>
+				),
+				hint: [g.platformName, g.statusName].filter(Boolean).join(' · '),
+				keywords: g.name,
+				run: () => {
+					onClose()
+					onOpenGame(g)
+				},
+			})
+		)
+		if (searchActive)
 			list.push({
 				id: 'search-library',
 				group: t('command.games'),
-				label: t('command.searchLibrary', { query: raw }),
+				label: t('command.searchLibrary', { query: search.includeTerms.join(' · ') || raw }),
 				icon: IconSearch,
 				keywords: raw,
-				run: () => applySearch(raw),
+				run: applySearch,
 			})
-		}
+		for (const playlist of playlists.data ?? [])
+			if (matchesNameSearch(`${playlist.name} · ${playlist.description ?? ''}`, search))
+				list.push({
+					id: `playlist-${playlist.id}`,
+					group: t('gallery.search.playlists'),
+					label: playlist.name,
+					hint: `${t(playlist.isAutomatic ? 'playlists.automatic' : 'gallery.playlist.manual')} · ${t('gallery.common.games', { count: playlist.gameCount })}`,
+					icon: <CollectionIcon name={playlist.isAutomatic ? 'auto' : 'playlists'} />,
+					run: () => go(`/playlists/${playlist.id}`),
+				})
+		for (const folder of folders.data ?? [])
+			if (matchesNameSearch(folder.name, search))
+				list.push({
+					id: `folder-${folder.id}`,
+					group: t('gallery.search.folders'),
+					label: folder.name,
+					icon: <CollectionIcon name='folder' />,
+					run: () => go(`/playlists?folder=${folder.id}`),
+				})
+		for (const view of views.data ?? [])
+			if (matchesNameSearch(`${view.name} · ${view.description ?? ''}`, search))
+				list.push({ id: `view-${view.id}`, group: t('gallery.home.view'), label: view.name, icon: <CollectionIcon name='bookmark' />, run: () => go(`/library?viewId=${view.id}`) })
 
 		const goto: CommandItem[] = [
-			{ id: 'go-home', group: t('command.goto'), label: t('nav.home'), icon: IconHome, keywords: 'home inicio start', run: () => applySearch(undefined) },
-			{ id: 'go-focus', group: t('command.goto'), label: t('nav.focus'), icon: <Svg d='M12 3v3m0 12v3M3 12h3m12 0h3M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z' />, keywords: 'focus modo foco jugar siguiente ahora', run: () => go('/focus') },
+			{ id: 'go-home', group: t('command.goto'), label: t('gallery.nav.home'), icon: IconHome, keywords: 'home inicio start', run: () => go('/') },
+			{
+				id: 'go-library',
+				group: t('command.goto'),
+				label: t('gallery.nav.library'),
+				icon: <CollectionIcon name='library' />,
+				keywords: 'library biblioteca',
+				run: () => go('/library'),
+			},
+			{
+				id: 'go-statistics',
+				group: t('command.goto'),
+				label: t('gallery.nav.statistics'),
+				icon: <CollectionIcon name='statistics' />,
+				keywords: 'statistics estadisticas achievements logros tiempo',
+				run: () => go('/statistics'),
+			},
+			{
+				id: 'go-focus',
+				group: t('command.goto'),
+				label: t('nav.focus'),
+				icon: <Svg d='M12 3v3m0 12v3M3 12h3m12 0h3M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z' />,
+				keywords: 'focus modo foco jugar siguiente ahora',
+				run: () => go('/focus'),
+			},
 			{ id: 'go-playlists', group: t('command.goto'), label: t('nav.playlists'), icon: IconPlaylist, keywords: 'playlists listas orden juegos', run: () => go('/playlists') },
 			{ id: 'go-admin', group: t('command.goto'), label: t('nav.admin'), icon: IconAdmin, keywords: 'admin platforms plataformas', run: () => go('/admin/platforms') },
 			...(isAdmin ? [{ id: 'go-users', group: t('command.goto'), label: t('nav.users'), icon: IconUsers, keywords: 'users usuarios', run: () => go('/admin/users') }] : []),
@@ -207,8 +244,22 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
 				keywords: 'theme tema dark light claro oscuro',
 				run: () => dispatch(setTheme(currentTheme === 'dark' ? 'light' : 'dark')),
 			},
-			{ id: 'act-lang-en', group: t('command.actions'), label: t('command.langEn'), icon: IconGlobe, keywords: 'language idioma english ingles', run: () => void i18n.changeLanguage('en') },
-			{ id: 'act-lang-es', group: t('command.actions'), label: t('command.langEs'), icon: IconGlobe, keywords: 'language idioma spanish espanol español', run: () => void i18n.changeLanguage('es') },
+			{
+				id: 'act-lang-en',
+				group: t('command.actions'),
+				label: t('command.langEn'),
+				icon: IconGlobe,
+				keywords: 'language idioma english ingles',
+				run: () => void i18n.changeLanguage('en'),
+			},
+			{
+				id: 'act-lang-es',
+				group: t('command.actions'),
+				label: t('command.langEs'),
+				icon: IconGlobe,
+				keywords: 'language idioma spanish espanol español',
+				run: () => void i18n.changeLanguage('es'),
+			},
 			{
 				id: 'act-logout',
 				group: t('command.actions'),
@@ -252,9 +303,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
 					}))
 				: []
 
-		const match = (it: CommandItem) => !q || it.label.toLowerCase().includes(q) || (it.keywords?.toLowerCase().includes(q) ?? false)
+		const match = (it: CommandItem) => matchesNameSearch(`${it.label} · ${it.keywords ?? ''}`, search)
 		return [...list, ...goto.filter(match), ...adminPages.filter(match), ...actions.filter(match)]
-	}, [query, apiGames, filters, isAdmin, currentTheme, i18n.language])
+	}, [query, searchKey, apiGames, playlists.data, folders.data, views.data, filters, isAdmin, currentTheme, i18n.language])
 
 	const groups = useMemo(() => {
 		const order: string[] = []
@@ -270,24 +321,21 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
 	}, [items])
 
 	useEffect(() => {
-		if (isOpen) setQuery(filters.search ?? '')
+		if (isOpen) {
+			setPhrases(createNameSearch())
+			setEffectivePhrases(createNameSearch())
+		}
 	}, [isOpen])
 
 	useEffect(() => {
-		setActiveIndex(0)
-	}, [query, isOpen])
+		setActiveIndex(-1)
+		keyboardSelection.current = false
+	}, [searchKey, isOpen])
 
 	useEffect(() => {
 		if (!isOpen) return
-		const previouslyFocused = document.activeElement as HTMLElement | null
 		const tid = window.setTimeout(() => inputRef.current?.focus(), 20)
-		const prevOverflow = document.body.style.overflow
-		document.body.style.overflow = 'hidden'
-		return () => {
-			window.clearTimeout(tid)
-			document.body.style.overflow = prevOverflow
-			previouslyFocused?.focus?.()
-		}
+		return () => window.clearTimeout(tid)
 	}, [isOpen])
 
 	useEffect(() => {
@@ -298,56 +346,52 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
 	const onKeyDown = (e: React.KeyboardEvent) => {
 		if (e.key === 'Escape') {
 			e.preventDefault()
+			e.stopPropagation()
 			onClose()
 		} else if (e.key === 'ArrowDown') {
 			e.preventDefault()
+			keyboardSelection.current = true
 			setActiveIndex((i) => (items.length ? (i + 1) % items.length : 0))
 		} else if (e.key === 'ArrowUp') {
 			e.preventDefault()
-			setActiveIndex((i) => (items.length ? (i - 1 + items.length) % items.length : 0))
-		} else if (e.key === 'Enter') {
+			keyboardSelection.current = true
+			setActiveIndex((i) => (items.length ? (i < 0 ? items.length - 1 : (i - 1 + items.length) % items.length) : -1))
+		} else if (e.key === 'Enter' && activeIndex >= 0 && keyboardSelection.current) {
 			e.preventDefault()
 			items[activeIndex]?.run()
 		}
 	}
 
 	if (!isOpen) return null
-	const portalTarget = (typeof document !== 'undefined' && document.getElementById('modal-portal')) || document.body
-
-	return createPortal(
-		<div className='command-palette' role='dialog' aria-modal='true' aria-label={t('nav.commandSearch')} onKeyDown={onKeyDown}>
-			<div className='command-palette__backdrop' onClick={onClose} />
-			<div className='command-palette__panel'>
-				<div className='command-palette__search'>
-					<span className='command-palette__search-icon'>{IconSearch}</span>
-					<input
-						ref={inputRef}
-						className='command-palette__input'
-						type='text'
-						placeholder={t('command.placeholder')}
-						value={query}
-						onChange={(e) => {
-							const value = e.target.value
-							setQuery(value)
-							if (value.trim() === '' && (filters.search ?? '') !== '') {
-								dispatch(setFilters({ ...filters, search: undefined, page: 1 }))
-							}
-						}}
-						role='combobox'
-						aria-expanded='true'
-						aria-controls='command-list'
-						aria-activedescendant={items[activeIndex] ? `cmd-${items[activeIndex].id}` : undefined}
-						autoComplete='off'
-						spellCheck={false}
-					/>
-					<kbd className='command-palette__kbd'>Esc</kbd>
-				</div>
+	return (
+		<CollectionSheet open={isOpen} onClose={onClose} title={t('common.search')} className='gdb-global-search-sheet'>
+			<div className='command-palette' aria-busy={searching} onKeyDown={event => { if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); onClose() } }}>
+				<NameSearchField
+					value={phrases}
+					onChange={setPhrases}
+					onEffectiveChange={setEffectivePhrases}
+					global
+					mainInputRef={inputRef}
+					mainInputProps={{
+						'className': 'command-palette__input',
+						'role': 'combobox',
+						'aria-expanded': true,
+						'aria-controls': 'command-list',
+						'aria-activedescendant': items[activeIndex] ? `cmd-${items[activeIndex].id}` : undefined,
+						onKeyDown,
+					}}
+				/>
+				{(games.error || playlists.error || folders.error || views.error) && (
+					<p className='gdb-error gdb-global-search-error' role='alert'>
+						{t('gallery.common.loadError')}
+					</p>
+				)}
 
 				<div className='command-palette__list' id='command-list' role='listbox' ref={listRef}>
 					{searching && <div className='command-palette__loading'>{t('command.searching')}</div>}
 					{!searching && items.length === 0 && <div className='command-palette__empty'>{t('command.empty')}</div>}
 					{groups.map(({ group, entries }) => (
-						<div className='command-palette__group' key={group}>
+						<div className='command-palette__group' key={group} role='group' aria-label={group}>
 							<div className='command-palette__group-label'>{group}</div>
 							{entries.map(({ item, index }) => (
 								<button
@@ -358,10 +402,14 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
 									role='option'
 									aria-selected={index === activeIndex}
 									className={`command-palette__item${index === activeIndex ? ' is-active' : ''}`}
-									onMouseMove={() => setActiveIndex(index)}
+								onMouseMove={() => { keyboardSelection.current = false; setActiveIndex(index) }}
 									onClick={() => item.run()}>
 									<span className='command-palette__item-icon'>{item.icon}</span>
-									<span className='command-palette__item-label'>{item.label}</span>
+									<span className='command-palette__item-label'>
+										<strong>{item.label}</strong>
+										{item.hint && <small className='gdb-command-hint'>{item.hint}</small>}
+									</span>
+									<CollectionIcon name='arrow' />
 								</button>
 							))}
 						</div>
@@ -381,7 +429,6 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
 					</span>
 				</div>
 			</div>
-		</div>,
-		portalTarget
+		</CollectionSheet>
 	)
 }

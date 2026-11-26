@@ -1,0 +1,21 @@
+// Keep native labels, values, typeahead and keyboard semantics. Chromium's
+// customizable picker is a progressive enhancement; other engines retain a
+// readable native picker rather than an incomplete custom ARIA control.
+html[data-experience='gallery'] {
+  select:focus-visible { outline: 2px solid var(--gdb-accent); outline-offset: 3px; border-radius: 7px; box-shadow: none; }
+  select option { background: var(--gdb-surface); color: var(--gdb-text); }
+  .gdb-detail-status:focus-within { outline: none; }
+  .gdb-detail-status:has(select:focus-visible) { outline: 2px solid var(--gdb-accent); outline-offset: 3px; }
+  .gdb-detail-status > select:focus-visible { outline: none; }
+  @supports (appearance: base-select) {
+    select:not([multiple]):not([size]) { appearance: base-select; align-items: center; gap: 12px; }
+    select:not([multiple])::picker(select) { appearance: base-select; padding: 5px; border: 1px solid var(--gdb-line); border-radius: 10px; background: var(--gdb-surface); color: var(--gdb-text); box-shadow: 0 12px 32px #0004; max-height: min(360px,60dvh); max-width: calc(100vw - 24px); overflow: auto; margin-block: 6px; }
+    select:not([multiple]) option { display: flex; align-items: center; gap: 12px; min-height: 44px; margin: 0; padding: 10px 12px; border: 0; border-radius: 5px; font: 450 14px/1.5 var(--gdb-body); background: var(--gdb-surface); color: var(--gdb-text); white-space: normal; }
+    select:not([multiple]) option:checked { font-weight: 650; color: var(--gdb-accent); }
+    select:not([multiple]) option:is(:hover,:focus) { outline: none; background: var(--gdb-raised); color: var(--gdb-text); }
+    select:not([multiple]) option::checkmark { order: 2; margin-left: auto; color: var(--gdb-accent); }
+    select:not([multiple])::picker-icon { color: var(--gdb-secondary); font-size: 13px; }
+    .gdb-detail-status > select::picker-icon { display: none; }
+  }
+}
+@media(max-width:650px){html[data-experience='gallery'] select:not([multiple]) option{font-size:16px}}

@@ -1,0 +1,22 @@
+.gdb-template-picker{display:flex;flex-direction:column;gap:22px;min-width:0}
+.gdb-template-picker__intro h3{margin:8px 0 10px;font:550 26px/1.2 var(--gdb-display);letter-spacing:-.5px;color:var(--gdb-text)}
+.gdb-template-picker__intro p{margin:0;font:450 14px/1.75 var(--gdb-body);color:var(--gdb-secondary)}
+.gdb-template-options{display:grid;gap:12px;min-width:0}
+.gdb-template-options>button{display:grid;grid-template-columns:40px minmax(0,1fr) 18px;align-items:start;gap:16px;min-height:110px;width:100%;margin:0;padding:20px;border:1px solid var(--gdb-control);border-radius:9px;background:var(--gdb-input);color:var(--gdb-text);font-family:var(--gdb-body);text-align:left;cursor:pointer}
+.gdb-template-option__icon{display:grid;place-items:center;width:40px;height:40px;border-radius:8px;background:var(--gdb-accent-soft);color:var(--gdb-accent)}
+.gdb-template-option__icon>.gdb-icon{width:21px;height:21px}
+.gdb-template-option__copy{display:flex;flex-direction:column;gap:7px;min-width:0}
+.gdb-template-option__copy>strong{font:550 16px/1.4 var(--gdb-body);overflow-wrap:anywhere}
+.gdb-template-option__copy>span{font:450 13px/1.7 var(--gdb-body);color:var(--gdb-secondary)}
+.gdb-template-option__copy>small{font:500 11px/1.5 var(--gdb-body);color:var(--gdb-accent)}
+.gdb-template-options>button>.gdb-icon{width:18px;height:18px;margin-top:3px;color:var(--gdb-secondary)}
+.gdb-template-options>button:focus-visible{outline:2px solid var(--gdb-accent);outline-offset:3px}
+.gdb-template-custom{display:flex;flex-direction:column;gap:12px;padding-top:20px;border-top:1px solid var(--gdb-subtle-line)}
+.gdb-template-custom>span{font:450 12px/1.5 var(--gdb-body);color:var(--gdb-secondary)}
+.gdb-template-custom>.gdb-button{width:100%;border-style:dashed;justify-content:flex-start}
+.gdb-template-back{align-self:flex-start;margin-bottom:2px}
+.gdb-template-cancel{width:100%;margin-top:22px}
+.gdb-rules-semantic{display:flex;flex-direction:column;gap:12px;padding:15px 16px;border:1px solid var(--gdb-line);border-radius:8px;background:var(--gdb-input)}
+.gdb-rules-semantic .gdb-hint{margin-left:31px;overflow-wrap:anywhere}
+@media(hover:hover) and (pointer:fine){.gdb-template-options>button:hover{border-color:var(--gdb-accent);background:var(--gdb-raised)}}
+@media(max-width:650px){.gdb-template-options>button{grid-template-columns:34px minmax(0,1fr) 16px;gap:12px;padding:17px 14px}.gdb-template-option__icon{width:34px;height:34px}.gdb-template-picker__intro h3{font-size:25px}.gdb-template-option__copy>strong{font-size:16px}.gdb-template-option__copy>span{font-size:14px}.gdb-rules-semantic{padding:14px 12px}}
