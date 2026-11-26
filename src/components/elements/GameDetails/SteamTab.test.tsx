@@ -22,6 +22,13 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks())
 
 describe('Steam tab synchronization', () => {
+	it('keeps the Gallery cache view read-only, including uncached games and date lookups', async () => {
+		vi.mocked(steamService.getAchievementProgress).mockResolvedValue({ ...progress, source: 'legacy', lastSynced: undefined, sets: [] })
+		renderWithProviders(<SteamTab game={game} gallery />)
+		await screen.findByText('Saved achievement')
+		expect(steamService.syncGame).not.toHaveBeenCalled()
+		expect(steamService.getDateSuggestions).not.toHaveBeenCalled()
+	})
 	it('treats a verified missing-player notice as information and does not auto-retry it on mount', async () => {
 		vi.mocked(steamService.getAchievementProgress).mockResolvedValue({ ...progress, source: 'none', lastSynced: undefined, notice: 'noPlayerData', sets: [], achievements: [] })
 		renderWithProviders(<SteamTab game={{ ...game, steamPlaytimeForever: 14351 }} />)

@@ -1,0 +1,24 @@
+.gdb-metadata-sheet .gdb-sheet__footer { flex-wrap: wrap; gap: 10px; .gdb-button--primary { margin-left: auto; } }
+.gdb-metadata-sheet .gdb-hint { margin-block: 0 18px; }
+.gdb-metadata-mode { border: 1px solid var(--gdb-line); border-radius: 8px; padding: 18px; margin-bottom: 22px; legend { padding-inline: 6px; font-size: 14px; } .gdb-form & label { display: flex; flex-direction: row; align-items: center; gap: 12px; min-height: 44px; font-weight: 450; cursor: pointer; } input { width: 20px; height: 20px; accent-color: var(--gdb-accent); } }
+.gdb-metadata-identities { margin-block: 20px; summary { cursor: pointer; min-height: 44px; color: var(--gdb-secondary); } > div { display: grid; gap: 8px; } .gdb-button { justify-content: space-between; text-align: left; } b { display: block; font-size: 14px; font-weight: 550; } small { display: block; color: var(--gdb-secondary); margin-top: 4px; } }
+.gdb-metadata-fields { border: 0; padding: 0; margin: 24px 0 0; legend { font: 550 22px var(--gdb-display); margin-bottom: 15px; } }
+.gdb-metadata-field {
+	display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 20px; border-top: 1px solid var(--gdb-line); padding: 17px 0;
+	> label { grid-column: 1 / -1; display: flex; align-items: center; gap: 11px; min-height: 44px; b { font-weight: 550; } input { width: 19px; height: 19px; accent-color: var(--gdb-accent); } }
+	> div { min-width: 0; display: grid; gap: 6px; align-content: start; small { color: var(--gdb-secondary); font-size: 12px; } span { overflow-wrap: anywhere; font-size: 14px; line-height: 1.5; } }
+	> a { grid-column: 1 / -1; display: inline-flex; align-items: center; gap: 7px; color: var(--gdb-accent); font-size: 12px; min-height: 44px; justify-self: start; }
+	> .gdb-metadata-artwork-value {
+		gap: 8px;
+		> .gdb-editor-artwork-preview { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 100%; }
+		.gdb-editor-artwork-preview > figcaption { order: -1; margin: 0; color: var(--gdb-secondary); font-size: 13px; }
+		.gdb-editor-artwork-preview:not(.gdb-editor-artwork-preview--hero) .gdb-editor-artwork-preview__frame { max-width: 144px; }
+	}
+}
+.gdb-metadata-artwork-url {
+	min-width: 0;
+	summary { display: flex; align-items: center; min-height: 44px; width: fit-content; color: var(--gdb-secondary); font-size: 12px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+	summary:focus-visible { outline: 2px solid var(--gdb-accent); outline-offset: 3px; border-radius: 3px; }
+	code { display: block; overflow-wrap: anywhere; color: var(--gdb-secondary); font-size: 11px; line-height: 1.6; }
+}
+@media (max-width: 650px) { .gdb-metadata-mode label { font-size: 16px; } .gdb-metadata-field > div span { font-size: 16px; } .gdb-metadata-field > a { font-size: 14px; } .gdb-metadata-sheet .gdb-sheet__footer > .gdb-text-button { width: 100%; order: 3; } }

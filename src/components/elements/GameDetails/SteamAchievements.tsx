@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { SteamAchievement, SteamAchievementProgress } from '@/services'
+import { CollectionIcon } from '@/components/Collection/CollectionIcon'
 
 type UnlockFilter = 'all' | 'unlocked' | 'locked' | 'archived'
 
@@ -29,7 +30,7 @@ const AchievementItem = ({ achievement, showGlobal }: { achievement: SteamAchiev
 	)
 }
 
-export const SteamAchievements = ({ progress }: { progress: SteamAchievementProgress }) => {
+export const SteamAchievements = ({ progress, hideSummary = false }: { progress: SteamAchievementProgress; hideSummary?: boolean }) => {
 	const { t, i18n } = useTranslation()
 	const [filter, setFilter] = useState<UnlockFilter>('all')
 	const [group, setGroup] = useState<number | 'all'>('all')
@@ -57,25 +58,26 @@ export const SteamAchievements = ({ progress }: { progress: SteamAchievementProg
 		const text = achievement.hidden && !achievement.achieved ? t('steamAchievements.spoiler') : `${achievement.displayName} ${achievement.description ?? ''}`
 		return !query || text.toLocaleLowerCase(locale).includes(query)
 	})
-	const groups = progress.sets.length > 0 ? progress.sets.filter(set => selectedGroup === 'all' || set.groupId === selectedGroup) : [{ groupId: 0, displayName: '', dlcAppId: undefined, archived: false }]
+	const sets = [...progress.sets].sort((left, right) => Number(Boolean(left.dlcAppId)) - Number(Boolean(right.dlcAppId)) || left.groupId - right.groupId)
+	const groups = sets.length > 0 ? sets.filter(set => selectedGroup === 'all' || set.groupId === selectedGroup) : [{ groupId: 0, displayName: '', dlcAppId: undefined, archived: false }]
 
 	return (
 		<div className='steam-achievements'>
 			{progress.notice && <p className='steam-achievement-notice' role='status'>{t(`steamSync.reasons.${progress.notice}`)}</p>}
 			{total === 0 && progress.isCompleted && <p className='achievement-set-message'>{t('steamAchievements.historicalCompletion')}</p>}
 			{progress.lastError && <p className='steam-achievement-notice' role={progress.lastError === 'setsUnavailable' ? 'status' : 'alert'}>{t(`steamAchievements.errors.${progress.lastError}`, { defaultValue: t('steamAchievements.errors.steamUnavailable') })}</p>}
-			{total > 0 && <div className='achievement-summary'>
+			{total > 0 && !hideSummary && <div className='achievement-summary'>
 				<div className='achievement-summary__topline'><p className='achievement-progress-label'>{t('steamAchievements.count', { unlocked, total })}</p><span className='achievement-progress-percent'>{percent.toLocaleString(locale, { maximumFractionDigits: 1 })}%</span></div>
 				<progress className='achievement-progress-bar' value={unlocked} max={total} aria-label={t('steamAchievements.totalProgress')} />
 				{progress.isFullyCompleted ? <p className='achievement-perfect-message'>{t('steamAchievements.fullyCompleted')}</p> : completedSets > 0 ? <p className='achievement-set-message'>{t('steamAchievements.completedSets', { count: completedSets })}</p> : progress.isCompleted && <p className='achievement-set-message'>{t('steamAchievements.historicalCompletion')}</p>}
-				{progress.isCompleted && !progress.isFullyCompleted && <p className='achievement-summary__hint'>{t('steamAchievements.preservedHint')}</p>}
 				{progress.source === 'sets' && progress.eligibleAchievementsTotal !== total && <p className='achievement-summary__hint'>{t('steamAchievements.eligibleCount', { unlocked: progress.eligibleAchievementsUnlocked, total: progress.eligibleAchievementsTotal })}</p>}
 			</div>}
 			{progress.sets.length > 0 && <div className='achievement-sets' aria-label={t('steamAchievements.sets')}>
-				{progress.sets.map(set => <button key={set.groupId} type='button' className={`achievement-set ${set.dlcAppId ? 'achievement-set--dlc' : ''}`} aria-pressed={selectedGroup === set.groupId} onClick={() => setGroup(selectedGroup === set.groupId ? 'all' : set.groupId)}>
+				{sets.map(set => <button key={set.groupId} type='button' className={`achievement-set ${set.dlcAppId ? 'achievement-set--dlc' : 'achievement-set--base'}`} aria-pressed={selectedGroup === set.groupId} onClick={() => setGroup(selectedGroup === set.groupId ? 'all' : set.groupId)}>
 					<span className='achievement-set__kind'>{t(set.dlcAppId ? 'steamAchievements.dlc' : 'steamAchievements.baseGame')}{set.archived && ` · ${t('steamAchievements.archived')}`}</span>
 					<strong>{set.displayName || t('steamAchievements.baseGame')}</strong>
-					<span className='achievement-set__status'><span>{set.unlockedAchievements} / {set.totalAchievements}</span>{set.isCompleted && <span className='achievement-set__trophy'>✓ {t('steamAchievements.completed')}</span>}</span>
+					<span className='achievement-set__status'><span>{set.unlockedAchievements} / {set.totalAchievements}</span>{set.isCompleted && <span className='achievement-set__trophy'><CollectionIcon name='trophy' />{t('steamAchievements.completed')}</span>}</span>
+					<progress className='achievement-set__progress' value={set.unlockedAchievements} max={Math.max(1, set.totalAchievements)} aria-label={t('steamAchievements.progressFor', { name: set.displayName || t('steamAchievements.baseGame') })} />
 					{set.isAchievable === false && !set.archived && <span className='achievement-set__hint'>{t('steamAchievements.noAccess')}</span>}
 				</button>)}
 			</div>}

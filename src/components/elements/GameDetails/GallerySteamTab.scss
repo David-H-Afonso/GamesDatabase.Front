@@ -1,0 +1,55 @@
+.steam-tab.gdb-gallery-steam{padding:0;color:var(--gdb-text);font-family:var(--gdb-body)}
+.gdb-steam-heading{display:flex;align-items:center;gap:15px;margin-bottom:24px}
+.gdb-steam-heading>img{display:block;flex-shrink:0;height:30px;width:30px;object-fit:contain}
+.gdb-steam-heading>div{min-width:0;flex:1}
+.gdb-steam-heading h3{margin:0;font:550 23px/1.2 var(--gdb-display);letter-spacing:-.4px}
+.gdb-steam-heading p{margin:6px 0 0;font:450 11px/1.6 var(--gdb-body);color:var(--gdb-secondary)}
+.gdb-steam-heading>.gdb-button{font-size:11px;padding:10px;flex-shrink:0}
+.gdb-steam-cache-summary{padding:28px 25px;border:1px solid var(--gdb-line);border-radius:10px;background:var(--gdb-input);color:var(--gdb-text)}
+.gdb-steam-cache-summary>span{display:block;font:450 12px/1.5 var(--gdb-body);color:var(--gdb-secondary)}
+.gdb-steam-cache-summary>strong{display:block;margin:13px 0 20px;font:500 42px/1.15 var(--gdb-display);letter-spacing:-1px}
+.gdb-steam-cache-summary>strong>small{font:450 22px var(--gdb-body);letter-spacing:-.5px;color:var(--gdb-secondary)}
+.gdb-steam-cache-summary>progress{display:block;width:100%;height:6px;appearance:none;border:0;border-radius:4px;overflow:hidden;background:var(--gdb-line)}
+.gdb-steam-cache-summary>progress::-webkit-progress-bar{background:var(--gdb-line);border-radius:4px}
+.gdb-steam-cache-summary>progress::-webkit-progress-value{background:var(--gdb-accent);border-radius:4px}
+.gdb-steam-cache-summary>progress::-moz-progress-bar{background:var(--gdb-accent);border-radius:4px}
+.gdb-steam-cache-summary>p{margin:10px 0 0;font:450 12px/1.6 var(--gdb-body);color:var(--gdb-secondary)}
+.gdb-steam-data-tools{margin:15px 0 18px;font:450 12px/1.7 var(--gdb-body);color:var(--gdb-secondary)}
+.gdb-steam-data-tools>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;list-style:none;cursor:pointer}
+.gdb-steam-data-tools>summary::-webkit-details-marker{display:none}
+.gdb-steam-data-tools>summary>.gdb-icon{width:13px;height:13px}
+.gdb-steam-data-tools>dl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px;margin:12px 0 20px;padding:15px 0;border-block:1px solid var(--gdb-subtle-line)}
+.gdb-steam-data-tools dt{font-size:11px;color:var(--gdb-quiet)}
+.gdb-steam-data-tools dd{margin:7px 0 0;color:var(--gdb-text);font-size:14px}
+.gdb-steam-playtime{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin:0 0 24px;padding-bottom:24px;border-bottom:1px solid var(--gdb-line)}
+.gdb-steam-playtime dt{color:var(--gdb-secondary);font:450 12px/1.5 var(--gdb-body)}
+.gdb-steam-playtime dd{margin:8px 0 0;font:500 22px/1.2 var(--gdb-display);color:var(--gdb-text)}
+.gdb-steam-playtime>div:last-child dd{font:450 13px/1.5 var(--gdb-body)}
+.gdb-gallery-steam .achievement-sets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:24px 0}
+.gdb-gallery-steam .achievement-set{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 15px;min-width:0;padding:18px;border:1px solid var(--gdb-line);border-radius:12px;background:var(--gdb-input);color:var(--gdb-text);box-shadow:none;text-align:left;cursor:pointer}
+.gdb-gallery-steam .achievement-set--base{grid-column:1/-1;background:var(--gdb-raised)}
+.gdb-gallery-steam .achievement-set[aria-pressed=true]{background:var(--gdb-accent-soft);border-color:var(--gdb-accent)}
+.gdb-gallery-steam .achievement-set__kind{font:450 11px/1.6 var(--gdb-body);color:var(--gdb-secondary);text-transform:none;letter-spacing:0}
+.gdb-gallery-steam .achievement-set>strong{font:550 16px/1.4 var(--gdb-body);grid-column:1;grid-row:2}
+.gdb-gallery-steam .achievement-set__status{grid-column:2;grid-row:1/3;align-self:center;gap:8px;font-size:12px}
+.gdb-gallery-steam .achievement-set__trophy{color:var(--gdb-favorite)}
+.gdb-gallery-steam .achievement-set__trophy{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+.gdb-gallery-steam .achievement-set__trophy>.gdb-icon{width:15px;height:15px}
+.gdb-gallery-steam .achievement-set__progress{grid-column:1/-1;width:100%;height:4px;accent-color:var(--gdb-accent);margin-top:5px}
+.gdb-gallery-steam .achievement-search-controls{margin-top:20px}
+.gdb-gallery-steam .achievement-search-controls label{font:450 12px/1.5 var(--gdb-body);color:var(--gdb-secondary)}
+.gdb-gallery-steam .achievement-search-controls :is(input,select){min-height:46px;padding:10px 12px;font:450 16px/1.5 var(--gdb-body);background:var(--gdb-input);color:var(--gdb-text);border:1px solid var(--gdb-control);border-radius:7px}
+.gdb-gallery-steam .achievement-filter-tabs{margin-top:16px;gap:8px}
+.gdb-gallery-steam .achievement-filter-tabs>button{min-height:44px;border-radius:6px;border-color:var(--gdb-line);color:var(--gdb-secondary);font:450 12px var(--gdb-body)}
+.gdb-gallery-steam .achievement-filter-tabs>button.active{background:var(--gdb-accent-soft);color:var(--gdb-text);border-color:var(--gdb-accent)}
+.gdb-gallery-steam .achievement-global-toggle{min-height:44px;font:450 12px/1.6 var(--gdb-body)}
+.gdb-gallery-steam .achievement-global-toggle>input{width:20px;height:20px;accent-color:var(--gdb-accent)}
+.gdb-gallery-steam .achievement-group{margin-top:24px}
+.gdb-gallery-steam .achievement-group>h3{font:550 21px/1.3 var(--gdb-display);margin:0 0 15px}
+.gdb-gallery-steam .achievement-grid{display:flex;flex-direction:column;gap:0}
+.gdb-gallery-steam .achievement-item{padding:15px 0;border:0;border-bottom:1px solid var(--gdb-subtle-line);border-radius:0;background:transparent;color:var(--gdb-text);gap:13px}
+.gdb-gallery-steam .achievement-name{font:550 13px/1.5 var(--gdb-body)}
+.gdb-gallery-steam .achievement-description,.gdb-gallery-steam .achievement-date{font:450 12px/1.6 var(--gdb-body);color:var(--gdb-secondary)}
+.gdb-gallery-steam .achievement-reveal{min-height:44px;padding:8px;border:1px solid var(--gdb-line);border-radius:5px;background:transparent;color:var(--gdb-accent);cursor:pointer}
+@media(max-width:650px){.gdb-steam-heading{gap:10px;flex-wrap:wrap}.gdb-steam-heading h3{font-size:21px}.gdb-steam-heading p{font-size:10px}.gdb-steam-heading>.gdb-button{margin-left:40px}.gdb-steam-cache-summary{padding:22px 18px}.gdb-steam-cache-summary>strong{font-size:38px}.gdb-steam-data-tools>dl{grid-template-columns:1fr 1fr}.gdb-gallery-steam .achievement-filter-tabs>button{font-size:11px}}
+@media(max-width:650px){.gdb-steam-heading>.gdb-button{margin-left:auto;font-size:14px}.gdb-steam-playtime{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.gdb-steam-playtime>div:last-child{grid-column:1/-1}.gdb-steam-playtime dt{font-size:14px}.gdb-gallery-steam .achievement-set{padding:15px;gap:8px}.gdb-gallery-steam .achievement-set--dlc{grid-template-columns:1fr}.gdb-gallery-steam .achievement-set--dlc .achievement-set__status{grid-column:1;grid-row:auto}.gdb-gallery-steam .achievement-name,.gdb-gallery-steam .achievement-description{font-size:16px}}

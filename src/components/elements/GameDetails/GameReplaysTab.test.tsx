@@ -1,6 +1,7 @@
-import { screen, waitFor, within } from '@testing-library/react'
+import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test/utils/renderWithProviders'
+import { getActiveGameReplayTypes, getSpecialGameReplayType } from '@/services/GameReplayTypeService'
 
 vi.mock('react-i18next', () => ({
 	useTranslation: () => ({
@@ -87,6 +88,7 @@ describe('GameReplaysTab', () => {
 		renderWithProviders(<GameReplaysTab gameId={1} />)
 
 		expect(screen.getByText('Loading replays...')).toBeInTheDocument()
+		await act(async () => { await Promise.all([vi.mocked(getActiveGameReplayTypes).mock.results.at(-1)?.value, vi.mocked(getSpecialGameReplayType).mock.results.at(-1)?.value]) })
 	})
 
 	it('renders replays after loading', async () => {

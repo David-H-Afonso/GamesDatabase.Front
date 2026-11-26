@@ -1,6 +1,7 @@
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test/utils/renderWithProviders'
+import i18n from '@/i18n'
 
 const mockEntries = [
 	{
@@ -85,6 +86,13 @@ describe('GameHistoryTab', () => {
 		await waitFor(() => {
 			expect(screen.getByText('Sin historial registrado.')).toBeInTheDocument()
 		})
+	})
+
+	it('names additive-time history and localizes its boolean values without changing stored entries', async () => {
+		const entry = { id: 9, field: 'ManualPlaytimeIsAdditive', actionType: 'Updated', oldValue: 'False', newValue: 'True', changedAt: '2026-11-26T00:00:00Z' }
+		mockGetHistoryByGameId.mockResolvedValue({ data: [entry] }); const { GameHistoryTab } = await import('./GameHistoryTab'); renderWithProviders(<GameHistoryTab gallery gameId={1} />)
+		expect(await screen.findByText(i18n.t('gallery.detail.addManualToSteam'), { selector: '.ght-field' })).toBeInTheDocument(); await user.click(screen.getByText(i18n.t('gallery.tabs.values'))); expect(screen.getByText('Sí')).toBeVisible(); expect(screen.getByText('No')).toBeVisible(); expect(screen.queryByText('ManualPlaytimeIsAdditive')).not.toBeInTheDocument()
+		expect(entry.oldValue).toBe('False'); expect(entry.newValue).toBe('True'); expect(mockDeleteHistoryEntry).not.toHaveBeenCalled(); expect(mockClearGameHistory).not.toHaveBeenCalled()
 	})
 
 	it('deletes a single entry when × button is clicked', async () => {

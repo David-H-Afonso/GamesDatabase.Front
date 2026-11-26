@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getReplaysByGameId, createGameReplay, updateGameReplay, deleteGameReplay } from '@/services/GameReplayService'
 import { getActiveGameReplayTypes, getSpecialGameReplayType } from '@/services/GameReplayTypeService'
@@ -9,10 +9,24 @@ import { formatToLocaleDate } from '@/utils'
 import { useAppDispatch } from '@/store/hooks'
 import { triggerGamesRefresh } from '@/store/features/games/gamesSlice'
 import './GameReplaysTab.scss'
+import { CollectionSheet } from '@/components/Collection/CollectionSheet'
+import { CollectionIcon } from '@/components/Collection/CollectionIcon'
+import { formatCollectionDate } from '@/utils/collectionFormatting'
+import './GalleryGameTabs.scss'
 
 interface Props {
 	gameId: number
+	gallery?: boolean
 }
+
+const ReplayEditorFrame = ({ gallery, title, onClose, footer, children }: { gallery: boolean; title: string; onClose: () => void; footer: ReactNode; children: ReactNode }) =>
+	gallery ? (
+		<CollectionSheet open onClose={onClose} title={title} className='gdb-replay-editor' footer={footer}>
+			{children}
+		</CollectionSheet>
+	) : (
+		<div className='grt-form'>{children}</div>
+	)
 
 const emptyForm = (defaultTypeId?: number): GameReplayCreateDto => ({
 	gameId: 0,
@@ -24,8 +38,8 @@ const emptyForm = (defaultTypeId?: number): GameReplayCreateDto => ({
 	released: '',
 })
 
-export const GameReplaysTab: React.FC<Props> = ({ gameId }) => {
-	const { t } = useTranslation()
+export const GameReplaysTab: React.FC<Props> = ({ gameId, gallery = false }) => {
+	const { t, i18n } = useTranslation()
 	const dispatch = useAppDispatch()
 	const [replays, setReplays] = useState<GameReplay[]>([])
 	const [replayTypes, setReplayTypes] = useState<GameReplayType[]>([])
@@ -36,14 +50,17 @@ export const GameReplaysTab: React.FC<Props> = ({ gameId }) => {
 	const [formData, setFormData] = useState<GameReplayCreateDto>(emptyForm())
 	const [saving, setSaving] = useState(false)
 	const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null)
+	const [loadError, setLoadError] = useState(false),
+		[saveError, setSaveError] = useState(false)
 
 	const loadReplays = useCallback(async () => {
 		setLoading(true)
+		setLoadError(false)
 		try {
 			const data = await getReplaysByGameId(gameId)
 			setReplays(data)
 		} catch {
-			setReplays([])
+			setLoadError(true)
 		} finally {
 			setLoading(false)
 		}
@@ -64,12 +81,14 @@ export const GameReplaysTab: React.FC<Props> = ({ gameId }) => {
 
 	const openNewForm = () => {
 		setEditingReplay(null)
+		setSaveError(false)
 		setFormData(emptyForm(defaultTypeId))
 		setIsFormOpen(true)
 	}
 
 	const openEditForm = (replay: GameReplay) => {
 		setEditingReplay(replay)
+		setSaveError(false)
 		setFormData({
 			gameId,
 			replayTypeId: replay.replayTypeId,
@@ -83,13 +102,17 @@ export const GameReplaysTab: React.FC<Props> = ({ gameId }) => {
 	}
 
 	const handleCloseForm = () => {
+		if (saving) return
 		setIsFormOpen(false)
 		setEditingReplay(null)
 	}
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
+		e.stopPropagation()
+		if (saving) return
 		setSaving(true)
+		setSaveError(false)
 		try {
 			const payload = {
 				...formData,
@@ -105,11 +128,12 @@ export const GameReplaysTab: React.FC<Props> = ({ gameId }) => {
 			} else {
 				await createGameReplay(gameId, payload)
 			}
-			handleCloseForm()
+			setIsFormOpen(false)
+			setEditingReplay(null)
 			await loadReplays()
 			dispatch(triggerGamesRefresh())
 		} catch {
-			// silent — user sees nothing changed
+			setSaveError(true)
 		} finally {
 			setSaving(false)
 		}
@@ -118,45 +142,83 @@ export const GameReplaysTab: React.FC<Props> = ({ gameId }) => {
 	const handleDelete = (id: number) => setDeleteTargetId(id)
 
 	const confirmDelete = async () => {
-		if (deleteTargetId === null) return
+		if (deleteTargetId === null || saving) return
 		const id = deleteTargetId
-		setDeleteTargetId(null)
+		setSaving(true)
+		setSaveError(false)
 		try {
 			await deleteGameReplay(gameId, id)
 			setReplays((prev) => prev.filter((r) => r.id !== id))
+			setDeleteTargetId(null)
+			setIsFormOpen(false)
+			setEditingReplay(null)
 			dispatch(triggerGamesRefresh())
 		} catch {
-			// silent
+			setSaveError(true)
+		} finally {
+			setSaving(false)
 		}
 	}
 
-	if (loading) return <div className='grt-loading'>{t('game.replays.loading')}</div>
+	if (loading)
+		return (
+			<div className='grt-loading' role='status'>
+				{t('game.replays.loading')}
+			</div>
+		)
 
 	return (
-		<div className='game-replays-tab'>
+		<div className={`game-replays-tab ${gallery ? 'gdb-gallery-replays' : ''}`}>
 			<div className='grt-header'>
-				<span className='grt-count'>{t('game.replays.count', { count: replays.length })}</span>
-				<button className='grt-add-btn' onClick={openNewForm}>
-					+ {t('game.replays.addReplay')}
+				{gallery ? <h3>{t('gallery.tabs.playthroughs')}</h3> : <span className='grt-count'>{t('game.replays.count', { count: replays.length })}</span>}
+				<button type='button' className={gallery ? 'gdb-button' : 'grt-add-btn'} onClick={openNewForm}>
+					{gallery ? <CollectionIcon name='plus' /> : '+ '}
+					{t(gallery ? 'gallery.tabs.addPlaythrough' : 'game.replays.addReplay')}
 				</button>
 			</div>
+			{gallery && <p className='gdb-hint gdb-replays-help'>{t('gallery.tabs.replayHelp')}</p>}
+			{loadError && (
+				<p className='gdb-error' role='alert'>
+					{t('gallery.common.loadError')}{' '}
+					<button
+						type='button'
+						className='gdb-text-button'
+						onClick={() => {
+							void loadReplays()
+						}}>
+						{t('gallery.common.retry')}
+					</button>
+				</p>
+			)}
+			{saveError && !isFormOpen && (
+				<p className='gdb-error' role='alert'>
+					{t('gallery.common.saveError')}
+				</p>
+			)}
 
 			{replays.length === 0 && !isFormOpen && <p className='grt-empty'>{t('game.replays.noReplays')}</p>}
 
 			{replays.length > 0 && (
 				<ul className='grt-list'>
-					{replays.map((replay) => (
+					{replays.map((replay, index) => (
 						<li key={replay.id} className='grt-item'>
+							{gallery && <span className='grt-number'>{String(index + 1).padStart(2, '0')}</span>}
 							<div className='grt-item-header'>
-								<span className='grt-type-badge' style={{ backgroundColor: replay.replayTypeColor ?? 'var(--primary)', color: '#fff' }}>
+								<span className='grt-type-badge' style={gallery ? undefined : { backgroundColor: replay.replayTypeColor ?? 'var(--primary)', color: '#fff' }}>
 									{replay.replayTypeName ?? 'Rejugado'}
 								</span>
 								{replay.grade !== undefined && replay.grade !== null && <span className='grt-grade'>{replay.grade}/100</span>}
 							</div>
 							<div className='grt-dates'>
-								{replay.started && <span>{formatToLocaleDate(replay.started)}</span>}
-								{replay.started && replay.finished && <span> – </span>}
-								{replay.finished && <span>{formatToLocaleDate(replay.finished)}</span>}
+								{gallery ? (
+									`${formatCollectionDate(replay.started, i18n.language)} → ${formatCollectionDate(replay.finished, i18n.language)}`
+								) : (
+									<>
+										{replay.started && <span>{formatToLocaleDate(replay.started)}</span>}
+										{replay.started && replay.finished && <span> – </span>}
+										{replay.finished && <span>{formatToLocaleDate(replay.finished)}</span>}
+									</>
+								)}
 							</div>
 							{replay.released && (
 								<p className='grt-released'>
@@ -165,12 +227,14 @@ export const GameReplaysTab: React.FC<Props> = ({ gameId }) => {
 							)}
 							{replay.notes && <p className='grt-notes'>{replay.notes}</p>}
 							<div className='grt-actions'>
-								<button className='grt-edit-btn' onClick={() => openEditForm(replay)}>
-									{t('common.edit')}
+								<button type='button' className={gallery ? 'gdb-icon-button' : 'grt-edit-btn'} aria-label={t('common.edit')} onClick={() => openEditForm(replay)}>
+									{gallery ? <CollectionIcon name='edit' /> : t('common.edit')}
 								</button>
-								<button className='grt-delete-btn' onClick={() => handleDelete(replay.id)}>
-									{t('common.delete')}
-								</button>
+								{!gallery && (
+									<button className='grt-delete-btn' onClick={() => handleDelete(replay.id)}>
+										{t('common.delete')}
+									</button>
+								)}
 							</div>
 						</li>
 					))}
@@ -178,14 +242,45 @@ export const GameReplaysTab: React.FC<Props> = ({ gameId }) => {
 			)}
 
 			{isFormOpen && (
-				<div className='grt-form'>
-					<div className='grt-form-header'>
-						<h3>{editingReplay ? t('game.replays.editReplay') : t('game.replays.newReplay')}</h3>
-						<button className='grt-form-close' onClick={handleCloseForm}>
-							×
-						</button>
-					</div>
-					<form onSubmit={handleSubmit}>
+				<ReplayEditorFrame
+					gallery={gallery}
+					title={editingReplay ? t('game.replays.editReplay') : t('game.replays.newReplay')}
+					onClose={handleCloseForm}
+					footer={
+						<>
+							{editingReplay && (
+								<button
+									type='button'
+									className='gdb-icon-button gdb-replay-delete'
+									disabled={saving}
+									aria-label={t('common.delete')}
+									onClick={() => handleDelete(editingReplay.id)}>
+									<CollectionIcon name='trash' />
+								</button>
+							)}
+							<button type='button' className='gdb-button' disabled={saving} onClick={handleCloseForm}>
+								{t('common.cancel')}
+							</button>
+							<button type='submit' form={`gdb-replay-form-${gameId}`} className='gdb-button gdb-button--primary' disabled={saving}>
+								{t('common.saveChanges')}
+								<CollectionIcon name='check' />
+							</button>
+						</>
+					}>
+					{!gallery && (
+						<div className='grt-form-header'>
+							<h3>{editingReplay ? t('game.replays.editReplay') : t('game.replays.newReplay')}</h3>
+							<button className='grt-form-close' onClick={handleCloseForm}>
+								×
+							</button>
+						</div>
+					)}
+					{saveError && (
+						<p className='gdb-error' role='alert'>
+							{t('gallery.common.saveError')}
+						</p>
+					)}
+					<form id={`gdb-replay-form-${gameId}`} className={gallery ? 'gdb-form' : ''} onSubmit={handleSubmit}>
 						<div className='grt-form-field'>
 							<label htmlFor='grt-type'>{t('game.replays.type')}</label>
 							<select
@@ -236,16 +331,18 @@ export const GameReplaysTab: React.FC<Props> = ({ gameId }) => {
 								placeholder={t('common.optional')}
 							/>
 						</div>
-						<div className='grt-form-actions'>
-							<button type='button' className='grt-cancel-btn' onClick={handleCloseForm}>
-								{t('common.cancel')}
-							</button>
-							<button type='submit' className='grt-submit-btn' disabled={saving}>
-								{saving ? t('common.saving') : editingReplay ? t('common.saveChanges') : t('common.create')}
-							</button>
-						</div>
+						{!gallery && (
+							<div className='grt-form-actions'>
+								<button type='button' className='grt-cancel-btn' onClick={handleCloseForm}>
+									{t('common.cancel')}
+								</button>
+								<button type='submit' className='grt-submit-btn' disabled={saving}>
+									{saving ? t('common.saving') : editingReplay ? t('common.saveChanges') : t('common.create')}
+								</button>
+							</div>
+						)}
 					</form>
-				</div>
+				</ReplayEditorFrame>
 			)}
 
 			<ConfirmDialog
@@ -254,8 +351,9 @@ export const GameReplaysTab: React.FC<Props> = ({ gameId }) => {
 				message={t('game.replays.confirmDelete')}
 				variant='danger'
 				confirmLabel={t('common.delete')}
+				isConfirming={saving}
 				onConfirm={confirmDelete}
-				onCancel={() => setDeleteTargetId(null)}
+				onCancel={() => !saving && setDeleteTargetId(null)}
 			/>
 		</div>
 	)
