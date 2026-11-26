@@ -6,32 +6,22 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { refreshCurrentPlaylist } from '@/store/features/playlists/playlistSlice'
 import { getPlaylistById } from '@/services/PlaylistService/PlaylistService'
 import { getGames } from '@/services/GamesService/GamesService'
-import { formatPlaytime } from '@/utils/platformIcons/platformIcons'
+import { effectivePlaytime, formatCollectionNumber } from '@/utils/collectionFormatting'
 import type { Game } from '@/models/api/Game'
 import type { PlaylistItem } from '@/models/api/Playlist'
-import { GameDetails } from '@/components/elements/GameDetails/GameDetails'
-import OptimizedImage from '@/components/elements/OptimizedImage/OptimizedImage'
+import { CollectionGameDetails as GameDetails } from '@/components/Collection/CollectionGameDetailsLazy'
 import { steamService } from '@/services/SteamService/SteamService'
 import type { Playlist } from '@/models/api/Playlist'
-import './FocusMode.scss'
+import './GalleryFocus.scss'
+import { GameArtwork } from '@/components/Collection/GameArtwork'
+import { CollectionSheet } from '@/components/Collection/CollectionSheet'
+import { CollectionIcon } from '@/components/Collection/CollectionIcon'
+import { SampleBadge } from '@/components/Collection/SampleBadge'
 import { isGameCompleted as isCompleted, isGameFullyCompleted, completionTitleKey } from '@/utils/gameCompletion'
+import { FOCUS_PLAYLIST_NAME, FOCUS_GAME_LIMIT, getFocusStorageKey, readFocusPlaylistId, resolveFocusPlaylist } from '@/utils/focusPlaylist'
 
-const FOCUS_PLAYLIST_NAME = 'Focus'
-const FOCUS_GAME_LIMIT = 4
 const SEARCH_DEBOUNCE_MS = 250
-
-const SpotlightMark = () => <svg viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' aria-hidden='true'><path d='M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5' /><circle cx='12' cy='12' r='3' /></svg>
-
-const getFocusStorageKey = (userId?: number) => `gdb.focus-playlist.${userId ?? 'guest'}`
-
-const readFocusPlaylistId = (userId?: number) => {
-	try {
-		const storedId = Number(window.localStorage.getItem(getFocusStorageKey(userId)))
-		return Number.isInteger(storedId) && storedId > 0 ? storedId : null
-	} catch {
-		return null
-	}
-}
+const focusHours = (hours: number | null | undefined, language: string) => hours == null ? '—' : `${formatCollectionNumber(hours, language)} h`
 
 const FocusMark = () => (
 	<svg viewBox='0 0 32 32' fill='none' aria-hidden='true'>
@@ -49,58 +39,41 @@ const SearchMark = () => (
 	</svg>
 )
 
-const RemoveMark = () => (
-	<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round' aria-hidden='true'>
-		<path d='M5 12h14' />
-	</svg>
-)
-
 const FocusQueueCard = ({
 	item,
 	onMakeCurrent,
-	onRemove,
 	onOpen,
-	busy,
-	managing,
+	featured,
 }: {
 	item: PlaylistItem
 	onMakeCurrent: () => void
-	onRemove: () => void
 	onOpen: () => void
-	busy: boolean
-	managing: boolean
+	featured: boolean
 }) => {
-	const { t } = useTranslation()
+	const { t, i18n } = useTranslation()
 	const game = item.game
-	const cover = game.hero || game.cover
 	const [touchActions, setTouchActions] = useState(false)
 	const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 	const held = useRef(false)
 	const clearHold = () => { if (holdTimer.current) clearTimeout(holdTimer.current) }
 	useEffect(() => clearHold, [])
-	const time = formatPlaytime(game.manualPlaytimeMinutes ?? game.steamPlaytimeForever)
+	const minutes = effectivePlaytime(game)
+	const time = focusHours(minutes == null ? null : minutes / 60, i18n.language)
 
 	return (
-		<article className={`focus-queue-card${touchActions ? ' is-touch-active' : ''}`}>
+		<article className={`focus-queue-card${featured ? ' is-featured' : ''}${touchActions ? ' is-touch-active' : ''}`}>
 			<button type='button' className='focus-queue-card__main' onClick={() => { if (held.current) { held.current = false; return } onOpen() }} aria-label={t('focus.openGame', { name: game.name })}
 				onPointerDown={event => { if (event.pointerType !== 'touch') return; held.current = false; clearHold(); holdTimer.current = setTimeout(() => { held.current = true; setTouchActions(true) }, 500) }}
 				onPointerUp={clearHold} onPointerCancel={clearHold} onPointerMove={clearHold} onContextMenu={event => { if (touchActions) event.preventDefault() }}>
-				{cover ? (
-					<OptimizedImage src={cover} alt='' width={720} height={360} quality='high' className='focus-queue-card__cover' />
-				) : (
-					<span className='focus-queue-card__cover focus-queue-card__cover--empty' aria-hidden='true'><FocusMark /></span>
-				)}
+				<GameArtwork game={game} role='hero' decorative className='focus-queue-card__cover' />
 				<span className='focus-queue-card__copy'>
-					{game.playWithNames.length > 0 && <span className='focus-queue-card__position'>{game.playWithNames.join(' · ')}</span>}
 					<strong>{game.name}</strong>
-					<span className='focus-queue-card__platform'>{game.platformName || t('focus.platformNotSet')}</span>
-					<span className='focus-queue-card__metadata'>{[game.statusName, time].filter(Boolean).join(' · ')}</span>
-					{game.steamAchievementsTotal != null && game.steamAchievementsTotal > 0 && <span className='focus-queue-card__metadata'>{t('focus.achievementCount', { unlocked: game.steamAchievementsUnlocked ?? 0, total: game.steamAchievementsTotal })}</span>}
+					<SampleBadge game={game} />
+					<span className='focus-queue-card__metadata'>{game.platformName || t('focus.platformNotSet')}{minutes != null && <> · {time}</>}</span>
 				</span>
 			</button>
 			<div className='focus-queue-card__actions'>
-				<button type='button' className='focus-icon-button focus-feature-trigger' onClick={onMakeCurrent} aria-label={t('focus.makeCurrentFor', { name: game.name })} title={t('focus.makeCurrent')}><SpotlightMark /></button>
-				{managing && <button type='button' className='focus-icon-button focus-icon-button--remove' onClick={onRemove} aria-label={t('focus.removeGame', { name: game.name })} title={t('focus.remove')} disabled={busy}><RemoveMark /></button>}
+				<button type='button' className='focus-icon-button focus-feature-trigger' onClick={onMakeCurrent} aria-pressed={featured} aria-label={t('focus.makeCurrentFor', { name: game.name })} title={t('focus.makeCurrent')}>{featured ? <CollectionIcon name='check' /> : <CollectionIcon name='focus' />}</button>
 			</div>
 			{isCompleted(game) && <span className='focus-completed' aria-label={t(isGameFullyCompleted(game) ? 'focus.completed' : completionTitleKey(game))}>{isGameFullyCompleted(game) ? '100%' : '✓'}</span>}
 		</article>
@@ -108,15 +81,22 @@ const FocusQueueCard = ({
 }
 
 export default function FocusMode() {
-	const { t } = useTranslation()
+	const ownerId = useAppSelector(state => state.auth.user?.id)
+	return <OwnedFocusMode key={ownerId ?? 'anonymous'} />
+}
+
+/** Local selection, search and in-flight sync must never cross an account boundary. */
+function OwnedFocusMode() {
+	const { t, i18n } = useTranslation()
 	const userId = useAppSelector(state => state.auth.user?.id)
 	const dispatch = useAppDispatch()
-	const { playlists, currentPlaylist, fetchAll, fetchById, create, addItem, removeItem } = usePlaylists()
+	const { playlists, currentPlaylist, fetchAll, fetchById, create, addItem, removeItem, reorderItems } = usePlaylists()
 	const [managing, setManaging] = useState(false)
 	const [featuredGameId, setFeaturedGameId] = useState<number | null>(null)
 	const [focusPlaylistId, setFocusPlaylistId] = useState<number | null>(null)
 	const [playlistsLoaded, setPlaylistsLoaded] = useState(false)
 	const [playlistLoading, setPlaylistLoading] = useState(false)
+	const [loadedPlaylistId, setLoadedPlaylistId] = useState<number | null>(null)
 	const [creating, setCreating] = useState(false)
 	const [query, setQuery] = useState('')
 	const [searchResults, setSearchResults] = useState<Game[]>([])
@@ -132,13 +112,13 @@ export default function FocusMode() {
 	const mountedRef = useRef(false)
 	const [steamUpdating, setSteamUpdating] = useState(false)
 	const [steamFailed, setSteamFailed] = useState(false)
+	const [loadFailed, setLoadFailed] = useState(false), [loadRevision, setLoadRevision] = useState(0)
 
-	const focusPlaylist = currentPlaylist?.id === focusPlaylistId ? currentPlaylist : null
+	const focusPlaylist = currentPlaylist?.id === focusPlaylistId && loadedPlaylistId === focusPlaylistId ? currentPlaylist : null
 	const allItems = focusPlaylist?.items ?? []
 	const visibleItems = allItems.slice(0, FOCUS_GAME_LIMIT)
 	const currentItem = visibleItems.find(item => item.gameId === featuredGameId) ?? visibleItems[0]
 	const currentGame = currentItem?.game
-	const queuedItems = visibleItems.filter(item => item.id !== currentItem?.id)
 	const focusCapacity = Math.min(focusPlaylist?.maxLength ?? FOCUS_GAME_LIMIT, FOCUS_GAME_LIMIT)
 	const remainingCapacity = Math.max(0, focusCapacity - allItems.length)
 
@@ -154,32 +134,31 @@ export default function FocusMode() {
 			.catch(() => {
 				if (!cancelled) {
 					setError(t('focus.loadError'))
+					setLoadFailed(true)
 					setPlaylistsLoaded(true)
 				}
 			})
 		return () => { cancelled = true }
-	}, [fetchAll, t])
+	}, [fetchAll, t, loadRevision])
 
 	useEffect(() => {
-		if (!playlistsLoaded || focusPlaylistId !== null) return
+		if (!playlistsLoaded || loadFailed || focusPlaylistId !== null) return
 
-		const available = playlists.filter(playlist => !playlist.isAutomatic)
-		const savedId = readFocusPlaylistId(userId)
-		const savedPlaylist = savedId ? available.find(playlist => playlist.id === savedId) : undefined
-		const namedPlaylist = available.find(playlist => playlist.name.trim().toLocaleLowerCase() === FOCUS_PLAYLIST_NAME.toLocaleLowerCase())
-		const found = savedPlaylist ?? namedPlaylist
+		const found = resolveFocusPlaylist(playlists, readFocusPlaylistId(userId))
 		if (found) setFocusPlaylistId(found.id)
-	}, [focusPlaylistId, playlists, playlistsLoaded, userId])
+	}, [focusPlaylistId, playlists, playlistsLoaded, loadFailed, userId])
 
 	useEffect(() => {
 		if (focusPlaylistId === null) return
 		let cancelled = false
 		setPlaylistLoading(true)
+		setLoadedPlaylistId(null)
 		void fetchById(focusPlaylistId)
-			.catch(() => { if (!cancelled) setError(t('focus.loadError')) })
+			.then(() => { if (!cancelled) setLoadedPlaylistId(focusPlaylistId) })
+			.catch(() => { if (!cancelled) { setError(t('focus.loadError')); setLoadFailed(true) } })
 			.finally(() => { if (!cancelled) setPlaylistLoading(false) })
 		return () => { cancelled = true }
-	}, [fetchById, focusPlaylistId, t])
+	}, [fetchById, focusPlaylistId, t, loadRevision])
 
 	useEffect(() => {
 		if (!focusPlaylist || playlistLoading) return
@@ -208,15 +187,6 @@ export default function FocusMode() {
 	}, [focusPlaylist, playlistLoading, dispatch, visibleItems])
 
 	useEffect(() => {
-		if (focusPlaylistId === null) return
-		try {
-			window.localStorage.setItem(getFocusStorageKey(userId), String(focusPlaylistId))
-		} catch {
-			// The playlist name remains a fallback when browser storage is unavailable.
-		}
-	}, [focusPlaylistId, userId])
-
-	useEffect(() => {
 		const term = query.trim()
 		if (!term || !focusPlaylist || remainingCapacity === 0) {
 			searchRequestRef.current++
@@ -229,9 +199,10 @@ export default function FocusMode() {
 		setSearching(true)
 		setSearchError(false)
 		const requestId = ++searchRequestRef.current
+		const controller = new AbortController()
 		const timer = window.setTimeout(async () => {
 			try {
-				const result = await getGames({ search: term, page: 1, pageSize: 8 })
+				const result = await getGames({ search: term, page: 1, pageSize: 8 }, controller.signal)
 				if (searchRequestRef.current === requestId) setSearchResults(result.data ?? [])
 			} catch {
 				if (searchRequestRef.current === requestId) {
@@ -242,14 +213,11 @@ export default function FocusMode() {
 				if (searchRequestRef.current === requestId) setSearching(false)
 			}
 		}, SEARCH_DEBOUNCE_MS)
-		return () => window.clearTimeout(timer)
+		return () => { controller.abort(); window.clearTimeout(timer); if (searchRequestRef.current === requestId) searchRequestRef.current++ }
 	}, [remainingCapacity, focusPlaylist, query])
 
 	const focusSearch = () => {
 		setManaging(true)
-		searchInputRef.current?.focus()
-		const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false
-		searchInputRef.current?.scrollIntoView?.({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' })
 	}
 
 	const createFocusPlaylist = async () => {
@@ -263,12 +231,14 @@ export default function FocusMode() {
 				description: t('focus.playlistDescription'),
 				isAutomatic: false,
 			}) as Playlist
+			if (!mountedRef.current) return
 			setFocusPlaylistId(created.id)
+			try { window.localStorage.setItem(getFocusStorageKey(userId), String(created.id)) } catch { /* Optional, account-scoped preference for the explicitly created list. */ }
 			setManaging(true)
 		} catch {
-			setError(t('focus.createError'))
+			if (mountedRef.current) setError(t('focus.createError'))
 		} finally {
-			setCreating(false)
+			if (mountedRef.current) setCreating(false)
 		}
 	}
 
@@ -279,12 +249,13 @@ export default function FocusMode() {
 		setError(null)
 		try {
 			await addItem(focusPlaylistId, game.id)
+			if (!mountedRef.current) return
 			setQuery('')
 			setSearchResults([])
 		} catch {
-			setError(t('focus.addError'))
+			if (mountedRef.current) setError(t('focus.addError'))
 		} finally {
-			setAddingGameId(null)
+			if (mountedRef.current) setAddingGameId(null)
 		}
 	}
 
@@ -295,29 +266,44 @@ export default function FocusMode() {
 		try {
 			await removeItem(focusPlaylistId, item.id)
 		} catch {
-			setError(t('focus.removeError'))
+			if (mountedRef.current) setError(t('focus.removeError'))
 		} finally {
-			setBusyItemId(null)
+			if (mountedRef.current) setBusyItemId(null)
 		}
 	}
 
 	const refreshAfterDetails = () => {
 		setDetailGame(null)
-		if (focusPlaylistId !== null) void fetchById(focusPlaylistId)
+		if (focusPlaylistId !== null) void fetchById(focusPlaylistId).catch(() => { if (mountedRef.current) { setError(t('focus.loadError')); setLoadFailed(true) } })
 	}
 
-	const gameTime = currentGame ? formatPlaytime(currentGame.manualPlaytimeMinutes ?? currentGame.steamPlaytimeForever) : ''
+	const moveGameUp = async (index: number) => {
+		if (focusPlaylistId === null || index < 1 || busyItemId !== null) return
+		const item = allItems[index]
+		if (!item) return
+		const ids = allItems.map(value => value.id)
+		;[ids[index - 1], ids[index]] = [ids[index], ids[index - 1]]
+		if (currentGame) setFeaturedGameId(currentGame.id)
+		setBusyItemId(item.id)
+		setError(null)
+		try { await reorderItems(focusPlaylistId, ids) }
+		catch { if (mountedRef.current) setError(t('gallery.focusPage.orderError')) }
+		finally { if (mountedRef.current) setBusyItemId(null) }
+	}
+
+	const minutes = currentGame ? effectivePlaytime(currentGame) : null
+	const gameTime = focusHours(minutes == null ? null : minutes / 60, i18n.language)
 
 	if (!playlistsLoaded || (focusPlaylistId !== null && playlistLoading && !focusPlaylist)) {
 		return <div className='focus-mode focus-mode--loading' role='status'>{t('common.loading')}</div>
 	}
 
 	return (
-		<div className='focus-mode'>
+		<div className='focus-mode gdb-page'>
 			<div className='focus-mode__inner'>
 				<header className='focus-heading'>
 					<div className='focus-heading__copy'>
-						<h1>{t('focus.title')}</h1>
+						<h1>{t('gallery.nav.focus')}<span className='gdb-period'>.</span></h1><span className='gdb-count'>{t('focus.capacityHint', { count: visibleItems.length, max: FOCUS_GAME_LIMIT })}</span>
 						<span className='focus-sync-indicator-slot'>
 							{(steamUpdating || steamFailed) && <span className={`focus-sync-indicator${steamFailed ? ' is-failed' : ''}`} role='status' title={t(steamFailed ? 'focus.steamSyncPartial' : 'focus.syncingSteam')}>
 								{steamUpdating ? <svg viewBox='0 0 20 20' fill='none' aria-hidden='true'><circle cx='10' cy='10' r='7' stroke='currentColor' strokeWidth='1.5' opacity='.25' /><path d='M10 3a7 7 0 0 1 7 7' stroke='currentColor' strokeWidth='1.5' strokeLinecap='round' /></svg> : <svg viewBox='0 0 20 20' fill='none' aria-hidden='true'><circle cx='10' cy='10' r='7' stroke='currentColor' strokeWidth='1.5' /><path d='M10 6v5m0 2h.01' stroke='currentColor' strokeWidth='1.5' strokeLinecap='round' /></svg>}
@@ -326,15 +312,15 @@ export default function FocusMode() {
 						</span>
 					</div>
 					{focusPlaylist && (
-						<button type='button' className='focus-add-trigger' aria-expanded={managing} aria-controls='focus-management' onClick={() => setManaging(value => !value)}>
-							{t(managing ? 'focus.doneManaging' : 'focus.managePlaylist')}
+						<button type='button' className='focus-add-trigger' aria-haspopup='dialog' aria-expanded={managing} aria-controls='focus-management' onClick={() => setManaging(true)}>
+							<CollectionIcon name='filter' />{t('gallery.focusPage.manage')}
 						</button>
 					)}
 				</header>
 
-				{error && <p className='focus-alert' role='alert'>{error}</p>}
+				{error && !managing && <p className='focus-alert' role='alert'>{error}{loadFailed && <button type='button' className='gdb-text-button' onClick={() => { setError(null); setLoadFailed(false); setPlaylistsLoaded(false); setLoadRevision(value => value + 1) }}>{t('gallery.common.retry')}</button>}</p>}
 
-				{!focusPlaylistId ? (
+				{loadFailed && !focusPlaylist ? null : !focusPlaylistId ? (
 					<section className='focus-setup' aria-labelledby='focus-setup-title'>
 						<div className='focus-setup__mark'><FocusMark /></div>
 						<p className='focus-setup__eyebrow'>{t('focus.setupEyebrow')}</p>
@@ -350,39 +336,25 @@ export default function FocusMode() {
 							<article className={`focus-spotlight${currentGame ? '' : ' focus-spotlight--empty'}`}>
 								{currentGame && <button type='button' className='focus-spotlight__open' aria-label={t('focus.openGame', { name: currentGame.name })} onClick={() => setDetailGame(currentGame)} />}
 								{currentGame && isCompleted(currentGame) && <span className='focus-completed' aria-label={t(isGameFullyCompleted(currentGame) ? 'focus.completed' : completionTitleKey(currentGame))}>{isGameFullyCompleted(currentGame) ? '100%' : '✓'}</span>}
-								{currentGame && (currentGame.hero || currentGame.cover) && (
-									<OptimizedImage
-										src={currentGame.hero || currentGame.cover!}
-										alt=''
-										width={1440}
-										height={810}
-										quality='high'
-										loading='eager'
-										fetchPriority='high'
-										className='focus-spotlight__art'
-									/>
-								)}
+								{currentGame && <GameArtwork game={currentGame} role='hero' decorative eager width={1440} className='focus-spotlight__art' />}
 								<div className='focus-spotlight__shade' aria-hidden='true' />
 								<div className='focus-spotlight__content'>
-									<p className='focus-spotlight__status'>{currentGame?.playWithNames.join(' · ') || t('focus.nowPlaying')}</p>
+									<p className='focus-spotlight__status'>{currentGame?.platformName || t('focus.platformNotSet')}</p>
 									{currentGame ? (
 										<>
 											<h2>{currentGame.name}</h2>
-											<p className='focus-spotlight__metadata'>
-												{[currentGame.platformName, currentGame.statusName].filter(Boolean).join(' · ')}
-											</p>
-											{currentGame.comment && <p className='focus-spotlight__note'><span>{t('focus.personalNote')}</span>{currentGame.comment}</p>}
+											<SampleBadge game={currentGame} />
+											<p className='focus-spotlight__metadata'>{currentGame.statusName || '—'}</p>
+											{currentGame.comment && <p className='focus-spotlight__note'>{currentGame.comment}</p>}
 											<div className='focus-spotlight__stats' aria-label={t('focus.gameHighlights')}>
-												{currentGame.story != null && <span><small>{t('focus.storyTime')}</small><strong>{t('focus.durationHours', { value: currentGame.story })}</strong></span>}
-												{currentGame.completion != null && <span><small>{t('focus.completion')}</small><strong>{t('focus.durationHours', { value: currentGame.completion })}</strong></span>}
-												{currentGame.grade != null && <span><small>{t('focus.yourRating')}</small><strong>{currentGame.grade}<small className='focus-spotlight__suffix'>/100</small></strong></span>}
-												{currentGame.critic != null && <span><small>{t('focus.criticScore')}</small><strong>{currentGame.critic}<small className='focus-spotlight__suffix'>/100</small></strong></span>}
-												{gameTime && <span><small>{t('focus.timePlayed')}</small><strong>{gameTime}</strong></span>}
-												{currentGame.steamAchievementsTotal != null && currentGame.steamAchievementsTotal > 0 && <span><small>{t('focus.achievements')}</small><strong>{currentGame.steamAchievementsUnlocked ?? 0}/{currentGame.steamAchievementsTotal}</strong></span>}
+												<span><small>{t('focus.timePlayed')}</small><strong>{gameTime}</strong></span>
+												<span><small>{t('gallery.focusPage.story')}</small><strong>{focusHours(currentGame.story, i18n.language)}</strong></span>
+												{currentGame.steamAchievementsTotal != null && currentGame.steamAchievementsTotal > 0
+													? <span><small>{t('focus.achievements')}</small><strong>{currentGame.steamAchievementsUnlocked ?? 0}<small className='focus-spotlight__suffix'> / {currentGame.steamAchievementsTotal}</small></strong></span>
+													: <span><small>{t('focus.yourRating')}</small><strong>{currentGame.grade ?? '—'}{currentGame.grade != null && <small className='focus-spotlight__suffix'> /100</small>}</strong></span>}
 											</div>
 											<div className='focus-spotlight__actions'>
-												<button type='button' className='focus-primary-button focus-primary-button--light' onClick={() => setDetailGame(currentGame)}>{t('focus.viewDetails')}</button>
-												{managing && currentItem && <button type='button' className='focus-spotlight__remove' onClick={() => void removeGame(currentItem)} disabled={busyItemId !== null}>{t('focus.removeFromFocus')}</button>}
+												<button type='button' className='focus-primary-button' onClick={() => setDetailGame(currentGame)}>{t('gallery.detail.open')}<CollectionIcon name='arrow' /></button>
 											</div>
 										</>
 									) : (
@@ -395,21 +367,20 @@ export default function FocusMode() {
 								</div>
 							</article>
 
-							{(queuedItems.length > 0 || managing) && <aside className='focus-queue' aria-label={t('focus.queueTitle')}>
+							<aside className='focus-queue' aria-label={t('focus.queueTitle')}>
+								<h2 className='sr-only'>{t('gallery.focusPage.shelf')}</h2>
 								<ol className='focus-queue__items'>
-									{queuedItems.map(item => (
+										{visibleItems.map(item => (
 										<li key={item.id}>
 											<FocusQueueCard
 												item={item}
-												managing={managing}
-												busy={busyItemId !== null}
+												featured={item.gameId === currentGame?.id}
 												onOpen={() => setDetailGame(item.game)}
 												onMakeCurrent={() => setFeaturedGameId(item.gameId)}
-												onRemove={() => void removeGame(item)}
 											/>
 										</li>
 									))}
-									{managing && Array.from({ length: Math.max(0, 3 - queuedItems.length) }, (_, index) => (
+									{Array.from({ length: Math.max(0, FOCUS_GAME_LIMIT - visibleItems.length) }, (_, index) => (
 										<li key={`empty-${index}`}>
 											<button type='button' className='focus-queue-empty' onClick={focusSearch} disabled={remainingCapacity === 0}>
 												<span className='focus-queue-empty__plus' aria-hidden='true'>+</span>
@@ -418,15 +389,21 @@ export default function FocusMode() {
 										</li>
 									))}
 								</ol>
-							</aside>}
+							</aside>
 						</section>
 
-						{(managing || allItems.length === 0) && <section id='focus-management' className='focus-library' aria-labelledby='focus-library-title'>
-							<div className='focus-library__heading'>
-								<div><h2 id='focus-library-title'>{t('focus.libraryTitle')}</h2></div>
-								<p>{t('focus.libraryDescription')}</p>
-							</div>
-							<div className='focus-search'>
+						<CollectionSheet open={managing} onClose={() => setManaging(false)} title={t('gallery.focusPage.managerTitle')} subtitle={t('gallery.focusPage.occupied', { count: allItems.length, max: focusCapacity })} className='focus-manager'
+							footer={<button type='button' className='gdb-button gdb-button--primary' onClick={() => setManaging(false)}><CollectionIcon name='check' />{t('gallery.common.done')}</button>}>
+							<section id='focus-management' className='focus-library' aria-labelledby='focus-library-title'>
+							{error && <p className='focus-alert' role='alert'>{error}</p>}
+							<ol className='focus-manage-list'>{allItems.map((item, index) => <li key={item.id}>
+								<GameArtwork game={item.game} decorative className='focus-manage-cover' />
+								<div className='focus-manage-copy'><strong>{item.game.name}</strong><span>{item.game.platformName || t('focus.platformNotSet')}</span></div>
+								<button type='button' className='gdb-icon-button' onClick={() => void moveGameUp(index)} disabled={index === 0 || busyItemId !== null} aria-label={t('gallery.focusPage.moveUp', { name: item.game.name })}><CollectionIcon name='up' /></button>
+								<button type='button' className='gdb-icon-button' onClick={() => void removeGame(item)} disabled={busyItemId !== null} aria-label={t('focus.removeGame', { name: item.game.name })}><CollectionIcon name='close' /></button>
+							</li>)}</ol>
+							<h3 id='focus-library-title'>{t('gallery.focusPage.addFromLibrary')}</h3>
+							{remainingCapacity > 0 && <div className='focus-search'>
 								<SearchMark />
 								<input
 									ref={searchInputRef}
@@ -438,9 +415,8 @@ export default function FocusMode() {
 									disabled={remainingCapacity === 0 || addingGameId !== null}
 								/>
 								<span className='focus-search__capacity'>{t('focus.capacityHint', { count: visibleItems.length, max: FOCUS_GAME_LIMIT })}</span>
-							</div>
-							{remainingCapacity === 0 && <p className='focus-library__limit'>{t('playlists.capacityHint')}</p>}
-							{allItems.length > FOCUS_GAME_LIMIT && <ul className='focus-search-results'>{allItems.slice(FOCUS_GAME_LIMIT).map(item => <li key={item.id} className='focus-search-result'><span>{item.game.name}</span><button type='button' className='focus-search-result__add' disabled={busyItemId !== null} onClick={() => void removeGame(item)}>{t('focus.removeFromFocus')}</button></li>)}</ul>}
+							</div>}
+							{remainingCapacity === 0 && <p className='focus-library__limit'>{t('gallery.focusPage.full')}</p>}
 							{searchError && <p className='focus-library__message' role='alert'>{t('focus.searchError')}</p>}
 							{searching && <p className='focus-library__message' role='status'>{t('focus.searching')}</p>}
 							{!searching && query.trim() && !searchError && searchResults.length === 0 && <p className='focus-library__message'>{t('focus.noSearchResults')}</p>}
@@ -463,7 +439,8 @@ export default function FocusMode() {
 								</ul>
 							)}
 							<Link className='focus-list-link' to={`/playlists/${focusPlaylistId}`}>{t('focus.editFullPlaylist')}</Link>
-						</section>}
+							</section>
+						</CollectionSheet>
 					</>
 				)}
 			</div>

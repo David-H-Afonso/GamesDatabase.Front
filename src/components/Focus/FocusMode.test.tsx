@@ -11,7 +11,7 @@ import { getPlaylistById } from '@/services/PlaylistService/PlaylistService'
 import playlistsReducer, { refreshCurrentPlaylist } from '@/store/features/playlists/playlistSlice'
 import { fetchPlaylistById } from '@/store/features/playlists/thunk'
 
-vi.mock('./FocusMode.scss', () => ({}))
+vi.mock('./GalleryFocus.scss', () => ({}))
 vi.mock('@/hooks', () => ({ usePlaylists: vi.fn() }))
 vi.mock('@/services/GamesService/GamesService', () => ({ getGames: vi.fn() }))
 vi.mock('@/services/SteamService/SteamService', () => ({ steamService: { syncGame: vi.fn().mockResolvedValue({ success: true }) } }))
@@ -108,7 +108,7 @@ describe('FocusMode', () => {
 		renderWithProviders(<FocusMode />)
 
 		expect(await screen.findByRole('heading', { name: 'A Short Hike' })).toBeInTheDocument()
-		expect(screen.getByText('Outer Wilds')).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: 'Ver detalles de Outer Wilds' })).toBeInTheDocument()
 		expect(screen.queryByRole('searchbox')).not.toBeInTheDocument()
 		expect(screen.getByRole('button', { name: 'Ver detalles de Outer Wilds' })).toBeInTheDocument()
 		await user.click(screen.getByRole('button', { name: 'Destacar Outer Wilds' }))
@@ -126,9 +126,9 @@ describe('FocusMode', () => {
 
 		renderWithProviders(<FocusMode />)
 
-		await user.click(await screen.findByRole('button', { name: 'Gestionar lista' }))
+		await user.click(await screen.findByRole('button', { name: 'Gestionar' }))
 		await user.type(await screen.findByRole('searchbox', { name: 'Buscar un juego de tu biblioteca…' }), 'Tunic')
-		await waitFor(() => expect(mockGetGames).toHaveBeenCalledWith({ search: 'Tunic', page: 1, pageSize: 8 }))
+		await waitFor(() => expect(mockGetGames).toHaveBeenCalledWith({ search: 'Tunic', page: 1, pageSize: 8 }, expect.any(AbortSignal)))
 		await user.click(await screen.findByRole('button', { name: 'Añadir' }))
 
 		expect(hooks.addItem).toHaveBeenCalledWith(7, 44)
@@ -141,17 +141,52 @@ describe('FocusMode', () => {
 
 		renderWithProviders(<FocusMode />)
 
-		await user.click(await screen.findByRole('button', { name: 'Gestionar lista' }))
-		expect(await screen.findByText('Quita un juego o aumenta el máximo en la configuración de la lista.')).toBeInTheDocument()
-		expect(screen.getByRole('searchbox', { name: 'Buscar un juego de tu biblioteca…' })).toBeDisabled()
+		await user.click(await screen.findByRole('button', { name: 'Gestionar' }))
+		expect(await screen.findByText('Los huecos están ocupados. Quita un juego para hacer sitio a otro.')).toBeInTheDocument()
+		expect(screen.queryByRole('searchbox')).not.toBeInTheDocument()
+		expect(screen.getByRole('button', { name: 'Quitar Outer Wilds de Focus' })).toBeEnabled()
 	})
 
-	it('renders completion as hours rather than invented progress', async () => {
-		const witcher = { ...currentGame, completion: 188 }
+	it('renders estimated story as hours rather than invented progress', async () => {
+		const witcher = { ...currentGame, story: 188, completion: 240 }
 		mockUsePlaylists.mockReturnValue(makePlaylistHook(makePlaylist([makeItem(101, witcher)])) as any)
 		renderWithProviders(<FocusMode />)
 		expect(await screen.findByText('188 h')).toBeInTheDocument()
 		expect(screen.queryByText('188%')).not.toBeInTheDocument()
+	})
+
+	it('reorders only from the management sheet and preserves the explicit spotlight', async () => {
+		const user = userEvent.setup()
+		const hooks = makePlaylistHook(makePlaylist())
+		mockUsePlaylists.mockReturnValue(hooks as any)
+		renderWithProviders(<FocusMode />)
+		await user.click(await screen.findByRole('button', { name: 'Destacar Hades' }))
+		await user.click(screen.getByRole('button', { name: 'Gestionar' }))
+		expect(screen.getByRole('dialog', { name: 'Tu Focus' })).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: 'Subir A Short Hike' })).toBeDisabled()
+		await user.click(screen.getByRole('button', { name: 'Subir Outer Wilds' }))
+		expect(hooks.reorderItems).toHaveBeenCalledWith(7, [102, 101, 103])
+		await user.click(screen.getByRole('button', { name: 'Listo' }))
+		expect(screen.getByRole('heading', { name: 'Hades' })).toBeInTheDocument()
+		expect(hooks.removeItem).not.toHaveBeenCalled()
+	})
+
+	it('returns to automatic Steam time when manual time is zero', async () => {
+		mockUsePlaylists.mockReturnValue(makePlaylistHook(makePlaylist([makeItem(101, { ...currentGame, manualPlaytimeMinutes: 0, steamPlaytimeForever: 120 })])) as any)
+		renderWithProviders(<FocusMode />)
+		expect(await screen.findByText('2 h')).toBeInTheDocument()
+		expect(screen.queryByText('0 h')).not.toBeInTheDocument()
+	})
+	it('does not replace another account Focus choice or keep its prior spotlight after switching users', async () => {
+		localStorage.setItem('gdb.focus-playlist.1', '7'); localStorage.setItem('gdb.focus-playlist.2', '19')
+		const first = makePlaylistHook(makePlaylist()); mockUsePlaylists.mockReturnValue(first as any)
+		const auth = { user: { id: 1, username: 'First fixture', role: 'Standard' }, token: 'fixture', refreshToken: null, isAuthenticated: true, loading: false, error: null } as const
+		const { store } = renderWithProviders(<FocusMode />, { preloadedState: { auth } }); await screen.findByRole('heading', { name: 'A Short Hike' })
+		const next = { ...makePlaylist([makeItem(121, makeGame(90, 'Second account game'))]), id: 19, name: 'My selected list' }
+		const second = makePlaylistHook(next, [{ ...summary, id: 19, name: next.name }]); mockUsePlaylists.mockReturnValue(second as any)
+		act(() => store.dispatch({ type: 'auth/login/fulfilled', payload: { userId: 2, username: 'Second fixture', role: 'Standard', token: 'fixture-two', refreshToken: null } }))
+		expect(screen.queryByRole('heading', { name: 'A Short Hike' })).not.toBeInTheDocument(); await screen.findByRole('heading', { name: 'Second account game' })
+		expect(second.fetchById).toHaveBeenCalledExactlyOnceWith(19); expect(localStorage.getItem('gdb.focus-playlist.2')).toBe('19'); expect(localStorage.getItem('gdb.focus-playlist.1')).toBe('7')
 	})
 
 	it('syncs only linked Focus games once and reloads their saved statistics', async () => {
@@ -163,7 +198,7 @@ describe('FocusMode', () => {
 		expect(steamService.syncGame).toHaveBeenCalledWith(1)
 		await waitFor(() => expect(getPlaylistById).toHaveBeenCalledWith(7))
 		expect(hooks.fetchById).toHaveBeenCalledTimes(1)
-		expect(screen.getByLabelText('Completado al 100%')).toBeInTheDocument()
+		expect(screen.getAllByLabelText('Completado al 100%')).toHaveLength(2)
 	})
 
 	it('does not refresh shared playlist state after leaving Focus while Steam is syncing', async () => {
