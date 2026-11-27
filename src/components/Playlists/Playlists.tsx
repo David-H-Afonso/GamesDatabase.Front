@@ -525,7 +525,10 @@ export default function Playlists() {
 										)}
 										<h1>{currentPlaylist.name}</h1>
 										{currentPlaylist.description && <PlaylistDescription description={currentPlaylist.description} />}
-										<div className='playlist-identity-actions'>
+									</div>
+								</div>
+							</div>
+							<div className='playlist-identity-actions' role='group' aria-label={t('playlists.options')}>
 											<button type='button' className='gdb-text-button' onClick={() => setEditor('edit')}>
 												<CollectionIcon name='edit' />
 												{t('gallery.playlist.edit')}
@@ -536,13 +539,10 @@ export default function Playlists() {
 													{t('gallery.playlist.editRules')}
 												</button>
 											)}
-											<button type='button' className='gdb-text-button' onClick={() => setMoveRequest({ id: currentPlaylist.id })}>
+											<button type='button' className='gdb-text-button' onClick={event => { event.currentTarget.focus(); setMoveRequest({ id: currentPlaylist.id }) }}>
 												<CollectionIcon name='folder' />
 												{t('gallery.playlist.move')}
 											</button>
-										</div>
-									</div>
-								</div>
 							</div>
 							<div className='playlist-tools'>
 								<span className='playlist-count'>{t('gallery.common.games', { count: currentPlaylist.items.length })}</span>

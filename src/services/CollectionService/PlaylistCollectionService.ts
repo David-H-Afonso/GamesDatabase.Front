@@ -2,7 +2,7 @@ import type { Playlist, PlaylistSummary } from '@/models/api/Playlist'
 import { getPlaylists, getPlaylistById } from '@/services/PlaylistService/PlaylistService'
 import { resolveFocusPlaylist } from '@/utils/focusPlaylist'
 
-export interface ManualPlaylistShelf {
+export interface PlaylistShelf {
 	playlist: PlaylistSummary
 	data: Playlist | null
 	state: 'ready' | 'error'
@@ -15,10 +15,16 @@ export const playlistSummaries = (value: PlaylistSummary[]): PlaylistSummary[] =
 
 const ensureActive = (signal?: AbortSignal) => { if (signal?.aborted) throw new DOMException('Request cancelled', 'AbortError') }
 
-export const manualPlaylist = (value: Playlist, expectedId?: number): Playlist => {
-	if (!value || !Number.isSafeInteger(value.id) || value.id <= 0 || (expectedId != null && value.id !== expectedId) || value.isAutomatic !== false || !Array.isArray(value.items)
+const playlistDetail = (value: Playlist, expectedId?: number): Playlist => {
+	if (!value || !Number.isSafeInteger(value.id) || value.id <= 0 || (expectedId != null && value.id !== expectedId) || typeof value.isAutomatic !== 'boolean' || !Array.isArray(value.items)
 		|| value.items.some(item => !item || !Number.isSafeInteger(item.id) || item.id <= 0 || !item.game || item.game.id !== item.gameId || typeof item.game.name !== 'string')) throw new Error('Invalid manual playlist response')
 	return value
+}
+
+export const manualPlaylist = (value: Playlist, expectedId?: number): Playlist => {
+	const result = playlistDetail(value, expectedId)
+	if (result.isAutomatic) throw new Error('Invalid manual playlist response')
+	return result
 }
 
 /** Same selection as the Focus screen, without mounting its player-data sync effect. */
@@ -32,19 +38,19 @@ export const getCollectionFocus = async (savedId: number | null, signal?: AbortS
 	return manualPlaylist(result, selected.id)
 }
 
-/** Real manual playlists, including all items, with bounded reads and per-shelf recovery. */
-export const getManualPlaylistShelves = async (signal?: AbortSignal): Promise<ManualPlaylistShelf[]> => {
+/** All owned playlists, with their resolved items, bounded reads and per-shelf recovery. */
+export const getPlaylistShelves = async (signal?: AbortSignal): Promise<PlaylistShelf[]> => {
 	ensureActive(signal)
-	const manual = playlistSummaries(await getPlaylists(signal)).filter(playlist => !playlist.isAutomatic)
+	const playlists = playlistSummaries(await getPlaylists(signal))
 	ensureActive(signal)
-	const result = new Array<ManualPlaylistShelf>(manual.length)
+	const result = new Array<PlaylistShelf>(playlists.length)
 	let next = 0
 	const worker = async () => {
-		while (next < manual.length) {
-			const index = next++, playlist = manual[index]
+		while (next < playlists.length) {
+			const index = next++, playlist = playlists[index]
 			if (signal?.aborted) throw new DOMException('Request cancelled', 'AbortError')
 			try {
-				const data = manualPlaylist(await getPlaylistById(playlist.id, signal), playlist.id)
+				const data = playlistDetail(await getPlaylistById(playlist.id, signal), playlist.id)
 				if (signal?.aborted) throw new DOMException('Request cancelled', 'AbortError')
 				result[index] = { playlist: data, data, state: 'ready' }
 			} catch (error) {
@@ -53,6 +59,6 @@ export const getManualPlaylistShelves = async (signal?: AbortSignal): Promise<Ma
 			}
 		}
 	}
-	await Promise.all(Array.from({ length: Math.min(4, manual.length) }, worker))
+	await Promise.all(Array.from({ length: Math.min(4, playlists.length) }, worker))
 	return result
 }

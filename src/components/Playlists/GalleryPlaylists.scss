@@ -2,7 +2,7 @@
 .playlists-layout{display:grid;grid-template-columns:228px minmax(0,1fr);gap:32px;align-items:start;max-width:none;margin:0}
 .playlists-sidebar{position:sticky;top:12px;min-width:0;max-height:calc(100dvh - 24px);padding:5px 16px 0 0;border-right:1px solid var(--gdb-subtle-line)}
 .playlist-detail{container-type:inline-size;min-width:0;background:transparent;border:0;padding:0}
-.playlist-hero{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 235px;gap:28px;align-items:center;min-height:177px;margin-bottom:27px;border:0;border-radius:0;padding:0;background:transparent;box-shadow:none}
+.playlist-hero{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 235px;gap:28px;align-items:center;min-height:177px;margin-bottom:12px;border:0;border-radius:0;padding:0;background:transparent;box-shadow:none}
 .playlist-hero__content{position:relative;grid-column:1;grid-row:1;z-index:1;min-width:0}
 .playlist-hero__copy{min-width:0}
 .playlist-kind{display:flex;align-items:center;gap:6px;color:var(--gdb-quiet);font:450 11px/1.5 var(--gdb-body)}
@@ -11,8 +11,8 @@
 .playlist-hero p{margin:0;max-width:400px;color:var(--gdb-secondary);font:450 14px/1.5 var(--gdb-body);overflow-wrap:anywhere}
 .playlist-hero__description-desktop{display:block}
 .playlist-hero__description-mobile{display:none}
-.playlist-identity-actions{display:flex;align-items:center;flex-wrap:wrap;gap:0 12px;margin-top:3px}
-.playlist-identity-actions>.gdb-text-button{gap:7px;min-height:44px;font:450 13px/1.5 var(--gdb-body);white-space:nowrap}
+.playlist-identity-actions{display:flex;align-items:center;flex-wrap:wrap;gap:0 18px;min-width:0;margin:0 0 18px}
+.playlist-identity-actions>.gdb-text-button{gap:7px;min-height:44px;max-width:100%;font:450 14px/1.5 var(--gdb-body);text-align:left;white-space:normal}
 .playlist-identity-actions .gdb-icon{width:16px;height:16px}
 .gdb-playlist-collage{grid-column:2;grid-row:1;display:flex;min-width:0;height:146px;width:100%;margin:0;border-radius:9px;overflow:hidden;background:var(--gdb-raised);isolation:isolate}
 .gdb-playlist-collage>span{display:block;position:relative;min-width:0;flex:1;height:100%;overflow:hidden;box-shadow:-5px 0 12px #0004}
@@ -111,11 +111,10 @@
   .playlist-kind{font-size:10px}
   .playlist-kind .gdb-icon{width:12px;height:12px}
   .playlist-hero p{font-size:12px;line-height:1.6}
-  .playlist-identity-actions{width:calc(100% + 114px);gap:0 8px;margin-top:3px}
-  .playlist-identity-actions>.gdb-text-button{font-size:12px;gap:7px}
+  .playlist-identity-actions{gap:0 14px;margin-bottom:12px}
+  .playlist-identity-actions>.gdb-text-button{font-size:16px;gap:7px}
   .gdb-playlist-collage{display:flex;align-self:start;margin-top:5px;height:112px;border-radius:6px}
   .gdb-playlist-collage>span:nth-child(4){display:none}
-  .playlist-hero.has-custom-art .playlist-identity-actions{width:100%}
   .playlist-tools{gap:10px;padding-block:8px;margin-bottom:15px;flex-wrap:wrap}
   .playlist-tools>.playlist-count{display:none}
   .playlist-tools>.playlist-add{padding:10px;font-size:12px;gap:7px;white-space:nowrap}
@@ -138,6 +137,8 @@
   .gdb-playlist-editor .playlist-form__actions{bottom:-22px;margin:8px -20px -22px;padding:18px 20px}
   .gdb-playlist-editor .playlist-form__actions>button{min-height:45px;padding:10px 12px;gap:7px}
 }
-.gdb-playlist-shelves-link{display:flex;justify-content:flex-start;min-height:44px;margin:2px 0 14px;padding:0 5px;font-size:12px}
-.gdb-playlist-shelves-link>.gdb-icon{width:15px;height:15px}
+.gdb-playlist-shelves-link{display:flex;align-items:center;gap:9px;min-width:0;min-height:48px;margin:0 0 10px;padding:10px 12px;border:1px solid var(--gdb-line);border-radius:8px;background:var(--gdb-surface);color:var(--gdb-accent);font:550 16px/1.4 var(--gdb-body);text-decoration:none}
+.gdb-playlist-shelves-link>span{min-width:0;overflow-wrap:anywhere}
+.gdb-playlist-shelves-link>.gdb-icon{width:17px;height:17px}
+.gdb-playlist-shelves-link>.gdb-icon:last-child{margin-left:auto}
 @container (max-width:479px){.playlist-games--card{grid-template-columns:1fr}}

@@ -416,13 +416,15 @@ function PlaylistLibraryContent({ playlists, selectedId, loading, moveRequest, o
 	}
 	return (
 		<aside className={`playlist-library ${selecting ? 'is-organizing' : ''}`} aria-busy={loading}>
+			<Link className='gdb-playlist-shelves-link' to='/shelves'><CollectionIcon name='playlists' /><span>{t('gallery.shelves.title')}</span><CollectionIcon name='arrow' /></Link>
 			<header className='playlist-library__header'>
 				<button
 					type='button'
 					className='playlist-library__collapse'
 					aria-expanded={libraryExpanded}
 					aria-controls='playlist-library-content'
-					onClick={() => setLibraryExpanded((value) => !value)}>
+					disabled={moving || activeId !== null || activeFolderId !== null}
+					onClick={event => { event.currentTarget.focus(); setLibraryExpanded((value) => !value) }}>
 					<CollectionIcon name='folder' />
 					<h2>
 						<span className='playlist-library__desktop-title'>{t('playlists.title')}</span>
@@ -430,6 +432,8 @@ function PlaylistLibraryContent({ playlists, selectedId, loading, moveRequest, o
 					</h2>
 					<CollectionIcon name='down' />
 				</button>
+			</header>
+			<div id='playlist-library-content' hidden={!libraryExpanded}>
 				<div className='playlist-library__header-actions'>
 					<button type='button' onClick={() => openEditor('new')} aria-label={t('playlists.newGroup')} title={t('playlists.newGroup')}>
 						<FolderIcon />
@@ -458,9 +462,6 @@ function PlaylistLibraryContent({ playlists, selectedId, loading, moveRequest, o
 						</button>
 					)}
 				</div>
-			</header>
-			<Link className='gdb-text-button gdb-playlist-shelves-link' to='/shelves'><CollectionIcon name='playlists' />{t('gallery.shelves.title')}<CollectionIcon name='arrow' /></Link>
-			<div id='playlist-library-content' hidden={!libraryExpanded}>
 				{focusedFolder && (
 					<button
 						type='button'

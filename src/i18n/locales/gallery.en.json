@@ -547,9 +547,11 @@
 		"count_one": "{{count}} playlist",
 		"count_other": "{{count}} playlists",
 		"jump": "Jump to a shelf",
+		"choose": "Choose a playlist",
+		"reviewRules": "Review this list's rules",
 		"title": "Your shelves",
 		"source": "From your playlists",
-		"intro": "Browse your manual playlists by their covers.",
+		"intro": "Browse your playlists by their covers.",
 		"viewLists": "View lists",
 		"openList": "Open list",
 		"openNamedList": "Open {{name}} playlist",
@@ -558,7 +560,7 @@
 		"addGames": "Add games to this list",
 		"listError": "Could not load this playlist. Reload to try again.",
 		"emptyTitle": "Start your shelves with a playlist",
-		"emptyHelp": "Create a manual playlist or add games from Playlists."
+		"emptyHelp": "Create a playlist or add games from Playlists."
 	},
 	"detail": {
 		"playSteam": "Play on Steam",

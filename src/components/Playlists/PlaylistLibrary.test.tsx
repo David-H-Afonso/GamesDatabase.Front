@@ -31,6 +31,12 @@ describe('owned playlist folders, selection and explicit order', () => {
 		expect(actions.onSelect).toHaveBeenCalledExactlyOnceWith(7); expect(services.move).not.toHaveBeenCalled(); expect(services.save).not.toHaveBeenCalled(); expect(services.remove).not.toHaveBeenCalled()
 		expect(screen.getByRole('link', { name: /Your shelves/ })).toHaveAttribute('href', '/shelves')
 	})
+	it('places shelves first and hides the entire browser, including its tools and search, when collapsed', async () => {
+		const { container } = await renderLibrary(); const trigger = container.querySelector<HTMLButtonElement>('[aria-controls="playlist-library-content"]')!
+		expect(container.querySelector('aside')?.firstElementChild).toHaveAttribute('href', '/shelves')
+		await userEvent.click(trigger); expect(container.querySelector('#playlist-library-content')).toHaveAttribute('hidden'); expect(screen.queryByRole('searchbox')).not.toBeInTheDocument(); expect(screen.queryByRole('button', { name: 'New playlist' })).not.toBeInTheDocument()
+		await userEvent.click(trigger); expect(screen.getByRole('searchbox')).toBeInTheDocument(); expect(trigger).toHaveFocus()
+	})
 	it('collapses an owned folder while literal search can still find its contents', async () => {
 		await renderLibrary(); const user = userEvent.setup(); await user.click(screen.getByRole('button', { name: /^Fixture folder/ }))
 		expect(screen.queryByRole('button', { name: /^First list/ })).not.toBeInTheDocument(); expect(localStorage.getItem('gdb.playlist-groups.1')).toBe('[1]')

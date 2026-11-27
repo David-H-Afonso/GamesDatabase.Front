@@ -8,7 +8,7 @@ import i18n from '@/i18n'
 import CollectionShelves from './CollectionShelves'
 
 const mocks = vi.hoisted(() => ({ read: vi.fn(), open: vi.fn() }))
-vi.mock('@/services/CollectionService/PlaylistCollectionService', () => ({ getManualPlaylistShelves: mocks.read }))
+vi.mock('@/services/CollectionService/PlaylistCollectionService', () => ({ getPlaylistShelves: mocks.read }))
 vi.mock('./collectionDetailsContext', async original => ({ ...await original<typeof import('./collectionDetailsContext')>(), useCollectionDetails: () => ({ open: mocks.open }) }))
 vi.mock('./CollectionGameDetailsLazy', () => ({ CollectionGameDetails: () => null }))
 const auth = { user: { id: 1, username: 'test', role: 'Admin' }, token: 'test', refreshToken: null, isAuthenticated: true, loading: false, error: null } as const

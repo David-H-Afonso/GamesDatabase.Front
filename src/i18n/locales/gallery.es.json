@@ -547,9 +547,11 @@
 		"count_one": "{{count}} playlist",
 		"count_other": "{{count}} playlists",
 		"jump": "Ir a una estantería",
+		"choose": "Elige una playlist",
+		"reviewRules": "Revisar las reglas de esta lista",
 		"title": "Tus estanterías",
 		"source": "A partir de tus playlists",
-		"intro": "Recorre tus playlists manuales por sus carátulas.",
+		"intro": "Recorre tus playlists por sus carátulas.",
 		"viewLists": "Ver listas",
 		"openList": "Abrir lista",
 		"openNamedList": "Abrir la playlist {{name}}",
@@ -558,7 +560,7 @@
 		"addGames": "Añadir juegos a esta lista",
 		"listError": "No se ha podido cargar esta playlist. Recarga para intentarlo de nuevo.",
 		"emptyTitle": "Empieza tus estanterías con una playlist",
-		"emptyHelp": "Crea una playlist manual o añade juegos desde Playlists."
+		"emptyHelp": "Crea una playlist o añade juegos desde Playlists."
 	},
 	"detail": {
 		"playSteam": "Jugar en Steam",

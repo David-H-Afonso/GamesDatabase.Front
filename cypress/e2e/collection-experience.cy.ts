@@ -3,11 +3,13 @@ import { API, LIBRARY, firstGame, games, openFirstGame, paged } from '../support
 const focus = { id: 7, name: 'Focus', isAutomatic: false, maxLength: 4, sortOrder: 0, gameCount: 1, updatedAt: '', createdAt: '', items: [{ id: 71, gameId: 1, position: 0, game: firstGame }] }
 describe('Collection experience — real contract-shaped fixtures', () => {
 	beforeEach(() => { cy.login('Admin'); cy.mockApiRoutes() })
-	it('Shelves reuse manual playlists, preserve their games and leave automatic lists out', () => {
+	it('Shelves include manual and automatic playlists and preserve their resolved games', () => {
 		cy.intercept('GET', `${API}/playlists`, [focus, { ...focus, id: 8, name: 'Automatic list', isAutomatic: true }])
 		cy.intercept('GET', `${API}/playlists/7`, focus)
-		cy.visit('/#/shelves'); cy.contains('h1', 'Your shelves').should('be.visible'); cy.get('.gdb-personal-shelf').should('have.length', 1)
-		cy.contains('.gdb-shelved-game', 'Dark Souls').should('be.visible'); cy.get('.gdb-shelf-title a').should('have.attr', 'href', '#/playlists/7')
+		cy.intercept('GET', `${API}/playlists/8`, { ...focus, id: 8, name: 'Automatic list', isAutomatic: true })
+		cy.visit('/#/shelves'); cy.contains('h1', 'Your shelves').should('be.visible'); cy.get('.gdb-personal-shelf').should('have.length', 2)
+		cy.get('#gdb-shelf-block-7').should('contain.text', 'Dark Souls'); cy.get('#gdb-shelf-block-8').should('contain.text', 'Dark Souls').and('contain.text', 'Automatic list')
+		cy.get('#gdb-shelf-block-7 .gdb-shelf-title a').should('have.attr', 'href', '#/playlists/7')
 	})
 	it('Focus management opens without adding anything or syncing Steam', () => {
 		cy.intercept('GET', `${API}/playlists`, [focus]); cy.intercept('GET', `${API}/playlists/7`, focus)

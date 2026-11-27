@@ -1,8 +1,8 @@
 .gallery-app .gdb-shelves-page{max-width:calc(1360px + var(--gdb-gutter)*2)}
 .gdb-shelves-page>.gdb-page-heading{margin-bottom:32px}
 .gdb-shelves-page>.gdb-page-heading>.gdb-button{font-size:14px;font-weight:500;flex-shrink:0}
-.gdb-shelves-index{display:flex;flex-wrap:wrap;gap:8px;margin:-8px 0 30px}
-.gdb-shelves-index>button{max-width:100%;min-height:44px;padding:8px 14px;border:1px solid var(--gdb-line);border-radius:7px;background:var(--gdb-surface);color:var(--gdb-text);font:450 14px/1.5 var(--gdb-body);cursor:pointer;overflow-wrap:anywhere}
+.gdb-shelves-index{display:grid;grid-template-columns:minmax(0,1fr);gap:7px;width:min(100%,360px);margin:-8px 0 30px;color:var(--gdb-secondary);font:450 14px/1.5 var(--gdb-body)}
+.gdb-shelves-index>select{box-sizing:border-box;width:100%;min-width:0;max-width:100%;min-height:44px;padding:8px 12px;border:1px solid var(--gdb-line);border-radius:7px;background:var(--gdb-input);color:var(--gdb-text);font:450 16px/1.5 var(--gdb-body);cursor:pointer}
 .gdb-personal-shelves{display:flex;flex-direction:column;gap:32px;min-width:0}
 .gdb-personal-shelf{min-width:0;scroll-margin-block-start:18px}
 .gdb-shelf-title{display:flex;align-items:center;justify-content:space-between;gap:22px;margin-bottom:17px;min-width:0}
@@ -34,8 +34,7 @@
   .gdb-shelves-page>.gdb-page-heading h1{font-size:28px}
   .gdb-shelves-page>.gdb-page-heading .gdb-count{display:block;font-size:13px;line-height:1.5;margin-top:5px}
   .gdb-shelves-page>.gdb-page-heading>.gdb-button{font-size:14px;padding:8px 11px;gap:7px}
-  .gdb-shelves-index{margin-top:0;gap:6px}
-  .gdb-shelves-index>button{font-size:16px;padding:7px 12px}
+  .gdb-shelves-index{margin-top:0;font-size:16px}
   .gdb-personal-shelves{gap:26px}
   .gdb-shelf-title{gap:12px;margin-bottom:14px;align-items:flex-start}
   .gdb-shelves-page .gdb-shelf-title h2{font-size:23px;letter-spacing:-.5px}
