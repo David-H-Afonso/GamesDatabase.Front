@@ -27,7 +27,7 @@ interface Session {
 export const useMetadataAutofillJob = (ownerId: number | undefined) => {
 	const owner = useRef(ownerId); owner.current = ownerId
 	const session = useRef<Session | null>(null)
-	const [state, setState] = useState<{ ownerId: number; job: MetadataAutofillJob | null; detail: MetadataAutofillJob | null; open: boolean; busy: boolean; starting: boolean; error: JobError; history: MetadataAutofillJob[]; more: boolean } | null>(null)
+	const [state, setState] = useState<{ ownerId: number; job: MetadataAutofillJob | null; detail: MetadataAutofillJob | null; open: boolean; busy: boolean; starting: boolean; error: JobError; history: MetadataAutofillJob[]; more: boolean; hiddenJobId?: string } | null>(null)
 	useEffect(() => {
 		setState(null)
 		if (!ownerId) { session.current = null; return }
@@ -87,7 +87,7 @@ export const useMetadataAutofillJob = (ownerId: number | undefined) => {
 	}, [ownerId])
 	const show = useCallback((id?: string) => {
 		const current = validSession(); if (!current) return
-		current.open = true; current.detailId = id ?? current.job?.id; current.failures = 0
+		current.open = true; current.detailId = id ?? current.job?.id ?? current.detail?.id; current.failures = 0
 		setState(old => old?.ownerId === current.ownerId ? { ...old, open: true } : old)
 		void current.run(); void current.history()
 	}, [validSession])
@@ -129,13 +129,17 @@ export const useMetadataAutofillJob = (ownerId: number | undefined) => {
 		try { frozen = metadataAutofillTargets(targets) } catch { return false }
 		const request: MetadataJobStart = { clientRequestId: creationRequestId(), gameIds: frozen.map(target => target.id), overwrite, acceptListedPlatformCritic: overwrite }
 		current.intent = request; current.detailId = undefined; current.detail = null; current.open = true
-		setState(old => old?.ownerId === current.ownerId ? { ...old, open: true, detail: null } : old)
+		setState(old => old?.ownerId === current.ownerId ? { ...old, open: true, detail: null, hiddenJobId: undefined } : old)
 		void submit(current, request)
 		return true
 	}, [validSession, show, submit])
 	const change = useCallback(async (action: 'cancel' | 'retry' | 'dismiss' | 'accept-listed-critics', id?: string) => {
 		const current = validSession(), selected = id ?? current?.detailId ?? current?.job?.id
 		if (!current || !selected || current.mutating) return false
+		if (action === 'dismiss') {
+			current.open = false
+			setState(old => old?.ownerId === current.ownerId ? { ...old, hiddenJobId: selected, open: false } : old)
+		}
 		current.mutating = true; clearTimeout(current.timer); ++current.sequence
 		setState(old => old?.ownerId === current.ownerId ? { ...old, busy: true, error: null } : old)
 		try {
@@ -164,5 +168,5 @@ export const useMetadataAutofillJob = (ownerId: number | undefined) => {
 		} catch { /* Existing results remain usable. */ }
 	}, [validSession, state?.ownerId, state?.history])
 	const visible = state?.ownerId === ownerId ? state : null
-	return { job: visible?.job ?? null, detail: visible?.detail ?? null, open: visible?.open ?? false, busy: visible?.busy ?? false, starting: visible?.starting ?? false, error: visible?.error ?? null, history: visible?.history ?? [], hasMoreHistory: visible?.more ?? false, start, show, hide, change, refresh, retryStart, moreHistory }
+	return { job: visible?.job ?? null, detail: visible?.detail ?? null, open: visible?.open ?? false, busy: visible?.busy ?? false, starting: visible?.starting ?? false, error: visible?.error ?? null, history: visible?.history ?? [], hasMoreHistory: visible?.more ?? false, noticeHidden: Boolean(visible?.job?.dismissed || visible?.hiddenJobId && (!visible.job || visible.job.id === visible.hiddenJobId)), start, show, hide, change, refresh, retryStart, moreHistory }
 }

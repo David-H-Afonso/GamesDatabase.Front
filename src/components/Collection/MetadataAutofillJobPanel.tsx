@@ -14,6 +14,7 @@ const progressValues = (job: MetadataAutofillJob) => ({ done: job.processedGames
 export const MetadataAutofillJobBanner = ({ observer }: { observer: MetadataJobObserver }) => {
 	const { t } = useTranslation()
 	const job = observer.starting ? null : observer.job
+	if (observer.noticeHidden) return null
 	if (!job && !observer.busy && !observer.error) return null
 	if (!job && observer.error === 'unsupported') return null // Account activity exposes the upgrade message on demand.
 	return <section className='gdb-metadata-job-notice' aria-label={t('metadata.jobs.activity')} data-state={job?.state ?? 'starting'}>
@@ -26,7 +27,7 @@ export const MetadataAutofillJobBanner = ({ observer }: { observer: MetadataJobO
 		<div className='gdb-metadata-job-notice__actions'>
 			<button type='button' className='gdb-text-button' onClick={event => { event.currentTarget.focus(); observer.show() }}>{t('metadata.jobs.details')}<CollectionIcon name='arrow' /></button>
 			{job?.active && <button type='button' className='gdb-text-button' disabled={observer.busy || job.state === 'cancelling'} onClick={() => { void observer.change('cancel', job.id) }}>{t(job.state === 'cancelling' ? 'metadata.jobs.states.cancelling' : 'metadata.jobs.cancel')}</button>}
-			{job && !job.active && job.reviewGames === 0 && <button type='button' className='gdb-icon-button' aria-label={t('metadata.jobs.dismiss')} disabled={observer.busy} onClick={() => { void observer.change('dismiss', job.id) }}><CollectionIcon name='close' /></button>}
+			{job && <button type='button' className='gdb-icon-button' aria-label={t('metadata.jobs.dismiss')} disabled={observer.busy} onClick={() => { void observer.change('dismiss', job.id) }}><CollectionIcon name='close' /></button>}
 		</div>
 	</section>
 }
@@ -61,14 +62,15 @@ export const MetadataAutofillJobPanel = ({ observer, onReview, reviewLoadingId, 
 	return <>
 		<CollectionSheet open={observer.open} onClose={hide} title={t('metadata.batch.title')} subtitle={job ? t(job.overwrite ? 'metadata.jobs.replace' : 'metadata.jobs.fill') : t('metadata.jobs.activity')} wide className='gdb-metadata-job-sheet' bodyLabel={t('metadata.batch.resultsLabel')} footer={<>
 			<button type='button' className='gdb-button' onClick={hide}>{t(job?.active ? 'metadata.jobs.continueBackground' : 'metadata.jobs.closeDetails')}</button>
+			{job && !job.dismissed && <button type='button' className='gdb-text-button' disabled={observer.busy} onClick={() => { hide(); void observer.change('dismiss', job.id) }}>{t('metadata.jobs.hideNotice')}</button>}
 			{job?.active && <button type='button' className='gdb-text-button' disabled={observer.busy || job.state === 'cancelling'} onClick={() => { void observer.change('cancel', job.id) }}>{t('metadata.jobs.cancel')}</button>}
 			{job && !job.active && job.failedGames + job.partialGames + job.cancelledGames > 0 && <button type='button' className='gdb-button gdb-button--primary' disabled={observer.busy} onClick={() => { void observer.change('retry', job.id) }}>{t('metadata.batch.retry')}</button>}
 		</>}>
-			<p className='gdb-metadata-job-sheet__help'>{t('metadata.jobs.backgroundHelp')}</p>
+			<p className='gdb-metadata-job-sheet__help'>{t(job?.active ? 'metadata.jobs.backgroundHelp' : 'metadata.jobs.finishedHelp')}</p>
 			{observer.history.length > 0 && <div className='gdb-metadata-job-history'><label>{t('metadata.jobs.history')}<select value={job?.id ?? ''} disabled={observer.busy || Boolean(reviewLoadingId)} onChange={event => { observer.show(event.target.value) }}><option value='' disabled>{t('metadata.jobs.chooseBatch')}</option>{observer.history.map(entry => <option key={entry.id} value={entry.id}>{formatJob(entry)}</option>)}</select></label>{observer.hasMoreHistory && <button type='button' className='gdb-text-button' onClick={() => { void observer.moreHistory() }}>{t('metadata.jobs.older')}</button>}</div>}
 			{observer.error && <div role='alert' className='gdb-error'><p>{t(`metadata.jobs.errors.${observer.error}`)}</p>{observer.error !== 'unsupported' && <button type='button' className='gdb-text-button' disabled={observer.busy} onClick={observer.error === 'start' && !job?.active ? observer.retryStart : observer.refresh}>{t(observer.error === 'start' && !job?.active ? 'metadata.jobs.retryStart' : 'metadata.jobs.refresh')}</button>}</div>}
 			{reviewError && <p className='gdb-error' role='alert'>{t('metadata.jobs.reviewLoadFailed')}</p>}
-			{!job && !observer.error && <p role='status'>{t(observer.busy ? 'metadata.jobs.starting' : 'metadata.jobs.noJobs')}</p>}
+			{!job && !observer.error && <p role='status'>{t(observer.busy ? 'metadata.jobs.starting' : observer.history.length ? 'metadata.jobs.chooseBatch' : 'metadata.jobs.noJobs')}</p>}
 			{job && <>
 				<div className='gdb-metadata-job-summary'>
 					<div><strong>{t('metadata.jobs.progress', progressValues(job))}</strong><span>{t(`metadata.jobs.states.${job.state}`)}</span></div>
@@ -77,7 +79,7 @@ export const MetadataAutofillJobPanel = ({ observer, onReview, reviewLoadingId, 
 					{job.currentGameName && <p>{t(job.state === 'cancelling' ? 'metadata.jobs.cancellingHelp' : 'metadata.batch.looking')} · {job.currentGameName}</p>}
 					{job.state === 'waiting' && <p>{t('metadata.jobs.waitingHelp')}</p>}
 				</div>
-				<p className='gdb-metadata-job-sheet__help'>{t(job.acceptListedPlatformCritic ? 'metadata.jobs.bestMatchWithCritic' : 'metadata.jobs.bestMatch')}</p>
+				<details className='gdb-metadata-job-sheet__help'><summary>{t('metadata.jobs.matchingDetails')}</summary><p>{t(job.acceptListedPlatformCritic ? 'metadata.jobs.bestMatchWithCritic' : 'metadata.jobs.bestMatch')}</p></details>
 				{canAcceptCritics && <div className='gdb-metadata-job-choice'><p>{t('metadata.jobs.acceptCriticsHelp')}</p><button type='button' className='gdb-button' disabled={observer.busy || job.state === 'cancelling'} onClick={() => setConfirmCritics(true)}>{t('metadata.jobs.acceptCritics')}</button></div>}
 				<label className='gdb-metadata-job-filter'>{t('metadata.jobs.filter')}<select value={filter} onChange={event => { setFilter(event.target.value); setLimit(30) }}>{['all', 'review', 'issues', 'saved'].map(value => <option key={value} value={value}>{t(`metadata.jobs.filters.${value}`)}</option>)}</select></label>
 				{items.length !== job.totalGames ? <p role='status'>{t('gallery.common.loading')}</p> : filtered.length === 0 ? <p>{t('metadata.jobs.noResults')}</p> : <ul ref={list} className='gdb-metadata-job-results'>{filtered.slice(0, limit).map(item => <li key={item.gameId} data-state={item.status}>

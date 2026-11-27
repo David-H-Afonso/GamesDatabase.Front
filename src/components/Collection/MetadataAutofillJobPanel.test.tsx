@@ -4,9 +4,15 @@ import { describe, expect, it, vi } from 'vitest'
 import { metadataJob, metadataJobItem } from '@/test/factories/metadataJob'
 import { MetadataAutofillJobBanner, MetadataAutofillJobPanel, type MetadataJobObserver } from './MetadataAutofillJobPanel'
 
-const observer = (overrides: Partial<MetadataJobObserver> = {}): MetadataJobObserver => ({ job: metadataJob(), detail: metadataJob(), open: true, busy: false, starting: false, error: null, history: [], hasMoreHistory: false, start: vi.fn(() => true), show: vi.fn(), hide: vi.fn(), change: vi.fn(async () => true), refresh: vi.fn(), retryStart: vi.fn(), moreHistory: vi.fn(async () => undefined), ...overrides })
+const observer = (overrides: Partial<MetadataJobObserver> = {}): MetadataJobObserver => ({ job: metadataJob(), detail: metadataJob(), open: true, busy: false, starting: false, error: null, history: [], hasMoreHistory: false, noticeHidden: false, start: vi.fn(() => true), show: vi.fn(), hide: vi.fn(), change: vi.fn(async () => true), refresh: vi.fn(), retryStart: vi.fn(), moreHistory: vi.fn(async () => undefined), ...overrides })
 
 describe('nonblocking persistent metadata activity', () => {
+	it('lets users hide a notice with pending reviews without cancelling or losing the results', async () => {
+		const job = metadataJob({ state: 'completed', active: false, items: [metadataJobItem({ status: 'review' })] }), current = observer({ job, detail: job })
+		const { rerender } = render(<MetadataAutofillJobBanner observer={current} />)
+		await userEvent.click(screen.getByRole('button', { name: /Ocultar el aviso/ })); expect(current.change).toHaveBeenCalledExactlyOnceWith('dismiss', job.id)
+		rerender(<MetadataAutofillJobPanel observer={current} onReview={vi.fn()} />); await userEvent.click(screen.getByRole('button', { name: 'Ocultar aviso' })); expect(current.hide).toHaveBeenCalledOnce(); expect(current.change).not.toHaveBeenCalledWith('cancel', job.id)
+	})
 	it('keeps global progress and explicit cancel outside a modal', async () => {
 		const job = metadataJob({ totalGames: 145, items: [], processedGames: 42, updatedGames: 40, unchangedGames: 2 })
 		const current = observer({ job }); render(<MetadataAutofillJobBanner observer={current} />)
