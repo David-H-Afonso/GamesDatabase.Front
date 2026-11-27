@@ -43,6 +43,13 @@ export const CollectionGameDetails = ({ game: initial, closeDetails, onDelete }:
 			throw error
 		}
 	})
+	const refreshDetails = resource.refresh
+	useEffect(() => {
+		const recover = () => { if (document.visibilityState !== 'hidden') refreshDetails() }
+		window.addEventListener('focus', recover)
+		document.addEventListener('visibilitychange', recover)
+		return () => { window.removeEventListener('focus', recover); document.removeEventListener('visibilitychange', recover) }
+	}, [refreshDetails])
 	useEffect(() => {
 		if (unavailable) closeDetails()
 	}, [unavailable, closeDetails])

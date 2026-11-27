@@ -5,8 +5,9 @@ import { collectionVersion, subscribeCollection } from '@/services/CollectionSer
 export const useCollectionResource = <T,>(key: string, loader: (signal: AbortSignal) => Promise<T>, enabled = true) => {
 	const userId = useAppSelector(state => state.auth.user?.id)
 	const version = useSyncExternalStore(subscribeCollection, collectionVersion, collectionVersion)
+	const [refreshVersion, setRefreshVersion] = useState(0)
 	const baseIdentity = `${userId ?? 'anonymous'}:${key}`
-	const identity = `${baseIdentity}:${version}`
+	const identity = `${baseIdentity}:${version}:${refreshVersion}`
 	const loaderRef = useRef(loader)
 	loaderRef.current = loader
 	const activeIdentity = useRef({ identity, baseIdentity }), activeRequest = useRef<AbortController | null>(null)
@@ -34,5 +35,6 @@ export const useCollectionResource = <T,>(key: string, loader: (signal: AbortSig
 			return { ...current, data, loading: false, error: false }
 		})
 	}, [baseIdentity, enabled, userId])
-	return state.baseIdentity === baseIdentity && enabled ? { data: state.data, loading: state.identity !== identity || state.loading, error: state.identity === identity && state.error, replaceData } : { data: null, loading: enabled && Boolean(userId), error: false, replaceData }
+	const refresh = useCallback(() => { if (enabled && userId) setRefreshVersion(value => value + 1) }, [enabled, userId])
+	return state.baseIdentity === baseIdentity && enabled ? { data: state.data, loading: state.identity !== identity || state.loading, error: state.identity === identity && state.error, replaceData, refresh } : { data: null, loading: enabled && Boolean(userId), error: false, replaceData, refresh }
 }

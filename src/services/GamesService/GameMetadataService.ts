@@ -6,7 +6,8 @@ import { metadataCriticUrl } from '@/utils/gameMetadataLinks'
 
 const fields = new Set<MetadataField>(['name', 'released', 'developer', 'critic', 'logo', 'hero', 'cover', 'story', 'completion'])
 const scalar = (value: unknown) => value === null || typeof value === 'string' || typeof value === 'number' && Number.isFinite(value)
-const sources = ['steam', 'wikidata', 'dekudeals']
+const sources = ['steam', 'wikidata', 'dekudeals', 'steamgriddb', 'launchbox', 'nintendo']
+const artworkOnlySources = new Set(['steamgriddb', 'launchbox', 'nintendo'])
 const criticProviders = ['Metacritic', 'OpenCritic', 'SteamDB']
 const criticEvidence = (candidate: MetadataCandidate, reviewVersion?: number) => {
 	if (candidate.field !== 'critic') return true
@@ -27,11 +28,15 @@ export const previewGameMetadata = async (id: number, lookup: MetadataLookup, si
 	const data = await customFetch<MetadataPreview>(environment.apiRoutes.games.metadataPreview(id), { method: 'POST', body: lookup, signal, timeout: 30000 })
 	if (!data || data.overwrite !== lookup.overwrite || data.reviewVersion != null && ![1, 2].includes(data.reviewVersion) || !Array.isArray(data.fields) || !Array.isArray(data.matches) || !Array.isArray(data.notices) || data.fields.length > 9 || data.matches.length > 12
 		|| data.fields.some(candidate => !candidate || !fields.has(candidate.field) || candidate.value === null || !scalar(candidate.value) || !scalar(candidate.current) || !sources.includes(candidate.source) || typeof candidate.url !== 'string'
+			|| artworkOnlySources.has(candidate.source) && !['logo', 'hero', 'cover'].includes(candidate.field)
 			|| !criticEvidence(candidate, data.reviewVersion) || candidate.unchanged != null && typeof candidate.unchanged !== 'boolean' || candidate.unchanged === true && candidate.current !== candidate.value
 			|| candidate.sourceHours != null && (typeof candidate.sourceHours !== 'number' || !Number.isFinite(candidate.sourceHours) || candidate.sourceHours <= 0 || candidate.sourceHours > 100000)
 			|| ['story', 'completion'].includes(candidate.field) && (candidate.source !== 'dekudeals' || !Number.isSafeInteger(candidate.value) || Number(candidate.value) <= 0 || candidate.sourceHours == null))
 		|| new Set(data.fields.map(candidate => candidate.field)).size !== data.fields.length
 		|| data.matches.some(identity => !identity || typeof identity.name !== 'string' || typeof identity.url !== 'string' || !sources.includes(identity.source)
+			|| identity.releaseYear != null && (!Number.isSafeInteger(identity.releaseYear) || identity.releaseYear < 1950 || identity.releaseYear > 2200)
+			|| identity.platforms != null && (!Array.isArray(identity.platforms) || identity.platforms.length > 20 || identity.platforms.some(platform => typeof platform !== 'string' || !platform.trim() || platform.length > 150))
+			|| identity.source === 'launchbox' && (!Number.isSafeInteger(identity.launchBoxId) || Number(identity.launchBoxId) <= 0 || !new RegExp(`^https://gamesdb\\.launchbox-app\\.com/games/details/${identity.launchBoxId}-[a-z0-9-]+$`).test(identity.url))
 			|| identity.source === 'dekudeals' && (typeof identity.dekuDealsSlug !== 'string' || identity.dekuDealsSlug.length > 160 || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(identity.dekuDealsSlug) || identity.url !== `https://www.dekudeals.com/items/${identity.dekuDealsSlug}`))
 		|| data.notices.some(notice => typeof notice !== 'string')) throw new Error('Invalid metadata preview')
 	// Older APIs may ignore newly added scope switches. Never reselect a group

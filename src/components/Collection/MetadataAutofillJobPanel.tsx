@@ -56,7 +56,7 @@ export const MetadataAutofillJobPanel = ({ observer, onReview, reviewLoadingId, 
 	const hide = () => { remember(); observer.hide() }
 	const items = job?.items ?? []
 	const filtered = items.filter(item => filter === 'all' || filter === 'review' && item.status === 'review' || filter === 'issues' && ['failed', 'partial', 'cancelled'].includes(item.status) || filter === 'saved' && item.appliedFields.length > 0)
-	const canAcceptCritics = items.some(item => item.status === 'review' && item.notices.includes('criticPlatformScope') && !item.notices.some(notice => ['chooseIdentity', 'chooseDurationIdentity', 'gameChanged'].includes(notice)))
+	const canAcceptCritics = items.some(item => item.status === 'review' && item.notices.includes('criticPlatformScope') && !item.notices.some(notice => ['chooseIdentity', 'chooseDurationIdentity', 'chooseArtworkIdentity', 'editionMismatch', 'gameChanged'].includes(notice)))
 	const formatJob = (entry: MetadataAutofillJob) => `${new Intl.DateTimeFormat(i18n.resolvedLanguage, { dateStyle: 'short', timeStyle: 'short' }).format(new Date(entry.createdAt))} · ${entry.totalGames} · ${t(entry.overwrite ? 'metadata.jobs.replace' : 'metadata.jobs.fill')}`
 	const notice = (code: string) => t(`metadata.jobs.notices.${code}`, { defaultValue: t(`metadata.${code}`, { defaultValue: t('metadata.jobs.otherNotice') }) })
 	return <>

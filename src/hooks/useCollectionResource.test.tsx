@@ -47,4 +47,11 @@ describe('collection resource identity and invalidation', () => {
 		act(() => staleReplace('old mutation'))
 		expect(result.current.data).toBe('account two')
 	})
+	it('revalidates only this resource and retains its last data until the new read completes', async () => {
+		const next = pending<string>(), load = vi.fn().mockResolvedValueOnce('before').mockImplementationOnce(() => next.promise)
+		const { result } = renderHook(() => useCollectionResource('detail:51', load))
+		await waitFor(() => expect(result.current.data).toBe('before'))
+		act(() => result.current.refresh()); expect(result.current.data).toBe('before'); expect(result.current.loading).toBe(true)
+		await act(async () => { next.resolve('persisted metadata'); await next.promise }); expect(result.current.data).toBe('persisted metadata')
+	})
 })

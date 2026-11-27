@@ -37,8 +37,26 @@ import/sync. Existing saved ratings are not silently erased or relabelled.
 
 Optional story/completionist values are attributed HLTB estimates from the same
 public Deku page, not player time. Exact source hours and whole-hour rounding are
-shown in the manual review. There is no direct HLTB call or new paid/API-key service.
+shown in the manual review. Durations need no direct HLTB call or paid/API-key service.
 The lookup sends the game title/App ID, not personal notes or playtime.
+
+### Editions and artwork outside Steam
+
+Matches show the release year and platform. Known conflicts are not merged, so a
+1998 original and a same-named 2026 remake require an edition choice when your game
+has no year/platform. Wikidata uses bounded entity JSON and published aliases;
+punctuation-sensitive searches have one keyword-discovery fallback, not fuzzy selection.
+Provider errors are shown as unavailable, not as proof that no game exists.
+
+Artwork uses Steam first, then optional SteamGridDB, public LaunchBox pages and
+verified official/Wikimedia resources. Logo, horizontal hero and portrait cover
+are checked separately, including the actual image bytes and dimensions. A cover
+is not reused as a logo or hero. This works for console-only games too. LaunchBox
+and official sources need no key; an administrator may configure the backend-only
+`STEAMGRIDDB_API_KEY` for SteamGridDB. No key belongs in frontend settings.
+
+Deku is also checked for missing release dates and artwork, even when critic and
+duration fields are already filled. A publisher is never substituted for a developer.
 
 Deku searches explicitly include its supported Nintendo, PlayStation, Xbox and
 Steam catalog instead of accepting the anonymous site's Switch/Switch 2 default.

@@ -44,4 +44,12 @@ describe('critic provenance transport contracts, not live-source proof', () => {
 		await expect(applyGameMetadata(51, preview.token, ['critic'], signal)).rejects.toThrow('Synthetic uncertain save')
 		expect(request).toHaveBeenCalledExactlyOnceWith(expect.stringContaining('/51/metadata/apply'), { method: 'POST', body: { token: preview.token, fields: ['critic'] }, signal, timeout: 30000 })
 	})
+	it.each(['launchbox', 'steamgriddb', 'nintendo'])('accepts %s artwork but does not let an artwork source invent a critic or catalog fact', async source => {
+		const image = { field: 'cover', current: null, value: 'https://images.launchbox-app.com/11111111-1111-4111-8111-111111111111.png', source, url: 'https://www.steamgriddb.com/game/10' }
+		request.mockResolvedValueOnce({ ...preview, fields: [image] }); expect((await previewGameMetadata(51, lookup)).fields).toEqual([image])
+		for (const field of ['critic', 'developer', 'released']) { request.mockResolvedValueOnce({ ...preview, fields: [{ ...image, field }] }); await expect(previewGameMetadata(51, lookup)).rejects.toThrow('Invalid metadata preview') }
+	})
+	it.each([{ releaseYear: '2026' }, { releaseYear: 0 }, { platforms: [''] }, { platforms: [3] }, { platforms: 'PlayStation 5' }])('rejects malformed edition evidence %#', overrides => {
+		request.mockResolvedValue({ ...preview, matches: [{ source: 'wikidata', name: 'Verified game', url: 'https://www.wikidata.org/wiki/Q123', ...overrides }] }); return expect(previewGameMetadata(51, lookup)).rejects.toThrow('Invalid metadata preview')
+	})
 })

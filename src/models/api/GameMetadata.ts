@@ -1,6 +1,6 @@
 export type MetadataField = 'name' | 'released' | 'developer' | 'critic' | 'logo' | 'hero' | 'cover' | 'story' | 'completion'
 export type MetadataCriticProvider = 'Metacritic' | 'OpenCritic' | 'SteamDB'
-export interface MetadataIdentity { source: string; name: string; url: string; steamAppId?: number; wikidataId?: string; dekuDealsSlug?: string }
+export interface MetadataIdentity { source: string; name: string; url: string; steamAppId?: number; wikidataId?: string; dekuDealsSlug?: string; launchBoxId?: number; releaseYear?: number | null; platforms?: string[] }
 export interface MetadataCandidate { field: MetadataField; value: string | number; current: string | number | null; source: string; url: string; sourceHours?: number | null; criticProvider?: MetadataCriticProvider | null; currentCriticProvider?: MetadataCriticProvider | null; criticUrl?: string | null; criticScope?: 'steam-edition' | 'listed-platform' | null; unchanged?: boolean }
 export interface MetadataPreview { overwrite: boolean; reviewVersion?: 1 | 2; token?: string | null; matches: MetadataIdentity[]; fields: MetadataCandidate[]; notices: string[] }
-export interface MetadataLookup { overwrite: boolean; includeArtwork: boolean; includeDurations?: boolean; includeCritic?: boolean; reviewVersion?: 1 | 2; steamAppId?: number; wikidataId?: string; dekuDealsSlug?: string; bestMatch?: boolean }
+export interface MetadataLookup { overwrite: boolean; includeArtwork: boolean; includeDurations?: boolean; includeCritic?: boolean; reviewVersion?: 1 | 2; steamAppId?: number; wikidataId?: string; dekuDealsSlug?: string; launchBoxId?: number; bestMatch?: boolean }

@@ -9,7 +9,7 @@ export type MetadataAutofillPhase = 'looking' | 'saving' | 'waiting'
 export type MetadataAutofillStatus = 'pending' | MetadataAutofillPhase | 'updated' | 'unchanged' | 'partial' | 'review' | 'failed' | 'cancelled'
 export interface MetadataAutofillResult extends MetadataAutofillTarget { status: MetadataAutofillStatus; appliedFields: MetadataField[]; notices: string[] }
 export const metadataAutofillRetryable = (result: MetadataAutofillResult) => result.status === 'failed' || result.status === 'cancelled' || result.status === 'partial'
-const unavailableSources = new Set(['steamUnavailable', 'wikidataUnavailable', 'durationSourceUnavailable', 'criticSourceUnavailable'])
+const unavailableSources = new Set(['steamUnavailable', 'wikidataUnavailable', 'durationSourceUnavailable', 'criticSourceUnavailable', 'catalogSourceUnavailable', 'artworkSourceUnavailable'])
 
 const cancelled = () => new DOMException('Autofill stopped', 'AbortError')
 const assertActive = (signal: AbortSignal) => { if (signal.aborted) throw cancelled() }
@@ -62,7 +62,7 @@ export const autofillGameMetadata = async (target: MetadataAutofillTarget, overw
 	// Deku's Metacritic badge does not prove a platform match. The interactive
 	// review may accept it deliberately; unattended accept-all leaves it for review.
 	const selected = preview.fields.filter(field => !(field.field === 'critic' && field.criticProvider === 'Metacritic' && field.criticScope === 'listed-platform' && !field.unchanged))
-	const needsReview = selected.length !== preview.fields.length || notices.some(notice => notice === 'chooseIdentity' || notice === 'chooseDurationIdentity')
+	const needsReview = selected.length !== preview.fields.length || notices.some(notice => ['chooseIdentity', 'chooseDurationIdentity', 'chooseArtworkIdentity', 'editionMismatch'].includes(notice))
 	if (selected.length !== preview.fields.length) notices.push('criticPlatformScope')
 	const base = { ...target, appliedFields: [] as MetadataField[], notices }
 	const sourceFailed = notices.some(notice => unavailableSources.has(notice))

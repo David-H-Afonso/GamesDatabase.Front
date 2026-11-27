@@ -39,7 +39,25 @@ SteamDB. No se borran ni reclasifican silenciosamente notas ya guardadas.
 Historia/completista usa estimaciones HLTB atribuidas en la misma página pública
 de Deku, no tiempo del jugador. La revisión manual enseña las horas originales y
 su redondeo a enteros. No hay llamadas directas a HLTB, servicio de pago ni claves
-nuevas. Se consulta el título/App ID, no las notas personales ni el tiempo jugado.
+nuevas para las duraciones. Se consulta el título/App ID, no las notas personales ni el tiempo jugado.
+
+### Ediciones e imágenes fuera de Steam
+
+Las coincidencias muestran año y plataforma. No se mezclan conflictos conocidos:
+un original de 1998 y un remake homónimo de 2026 requieren elegir edición si tu
+juego no tiene año/plataforma. Wikidata usa JSON acotado y alias publicados; una
+búsqueda sensible a puntuación tiene una alternativa de descubrimiento por palabras,
+no una selección aproximada. Los errores se muestran como fuente no disponible.
+
+Las imágenes priorizan Steam y después SteamGridDB opcional, páginas públicas de
+LaunchBox y recursos oficiales/Wikimedia verificados. Logo, hero horizontal y
+carátula vertical se comprueban por separado, con bytes y dimensiones reales.
+No se reutiliza una carátula como logo o hero. También funciona con exclusivos de
+consola. LaunchBox y las fuentes oficiales no necesitan clave; el administrador
+puede configurar `STEAMGRIDDB_API_KEY` solo en la API, nunca en el frontend.
+
+Deku se consulta también si faltan fecha o imágenes, aunque crítica y duraciones
+ya estén rellenadas. Nunca se usa la editora como si fuera la desarrolladora.
 
 La búsqueda de Deku incluye explícitamente su catálogo Nintendo, PlayStation,
 Xbox y Steam, sin aceptar el filtro anónimo predeterminado de Switch/Switch 2.

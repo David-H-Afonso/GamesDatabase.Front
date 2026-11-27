@@ -67,4 +67,49 @@ describe('Reviewed automatic information', () => {
 		cy.findByRole('link', { name: 'View OpenCritic' }).should('have.attr', 'href', fields[0].criticUrl).and('have.attr', 'rel', 'noopener noreferrer')
 		cy.contains('button', /^Save selected fields$/).click(); cy.wait('@criticApply'); cy.get('dialog.gdb-metadata-sheet').should('not.exist')
 	})
+	it('distinguishes a same-named remake by year/platform and previews three keyless artwork roles without saving', () => {
+		const name = 'The Legend of Zelda: Ocarina of Time'
+		cy.viewport(390, 844)
+		cy.fixture('games.json').then(result => {
+			const data = result.data.map((game: { id: number }) => game.id === 1 ? { ...game, name, released: null, platformId: null, platformName: null } : game)
+			cy.intercept('GET', /\/api\/games(\?.*)?$/, { ...result, data }).as('getGames')
+			cy.intercept('GET', `${API}/games/1`, data[0])
+		})
+		const matches = [
+			{ source: 'wikidata', name, wikidataId: 'Q213911', releaseYear: 1998, platforms: ['Nintendo 64'], url: 'https://www.wikidata.org/wiki/Q213911' },
+			{ source: 'wikidata', name, wikidataId: 'Q140140365', releaseYear: 2026, platforms: ['Nintendo Switch 2'], url: 'https://www.wikidata.org/wiki/Q140140365' },
+		]
+		let lookups = 0, saves = 0
+		const fields = (['logo', 'hero', 'cover'] as const).map(field => ({ field, current: null, value: `/sample-artwork/amber-${field}.svg`, source: 'launchbox', url: 'https://gamesdb.launchbox-app.com/games/details/446107-the-legend-of-zelda-ocarina-of-time' }))
+		cy.intercept('POST', `${API}/games/1/metadata/preview`, request => {
+			lookups++
+			if (lookups === 1) request.reply({ ...preview, matches, token: null, fields: [], notices: ['chooseIdentity'] })
+			else { expect(request.body.wikidataId).to.equal('Q140140365'); request.reply({ ...preview, matches, fields, notices: [] }) }
+		}).as('editionLookup')
+		cy.intercept('POST', `${API}/games/1/metadata/apply`, request => { saves++; request.reply({ statusCode: 500 }) })
+		// Touch layouts use the detail's explicit options, not desktop hover tools.
+		cy.visit(LIBRARY); cy.wait('@getGames'); cy.get('.game-cover-view__open-art').first().click()
+		cy.get('dialog.gdb-game-sheet[open]').find('button[aria-label="Game options"]').click()
+		cy.contains('button', /^Fill information automatically$/).click()
+		cy.get('dialog.gdb-metadata-sheet[open]').should('be.visible')
+		cy.contains('button', /^Look up information$/).click(); cy.wait('@editionLookup')
+		cy.findByRole('button', { name: /1998 · Nintendo 64/ }).should('be.visible')
+		cy.get('.gdb-metadata-sheet .gdb-sheet__body').then(body => expect(body[0].scrollWidth).to.be.at.most(body[0].clientWidth + 1))
+		cy.screenshot('metadata-editions-mobile', { capture: 'viewport' })
+		cy.findByRole('button', { name: /2026 · Nintendo Switch 2/ }).click(); cy.wait('@editionLookup')
+		cy.get('.gdb-metadata-fields .gdb-editor-artwork-preview[data-state="loaded"]').should('have.length', 3)
+		cy.get('.gdb-metadata-field').should('have.length', 3)
+		cy.findAllByRole('link', { name: 'Source: LaunchBox' }).should('have.length', 3)
+		cy.get('.gdb-metadata-sheet .gdb-sheet__body').then(body => expect(body[0].scrollWidth).to.be.at.most(body[0].clientWidth + 1))
+		cy.screenshot('metadata-three-roles-mobile', { capture: 'viewport' })
+		cy.viewport(1280, 800); cy.screenshot('metadata-three-roles-desktop', { capture: 'viewport' })
+		cy.then(() => { expect(saves).to.equal(0); expect(lookups).to.equal(2) })
+		cy.get('dialog.gdb-metadata-sheet').contains('button', /^Cancel$/).click()
+	})
+	it('shows provider failures rather than hiding them as an empty search', () => {
+		cy.intercept('POST', `${API}/games/1/metadata/preview`, { ...preview, token: null, fields: [], notices: ['wikidataUnavailable', 'artworkSourceUnavailable'] }).as('providerFailure')
+		openLookup(); cy.contains('button', /^Look up information$/).click(); cy.wait('@providerFailure')
+		cy.get('dialog.gdb-metadata-sheet').should('contain.text', 'Wikidata could not be checked').and('contain.text', 'An artwork source could not be checked')
+		cy.contains('button', /^Save selected fields$/).should('be.disabled')
+	})
 })

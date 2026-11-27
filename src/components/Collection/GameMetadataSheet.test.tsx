@@ -207,4 +207,45 @@ describe('automatic information is a reviewed sparse update', () => {
 		const close = vi.fn(); renderWithProviders(<GameMetadataSheet game={game} onClose={close} />); await userEvent.click(screen.getByRole('button', { name: 'Look up information' })); await screen.findByRole('checkbox', { name: 'Critic rating' }); await userEvent.click(screen.getByRole('button', { name: 'Save selected fields' }))
 		expect(await screen.findByRole('alert')).toHaveTextContent(i18n.t('metadata.saveFailed')); expect(close).not.toHaveBeenCalled(); expect(mocks.apply).toHaveBeenCalledOnce()
 	})
+	it('distinguishes identical game names by year and platform before choosing the 2026 remake', async () => {
+		const name = 'The Legend of Zelda: Ocarina of Time'
+		const original = { source: 'wikidata', name, wikidataId: 'Q213911', releaseYear: 1998, platforms: ['Nintendo 64'], url: 'https://www.wikidata.org/wiki/Q213911' }
+		const remake = { ...original, wikidataId: 'Q140140365', releaseYear: 2026, platforms: ['Nintendo Switch 2'], url: 'https://www.wikidata.org/wiki/Q140140365' }
+		mocks.preview.mockResolvedValueOnce({ ...preview, token: null, fields: [], matches: [original, remake], notices: ['chooseIdentity'] }).mockResolvedValueOnce(preview)
+		renderWithProviders(<GameMetadataSheet game={{ ...game, name, steamAppId: undefined }} onClose={vi.fn()} />)
+		await userEvent.click(screen.getByRole('button', { name: 'Look up information' }))
+		expect(await screen.findByRole('button', { name: /1998 · Nintendo 64/ })).toBeVisible()
+		await userEvent.click(screen.getByRole('button', { name: /2026 · Nintendo Switch 2/ })); await screen.findByText('Team Cherry')
+		expect(mocks.preview).toHaveBeenLastCalledWith(51, { ...lookup, wikidataId: 'Q140140365' }, expect.any(AbortSignal)); expect(mocks.apply).not.toHaveBeenCalled()
+	})
+	it('retains a chosen root for artwork but clears stale artwork and Deku choices when the root edition changes', async () => {
+		const root = { source: 'wikidata', name: 'Edition one', wikidataId: 'Q100', url: 'https://www.wikidata.org/wiki/Q100' }
+		const art = { source: 'launchbox', name: 'Edition one', launchBoxId: 10, platforms: ['PlayStation 5'], releaseYear: 2026, url: 'https://gamesdb.launchbox-app.com/games/details/10-edition-one' }
+		const next = { ...root, name: 'Edition two', wikidataId: 'Q200', url: 'https://www.wikidata.org/wiki/Q200' }
+		mocks.preview.mockResolvedValueOnce({ ...preview, fields: [], matches: [root] }).mockResolvedValueOnce({ ...preview, fields: [], matches: [art], notices: ['chooseArtworkIdentity'] }).mockResolvedValueOnce({ ...preview, fields: [], matches: [next] }).mockResolvedValueOnce(preview)
+		renderWithProviders(<GameMetadataSheet game={{ ...game, steamAppId: undefined }} onClose={vi.fn()} />)
+		await userEvent.click(screen.getByRole('button', { name: 'Look up information' })); await userEvent.click(await screen.findByRole('button', { name: /Edition one/ }))
+		await userEvent.click(await screen.findByRole('button', { name: /LaunchBox · 2026 · PlayStation 5/ }))
+		expect(mocks.preview).toHaveBeenLastCalledWith(51, { ...lookup, wikidataId: 'Q100', launchBoxId: 10 }, expect.any(AbortSignal))
+		await userEvent.click(await screen.findByRole('button', { name: /Edition two/ })); await screen.findByText('Team Cherry')
+		expect(mocks.preview).toHaveBeenLastCalledWith(51, { ...lookup, wikidataId: 'Q200' }, expect.any(AbortSignal))
+	})
+	it.each([
+		['launchbox', 'LaunchBox', 'https://gamesdb.launchbox-app.com/games/details/10-verified-game'],
+		['steamgriddb', 'SteamGridDB', 'https://www.steamgriddb.com/game/10'],
+		['nintendo', 'Nintendo', 'https://www.nintendo.com/us/store/products/verified-game-switch-2/'],
+		['dekudeals', 'Deku Deals', 'https://www.dekudeals.com/items/verified-game'],
+	])('labels %s images with their real provenance, not Wikidata or HLTB', async (source, label, url) => {
+		mocks.preview.mockResolvedValueOnce({ ...preview, fields: [{ field: 'hero', current: null, value: '/sample-artwork/amber-hero.svg', source, url }], notices: [] })
+		renderWithProviders(<GameMetadataSheet game={game} onClose={vi.fn()} />); await userEvent.click(screen.getByRole('button', { name: 'Look up information' }))
+		expect(await screen.findByRole('link', { name: `Source: ${label}` })).toHaveAttribute('href', url)
+		expect(screen.getByRole('figure', { name: 'Suggested Hero' })).toBeVisible(); expect(mocks.apply).not.toHaveBeenCalled()
+	})
+	it('keeps both IDs when the chosen Wikidata identity is verified against the linked Steam app', async () => {
+		const wiki = { source: 'wikidata', name: 'Verified linked edition', steamAppId: 100, wikidataId: 'Q12345', url: 'https://www.wikidata.org/wiki/Q12345' }
+		mocks.preview.mockResolvedValueOnce({ ...preview, fields: [], matches: [wiki] }).mockResolvedValueOnce(preview)
+		renderWithProviders(<GameMetadataSheet game={{ ...game, steamAppId: 100 }} onClose={vi.fn()} />)
+		await userEvent.click(screen.getByRole('button', { name: 'Look up information' })); await userEvent.click(await screen.findByRole('button', { name: /Verified linked edition/ })); await screen.findByText('Team Cherry')
+		expect(mocks.preview).toHaveBeenLastCalledWith(51, { ...lookup, steamAppId: 100, wikidataId: 'Q12345' }, expect.any(AbortSignal))
+	})
 })
