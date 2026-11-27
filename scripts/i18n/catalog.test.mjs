@@ -10,12 +10,28 @@ const flatten = (value, prefix = '') => Object.fromEntries(Object.entries(value)
   return item && typeof item === 'object' ? Object.entries(flatten(item, path)) : [[path, item]]
 }))
 
-test('every literal translation call resolves in EN and ES without importing source into coverage', async () => {
+const readCatalogs = async () => {
   const catalogs = {}
   for (const language of ['en', 'es']) {
     const load = async name => JSON.parse(await readFile(join(root, 'i18n/locales', `${name}${language}.json`), 'utf8'))
-    catalogs[language] = flatten({ ...await load(''), gallery: await load('gallery.'), guide: await load('guide.'), metadata: await load('metadata.') })
+    catalogs[language] = flatten({ ...await load(''), gallery: await load('gallery.'), guide: await load('guide.'), metadata: await load('metadata.'), entryflows: await load('entryflows.') })
   }
+  return catalogs
+}
+
+test('EN and ES have matching nonempty resource keys and interpolation placeholders', async () => {
+  const { en, es } = await readCatalogs()
+  assert.deepEqual(Object.keys(en).sort(), Object.keys(es).sort(), 'Resource key mismatch')
+  for (const key of Object.keys(en)) {
+    assert.ok(typeof en[key] === 'string' && en[key].trim(), `Empty EN value: ${key}`)
+    assert.ok(typeof es[key] === 'string' && es[key].trim(), `Empty ES value: ${key}`)
+    const placeholders = value => [...value.matchAll(/{{\s*([^{}]+?)\s*}}/g)].map(match => match[1]).sort()
+    assert.deepEqual(placeholders(en[key]), placeholders(es[key]), `Interpolation mismatch: ${key}`)
+  }
+})
+
+test('every literal translation call resolves in EN and ES without importing source into coverage', async () => {
+  const catalogs = await readCatalogs()
   const missing = []
   // Read only source text; Vite ?raw imports can collide with unexecuted original
   // module identities and silently reduce the V8 coverage denominator.

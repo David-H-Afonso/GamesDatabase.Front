@@ -25,12 +25,26 @@ describe('Optional guide and provenance-scoped examples', () => {
 		let state = { ...base }, library = [...games]
 		cy.intercept('GET', `${API}/onboarding`, request => request.reply(state))
 		cy.intercept('PUT', `${API}/onboarding`, request => { state = { ...state, ...request.body, revision: state.revision + 1 }; request.reply(state) }).as('guideProgress')
-		cy.intercept('POST', `${API}/onboarding/samples`, request => { expect(request.body).to.deep.equal({ revision: 0, confirm: true }); state = { ...state, revision: 1, step: 'library', hasSamples: true, sampleGames: samples, samplePlaylists: 1, sampleLists: [{ id: 7, name: 'Example playlist', createdAt: samples[0].createdAt, updatedAt: samples[0].updatedAt }] }; library = [...games, ...samples]; request.reply(state) }).as('createExamples')
+		cy.intercept('POST', `${API}/onboarding/samples`, request => { expect(request.body).to.deep.equal({ revision: 0, confirm: true, locale: 'en' }); state = { ...state, revision: 1, step: 'library', hasSamples: true, sampleGames: samples, samplePlaylists: 1, sampleLists: [{ id: 7, name: 'Example playlist', createdAt: samples[0].createdAt, updatedAt: samples[0].updatedAt }] }; library = [...games, ...samples]; request.reply(state) }).as('createExamples')
 		cy.intercept('GET', /\/api\/games(\?.*)?$/, request => request.reply(paged(library)))
 		cy.intercept('DELETE', `${API}/onboarding/samples`, request => { expect(request.body.confirm).to.equal(true); expect(request.body.expectedGames.map((game: any) => game.id)).to.deep.equal(samples.map(game => game.id)); expect(request.body.expectedPlaylists).to.deep.equal([{ id: 7, updatedAt: samples[0].updatedAt }]); expect(request.body.removeEditedSamples).to.equal(false); state = { ...state, revision: state.revision + 1, hasSamples: false, sampleGames: [], samplePlaylists: 0, sampleLists: [] }; library = [...games]; request.reply({ state, removedGames: 6, keptGames: 0, removedPlaylists: 1, keptPlaylists: 0 }) }).as('removeExamples')
 		cy.visit('/#/'); cy.contains('button', /^Try six example games$/).click(); cy.wait('@createExamples')
 		for (let step = 0; step < 5; step++) { cy.get('dialog.gdb-onboarding footer').contains('button', /^Continue$/).click(); cy.wait('@guideProgress') }
 		cy.contains('button', /^Remove the examples$/).click(); cy.findByRole('alertdialog').should('contain.text', 'Example 1'); cy.findByRole('alertdialog').contains('button', /^Remove the examples$/).click(); cy.wait('@removeExamples'); cy.findByRole('alertdialog').should('not.exist')
 		cy.contains('button', /^Finish guide$/).click(); cy.wait('@guideProgress'); cy.visit(LIBRARY); cy.get('.gdb-library-results .game-card').should('have.length', 3)
+	})
+	it('offers the current views chapter explicitly and retains its views without creating game samples', () => {
+		const views = ['Favorites', 'Not rated', 'Short games'].map((name, index) => ({ id: 20 + index, name: `Example · ${name}`, description: 'Normal retained saved view', isPublic: true, createdBy: 'Games Database tutorial', filterCount: 1, sortCount: 1, sortOrder: index, pinnedSlot: null, createdAt: '2026-11-26T12:00:00Z', updatedAt: '2026-11-26T12:00:00Z' }))
+		let state = { ...base, exampleViews: [] as typeof views }, createdViews = 0, createdGames = 0
+		cy.intercept('GET', `${API}/onboarding`, request => request.reply(state))
+		cy.intercept('PUT', `${API}/onboarding`, request => { state = { ...state, ...request.body, revision: state.revision + 1 }; request.reply(state) }).as('modernGuideProgress')
+		cy.intercept('POST', `${API}/onboarding/samples`, request => { createdGames++; request.reply({ statusCode: 409, body: { code: 'unexpectedSampleCreation' } }) })
+		cy.intercept('POST', `${API}/onboarding/views`, request => { expect(request.body).to.deep.equal({ revision: 2, confirm: true, locale: 'en' }); createdViews++; state = { ...state, revision: 3, exampleViews: views }; request.reply(state) }).as('createViews')
+		cy.visit('/#/'); cy.contains('button', /^Use my library$/).click(); cy.wait('@modernGuideProgress'); cy.get('dialog.gdb-onboarding footer').contains('button', /^Continue$/).click(); cy.wait('@modernGuideProgress')
+		cy.get('dialog.gdb-onboarding h3').should('contain.text', 'Keep useful views ready'); cy.then(() => { expect(createdViews).to.equal(0); expect(createdGames).to.equal(0) })
+		cy.get('dialog.gdb-onboarding').contains('button', /^Add three example views$/).click(); cy.wait('@createViews'); cy.get('.gdb-guide-view-preview button').should('have.length', 3)
+		for (const title of ['Keep useful views ready', 'Give your collection some order', 'Keep track of your progress', 'Make Home useful to you', 'Find your next game']) { cy.get('dialog.gdb-onboarding h3').should('contain.text', title); cy.get('dialog.gdb-onboarding footer').contains('button', /^Continue$/).click(); cy.wait('@modernGuideProgress') }
+		cy.get('dialog.gdb-onboarding').should('contain.text', 'remain available after the guide'); cy.contains('button', /^Finish guide$/).click(); cy.wait('@modernGuideProgress'); cy.get('dialog.gdb-onboarding').should('not.exist')
+		cy.then(() => { expect(createdViews).to.equal(1); expect(createdGames).to.equal(0); expect(state.exampleViews).to.deep.equal(views); expect(state.enabled).to.equal(false) })
 	})
 })

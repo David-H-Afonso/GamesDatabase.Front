@@ -1,4 +1,4 @@
-import { API, LIBRARY, firstGame, games, openFirstGame } from '../support/fixtures'
+import { API, LIBRARY, firstGame, games, openFirstGame, paged } from '../support/fixtures'
 
 const focus = { id: 7, name: 'Focus', isAutomatic: false, maxLength: 4, sortOrder: 0, gameCount: 1, updatedAt: '', createdAt: '', items: [{ id: 71, gameId: 1, position: 0, game: firstGame }] }
 describe('Collection experience — real contract-shaped fixtures', () => {
@@ -34,10 +34,13 @@ describe('Collection experience — real contract-shaped fixtures', () => {
 	})
 	it('a linked App ID stays locked and Steam artwork is a read-only draft lookup', () => {
 		const linked = { ...firstGame, steamAppId: 100 }
-		cy.intercept('GET', `${API}/games/1`, linked)
+		// This scenario is an already-linked game. Keep list/detail fixtures
+		// consistent instead of racing an unlinked card against a linked read.
+		cy.intercept('GET', /\/api\/games(\?.*)?$/, paged([linked, ...games.slice(1)])).as('linkedGames')
+		cy.intercept('GET', `${API}/games/1`, linked).as('linkedDetail')
 		cy.intercept('GET', `${API}/steam/app/100/artwork`, { heroUrl: `${Cypress.config('baseUrl')}/logo.png?steam-fixture` }).as('artwork')
 		let saves = 0; cy.intercept('PUT', `${API}/games/1`, request => { saves++; request.reply(linked) })
-		cy.visit(LIBRARY); cy.wait('@getGames'); openFirstGame(); cy.get('dialog.gdb-game-sheet').contains('button', /^Edit game$/).click(); cy.get('dialog.gdb-game-editor').contains('button', /^Artwork$/).click()
+		cy.visit(LIBRARY); cy.wait('@linkedGames').its('response.body.data.0.steamAppId').should('eq', 100); openFirstGame(); cy.wait('@linkedDetail').its('response.body.steamAppId').should('eq', 100); cy.get('dialog.gdb-game-sheet').contains('button', /^Edit game$/).click(); cy.get('dialog.gdb-game-editor').contains('button', /^Artwork$/).click()
 		cy.get('input[name="steamAppId"]').should('have.attr', 'readonly'); cy.contains('button', 'Refresh hero from Steam').click(); cy.wait('@artwork')
 		cy.get('.gdb-editor-artwork-preview--hero img').should('have.attr', 'src').and('include', 'steam-fixture'); cy.then(() => expect(saves).to.equal(0))
 	})

@@ -46,8 +46,10 @@ jobs:
         run: npm run security:all
       - name: Lint
         run: npm run lint
-      - name: Literal translation references in English and Spanish
-        run: npm run test:i18n
+      - name: Translation and semantic contrast contracts
+        run: |
+          npm run test:i18n
+          npm run test:ui-contrast
       - name: Tests and coverage gates
         run: npm run test:coverage
       - name: Retain coverage evidence

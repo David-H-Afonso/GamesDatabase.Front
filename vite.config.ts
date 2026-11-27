@@ -95,7 +95,7 @@ export default defineConfig({
 			output: {
 				manualChunks(id) {
 					// Leaf translation catalogs cache independently without enlarging the application chunk.
-					const locale = /src\/i18n\/locales\/(?:gallery\.|guide\.|metadata\.)?(en|es)\.json$/.exec(id)
+					const locale = /src\/i18n\/locales\/(?:gallery\.|guide\.|metadata\.|entryflows\.)?(en|es)\.json$/.exec(id)
 					if (locale) return `locale-${locale[1]}`
 					// Rollup's shared CJS helpers must not be assigned to Formik and imported back by React.
 					if (id.includes('commonjsHelpers')) return 'vendor-runtime'

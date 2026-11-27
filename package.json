@@ -1,7 +1,7 @@
 {
 	"name": "gamesdatabase-front",
 	"private": true,
-	"version": "3.2.1",
+	"version": "3.2.2",
 	"type": "module",
 	"author": "David H. Afonso",
 	"description": "A self-hosted game library for organizing collections, playthroughs and Steam progress",
@@ -22,6 +22,7 @@
 		"test:coverage": "vitest run --coverage",
 		"test:ui": "vitest --ui",
 		"test:i18n": "node --test scripts/i18n/catalog.test.mjs",
+		"test:ui-contrast": "node --test scripts/ui/entry-screen-contrast.test.mjs",
 		"cypress:open": "cypress open",
 		"cypress:run": "cypress run",
 		"security:deps": "npm audit --audit-level=moderate",
