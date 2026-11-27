@@ -1,5 +1,7 @@
 # Web/API deployment and recovery
 
+[Español](DEPLOYMENT.es.md) · [README](../README.md)
+
 This is an operator checklist, not an executed deployment. Web and API images
 version independently; adopt the compatible API before the Front. Electron is a
 separate distribution and is not covered by this web/API checklist.
@@ -44,6 +46,10 @@ flag for existing users and sample provenance/artwork fields.
 `AddLibraryReviewPreferences` adds view usage, additive-time mode and export metadata
 cache version; `AddRetrySafeGameCreation` adds internal retry receipts with an
 owner/key unique index. Neither invents a game edit or rewrites stored raw time.
+The later `AddPinnedQuickViews` adds a nullable pin slot and unique owner/slot index;
+existing views start unpinned without changing filters, order, usage or edit dates.
+Review this post-3.0.0 migration separately from the original API 3.0.0
+image. Duration lookup and reviewed Steam dates add no schema migration.
 Review older pending migrations too, rather than assuming every destination has
 the same schema. Keep `__EFMigrationsHistory` intact.
 
@@ -52,6 +58,22 @@ do not save a game or sync its player. Home/GOTY revision conflicts require an
 explicit reload/review. Do not sync Steam or invent missing data to make checks pass.
 Only a genuinely empty database initializes the current model/migration baseline.
 Metadata review plans use private DataProtection keys; persist them intentionally.
+
+Later critic/batch and security changes add no migration. Adopt the compatible API
+before using attributed review v2; it separates its plan purpose from v1 so an old
+server cannot misapply an OpenCritic plan as Metacritic. Keep new writes on rollback;
+do not restore an old DB merely to discard a review plan.
+
+Steam callback destinations must be explicitly permitted by the configured frontend/
+CORS policy; nonce state binds the destination and return URL. Invalid destinations
+now fail closed. Auth quotas use the connection IP, so a reverse proxy/NAT can share
+a bucket until trusted forwarding is deliberately configured.
+
+ZIP uses credential-free bounded image downloads. Confirm the configured image
+server's `/game-images/` subtree; other private media paths need a narrow server-side
+`ExportMedia:AllowedPrivateBaseUrls` entry. Do not permit a whole private origin or
+weaken TLS to bypass a rejection. Passive platform SVG/raster logos remain supported;
+active/malformed legacy values return404 without rewriting stored data.
 
 ## Configuration and startup order
 
@@ -67,6 +89,9 @@ Metadata review plans use private DataProtection keys; persist them intentionall
   Save/Cancel, Focus, shelves, Home conflicts and readable exports.
 - An API restart loses in-memory sync-operation status, not already saved game
   data. Starting a new player sync remains an explicit action.
+- Verify exact date-save receipts and an unchanged saved finish after later sync.
+  SQLite contention is `503 databaseBusy` with `Retry-After`, not invalid input;
+  retain a successful import receipt instead of blindly resubmitting it.
 
 ## Rollback
 
@@ -119,3 +144,6 @@ anterior. Down elimina datos nuevos y no se ejecuta automáticamente. Si hace fa
 restaurar SQLite, acuerda cómo conservar o reconciliar escrituras posteriores,
 restaura solo la copia verificada y comprueba de nuevo. Nunca sobrescribas cambios
 recientes ni muevas un tag publicado; corrige hacia delante con otra versión.
+
+La guía completa en español, incluida la migración local de chinchetas, está en
+[Despliegue y recuperación](DEPLOYMENT.es.md).

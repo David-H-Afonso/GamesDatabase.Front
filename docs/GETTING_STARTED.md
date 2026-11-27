@@ -79,8 +79,9 @@ origin. Do not mix origins accidentally when checking CORS or login.
 
 1. A fresh installation offers the initial administrator. Sign in locally and
    set a password before exposing the service to anyone else.
-2. The getting-started guide can use your own empty library or add six fictional,
-   labelled examples and one manual playlist. Samples are never created by a read.
+2. The guide can use your own library or explicitly add six fictional, labelled games
+   and one manual playlist. It also offers three useful normal views, retained after
+   the guide/cleanup; these can be added without game samples. Reads never create them.
 3. Add a game with its title and status. Open its detail to edit the rest.
 4. Use playlists, Focus and Home rows as explained in the [User guide](USER_GUIDE.md).
 5. At the end of the guide, choose to keep, remove or decide later about examples.

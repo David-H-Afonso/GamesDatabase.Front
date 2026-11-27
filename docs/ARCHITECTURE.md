@@ -32,11 +32,22 @@ Private collection state is cleared on account transitions; appearance is retain
 Detail and metadata selection live outside replaceable result cards. An updated
 query can remove a card without destroying its open workflow. Selection and close
 callbacks are ownership-scoped. Header has an owned detail fallback for the Admin
-shell; Focus retains its existing page-specific refresh behavior.
+shell. Focus owns its validated detail snapshot and accepts only its own reads and
+mutation results; shared route-cache replacements cannot substitute its queue.
 
 The editor keeps a draft and sends a sparse patch on Save. Artwork lookup and
 metadata lookup are separate read operations; neither starts player synchronization.
 Metadata Apply uses the server's signed review plan and timestamp conflict check.
+Optional duration candidates include exact public `sourceHours` and a disclosed
+integer-hour proposal. The client never converts Steam playtime into an estimate.
+
+`GameMetadataProvider` also owns the explicit in-memory batch outside the router.
+`useMetadataAutofillBatch` freezes owner/target IDs, serializes preview/apply, protects
+an in-flight save and aborts remaining work on owner/unmount boundaries. Header closes
+route-scoped work without restarting it. Creation and Library selection share the same
+service; retries cannot repeat creation/import. Critic v2 validates provider/scope/link
+and exact save receipts. Role-only artwork refresh never clears a URL or runs player sync.
+See [Metadata workflows](METADATA_AUTOFILL.md).
 
 ## Discovery and onboarding
 
@@ -51,6 +62,13 @@ when the page/account changes.
 Guide progress comes from the API, not a global browser “seen” flag. Samples are
 added only after an explicit choice. Cleanup freezes game/list IDs and timestamps
 until confirmation, so a concurrent edit requires a new review.
+The additive Views chapter explicitly creates three localized normal views;
+sample cleanup never owns or deletes them. Capability fields retain old-API UX.
+Quick shortcuts reserve two persisted server slots and fill vacancies from recent
+usage; pin mutation metadata is merged separately from configuration/use, and read
+revisions reject pre-pin snapshots. Playing rotation is a visible-page20s UI timer,
+not synchronization or a background worker; visibility/dialog/motion/interaction
+guards and keyboard/touch controls are covered independently.
 
 ## Presentation and testing
 

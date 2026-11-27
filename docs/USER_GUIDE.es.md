@@ -43,20 +43,46 @@ guardadas siguen marcadas y solo se reintentan las pendientes. Si fallan los
 ajustes posteriores a una importación Steam, no se vuelve a importar. Las altas
 manuales llevan un UUID propio para no duplicar el mismo registro al reintentar.
 Cerrar/reabrir conserva este borrador en memoria; recargar la página no.
+Al abrir se enfoca el título. Steam activado **y** desactivado se recuerda por cuenta
+para nuevas filas y al volver a montar la interfaz; solo se guarda un booleano.
+La casilla final **Intentar rellenar información tras importar** empieza desmarcada
+en cada lote nuevo. Si se marca, aplica propuestas fiables de vacíos tras confirmar
+recibos nuevos/vinculados y sus ajustes, sin repetir altas/importaciones si falla información.
 
 ## Rellenar información automáticamente
 
 Abre **Opciones del juego** (tres puntos) y **Rellenar información automáticamente**.
 
-1. Elige vacíos/sobrescribir y si incluir imágenes.
+1. Elige vacíos/sobrescribir y si incluir crítica, imágenes y estimaciones de duración.
 2. Busca. Si hay títulos/ediciones ambiguos, selecciona la identidad correcta.
 3. Revisa valor actual/propuesto y fuente por campo.
 4. Desmarca lo que no quieras y **Guardar campos seleccionados**.
 
 Se prioriza Steam y se usa Wikidata para datos ausentes. No cambia nota personal,
 comentario, estado, tiempo, progreso ni App ID. Steam playtime no se usa como
-duración de historia/completista. La falta/ambigüedad de fuentes conserva campos.
+duración de historia/completista. Las estimaciones opcionales proceden de las
+cifras HLTB publicadas en la web pública de Deku Deals: se envía el título, no tus
+notas ni tiempo jugado, y no se contacta directamente con HLTB. Las ediciones no
+exactas requieren elegir. Los campos actuales guardan horas enteras; la cifra
+original con fracciones y la propuesta redondeada se explican antes de guardar.
+Las fuentes ausentes, ambiguas o bloqueadas conservan los campos.
 Un juego cambiado o revisión caducada requiere buscar de nuevo. Cancelar no aplica.
+
+La revisión de imágenes compara Logo/Hero/Cover actuales y propuestos por separado.
+Sus previews muestran la URL exacta aunque las carátulas de otras superficies usen
+Hero como respaldo; ese respaldo visual nunca se copia al campo Cover guardado.
+
+La crítica prioriza Metacritic de la edición Steam y después Metacritic/OpenCritic
+atribuidos en Deku. Guarda el proveedor real y advierte diferencias de plataforma.
+No se usa scraping SteamDB ni se renombra un porcentaje de usuarios como su crítica.
+Reemplazar consulta también grupos rellenados; confirmar coincidencias no inventa ediciones.
+
+Para varios juegos, selecciónalos y usa **Autorrellenar** con rayo. Rellena vacíos;
+**Reemplazar** al lado exige otra confirmación y no ejecuta la consulta por sí solo.
+El progreso mantiene los IDs exactos y resultados por juego. **Reintentar información
+pendiente** nunca repite altas/importaciones. Véase [Revisión y autorrellenado por
+lotes](METADATA_AUTOFILL.es.md) para ámbito, ambigüedad, guardados protegidos,
+cancelación y refresco seguro de un rol de imagen.
 
 ## Búsqueda, filtros y layouts
 
@@ -67,17 +93,29 @@ Un juego cambiado o revisión caducada requiere buscar de nuevo. Cancelar no apl
 - **Filtros** abre un borrador. **Ver juegos** cambia la consulta; cerrar la conserva.
   **Restablecer** reinicia criterios y aún requiere Ver juegos. El indicador cuenta
   criterios aplicados, no ediciones pendientes, orden ni paginación.
-- Cambia entre **Covers**, **Cards** y **Row**. Cards permite tres/cuatro columnas
-  si hay anchura; esta preferencia de presentación se aplica inmediatamente.
+  El tamaño de página está justo antes de Favoritos y Completados/100% debajo, sin
+  abrir Más filtros. Siguen formando parte del mismo borrador cancelable.
+- Cambia entre **Covers**, **Cards** y **Row**. Cards usa cuatro columnas por defecto
+  si hay anchura y conserva una elección explícita de tres. Esta preferencia se aplica inmediatamente.
   Row ampliado añade columnas. Nota y Crítica usan /100; Score calculado /10.
 - Las vistas guardadas conservan filtros/orden. Los atajos son las dos últimas
   usadas, o las dos primeras inicialmente. Reutilizarlas no cambia su posición.
+  Fija hasta dos con la chincheta al pasar el puntero o enfocar con teclado. Las
+  fijadas conservan su posición y los huecos libres usan vistas recientes. En touch,
+  elige una vista y pulsa su chincheta adyacente; vuelve a pulsar para desfijar.
+  Una tercera no desplaza las existentes. Se guardan por cuenta sin cambiar filtros,
+  orden ni selección.
+
+La guía permite añadir explícitamente vistas Favoritos, Sin valorar y Juegos cortos,
+con o sin juegos ficticios. Son vistas dinámicas normales que puedes editar;
+terminar la guía o borrar sus juegos ficticios no elimina las vistas.
 
 El favorito activo siempre se ve; el inactivo aparece al pasar el puntero, enfocar
 o usar touch. En modo selección se pulsa toda la tarjeta/fila o se usa su checkbox
-con teclado, sin abrir ficha ni metadatos. La barra reúne Editar y las demás
-acciones por lotes. Revisa los IDs antes de borrar o refrescar/sincronizar imágenes.
-Cambiar página/consulta limpia la selección anterior.
+con teclado, sin abrir ficha ni metadatos. La barra reúne Autorrellenar/Reemplazar,
+Editar y refresco independiente de un rol; desborda acciones cuando no caben.
+Revisa el ámbito antes de borrar. Cambiar página/consulta limpia selección y permiso
+de reemplazo. Refrescar imágenes no vacía URLs primero ni sincroniza jugadores.
 
 ## Playlists, carpetas, estanterías y Focus
 
@@ -95,6 +133,9 @@ no otro catálogo.
 Focus es una cola manual pequeña, normalmente cuatro huecos. Añade/gestiona
 desde ficha o página Focus. Ordenar/quitar/elegir es explícito. Cambiar destacado
 no cambia el orden ni el estado.
+Focus dibuja su lista manual cargada y validada de forma independiente, no la
+playlist global de otra pantalla. Las identidades de lista/juego inválidas muestran
+un error reintentable en vez de otro juego.
 
 ## Inicio y recomendaciones
 
@@ -104,7 +145,10 @@ Jugando/estadísticas o recomendaciones. **Guardar fila** actualiza el borrador;
 **Ver todos** abre el origen completo, independientemente de la preview.
 
 Jugando ahora sigue el rol Jugando. La lista lateral destaca juegos; abrir ficha
-es otra acción. Recomendaciones usa estados normales, no especiales, por defecto.
+es otra acción. El destacado visible cambia cada 20 segundos y su pausa discreta
+permite parar/reanudar. Interactuar, movimiento reducido, pestañas ocultas, salir
+de pantalla y diálogos evitan cambios inoportunos. No sincroniza datos ni cambia
+el orden de playlists. Recomendaciones usa estados normales, no especiales, por defecto.
 Los incluidos definen el conjunto y las exclusiones ganan. Todos comparten
 **00:00 UTC**, pero solo ven su colección. Una selección pequeña puede repetir
 juegos; el orden rota cada día.
@@ -140,6 +184,19 @@ El tiempo Steam y última sincronización aparecen encima de los conjuntos de lo
 separando juego base y DLC. **Jugar en Steam** usa `steam://rungameid/<id>` validado
 y requiere un cliente compatible instalado. Abrir la ficha no sigue el enlace.
 
+**Buscar fechas en Steam** abre la misma revisión de Administración → Steam. No se
+selecciona nada automáticamente: elige Inicio y Fin por separado, revisa origen/zona
+horaria y pulsa **Guardar fechas seleccionadas**. Primer/último logro y última partida
+son referencias, no pruebas de cuándo empezó o terminó la historia. Se conservan las
+fechas existentes, se descartan valores 1970 y sincronizar no desplaza un fin aceptado.
+Si Steam omite la última partida, puede ofrecerse el último logro válido de caché como
+alternativa identificada; si no existe, introduce la fecha conocida a mano. Ignorar no fija una fecha.
+
+Los botones **Fin / Inicio** de Estadísticas eligen qué fechas guardadas definen el
+año/mes, incluyendo Replays; se mantienen al abrir un mes. Un juego sin fecha no se
+asigna a un año desde el tiempo total. La actividad de logros indica sus fechas UTC por separado.
+Consulta [contrato y límites de fechas](https://github.com/David-H-Afonso/GamesDatabase.Api/blob/HEAD/DOCS/STEAM_DATES.es.md).
+
 CSV/JSON/ZIP tienen ámbitos diferentes. Para recuperar auth/historial/caché
 completos sigue haciendo falta una copia SQLite consistente con WAL y restauración
 aislada. Nunca restaures sobre cambios más recientes sin acordar reconciliación.
@@ -148,6 +205,13 @@ aislada. Nunca restaures sobre cambios más recientes sin acordar reconciliació
 
 - Reintenta lecturas explícitamente; un origen ausente no se cambia por toda la biblioteca.
 - Ante409, recarga y revisa el borrador.
+- Ante base ocupada, conserva el recibo de una importación correcta y reintenta solo
+  ajustes pendientes si procede; no repitas todo el importador Steam ante un resultado incierto.
 - Un save fallido conserva borrador/selección; no repite mutaciones automáticamente.
+- Administración conserva los borradores de catálogo y revisiones de reversión de
+  Auditoría fallidos con el error dentro del diálogo. Una lectura fallida no se
+  presenta como un registro de auditoría vacío.
+- Si Preferencias no puede actualizarse, los valores en caché se identifican y quedan
+  en solo lectura. Pulsa **Reintentar** antes de editar; abrir o reintentar no los guarda.
 - Reporta ruta, pasos, resultado esperado/real, navegador y versión. No adjuntes
   tokens, env privados o bases a un issue público.

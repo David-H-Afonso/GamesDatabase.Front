@@ -32,11 +32,22 @@ la apariencia se conserva.
 La selección de ficha y metadatos vive fuera de las tarjetas reemplazables.
 Actualizar una consulta no destruye un flujo abierto. Selección y callbacks de
 cierre tienen ámbito de propietario. Header conserva un fallback propio para el
-shell Admin; Focus mantiene su comportamiento de actualización específico.
+shell Admin. Focus mantiene su propio detalle validado y acepta sus lecturas y
+mutaciones, sin sustituir la cola por cambios de la caché global de playlists.
 
 El editor guarda un borrador y envía un patch parcial. Consultar imágenes o
 metadatos no sincroniza jugadores. Aplicar metadatos usa el plan firmado del
 servidor y comprueba el timestamp revisado.
+Las duraciones opcionales incluyen `sourceHours` público exacto y una propuesta
+redondeada a horas enteras. Nunca se convierten horas Steam en una estimación.
+
+`GameMetadataProvider` mantiene también el lote explícito en memoria fuera del router.
+`useMetadataAutofillBatch` fija cuenta/IDs, serializa consulta/guardado, protege el
+guardado actual y cancela el resto al cambiar cuenta o desmontar. Header cierra al
+navegar sin reiniciar trabajo. Alta y selección comparten servicio; reintentar no
+repite altas/importaciones. Crítica v2 valida proveedor/ámbito/enlace y recibos exactos.
+El refresco de un rol no vacía URLs ni sincroniza jugadores. Véanse
+[Flujos de metadatos](METADATA_AUTOFILL.es.md).
 
 ## Descubrimiento y guía
 
@@ -51,6 +62,12 @@ o cambiar de cuenta.
 La guía viene de la API, no de una marca global del navegador. Los ejemplos se
 añaden solo al aceptarlos. Borrar congela IDs/timestamps de juegos/listas hasta
 confirmar: otro cambio obliga a revisar de nuevo.
+El capítulo Vistas crea explícitamente tres vistas normales localizadas; limpiar
+ejemplos no las posee ni borra. Campos de capacidad conservan la UX con API anterior.
+Los atajos reservan dos plazas persistidas en servidor y completan huecos con uso
+reciente. Las chinchetas se fusionan aparte de configuración/uso y se rechazan
+lecturas anteriores a fijar. La rotación de Jugando es un temporizador UI visible
+de20s, no sync ni worker; tiene guardas de visibilidad/diálogos/movimiento/interacción.
 
 ## Presentación y pruebas
 

@@ -80,7 +80,8 @@ ese origen. Evita mezclar orígenes al comprobar CORS o login.
 1. Una instalación nueva ofrece el administrador inicial. Entra localmente y
    establece su contraseña antes de compartir el servicio.
 2. La guía permite usar tu biblioteca o aceptar seis juegos ficticios identificados
-   y una playlist manual. Leer datos nunca crea ejemplos.
+   y una playlist manual. También ofrece tres vistas normales útiles, retenidas tras
+   guía/limpieza, que puedes añadir sin juegos de ejemplo. Leer nunca las crea.
 3. Añade un título y un estado. Abre su ficha para completar el resto.
 4. Utiliza playlists, Focus e Inicio según la [Guía de uso](USER_GUIDE.es.md).
 5. Al terminar, conserva, borra o decide más tarde sobre los ejemplos.
@@ -112,7 +113,7 @@ npm run cypress:run -- --browser electron --config baseUrl=http://127.0.0.1:5174
 
 ## Datos existentes y producción
 
-Lee [Despliegue y recuperación](DEPLOYMENT.md). Acuerda rutas reales, copia
+Lee [Despliegue y recuperación](DEPLOYMENT.es.md). Acuerda rutas reales, copia
 consistente con WAL, restauración aislada e imagen anterior por digest. Un push
 puede publicar, pero no autoriza despliegue ni restauración.
 

@@ -43,21 +43,46 @@ marked after a partial failure, and retry sends only unfinished work. A Steam
 import whose settings failed is not imported again. Manual rows carry an owned
 request UUID so retrying the same request cannot create a duplicate record.
 Closing/reopening the sheet retains this in-memory draft; a page reload does not.
+The title receives focus when opened. Explicit Steam on **and** off are remembered
+per account across new rows and remounts; only a boolean is stored, never the draft.
+The final **Try to autofill info after import** checkbox defaults off for a new batch.
+When selected, reliable empty-field proposals are applied after confirmed new/linked
+receipts and their settings, without repeating creation/import if information fails.
 
 ## Automatic information lookup
 
 Open **Game options** (three dots) and **Fill information automatically**.
 
-1. Choose **Fill empty fields** or **Replace existing fields**, and whether to include artwork.
+1. Choose **Fill empty fields** or **Replace existing fields**, and whether to include critic rating, artwork and duration estimates.
 2. Start the lookup. If titles/editions are ambiguous, choose the correct identity.
 3. Review current/suggested values and the source link for every field.
 4. Uncheck anything you do not want, then **Save selected fields**.
 
 Steam is preferred, with Wikidata used for missing facts. The lookup does not
 change personal grade, notes, status, playtime or progress, and does not change
-the linked App ID. It does not fill story/completionist estimates from Steam
-playtime. Missing/ambiguous sources leave fields unchanged. A changed game or
+the linked App ID. Optional story/completionist estimates use HLTB figures published
+on the public Deku Deals website, not Steam playtime. This sends only the game title,
+not your notes or playtime; it does not contact HLTB directly. Non-exact editions
+require a choice. The current fields store integer hours, so a fractional source
+value and its rounded proposal are both disclosed before Save. Missing/ambiguous
+or blocked sources leave fields unchanged. A changed game or
 expired review requires a new lookup; Cancel never applies the preview.
+
+Artwork review compares the actual and proposed Logo/Hero/Cover independently.
+These previews show their exact URLs, even when the displayed cover elsewhere uses
+Hero as a fallback; a display fallback is never copied into the saved Cover field.
+
+Critic priority is Steam-edition Metacritic, then Metacritic/OpenCritic attributed by
+Deku. The actual provider is saved; listed-platform differences are disclosed.
+SteamDB scraping and falsely named user-review percentages are not used. Replace
+checks populated groups again; confirming equal values does not create false edits.
+
+For multiple games, select their cards/rows and run lightning **Autofill**. It fills
+vacant fields; enabling adjacent **Replace** requires its own warning confirmation
+and does not run lookup. Progress keeps the exact selected IDs and per-game outcomes.
+**Retry unfinished information** never creates/imports games again. See
+[Metadata review and batch autofill](METADATA_AUTOFILL.md) for scope, source ambiguity,
+protected saves, cancellation and safe role-only artwork refresh.
 
 ## Search, filters and layouts
 
@@ -68,17 +93,30 @@ expired review requires a new lookup; Cancel never applies the preview.
 - **Filters** opens a draft. **View games** changes the query; closing leaves it alone.
   **Reset** resets criteria but still requires View games. Its badge counts applied
   criteria, not pending edits, sorting or pagination.
-- Switch between **Covers**, **Cards** and **Row**. Cards offers three/four columns
-  on sufficiently wide screens; this presentation preference applies immediately.
+  Page size is immediately above Favorites; Completed/100% are visible below it,
+  without opening More filters. They remain part of the same cancellable draft.
+- Switch between **Covers**, **Cards** and **Row**. Cards defaults to four columns
+  on sufficiently wide screens; an explicitly saved three-column choice is kept.
+  This presentation preference applies immediately.
   Extended Row exposes more columns. Grade and Critic use /100; calculated Score /10.
 - Saved views retain their filters/sorting. The two shortcuts are the last two
   used views, or the first two initially. Reusing either does not shuffle the pair.
+  Pin up to two with the pin shown on hover or keyboard focus; pinned positions stay
+  fixed and remaining positions use recent views. On touch, select a view and use
+  its adjacent pin. Press again to unpin; a third pin never displaces an existing one.
+  Pins persist per account without changing filters, sorting or selection.
+
+The guide can explicitly add Favorites, Not rated and Short games example views,
+with or without fictional games. These are normal dynamic views you can edit;
+finishing the guide or removing its fictional games does not delete them.
 
 Active favourite stars remain visible; inactive stars appear on hover/focus or
 touch. In selection mode, click/tap anywhere on a card or row, or use its checkbox
 with the keyboard. Its detail/metadata controls cannot intercept selection.
-The selection bar holds Edit and further bulk tools; review the IDs before deletion
-or explicit image refresh/sync. Changing the page/query clears the old selection.
+The selection bar holds Autofill/Replace, Edit and separate role-only artwork refresh;
+less frequent actions overflow only when necessary. Review scope before deletion.
+Changing page/query clears selection and replacement permission. Image refresh does
+not clear URLs first or run player sync.
 
 ## Playlists, folders, shelves and Focus
 
@@ -96,6 +134,9 @@ their existing games, not another catalog.
 Focus is a small manual queue, normally four slots. Add/manage from the game
 detail or Focus page. Reorder, remove or choose games explicitly. Switching the
 featured game does not change playlist order or game status.
+Focus renders its independently loaded, validated manual list rather than the
+shared current-playlist cache. Other playlist activity cannot replace its queue;
+invalid list/game identities show a retryable load error instead of another game.
 
 ## Home and recommendations
 
@@ -105,7 +146,10 @@ then **Save home** to keep the layout. Removing a row does not remove its source
 **View all** opens the full source, independently of preview count.
 
 Playing now follows the semantic Playing status. Its side list features a game;
-the detail opens separately. Daily picks use regular, non-special statuses by
+the detail opens separately. The visible spotlight rotates every 20 seconds; the
+quiet pause control stops/resumes it. Interaction, reduced motion, hidden tabs,
+offscreen content and dialogs prevent unwanted changes. This never syncs data or
+changes playlist order. Daily picks use regular, non-special statuses by
 default. Included statuses select a pool; exclusions always win. All accounts
 share **00:00 UTC** as the change boundary, while each sees only its own collection.
 A small pool can repeat games; the order rotates daily.
@@ -142,6 +186,19 @@ Steam playtime and last sync appear above achievement sets; base game and DLC
 remain distinct. **Play on Steam** uses a validated `steam://rungameid/<id>` link
 and requires a compatible installed Steam client. Opening a detail never follows it.
 
+**Look for Steam dates** opens the same reviewed tool used in Administration → Steam.
+Nothing is selected automatically: choose start and finish independently, check their
+source and the disclosed timezone, then **Save selected dates**. First/last achievements
+and last played are references, not proof of when the story started or ended. Existing
+dates are kept, 1970 sentinels are excluded, and later sync cannot move an accepted finish.
+If Steam omits last played, a valid last cached achievement can be offered as a labelled
+alternative; otherwise enter a known date manually. Ignoring a reference does not set a date.
+
+Statistics' **Finish / Start** buttons choose which saved dates define a year/month,
+including Replays. The choice is kept when opening a month. An undated game is not assigned
+to a year from lifetime playtime; the achievement timeline separately labels its UTC dates.
+See the [date contract and limitations](https://github.com/David-H-Afonso/GamesDatabase.Api/blob/HEAD/DOCS/STEAM_DATES.md).
+
 CSV/JSON/ZIP tools have different transfer scopes. A full SQLite backup is still
 needed for complete auth/history/cache recovery. Back up consistently with WAL
 and test restore to an isolated path. Never restore over newer writes without
@@ -151,6 +208,12 @@ an explicit reconciliation decision.
 
 - Retry a failed read explicitly; an unavailable source is not replaced by all games.
 - On409, reload current data and review the draft before saving again.
+- On a busy database, keep the successful import receipt and retry only unfinished
+  settings when needed. Do not repeat the whole Steam import after an uncertain result.
 - A failed save retains its draft/selection. No automatic repeated mutation is started.
+- Administration keeps failed catalog drafts and Audit revert reviews open with an
+  error inside the active dialog. A failed Audit read is not shown as an empty log.
+- If Preferences cannot refresh, cached choices are labelled and read-only. Use
+  **Try again** before editing; simply opening or retrying never saves them.
 - Report a bug with route, steps, expected/actual result, browser and app version;
   do not attach tokens, private env files or databases to a public issue.
