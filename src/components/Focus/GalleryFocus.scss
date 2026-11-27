@@ -76,9 +76,10 @@
 .focus-search__capacity{font:450 10px/1.5 var(--gdb-body);white-space:nowrap;color:var(--gdb-secondary)}
 .focus-search-results{list-style:none;padding:0;margin:15px 0;border-top:1px solid var(--gdb-subtle-line)}
 .focus-search-result{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:64px;border-bottom:1px solid var(--gdb-subtle-line);padding:8px 0}
-.focus-search-result__name{font:550 14px/1.5 var(--gdb-body);color:var(--gdb-text)}
+.focus-search-result__name{min-width:0;overflow-wrap:anywhere;font:550 14px/1.5 var(--gdb-body);color:var(--gdb-text)}
 .focus-search-result__name small{display:block;font:450 12px/1.5 var(--gdb-body);color:var(--gdb-secondary);margin-top:4px}
-.focus-search-result__add{min-height:44px;border:0;background:transparent;color:var(--gdb-accent);font:550 12px/1.5 var(--gdb-body);padding:10px;cursor:pointer}
+.focus-search-result__add{display:grid;place-items:center;flex:0 0 44px;width:44px;min-height:44px;border:1px solid var(--gdb-line);border-radius:7px;background:transparent;color:var(--gdb-accent);padding:0;cursor:pointer}
+.focus-search-result__add[aria-busy=true]>.gdb-icon{animation:focus-spin 1s linear infinite}
 .focus-list-link{display:inline-flex;align-items:center;min-height:44px;font:450 12px/1.5 var(--gdb-body);color:var(--gdb-accent);text-decoration:none}
 .focus-list-link:focus-visible,.focus-list-link:hover{text-decoration:underline;text-underline-offset:4px}
 .focus-setup{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;min-height:390px;padding:40px 24px;text-align:center;border:1px solid var(--gdb-line);border-radius:9px;background:var(--gdb-surface)}
@@ -90,7 +91,7 @@
 .focus-spotlight__empty-copy{padding:25px 0}
 .focus-spotlight__empty-copy>p{font:450 14px/1.6 var(--gdb-body);margin:20px 0}
 .focus-mode--loading{padding:60px var(--gdb-gutter);color:var(--gdb-secondary)}
-@media(hover:hover) and (pointer:fine){.focus-add-trigger:hover{background:var(--gdb-raised)}.focus-primary-button:hover{background:var(--gdb-text);border-color:var(--gdb-text);color:var(--gdb-page)}}
+@media(hover:hover) and (pointer:fine){.focus-add-trigger:hover,.focus-search-result__add:not(:disabled):hover{background:var(--gdb-raised)}.focus-primary-button:hover{background:var(--gdb-text);border-color:var(--gdb-text);color:var(--gdb-page)}}
 @media(min-width:1700px){.focus-spotlight{min-height:380px}.focus-spotlight__content{padding:35px 42px}.focus-spotlight .focus-spotlight__note{font-size:16px}.focus-queue-card__cover,.focus-queue-empty{height:130px}}
 @media(max-width:1250px){.focus-spotlight__content{max-width:62%;padding:32px}.focus-spotlight .focus-spotlight__content h2{font-size:48px}.focus-spotlight__stats{gap:23px}}
 @media(max-width:1050px){.focus-heading h1{font-size:31px}.focus-spotlight{min-height:340px}.focus-spotlight__content{max-width:65%;padding:30px}.focus-spotlight .focus-spotlight__content h2{font-size:45px}.focus-queue__items{gap:15px}.focus-queue-card__cover,.focus-queue-empty{height:94px}.focus-queue-card__copy>strong{font-size:14px}.focus-queue-card__metadata{font-size:13px}}
@@ -130,4 +131,4 @@
   .focus-manage-list strong,.focus-manage-list span:not(.focus-manage-cover,.gdb-art-empty){font-size:16px}
   .focus-library>h3{font-size:19px;margin:26px 0 13px}
 }
-@media(prefers-reduced-motion:reduce){.focus-sync-indicator svg{animation:none}}
+@media(prefers-reduced-motion:reduce){.focus-sync-indicator svg,.focus-search-result__add>.gdb-icon{animation:none}}

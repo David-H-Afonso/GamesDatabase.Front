@@ -210,6 +210,16 @@ describe('CardView', () => {
 		expect(screen.getByText('PC', { selector: '.gdb-card-platform' })).toBeInTheDocument()
 	})
 
+	it.each([undefined, '', ' \t '])('does not render an empty platform badge for %j', async platformName => {
+		const CardView = await loadComponent()
+		const game = createGame({ platformName })
+		const { container } = renderWithProviders(<CardView game={game} openDetails={mockOpenDetails} playWithColors={[]} gameStatusColor='#4CAF50' platformColor={undefined} />, {
+			preloadedState: preloadedState as any,
+		})
+		expect(container.querySelector('.gdb-card-platform')).toBeNull()
+		expect(screen.getByRole('heading', { name: game.name })).toBeInTheDocument()
+	})
+
 	it('renders story and completion hours', async () => {
 		const CardView = await loadComponent()
 		const game = createGame({ story: 40, completion: 60 })

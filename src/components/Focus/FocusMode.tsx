@@ -462,8 +462,8 @@ function OwnedFocusMode() {
 											<li key={game.id}>
 												<div className='focus-search-result'>
 													<span className='focus-search-result__name'>{game.name}<small>{game.platformName || t('focus.platformNotSet')}</small></span>
-													<button type='button' className='focus-search-result__add' onClick={() => void addGame(game)} disabled={alreadyAdded || addingGameId !== null || remainingCapacity === 0}>
-														{alreadyAdded ? t('focus.alreadyAdded') : isAdding ? t('focus.adding') : t('focus.add')}
+													<button type='button' className='focus-search-result__add' aria-label={t(alreadyAdded ? 'gallery.focusPage.addedNamedGame' : isAdding ? 'gallery.focusPage.addingNamedGame' : 'gallery.focusPage.addNamedGame', { name: game.name })} aria-busy={isAdding} onClick={() => void addGame(game)} disabled={alreadyAdded || addingGameId !== null || remainingCapacity === 0}>
+														<CollectionIcon name={alreadyAdded ? 'check' : isAdding ? 'refresh' : 'plus'} />
 													</button>
 												</div>
 											</li>

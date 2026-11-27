@@ -129,9 +129,32 @@ describe('FocusMode', () => {
 		await user.click(await screen.findByRole('button', { name: 'Gestionar' }))
 		await user.type(await screen.findByRole('searchbox', { name: 'Buscar un juego de tu biblioteca…' }), 'Tunic')
 		await waitFor(() => expect(mockGetGames).toHaveBeenCalledWith({ search: 'Tunic', page: 1, pageSize: 8 }, expect.any(AbortSignal)))
-		await user.click(await screen.findByRole('button', { name: 'Añadir' }))
+		const add = await screen.findByRole('button', { name: 'Añadir Tunic a Focus' })
+		expect(add.textContent).toBe('')
+		expect(add.querySelector('svg[aria-hidden="true"]')).toBeInTheDocument()
+		await user.click(add)
 
 		expect(hooks.addItem).toHaveBeenCalledWith(7, 44)
+	})
+
+	it('names added and pending icon controls and prevents duplicate Focus additions', async () => {
+		const user = userEvent.setup()
+		const hooks = makePlaylistHook(makePlaylist([items[0]]))
+		let finish!: (value: Playlist) => void
+		hooks.addItem.mockImplementationOnce(() => new Promise(resolve => { finish = resolve }))
+		mockUsePlaylists.mockReturnValue(hooks as any)
+		mockGetGames.mockResolvedValue({ data: [currentGame, nextGame], totalCount: 2, page: 1, pageSize: 8, totalPages: 1, hasNextPage: false, hasPreviousPage: false })
+		renderWithProviders(<FocusMode />)
+		await user.click(await screen.findByRole('button', { name: 'Gestionar' }))
+		await user.type(screen.getByRole('searchbox'), 'game')
+		expect(await screen.findByRole('button', { name: 'A Short Hike ya está en Focus' })).toBeDisabled()
+		await user.click(screen.getByRole('button', { name: 'Añadir Outer Wilds a Focus' }))
+		const pending = screen.getByRole('button', { name: 'Añadiendo Outer Wilds a Focus' })
+		expect(pending).toBeDisabled()
+		expect(pending).toHaveAttribute('aria-busy', 'true')
+		await user.click(pending)
+		expect(hooks.addItem).toHaveBeenCalledExactlyOnceWith(7, 2)
+		await act(async () => { finish(makePlaylist([items[0], items[1]])) })
 	})
 
 	it('keeps the add control disabled once the four-game limit is reached', async () => {

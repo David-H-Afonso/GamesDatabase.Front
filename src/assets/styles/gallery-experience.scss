@@ -11,6 +11,8 @@ html[data-experience='gallery'] {
   button,input,textarea,select{font-family:var(--gdb-body)}
   button,a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   :focus-visible{outline:2px solid var(--gdb-accent);outline-offset:4px}
+  // Compound search fields keep their focus ring on the outer control only.
+  :is(.gdb-search-input,.focus-search,.playlist-search)>input:is(:focus,:focus-visible){outline:0;box-shadow:none}
   ::selection{background:var(--gdb-accent);color:var(--gdb-accent-ink)}
   .app-layout{min-height:100dvh;background:var(--gdb-page)}
   body.has-app-bg .app-layout{background:transparent}
@@ -53,11 +55,13 @@ html[data-experience='gallery'] {
 .gdb-game-picker strong{font:550 14px/1.4 var(--gdb-body);display:block}
 .gdb-game-picker small{font-size:12px;line-height:1.6;color:var(--gdb-secondary);display:block;margin-top:4px}
 .gdb-game-picker>button>.gdb-icon{width:18px;height:18px;color:var(--gdb-accent)}
+.gdb-game-picker>button:focus-visible{background:var(--gdb-raised);outline-offset:-3px}
+.gdb-game-picker>button:disabled{opacity:.5;cursor:not-allowed}
 .gdb-art-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;width:100%;height:100%;padding:18px;gap:10px;background:var(--gdb-accent-soft);color:var(--gdb-text);font:550 22px/1.2 var(--gdb-display);overflow-wrap:anywhere}
 .gdb-art-empty>b{font:inherit;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
 .gdb-art-empty>small{font:450 10px/1.6 var(--gdb-body);color:var(--gdb-secondary)}
 .gdb-mini-cover .gdb-art-empty>small{display:none}
-@media(hover:hover) and (pointer:fine){.gdb-game-picker>button:hover{background:var(--gdb-accent-soft)}}
+@media(hover:hover) and (pointer:fine){.gdb-game-picker>button:not(:disabled):hover{background:var(--gdb-raised)}}
 @media(max-width:1050px){:root{--gdb-gutter:28px}.gdb-page-heading h1{font-size:31px}.gdb-page-title{gap:11px}.gdb-count{font-size:12px}}
 @media(max-width:800px){:root{--gdb-gutter:24px}}
 @media(max-width:650px){:root{--gdb-gutter:18px}.gdb-page{padding-top:18px}.gdb-page-heading{gap:12px;margin-bottom:19px}.gdb-page-title{display:block;flex:1;min-width:0}.gdb-page-heading h1{font-size:30px;letter-spacing:-.95px;line-height:1.15}.gdb-count{display:block;font-size:11px;margin-top:5px}.gdb-section-heading h2{font-size:23px;letter-spacing:-.45px}.gdb-section-heading .gdb-eyebrow{font-size:10px;margin-bottom:2px}.gdb-footer{font-size:10px;align-items:center;margin-top:27px;padding-top:19px;padding-bottom:100px}.gdb-pagination{flex-wrap:wrap;justify-content:center;gap:15px}.gdb-pagination>div{gap:15px}}

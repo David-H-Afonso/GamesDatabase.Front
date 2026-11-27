@@ -48,7 +48,7 @@ const CardView = ({ game, openDetails, onAutoFill, onFieldUpdate, gameStatusColo
 			<GameTitle name={game.name} tooltip='hold' className='gdb-card-art gdb-image-open' ariaLabel={t('gallery.home.openGame', { name: game.name })} onOpen={() => openDetails(game)}><GameArtwork game={game} role='hero' className='game-card-cover' eager={index != null && index < 4} /><span className='gdb-art-hover'>{t('gallery.detail.open')}<CollectionIcon name='arrow' /></span></GameTitle>
 			{!hideSelection && <input type='checkbox' checked={isSelected} onChange={event => onSelect?.(game.id, event.target.checked)} className='game-card-view-container__checkbox' aria-label={t('game.card.selectGame', { name: game.name })} />}
 			<button type='button' className={`game-card-favorite-toggle ${game.favorite ? 'is-active' : ''}`} aria-pressed={game.favorite} aria-label={t(game.favorite ? 'game.card.removeFavorite' : 'game.card.markFavorite')} disabled={saving} onClick={() => { void update('favorite', !game.favorite) }}><CollectionIcon name='star' /></button>
-			<span className='gdb-card-platform'>{game.platformName}</span>
+			{game.platformName?.trim() && <span className='gdb-card-platform'>{game.platformName}</span>}
 			{isGameCompleted(game) && <span className='game-card-perfect-badge gdb-completion-badge' data-completion={isGameFullyCompleted(game) ? 'full' : 'completed'}>{t(completionLabelKey(game))}</span>}
 			{playlistControls}
 		</div>
