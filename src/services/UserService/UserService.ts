@@ -33,8 +33,8 @@ class UserService {
 	/**
 	 * Get user by ID (Admin or the user themselves)
 	 */
-	async getUserById(id: number): Promise<User> {
-		const response = await customFetch<User>(environment.apiRoutes.users.byId(id))
+	async getUserById(id: number, signal?: AbortSignal): Promise<User> {
+		const response = signal ? await customFetch<User>(environment.apiRoutes.users.byId(id), { signal }) : await customFetch<User>(environment.apiRoutes.users.byId(id))
 		return response
 	}
 
@@ -50,10 +50,11 @@ class UserService {
 		return response
 	}
 
-	async updateUser(id: number, data: UserUpdateDto): Promise<void> {
+	async updateUser(id: number, data: UserUpdateDto, signal?: AbortSignal): Promise<void> {
 		await customFetch<void>(environment.apiRoutes.users.update(id), {
 			method: 'PUT',
 			body: data,
+			...(signal ? { signal } : {}),
 		})
 	}
 

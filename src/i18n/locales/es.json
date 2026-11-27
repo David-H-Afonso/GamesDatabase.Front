@@ -1,4 +1,13 @@
 {
+	"accountLanguage": {
+		"label": "Idioma predeterminado",
+		"unassigned": "Idioma del dispositivo",
+		"adminHelp": "Se aplica al entrar, incluido el tutorial. Tú y el usuario podéis volver a cambiarlo.",
+		"unsupported": "Actualiza la API para asignar un idioma a la cuenta.",
+		"loading": "Cargando tu cuenta…",
+		"loadError": "No se han podido cargar los ajustes de tu cuenta. Vuelve a intentarlo.",
+		"saveError": "No se ha confirmado el cambio de idioma. Actualiza para comprobarlo."
+	},
 	"common": {
 		"loading": "Cargando...",
 		"retry": "Reintentar",

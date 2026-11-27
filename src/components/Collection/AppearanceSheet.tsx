@@ -7,6 +7,8 @@ import { getDefaultThemeBackgroundId, getThemeBackgroundOptions, NO_BACKGROUND }
 import { CollectionSheet } from './CollectionSheet'
 import { CollectionIcon } from './CollectionIcon'
 import './AppearanceSheet.scss'
+import { useAccountLanguage } from '@/providers/accountLanguageContext'
+import type { UserLanguage } from '@/models/api/User'
 
 const previews: Record<string, [string, string, string]> = {
 	'gallery': ['#19171d', '#f5f2f6', '#d3b8f5'],
@@ -38,6 +40,7 @@ const labels: Record<string, string> = {
 	'xbox': 'nav.themeXbox',
 }
 export const AppearanceSheet = ({ open, onClose }: { open: boolean; onClose: () => void }) => {
+	const accountLanguage = useAccountLanguage()
 	const { t, i18n } = useTranslation(),
 		dispatch = useAppDispatch()
 	const theme = useAppSelector((state) => state.theme.currentTheme),
@@ -120,13 +123,16 @@ export const AppearanceSheet = ({ open, onClose }: { open: boolean; onClose: () 
 					{t('nav.language')}
 					<select
 						value={i18n.resolvedLanguage?.startsWith('es') ? 'es' : 'en'}
+						disabled={accountLanguage?.busy}
 						onChange={(event) => {
-							void i18n.changeLanguage(event.target.value)
+							if (accountLanguage) void accountLanguage.change(event.target.value as UserLanguage)
+							else void i18n.changeLanguage(event.target.value)
 						}}>
 						<option value='en'>English</option>
 						<option value='es'>Español</option>
 					</select>
 				</label>
+				{accountLanguage?.error && <p className='gdb-error' role='alert'>{t(accountLanguage.error === 'save' ? 'accountLanguage.saveError' : 'accountLanguage.loadError')} <button type='button' className='gdb-text-button' disabled={accountLanguage.busy} onClick={() => { void accountLanguage.refresh() }}>{t('gallery.common.retry')}</button></p>}
 			</div>
 		</CollectionSheet>
 	)

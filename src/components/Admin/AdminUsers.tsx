@@ -6,9 +6,12 @@ import { useAppSelector } from '@/store/hooks'
 import { selectCurrentUser } from '@/store/features/auth/selector'
 import type { User, UserCreateDto, UserRole } from '@/models/api/User'
 import './AdminUsers.scss'
+import { useAccountLanguage } from '@/providers/accountLanguageContext'
+import type { UserLanguage } from '@/models/api/User'
 
 export const AdminUsers = () => {
-	const { t } = useTranslation()
+	const { t, i18n } = useTranslation()
+	const accountLanguage = useAccountLanguage()
 	const currentUser = useAppSelector(selectCurrentUser)
 
 	const [users, setUsers] = useState<User[]>([])
@@ -19,6 +22,7 @@ export const AdminUsers = () => {
 	const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
 	const [isModalOpen, setIsModalOpen] = useState(false)
 	const [editingUser, setEditingUser] = useState<User | null>(null)
+	const [languageTouched, setLanguageTouched] = useState(false)
 	const [formData, setFormData] = useState<UserCreateDto>({
 		username: '',
 		password: '',
@@ -29,6 +33,7 @@ export const AdminUsers = () => {
 	const [passwordChangeUserId, setPasswordChangeUserId] = useState<number | null>(null)
 	const [newPassword, setNewPassword] = useState('')
 	const [deleteConfirm, setDeleteConfirm] = useState<User | null>(null)
+	const supportsLanguage = users.some(user => Object.hasOwn(user, 'preferredLanguage'))
 
 	const loadUsers = async () => {
 		try {
@@ -61,12 +66,14 @@ export const AdminUsers = () => {
 	}, [])
 
 	const handleOpenModal = (user?: User) => {
+		setLanguageTouched(false)
 		if (user) {
 			setEditingUser(user)
 			setFormData({
 				username: user.username,
 				role: user.role,
-				tutorialEnabled: user.tutorialEnabled ?? false,
+					tutorialEnabled: user.tutorialEnabled ?? false,
+					preferredLanguage: user.preferredLanguage ?? null,
 			})
 		} else {
 			setEditingUser(null)
@@ -74,7 +81,8 @@ export const AdminUsers = () => {
 				username: '',
 				password: '',
 				role: 'Standard',
-				tutorialEnabled: true,
+					tutorialEnabled: true,
+					preferredLanguage: i18n.resolvedLanguage?.startsWith('es') ? 'es' : 'en',
 			})
 		}
 		setIsModalOpen(true)
@@ -96,11 +104,14 @@ export const AdminUsers = () => {
 					username: formData.username,
 					role: formData.role,
 					tutorialEnabled: formData.tutorialEnabled,
+					...(languageTouched ? { preferredLanguage: formData.preferredLanguage } : {}),
 				})
+				if (editingUser.id === currentUser?.id && languageTouched) await accountLanguage?.refresh()
 				showToast(`${t('admin.users.toastUpdated', { username: formData.username })}`, 'success')
 			} else {
 				// Create new user
-				await userService.createUser(formData)
+				const { preferredLanguage, ...fields } = formData
+				await userService.createUser({ ...fields, ...(supportsLanguage ? { preferredLanguage } : {}) })
 				showToast(`${t('admin.users.toastCreated', { username: formData.username })}`, 'success')
 			}
 
@@ -284,6 +295,14 @@ export const AdminUsers = () => {
 							<option value='Standard'>{t('admin.users.roleStandard')}</option>
 							<option value='Admin'>{t('admin.users.roleAdmin')}</option>
 						</select>
+					</div>
+					<div className='form-group'>
+						<label htmlFor='gdb-user-language'>{t('accountLanguage.label')}</label>
+						<select id='gdb-user-language' value={formData.preferredLanguage ?? ''} disabled={!supportsLanguage || actionLoading} onChange={event => { setLanguageTouched(true); setFormData({ ...formData, preferredLanguage: event.target.value as UserLanguage }) }}>
+							<option value='' disabled>{t('accountLanguage.unassigned')}</option>
+								<option value='en'>English</option><option value='es'>Español</option>
+						</select>
+						<small>{t(supportsLanguage ? 'accountLanguage.adminHelp' : 'accountLanguage.unsupported')}</small>
 					</div>
 					<label className='gdb-check-label'><input type='checkbox' checked={formData.tutorialEnabled ?? false} onChange={event => setFormData({ ...formData, tutorialEnabled: event.target.checked })} />{t('guide.enableForUser')}</label>
 					<p className='gdb-hint'>{t('guide.enableForUserHelp')}</p>

@@ -171,4 +171,10 @@ describe('AdminUsers', () => {
 			expect(screen.getByText(/network error/i)).toBeInTheDocument()
 		})
 	})
+	it('assigns Spanish on creation and lets an administrator override an existing English choice', async () => {
+		mockService.getAllUsers.mockResolvedValueOnce([{ id: 1, username: 'Admin', role: 'Admin', isDefault: true, preferredLanguage: null }, { id: 2, username: 'Player1', role: 'Standard', isDefault: false, preferredLanguage: 'en' }])
+		const C = await loadComponent(); renderWithProviders(<C />, { preloadedState: adminState as any }); await screen.findByText('Player1')
+		await userEvent.click(screen.getAllByText('Editar').at(-1)!); await userEvent.selectOptions(screen.getByLabelText('Idioma predeterminado'), 'es'); await userEvent.click(screen.getByRole('button', { name: 'Actualizar' }))
+		await waitFor(() => expect(mockService.updateUser).toHaveBeenCalledWith(2, expect.objectContaining({ preferredLanguage: 'es' })))
+	})
 })

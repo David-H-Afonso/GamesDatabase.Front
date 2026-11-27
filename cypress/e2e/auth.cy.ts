@@ -28,7 +28,7 @@ function mockLoginSuccess(username: string, role: 'Admin' | 'Standard' = 'Admin'
 	}).as('loginRequest')
 
 	cy.intercept('GET', `${API}/users/*`, {
-		userId: role === 'Admin' ? 1 : 2,
+		id: role === 'Admin' ? 1 : 2,
 		username,
 		role,
 		useScoreColors: false,

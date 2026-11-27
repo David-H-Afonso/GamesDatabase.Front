@@ -2,6 +2,7 @@
  * User roles in the system
  */
 export type UserRole = 'Admin' | 'Standard'
+export type UserLanguage = 'en' | 'es'
 
 /**
  * User entity from API
@@ -16,6 +17,7 @@ export interface User {
 	scoreProvider: string
 	showPriceComparisonIcon: boolean
 	tutorialEnabled?: boolean
+	preferredLanguage?: UserLanguage | null
 	steamId?: string
 	steamNickname?: string
 	steamAvatarUrl?: string
@@ -35,6 +37,7 @@ export interface LoginResponse {
 	role: UserRole
 	token: string
 	refreshToken: string
+	preferredLanguage?: UserLanguage | null
 	steamId?: string
 	steamNickname?: string
 	steamAvatarUrl?: string
@@ -45,6 +48,7 @@ export interface UserCreateDto {
 	password?: string
 	role: UserRole
 	tutorialEnabled?: boolean
+	preferredLanguage?: UserLanguage | null
 }
 
 export interface UserUpdateDto {
@@ -54,6 +58,7 @@ export interface UserUpdateDto {
 	scoreProvider?: string
 	showPriceComparisonIcon?: boolean
 	tutorialEnabled?: boolean
+	preferredLanguage?: UserLanguage | null
 }
 
 export interface ChangePasswordDto {

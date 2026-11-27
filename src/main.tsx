@@ -14,6 +14,7 @@ import '@/assets/styles/gallery-experience.scss'
 import { OnboardingProvider } from '@/components/Onboarding/OnboardingProvider'
 import { GameMetadataProvider } from '@/components/Collection/GameMetadataProvider'
 import { DisplayedGamesProvider } from '@/components/Collection/DisplayedGamesProvider'
+import { AccountLanguageProvider } from '@/providers/AccountLanguageProvider'
 
 initCustomFetch(store, persistor, forceLogout, setRefreshedTokens)
 
@@ -46,7 +47,7 @@ createRoot(document.getElementById('root')!).render(
 		<Provider store={store}>
 			<PersistGate loading={null} persistor={persistor}>
 				<ThemeProvider>
-					<OnboardingProvider><GameMetadataProvider><DisplayedGamesProvider><RouterProvider router={router} /></DisplayedGamesProvider></GameMetadataProvider></OnboardingProvider>
+					<AccountLanguageProvider><OnboardingProvider><GameMetadataProvider><DisplayedGamesProvider><RouterProvider router={router} /></DisplayedGamesProvider></GameMetadataProvider></OnboardingProvider></AccountLanguageProvider>
 				</ThemeProvider>
 			</PersistGate>
 		</Provider>

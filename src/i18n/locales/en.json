@@ -1,4 +1,13 @@
 {
+	"accountLanguage": {
+		"label": "Default language",
+		"unassigned": "Device language",
+		"adminHelp": "Applies at sign-in, including the tutorial. You and the user can change it later.",
+		"unsupported": "Update the API to assign an account language.",
+		"loading": "Loading your account…",
+		"loadError": "Could not load your account settings. Please try again.",
+		"saveError": "Language change not confirmed. Refresh to check."
+	},
 	"common": {
 		"loading": "Loading...",
 		"retry": "Try again",
