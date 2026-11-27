@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useId } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Modal } from '@/components/elements'
 import { selectiveExportGames, downloadBlob, buildExportFileName } from '@/services'
@@ -22,6 +22,7 @@ const DEFAULT_GLOBAL_CONFIG: GameExportConfig = { mode: 'simple' }
 
 const SelectiveExportModal: React.FC<Props> = ({ isOpen, onClose, preSelectedGames = [] }) => {
 	const { t } = useTranslation()
+	const filenameId = useId()
 	const currentUser = useAppSelector(selectCurrentUser)
 	const defaultPrefix = currentUser ? `${currentUser.id}-${currentUser.username}` : ''
 	const [selectedGames, setSelectedGames] = useState<Array<{ id: number; name: string }>>([])
@@ -141,12 +142,12 @@ const SelectiveExportModal: React.FC<Props> = ({ isOpen, onClose, preSelectedGam
 					<h3 className='sem__section-title'>{t('home.exportModal.section3')}</h3>
 					<div className='filename-controls'>
 						<div className='filename-row'>
-							<label className='filename-label'>{t('home.exportModal.filePrefix')}</label>
-							<input type='text' className='filename-input' value={filePrefix} onChange={(e) => setFilePrefix(e.target.value)} />
+							<label className='filename-label' htmlFor={`${filenameId}-prefix`}>{t('home.exportModal.filePrefix')}</label>
+							<input id={`${filenameId}-prefix`} type='text' className='filename-input' value={filePrefix} onChange={(e) => setFilePrefix(e.target.value)} />
 						</div>
 						<div className='filename-row'>
-							<label className='filename-label'>{t('home.exportModal.fileSuffix')}</label>
-							<input type='text' className='filename-input' value={fileSuffix} onChange={(e) => setFileSuffix(e.target.value)} />
+							<label className='filename-label' htmlFor={`${filenameId}-suffix`}>{t('home.exportModal.fileSuffix')}</label>
+							<input id={`${filenameId}-suffix`} type='text' className='filename-input' value={fileSuffix} onChange={(e) => setFileSuffix(e.target.value)} />
 						</div>
 						<p className='filename-preview'>
 							<span>{t('home.exportModal.filePreview')}</span> <code>{buildExportFileName({ prefix: filePrefix, suffix: fileSuffix, exportType: 'partial' })}</code>
@@ -168,6 +169,7 @@ const SelectiveExportModal: React.FC<Props> = ({ isOpen, onClose, preSelectedGam
 
 								return (
 									<div key={game.id} className={`sem__per-game-item ${hasOverride ? 'sem__per-game-item--overridden' : ''}`}>
+										<div className='sem__per-game-controls'>
 										<button
 											type='button'
 											id={`sem-game-header-${game.id}`}
@@ -178,19 +180,21 @@ const SelectiveExportModal: React.FC<Props> = ({ isOpen, onClose, preSelectedGam
 											<span className='sem__per-game-arrow'>{isExpanded ? '▾' : '▸'}</span>
 											<span className='sem__per-game-name'>{game.name}</span>
 											<span className='sem__per-game-badge'>{hasOverride ? t('home.exportModal.overrideActive') : t('home.exportModal.usingGlobal')}</span>
+										</button>
 											{hasOverride && (
 												<button
 													type='button'
 													className='sem__per-game-reset'
 													title={t('home.exportModal.removeOverride')}
 													onClick={(e) => {
-														e.stopPropagation()
-														updatePerGameConfig(game.id, null)
+															e.stopPropagation()
+															e.currentTarget.parentElement?.querySelector<HTMLButtonElement>('.sem__per-game-header')?.focus()
+															updatePerGameConfig(game.id, null)
 													}}>
 													{t('home.exportModal.resetOverride')}
 												</button>
 											)}
-										</button>
+										</div>
 
 										{isExpanded && (
 											<div className='sem__per-game-body' role='region' aria-labelledby={`sem-game-header-${game.id}`} id={`sem-game-body-${game.id}`}>

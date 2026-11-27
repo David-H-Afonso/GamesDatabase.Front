@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { updateUserPreferences, fetchUserPreferences } from '@/store/features/auth/authSlice'
@@ -16,13 +16,24 @@ export const AdminPreferences = () => {
 	const [isSaving, setIsSaving] = useState(false)
 	const [saveMessage, setSaveMessage] = useState<string | null>(null)
 	const [saveSuccess, setSaveSuccess] = useState<boolean | null>(null)
-
-	useEffect(() => {
-		// Fetch latest user preferences when component mounts
-		if (user?.id) {
-			dispatch(fetchUserPreferences(user.id))
+	const [readState, setReadState] = useState<'loading' | 'ready' | 'error'>('loading')
+	const readRevision = useRef(0)
+	const loadPreferences = useCallback(async () => {
+		if (!user?.id) return
+		const revision = ++readRevision.current
+		setReadState('loading')
+		try {
+			await dispatch(fetchUserPreferences(user.id)).unwrap()
+			if (revision === readRevision.current) setReadState('ready')
+		} catch {
+			if (revision === readRevision.current) setReadState('error')
 		}
 	}, [dispatch, user?.id])
+
+	useEffect(() => {
+		void loadPreferences()
+		return () => { readRevision.current++ }
+	}, [loadPreferences])
 
 	useEffect(() => {
 		// Update local state when user preferences change in store
@@ -34,7 +45,7 @@ export const AdminPreferences = () => {
 	}, [user])
 
 	const handleToggleScoreColors = async (checked: boolean) => {
-		if (!user?.id) return
+		if (!user?.id || readState !== 'ready') return
 
 		setUseScoreColors(checked)
 		setIsSaving(true)
@@ -56,7 +67,7 @@ export const AdminPreferences = () => {
 	}
 
 	const handleScoreProviderChange = async (provider: string) => {
-		if (!user?.id) return
+		if (!user?.id || readState !== 'ready') return
 
 		setScoreProvider(provider)
 		setIsSaving(true)
@@ -78,7 +89,7 @@ export const AdminPreferences = () => {
 	}
 
 	const handleTogglePriceComparisonIcon = async (checked: boolean) => {
-		if (!user?.id) return
+		if (!user?.id || readState !== 'ready') return
 
 		setShowPriceComparisonIcon(checked)
 		setIsSaving(true)
@@ -115,6 +126,8 @@ export const AdminPreferences = () => {
 			</div>
 
 			<div className='admin-preferences__content'>
+				{readState === 'error' && <div className='admin-preferences__read-error' role='alert'><p>{t('admin.preferences.loadError')}</p><button type='button' className='btn btn-secondary' onClick={() => void loadPreferences()}>{t('common.retry')}</button></div>}
+				{readState === 'loading' && <p role='status'>{t('common.loading')}</p>}
 				<div className='admin-preferences__section'>
 					<h2 className='admin-preferences__section-title'>{t('admin.preferences.visualSettings')}</h2>
 
@@ -126,9 +139,9 @@ export const AdminPreferences = () => {
 							<p className='admin-preferences__option-description'>
 								{t('admin.preferences.scoreColorsDesc')}
 								<br />
-								<span style={{ color: '#66cc33', fontWeight: 'bold' }}>{t('admin.preferences.scoreColorsGreen')}</span>,{' '}
-								<span style={{ color: '#ffcc33', fontWeight: 'bold' }}>{t('admin.preferences.scoreColorsYellow')}</span>,{' '}
-								<span style={{ color: '#ff0000', fontWeight: 'bold' }}>{t('admin.preferences.scoreColorsRed')}</span>
+								<span className='admin-preferences__score-example admin-preferences__score-example--green'>{t('admin.preferences.scoreColorsGreen')}</span>,{' '}
+								<span className='admin-preferences__score-example admin-preferences__score-example--yellow'>{t('admin.preferences.scoreColorsYellow')}</span>,{' '}
+								<span className='admin-preferences__score-example admin-preferences__score-example--red'>{t('admin.preferences.scoreColorsRed')}</span>
 							</p>
 						</div>
 						<label className='admin-preferences__toggle'>
@@ -137,7 +150,7 @@ export const AdminPreferences = () => {
 								type='checkbox'
 								checked={useScoreColors}
 								onChange={(e) => handleToggleScoreColors(e.target.checked)}
-								disabled={isSaving}
+								disabled={isSaving || readState !== 'ready'}
 								className='admin-preferences__toggle-input'
 							/>
 							<span className='admin-preferences__toggle-slider'></span>
@@ -151,7 +164,7 @@ export const AdminPreferences = () => {
 							</label>
 							<p className='admin-preferences__option-description'>{t('admin.preferences.scoreProviderDesc')}</p>
 						</div>
-						<select id='score-provider' value={scoreProvider} onChange={(e) => handleScoreProviderChange(e.target.value)} disabled={isSaving} className='admin-preferences__select'>
+						<select id='score-provider' value={scoreProvider} onChange={(e) => handleScoreProviderChange(e.target.value)} disabled={isSaving || readState !== 'ready'} className='admin-preferences__select'>
 							{SCORE_PROVIDER_OPTIONS.map((option) => (
 								<option key={option} value={option}>
 									{option}
@@ -173,7 +186,7 @@ export const AdminPreferences = () => {
 								type='checkbox'
 								checked={showPriceComparisonIcon}
 								onChange={(e) => handleTogglePriceComparisonIcon(e.target.checked)}
-								disabled={isSaving}
+								disabled={isSaving || readState !== 'ready'}
 								className='admin-preferences__toggle-input'
 							/>
 							<span className='admin-preferences__toggle-slider'></span>
@@ -181,7 +194,7 @@ export const AdminPreferences = () => {
 					</div>
 
 					{saveMessage && (
-						<div className={`admin-preferences__message ${saveSuccess ? 'admin-preferences__message--success' : 'admin-preferences__message--error'}`}>{saveMessage}</div>
+						<div role={saveSuccess ? 'status' : 'alert'} className={`admin-preferences__message ${saveSuccess ? 'admin-preferences__message--success' : 'admin-preferences__message--error'}`}>{saveMessage}</div>
 					)}
 				</div>
 

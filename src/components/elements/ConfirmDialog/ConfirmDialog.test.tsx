@@ -86,6 +86,25 @@ describe('ConfirmDialog', () => {
 		expect(screen.getByRole('button', { name: 'Cancel' })).toBeDisabled()
 	})
 
+	it('does not cancel a pending confirmation through Escape or the backdrop', () => {
+		const onCancel = vi.fn()
+		render(<ConfirmDialog {...defaultProps} onCancel={onCancel} isConfirming />)
+		fireEvent.keyDown(screen.getByRole('alertdialog'), { key: 'Escape' })
+		fireEvent.click(document.querySelector('.confirm-dialog__backdrop')!)
+		expect(onCancel).not.toHaveBeenCalled()
+	})
+
+	it('keeps focus inside a pending confirmation after a real backdrop click and Tab', async () => {
+		const onCancel = vi.fn()
+		render(<ConfirmDialog {...defaultProps} onCancel={onCancel} isConfirming />)
+		const dialog = screen.getByRole('alertdialog')
+		await userEvent.click(document.querySelector('.confirm-dialog__backdrop')!)
+		expect(dialog.contains(document.activeElement)).toBe(true)
+		await userEvent.tab()
+		expect(dialog.contains(document.activeElement)).toBe(true)
+		expect(onCancel).not.toHaveBeenCalled()
+	})
+
 	it('keeps focus within the dialog when tabbing past the last action', async () => {
 		render(<ConfirmDialog {...defaultProps} confirmLabel='Delete' cancelLabel='Cancel' />)
 		const cancel = screen.getByRole('button', { name: 'Cancel' })

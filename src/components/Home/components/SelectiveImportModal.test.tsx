@@ -1,5 +1,6 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import i18n from '@/i18n'
 
 vi.mock('@/components/elements', () => ({
 	Modal: ({ isOpen, title, children, footer }: { isOpen: boolean; title: string; children: React.ReactNode; footer?: React.ReactNode }) =>
@@ -21,7 +22,11 @@ vi.mock('@/services', () => ({
 }))
 
 vi.mock('./shared/PropertyConfigPanel', () => ({
-	default: () => <div data-testid='property-config-panel' />,
+	default: ({ config, onChange, headingLabel }: { config: { mode: string }; onChange: (config: { mode: 'customCleared' }) => void; headingLabel?: string }) => (
+		<div data-testid='property-config-panel' data-mode={config.mode}>
+			{headingLabel && <button type='button' onClick={() => onChange({ mode: 'customCleared' })}>Set fixture override</button>}
+		</div>
+	),
 }))
 
 vi.mock('./SelectiveImportModal.scss', () => ({}))
@@ -88,5 +93,63 @@ describe('SelectiveImportModal', () => {
 		const C = await loadComponent()
 		render(<C isOpen={true} onClose={mockOnClose} />)
 		expect(screen.getByText('Cancelar')).toBeInTheDocument()
+	})
+
+	it.each(['pointer', 'keyboard'] as const)('keeps Reset outside its disclosure and returns local focus after %s activation without changing import scope', async (activation) => {
+		const C = await loadComponent()
+		const user = userEvent.setup()
+		const csv = 'Type,Name\nGame,Amber Trail'
+		mockParseCSV.mockResolvedValueOnce(['Amber Trail'])
+		render(<C isOpen onClose={mockOnClose} />)
+		await user.click(screen.getByRole('radio', { name: i18n.t('home.importModal.pasteText') }))
+		await user.click(screen.getByPlaceholderText(i18n.t('home.importModal.textareaPlaceholder')))
+		await user.paste(csv)
+		const disclosure = await screen.findByRole('button', { name: /Amber Trail/ })
+		expect(disclosure).toHaveAttribute('aria-expanded', 'false')
+		expect(mockParseCSV).toHaveBeenLastCalledWith(csv)
+		await user.click(disclosure)
+		await user.click(screen.getByRole('button', { name: 'Set fixture override' }))
+		const reset = screen.getByRole('button', { name: i18n.t('home.importModal.resetOverride') })
+		expect(reset.parentElement?.closest('button')).toBeNull()
+		const region = screen.getByRole('region', { name: /Amber Trail/ })
+		expect(region).toHaveAttribute('id', disclosure.getAttribute('aria-controls'))
+		const importButton = screen.getByRole('button', { name: i18n.t('home.importModal.importBtn', { count: 1 }) })
+		await user.click(importButton)
+		expect(mockSelectiveImport).toHaveBeenLastCalledWith(csv, { globalConfig: { mode: 'simple' }, perGameConfig: { 'Amber Trail': { mode: 'customCleared' } } })
+		if (activation === 'keyboard') {
+			await user.click(screen.getByRole('button', { name: 'Set fixture override' }))
+			await user.tab({ shift: true })
+			expect(reset).toHaveFocus()
+			await user.keyboard('{Enter}')
+		} else {
+			await user.click(reset)
+		}
+		expect(disclosure).toHaveFocus()
+		expect(disclosure).toHaveAttribute('aria-expanded', 'true')
+		expect(screen.queryByRole('button', { name: i18n.t('home.importModal.resetOverride') })).not.toBeInTheDocument()
+		expect(within(region).getByTestId('property-config-panel')).toHaveAttribute('data-mode', 'simple')
+		await user.click(importButton)
+		expect(mockSelectiveImport).toHaveBeenLastCalledWith(csv, { globalConfig: { mode: 'simple' }, perGameConfig: undefined })
+		expect(mockSelectiveImport).toHaveBeenCalledTimes(2)
+	})
+
+	it('gives the readonly parsed-name preview a named keyboard scrolling stop without importing', async () => {
+		const C = await loadComponent()
+		const user = userEvent.setup()
+		const names = Array.from({ length: 55 }, (_, index) => `Preview game ${index + 1}`)
+		const csv = ['Type,Name', ...names.map(name => `Game,${name}`)].join('\n')
+		mockParseCSV.mockResolvedValueOnce(names)
+		render(<C isOpen onClose={mockOnClose} />)
+		await user.click(screen.getByRole('radio', { name: i18n.t('home.importModal.pasteText') }))
+		await user.click(screen.getByPlaceholderText(i18n.t('home.importModal.textareaPlaceholder')))
+		await user.paste(csv)
+		const preview = await screen.findByRole('region', { name: i18n.t('home.importModal.section2', { count: names.length }) })
+		expect(preview).toHaveAttribute('tabindex', '0')
+		expect(within(preview).getByText(names[0]!)).toBeInTheDocument()
+		expect(within(preview).getByText(names.at(-1)!)).toBeInTheDocument()
+		await user.tab()
+		expect(preview).toHaveFocus()
+		expect(mockParseCSV).toHaveBeenLastCalledWith(csv)
+		expect(mockSelectiveImport).not.toHaveBeenCalled()
 	})
 })

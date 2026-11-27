@@ -42,7 +42,7 @@ export const useGamePlayedStatus = () => {
 	const createItem = useCallback(
 		async (payload: GamePlayedStatusCreateDto) => {
 			const result = (await dispatchAndUnwrapAsync(dispatch, createPlayedStatusThunk(payload))) as any
-			if ((result as any).isActive) await fetchActiveList()
+			if ((result as any).isActive) await fetchActiveList().catch(() => undefined)
 			return result
 		},
 		[dispatch, fetchActiveList]
@@ -52,7 +52,7 @@ export const useGamePlayedStatus = () => {
 	const updateItem = useCallback(
 		async (id: number, payload: GamePlayedStatusUpdateDto) => {
 			const updated = (await dispatchAndUnwrapAsync(dispatch, updatePlayedStatusThunk({ id, data: payload }))) as any
-			await fetchActiveList()
+			await fetchActiveList().catch(() => undefined)
 			return updated
 		},
 		[dispatch, fetchActiveList]

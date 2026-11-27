@@ -101,7 +101,7 @@ export const useGameStatus = () => {
 				dispatch(setError(null))
 				const updated = (await dispatchAndUnwrapAsync(dispatch, updateStatusThunk({ id, statusData: payload }))) as any
 				// refresh list and active statuses
-				await dispatchAndUnwrapAsync(dispatch, fetchStatuses({}))
+				await dispatchAndUnwrapAsync(dispatch, fetchStatuses({})).catch(() => undefined)
 				await fetchActiveStatusList()
 				return updated
 			} catch (err: any) {

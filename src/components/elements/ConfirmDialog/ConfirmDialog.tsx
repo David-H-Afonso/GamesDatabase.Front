@@ -49,14 +49,28 @@ export const ConfirmDialog: FC<ConfirmDialogProps> = ({ isOpen, title, message, 
 			previouslyFocused?.focus?.()
 		}
 	}, [isOpen])
+	useEffect(() => {
+		const panel = panelRef.current
+		if (!isOpen || !panel) return
+		const active = document.activeElement
+		if (panel.contains(active) && !(active instanceof HTMLElement && active.matches(':disabled'))) return
+		const dialogs = document.querySelectorAll('[aria-modal="true"], dialog[open]')
+		if (dialogs[dialogs.length - 1] === panel.closest('[aria-modal="true"]')) (isConfirming ? panel : cancelRef.current)?.focus()
+	}, [isOpen, isConfirming])
 
 	if (!isOpen) return null
+	const requestCancel = () => {
+		if (!isConfirming) { onCancel(); return }
+		const panel = panelRef.current, dialogs = document.querySelectorAll('[aria-modal="true"], dialog[open]')
+		if (panel && dialogs[dialogs.length - 1] === panel.closest('[aria-modal="true"]')) panel.focus()
+	}
 
 	const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
 		if (event.key === 'Escape') {
 			event.preventDefault()
-			onCancel()
+			requestCancel()
 		} else if (event.key === 'Tab') {
+			if (isConfirming) { event.preventDefault(); panelRef.current?.focus(); return }
 			trapTab(event, panelRef.current)
 		}
 	}
@@ -66,8 +80,8 @@ export const ConfirmDialog: FC<ConfirmDialogProps> = ({ isOpen, title, message, 
 
 	return createPortal(
 		<div className='confirm-dialog' role='alertdialog' aria-modal='true' aria-labelledby={titleId} aria-describedby={messageId} onKeyDown={handleKeyDown}>
-			<div className='confirm-dialog__backdrop' onClick={onCancel} />
-			<div className='confirm-dialog__panel' ref={panelRef}>
+			<div className='confirm-dialog__backdrop' onMouseDown={event => { if (isConfirming) event.preventDefault() }} onClick={requestCancel} />
+			<div className='confirm-dialog__panel' ref={panelRef} tabIndex={-1} aria-busy={isConfirming}>
 				<h2 className='confirm-dialog__title' id={titleId}>
 					{title}
 				</h2>

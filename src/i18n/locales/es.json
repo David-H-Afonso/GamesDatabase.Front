@@ -1,6 +1,7 @@
 {
 	"common": {
 		"loading": "Cargando...",
+		"retry": "Reintentar",
 		"cancel": "Cancelar",
 		"save": "Guardar",
 		"saving": "Guardando...",
@@ -516,12 +517,16 @@
 			"create": "Crear",
 			"save": "Guardar",
 			"saving": "Guardando...",
+			"loadError": "No se pudo actualizar el catálogo. Los elementos cargados anteriormente pueden estar desactualizados.",
+			"saveError": "No se pudo guardar el cambio. Tu borrador sigue aquí; revísalo e inténtalo de nuevo.",
+			"pendingFormLabel": "Revisar {{title}} mientras se guarda",
 			"close": "×",
 			"form": {
 				"namePlaceholder": "Nombre",
 				"colorPlaceholder": "#000000",
 				"activeLabel": "Activo",
 				"colorLabel": "Color",
+					"colorPickerLabel": "Elegir un color",
 				"nameLabel": "Nombre"
 			},
 			"empty": "Aún no hay elementos",
@@ -587,6 +592,7 @@
 			"reorderError": "Error al reordenar. Por favor, intenta de nuevo."
 		},
 		"preferences": {
+			"loadError": "No se pudieron actualizar tus preferencias. Se muestran los valores en caché; recarga antes de hacer cambios.",
 			"title": "Preferencias de Usuario",
 			"subtitle": "Personaliza tu experiencia",
 			"visualSettings": "Configuración Visual",
@@ -1083,6 +1089,11 @@
 			"importSuccessTitle": "¡Base de datos importada correctamente (modo MERGE)!"
 		},
 		"audit": {
+			"loadError": "No se pudo cargar la auditoría. No es un resultado vacío; inténtalo de nuevo.",
+			"openError": "No se pudo abrir el juego. La auditoría no ha cambiado; intenta abrirlo de nuevo.",
+			"revertError": "No se pudo revertir el cambio. La revisión sigue abierta; compruébala antes de intentarlo de nuevo.",
+			"tableLabel": "Entradas de auditoría",
+			"filterActionLabel": "Filtrar por acción",
 			"title": "Auditoría",
 			"titleAll": "Auditoría (todos los usuarios)",
 			"entriesCount": "{{count}} entradas",
@@ -1125,6 +1136,8 @@
 			"enableLabel": "Activar copia de seguridad programada",
 			"enableHint": "Cuando esté activado, las copias de seguridad se ejecutarán automáticamente a la hora configurada",
 			"timeLabel": "Hora de la copia (UTC)",
+			"hourFor": "Hora de la copia (UTC) de {{user}}",
+			"minuteFor": "Minuto de la copia (UTC) de {{user}}",
 			"timeHint": "La copia de seguridad se ejecutará a esta hora todos los días (zona horaria UTC)",
 			"timeLocalShort": "local",
 			"timeLocalTooltip": "Equivale a {{time}} en tu zona horaria local",
@@ -1174,6 +1187,9 @@
 			"unlinkConfirmMessage": "¿Desconectar cuenta de Steam?",
 			"noGamesSelected": "No hay juegos seleccionados para importar o vincular",
 			"common": {
+				"selectVisibleSuggestions": "Seleccionar las sugerencias visibles",
+				"selectSuggestion": "Seleccionar {{steam}} para {{game}}",
+				"actionFor": "Acción de importación de {{game}}",
 				"steam": "Steam",
 				"gdb": "En GDB",
 				"confidence": "Confianza",

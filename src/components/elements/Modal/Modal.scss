@@ -83,8 +83,11 @@
 .modal-body {
 	padding: 24px;
 	flex: 1;
+	min-height: 0;
 	overflow-y: auto;
+	overscroll-behavior: contain;
 	background-color: $color-bg-primary;
+	&[role='region']:focus-visible { outline: 2px solid var(--gdb-accent); outline-offset: -4px; }
 }
 
 .modal-footer {

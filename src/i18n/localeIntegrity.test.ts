@@ -7,6 +7,8 @@ import guideEn from './locales/guide.en.json'
 import guideEs from './locales/guide.es.json'
 import metadataEn from './locales/metadata.en.json'
 import metadataEs from './locales/metadata.es.json'
+import entryflowsEn from './locales/entryflows.en.json'
+import entryflowsEs from './locales/entryflows.es.json'
 
 type Json = Record<string, unknown>
 
@@ -31,6 +33,7 @@ const catalogs = [
 	{ name: 'gallery', en: flatten(galleryEn), es: flatten(galleryEs) },
 	{ name: 'guide', en: flatten(guideEn), es: flatten(guideEs) },
 	{ name: 'metadata', en: flatten(metadataEn), es: flatten(metadataEs) },
+	{ name: 'entryflows', en: flatten(entryflowsEn), es: flatten(entryflowsEs) },
 ]
 
 describe('i18n locale integrity', () => {

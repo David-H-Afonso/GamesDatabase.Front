@@ -634,15 +634,15 @@
 						font-weight: 700;
 
 						&.success {
-							color: #28a745;
+							color: var(--gdb-text);
 						}
 
 						&.warning {
-							color: #ffc107;
+							color: var(--gdb-text);
 						}
 
 						&.error {
-							color: #dc3545;
+							color: var(--gdb-text);
 						}
 					}
 				}

@@ -59,8 +59,18 @@
 		}
 	}
 
+	&__per-game-controls {
+		display: flex;
+		align-items: center;
+		min-width: 0;
+		background: var(--color-bg-panel, #1e1e1e);
+	}
+
 	&__per-game-header {
 		width: 100%;
+		min-width: 0;
+		min-height: 44px;
+		flex: 1;
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
@@ -102,24 +112,27 @@
 		flex-shrink: 0;
 
 		.sem__per-game-item--overridden & {
-			background: rgba(97, 175, 239, 0.15);
-			color: var(--color-accent, #61afef);
+			background: var(--gdb-input);
+			color: var(--gdb-accent);
 		}
 	}
 
 	&__per-game-reset {
-		background: transparent;
-		border: 1px solid var(--color-border, #555);
+		background: var(--gdb-input);
+		border: 1px solid var(--gdb-control);
 		border-radius: 4px;
-		color: var(--color-text-muted, #aaa);
+		color: var(--gdb-text);
 		font-size: 0.72rem;
 		cursor: pointer;
-		padding: 0.1rem 0.4rem;
+		min-height: 44px;
+		min-width: 44px;
+		margin: 4px 8px 4px 0;
+		padding: 0.4rem 0.55rem;
 		flex-shrink: 0;
 
 		&:hover {
-			color: var(--color-error, #e06c75);
-			border-color: var(--color-error, #e06c75);
+			color: var(--gdb-text);
+			border-color: var(--gdb-accent);
 		}
 	}
 
@@ -225,8 +238,8 @@
 		}
 
 		code {
-			color: var(--color-accent, #61afef);
-			background: rgba(97, 175, 239, 0.1);
+			color: var(--gdb-accent);
+			background: var(--gdb-input);
 			padding: 0.1rem 0.4rem;
 			border-radius: 4px;
 			font-size: 0.78rem;
@@ -260,13 +273,22 @@
 		}
 
 		&--primary {
-			background: var(--color-accent, #61afef);
-			border: 1px solid var(--color-accent, #61afef);
-			color: #fff;
+			background: var(--gdb-button);
+			border: 1px solid var(--gdb-button);
+			color: var(--gdb-button-ink);
 
 			&:hover:not(:disabled) {
-				background: color-mix(in srgb, var(--color-accent, #61afef) 80%, white);
+				background: var(--gdb-button);
+				box-shadow: inset 0 0 0 1px currentColor;
 			}
 		}
 	}
+}
+
+.sem :is(.sem__per-game-header,.sem__per-game-reset):focus-visible { outline: 2px solid var(--gdb-accent); outline-offset: -3px; }
+@media (max-width: 650px) {
+	.sem__per-game-header { display: grid; grid-template-columns: 12px minmax(0,1fr); gap: 4px 8px; }
+	.sem__per-game-arrow { grid-column: 1; grid-row: 1 / span 2; align-self: center; }
+	.sem__per-game-name,.sem__per-game-badge { grid-column: 2; min-width: 0; }
+	.sem__per-game-badge { justify-self: start; white-space: normal; }
 }

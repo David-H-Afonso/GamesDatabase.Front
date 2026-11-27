@@ -36,7 +36,7 @@
 		height: 2.5rem;
 		border-radius: 0.75rem;
 		background: var(--primary);
-		color: #fff;
+		color: var(--gdb-button-ink);
 	}
 
 	i {
@@ -151,8 +151,9 @@
 	margin: 1rem 0 0;
 	padding: 0.8rem 1rem;
 	border-radius: 0.65rem;
-	background: color-mix(in srgb, #ef4444 14%, transparent);
-	color: #ef4444;
+	background: var(--gdb-input);
+	border: 1px solid var(--error);
+	color: var(--gdb-text);
 	font-size: 0.9rem;
 }
 
@@ -186,7 +187,7 @@
 .household-consent__approve {
 	border: 1px solid var(--primary);
 	background: var(--primary);
-	color: #fff;
+	color: var(--gdb-button-ink);
 }
 
 .household-consent__note { font-size: 0.9rem; }

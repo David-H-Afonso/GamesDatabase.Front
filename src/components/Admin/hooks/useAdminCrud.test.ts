@@ -83,4 +83,25 @@ describe('useAdminCrud', () => {
 		})
 		expect(reorder).toHaveBeenCalledWith([2, 1, 3])
 	})
+
+	it('acknowledges a rejected background read after the controller has recorded its error', async () => {
+		const controller = makeController({ load: vi.fn().mockRejectedValue(new Error('read unavailable')), error: 'read unavailable' })
+		const { result } = renderHook(() => useAdminCrud(controller))
+		await waitFor(() => expect(controller.load).toHaveBeenCalledOnce())
+		expect(result.current.error).toBe('read unavailable')
+		await expect(result.current.reload()).rejects.toThrow('read unavailable')
+	})
+
+	it.each(['create', 'update', 'remove'] as const)('does not turn a confirmed %s into a failed write if its follow-up list read fails', async operation => {
+		const controller = makeController({ load: vi.fn().mockResolvedValueOnce(undefined).mockRejectedValue(new Error('read unavailable')) })
+		const { result } = renderHook(() => useAdminCrud(controller))
+		await waitFor(() => expect(controller.load).toHaveBeenCalledOnce())
+		await act(async () => {
+			if (operation === 'create') await result.current.createItem({ name: 'Confirmed' })
+			else if (operation === 'update') await result.current.updateItem(1, { name: 'Confirmed' })
+			else await result.current.removeItem(1)
+		})
+		expect(controller[operation]).toHaveBeenCalledOnce()
+		expect(controller.load).toHaveBeenCalledTimes(2)
+	})
 })

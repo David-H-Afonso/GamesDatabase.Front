@@ -23,6 +23,7 @@
 
 	.aal-table-wrapper {
 		overflow-x: auto;
+		&:focus-visible { outline: 2px solid var(--gdb-accent); outline-offset: 3px; }
 	}
 
 	.aal-table {
@@ -156,3 +157,6 @@
 		}
 	}
 }
+
+.aal-error { padding: 14px; margin-block: 12px; border: 1px solid var(--error); border-radius: 7px; color: var(--gdb-text); background: var(--gdb-input); }
+.aal-error>p { margin: 0 0 12px; }

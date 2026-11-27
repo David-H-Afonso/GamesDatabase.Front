@@ -70,16 +70,12 @@ export const AdminPlatforms: React.FC = () => {
 
 	const handleSubmit = async (event: React.FormEvent) => {
 		event.preventDefault()
-		try {
-			if (editingOption) {
-				await crud.updateItem(editingOption.id, { ...formData, id: editingOption.id } as GamePlatformUpdateDto)
-			} else {
-				await crud.createItem(formData)
-			}
-			handleCloseModal()
-		} catch (error) {
-			console.error('Error saving platform:', error)
+		if (editingOption) {
+			await crud.updateItem(editingOption.id, { ...formData, id: editingOption.id } as GamePlatformUpdateDto)
+		} else {
+			await crud.createItem(formData)
 		}
+		handleCloseModal()
 	}
 
 	const handleDelete = (option: GamePlatform) => {
@@ -111,7 +107,7 @@ export const AdminPlatforms: React.FC = () => {
 				</button>
 			</div>
 
-			{crud.error && <div className='alert alert-error'>{crud.error}</div>}
+			{crud.error && <div className='alert alert-error' role='alert'>{t('admin.crud.loadError')} <button type='button' className='btn btn-secondary' disabled={crud.loading} onClick={() => { void crud.reload().catch(() => undefined) }}>{t('common.retry')}</button></div>}
 
 			<AdminCrudTable
 				items={crud.items}
@@ -159,6 +155,7 @@ export const AdminPlatforms: React.FC = () => {
 								<input type='file' accept={PLATFORM_LOGO_ACCEPT} aria-label={t('admin.platforms.uploadLogo')} onChange={(event) => void handleLogoFileChange(event)} />
 								<input
 									type='text'
+									aria-label={t('admin.platforms.logoUrlPlaceholder')}
 									value={formData.logo?.startsWith('data:') ? '' : formData.logo || ''}
 									onChange={(event) => setFormData({ ...formData, logo: event.target.value || undefined })}
 									placeholder={t('admin.platforms.logoUrlPlaceholder')}

@@ -29,19 +29,19 @@
 	&__mode-desc {
 		margin: 0;
 		font-size: 0.8rem;
-		color: var(--color-text-muted, #888);
+		color: var(--gdb-secondary);
 		line-height: 1.5;
 		padding: 0.4rem 0.6rem;
-		border-left: 2px solid var(--color-accent, #61afef);
-		background: rgba(97, 175, 239, 0.05);
+		border-left: 2px solid var(--gdb-accent);
+		background: var(--gdb-input);
 		border-radius: 0 4px 4px 0;
 
 		strong {
-			color: var(--color-text, #ddd);
+			color: var(--gdb-text);
 		}
 
 		em {
-			color: var(--color-accent, #61afef);
+			color: var(--gdb-accent);
 			font-style: normal;
 		}
 	}
@@ -77,9 +77,9 @@
 		}
 
 		&.is-active {
-			background: var(--color-accent, #61afef);
-			border-color: var(--color-accent, #61afef);
-			color: #fff;
+			background: var(--gdb-button);
+			border-color: var(--gdb-button);
+			color: var(--gdb-button-ink);
 		}
 	}
 

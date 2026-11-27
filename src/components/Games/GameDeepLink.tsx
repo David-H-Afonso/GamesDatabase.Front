@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { GameDetails } from '@/components/elements'
 import { useGames } from '@/hooks'
 import type { Game } from '@/models/api/Game'
@@ -11,6 +12,7 @@ import { NotFound } from '@/components/errors'
  * persists service credentials in the browser.
  */
 const GameDeepLink = () => {
+	const { t } = useTranslation()
 	const { id } = useParams<{ id: string }>()
 	const navigate = useNavigate()
 	const { fetchGameDetails, deleteGameById } = useGames()
@@ -41,7 +43,7 @@ const GameDeepLink = () => {
 		}
 	}, [id, fetchGameDetails])
 
-	if (loading) return <div aria-live='polite'>Loading…</div>
+	if (loading) return <div aria-live='polite'>{t('entryflows.game.loading')}</div>
 	if (!game) return <NotFound />
 
 	return (

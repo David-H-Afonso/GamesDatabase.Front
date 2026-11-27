@@ -11,6 +11,7 @@ import type { Game } from '@/models/api/Game'
 import { CollectionGameDetails as GameDetails } from './CollectionGameDetailsLazy'
 import { CollectionIcon } from './CollectionIcon'
 import { CollectionSheet } from './CollectionSheet'
+import { CollectionSegmentedControl } from './CollectionSegmentedControl'
 import { CollectionGamePicker, type CollectionPickerQuery } from './CollectionGamePicker'
 import { GameArtwork } from './GameArtwork'
 import { collectionMonth, effectivePlaytime, formatCollectionDate, formatCollectionNumber, playtimeSourceKey } from '@/utils/collectionFormatting'
@@ -58,7 +59,7 @@ export default function CollectionStatistics() {
 		setPicker(null)
 	}
 	const dataMonth = tab === 'overview' ? undefined : month,
-		dataDateKind = tab === 'overview' ? 'finished' : dateKind,
+		dataDateKind = dateKind,
 		dataAllRanking = tab === 'ranking' && allRanking
 	const resource = useCollectionResource(`statistics:${year}:${dataMonth ?? ''}:${dataDateKind}:${dataAllRanking}`, (signal) =>
 		getCollectionStatistics({ year, month: dataMonth, dateKind: dataDateKind, allRanking: dataAllRanking }, signal)
@@ -86,6 +87,7 @@ export default function CollectionStatistics() {
 	const number = (value: number, precision = 1) => formatCollectionNumber(value, i18n.language, precision)
 	const period = month ? `${collectionMonth(month, i18n.language)} ${year}` : String(year)
 	const hours = (minutes: number | null) => (minutes == null ? '—' : t('gallery.common.hours', { value: number(minutes / 60) }))
+	const dateChoice = () => <CollectionSegmentedControl label={t('gallery.statistics.dateKind')} value={dateKind} options={[{ value: 'finished', label: t('gallery.statCopy.finished') }, { value: 'started', label: t('gallery.statCopy.started') }]} onChange={dates => setQuery({ dates })} />
 	const metric = (key: CollectionMetric, label: string, value?: number, developer?: string) => setPicker({ title: label, query: { metric: key, year, month, value, developer } })
 	const changeTab = (next: Tab) => setQuery({ tab: next })
 	const chooseGoty = () => {
@@ -183,7 +185,7 @@ export default function CollectionStatistics() {
 						key={value.month}
 						aria-pressed={month === value.month}
 						aria-label={`${collectionMonth(value.month, i18n.language)}: ${value[kind]} ${t(kind === 'unlocks' ? 'gallery.statistics.unlocked' : 'gallery.statistics.recordCount', { count: value[kind] })}`}
-						onClick={() => setQuery({ tab: kind === 'unlocks' ? 'achievements' : 'year', month: value.month, ...(kind === 'records' ? { dates: 'finished' } : {}) })}>
+						onClick={() => setQuery({ tab: kind === 'unlocks' ? 'achievements' : 'year', month: value.month, ...(kind === 'records' ? { dates: dateKind } : {}) })}>
 						<span className='gdb-activity-bars__value'>{value[kind]}</span>
 						<span className='gdb-activity-bars__track'>
 							<i style={{ '--bar-height': `${value[kind] ? Math.max(3, (value[kind] / maximum) * 100) : 0}%` } as CSSProperties} />
@@ -233,18 +235,13 @@ export default function CollectionStatistics() {
 						<span>{t('gallery.statCopy.yearStory')}</span>
 					)}
 				</div>
-				<label>
-					{t('gallery.statistics.dateKind')}
-					<select value={dateKind} onChange={(event) => setQuery({ dates: event.target.value })}>
-						<option value='finished'>{t('gallery.statCopy.finished')}</option>
-						<option value='started'>{t('gallery.statCopy.started')}</option>
-					</select>
-				</label>
+				{dateChoice()}
 			</div>
 			<div className='gdb-month-label'>
 				<h3>{t('gallery.statCopy.chooseMonth')}</h3>
 				<span>{t('gallery.statCopy.datesNotHours')}</span>
 			</div>
+			<p className='gdb-hint gdb-date-basis-help'>{t(dateKind === 'started' ? 'gallery.statistics.startedBasisHelp' : 'gallery.statistics.finishedBasisHelp')}</p>
 			<div className='gdb-month-navigation' role='group' aria-label={String(year)}>
 				{stats.months.map((value) => (
 					<button
@@ -598,7 +595,7 @@ export default function CollectionStatistics() {
 					</select>
 				</label>
 				{!allRanking && (
-					<label>{t('gallery.statistics.dateKind')}<select value={dateKind} onChange={event => setQuery({ dates: event.target.value })}><option value='finished'>{t('gallery.statCopy.finished')}</option><option value='started'>{t('gallery.statCopy.started')}</option></select></label>
+					dateChoice()
 				)}
 				{!allRanking && (
 					<label>
@@ -752,11 +749,12 @@ export default function CollectionStatistics() {
 					</button>
 				))}
 			</div>
+			<div className='gdb-statistics-date-basis'>{dateChoice()}<p className='gdb-hint'>{t(dateKind === 'started' ? 'gallery.statistics.startedBasisHelp' : 'gallery.statistics.finishedBasisHelp')}</p></div>
 			<div className='gdb-overview-charts'>
 				<section className='gdb-statistics-panel'>
 					<div className='gdb-section-heading'>
 						<div>
-							<span className='gdb-eyebrow'>{year} · {t('gallery.statCopy.storedDates')}</span>
+							<span className='gdb-eyebrow'>{year} · {t(dateKind === 'started' ? 'gallery.statCopy.startedDates' : 'gallery.statCopy.finishedDates')}</span>
 							<h2>{t('gallery.statistics.monthChart')}</h2>
 						</div>
 						<button type='button' className='gdb-text-button' onClick={() => changeTab('year')}>
@@ -793,7 +791,7 @@ export default function CollectionStatistics() {
 				<div>
 					<section className='gdb-year-preview'>
 						<div>
-							<span className='gdb-eyebrow'>{t('gallery.statCopy.yearInGames')}</span>
+							<span className='gdb-eyebrow'>{t(dateKind === 'started' ? 'gallery.statCopy.startedDates' : 'gallery.statCopy.finishedDates')}</span>
 							<h2>
 								{year}
 								<span className='gdb-period'>.</span>
@@ -820,11 +818,11 @@ export default function CollectionStatistics() {
 				<aside className='gdb-collection-breakdown'>
 					<span className='gdb-eyebrow'>{t('gallery.statCopy.allYearsCurrent')}</span>
 					<h2>{t('gallery.statCopy.libraryState')}</h2>
-					<div className='gdb-status-distribution' role='img' aria-label={stats.byStatus.map((status) => `${status.name}: ${status.count}`).join('; ')}>
+					{stats.byStatus.length > 0 ? <div className='gdb-status-distribution' role='img' aria-label={stats.byStatus.map((status) => `${status.name}: ${status.count}`).join('; ')}>
 						{stats.byStatus.map((status) => (
 							<span key={status.statusId} style={{ flex: status.count, background: safeColor(status.color) }} />
 						))}
-					</div>
+					</div> : <p className='gdb-hint'>{t('gallery.statistics.noGames')}</p>}
 					<div className='gdb-status-legend'>
 						{stats.byStatus.slice(0, 5).map((status) => (
 							<button type='button' key={status.statusId} onClick={() => metric('status', status.name, status.statusId)}>
@@ -834,7 +832,7 @@ export default function CollectionStatistics() {
 								<CollectionIcon name='arrow' />
 							</button>
 						))}
-						<details>
+						{stats.byStatus.length > 5 && <details>
 							<summary>{t('gallery.common.viewAll')}</summary>
 							{stats.byStatus.slice(5).map((status) => (
 								<button type='button' key={status.statusId} onClick={() => metric('status', status.name, status.statusId)}>
@@ -844,7 +842,7 @@ export default function CollectionStatistics() {
 									<CollectionIcon name='arrow' />
 								</button>
 							))}
-						</details>
+						</details>}
 					</div>
 					<div className='gdb-steam-time'>
 						<span>Steam</span>

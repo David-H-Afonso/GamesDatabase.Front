@@ -179,6 +179,23 @@ describe('useGamePlatform', () => {
 		expect(result.current.activeItems).toHaveLength(1)
 	})
 
+	it.each(['create', 'update'] as const)('keeps the confirmed %s receipt when the active-catalog refresh fails', async operation => {
+		const saved = createGamePlatform({ id: 100, name: 'Confirmed platform', isActive: true })
+		const writes = vi.fn()
+		server.use(
+			http.post(`${BASE}/gameplatforms`, () => { writes(); return HttpResponse.json(saved) }),
+			http.put(`${BASE}/gameplatforms/100`, () => { writes(); return HttpResponse.json(saved) }),
+			http.get(`${BASE}/gameplatforms/100`, () => HttpResponse.json(saved)),
+			http.get(`${BASE}/gameplatforms/active`, () => HttpResponse.json({ message: 'Fixture read unavailable' }, { status: 503 })),
+		)
+		const { result } = renderHook(() => useGamePlatform(), { wrapper: createWrapperWithStore(store) })
+		let receipt: unknown
+		await act(async () => { receipt = operation === 'create' ? await result.current.createItem({ name: saved.name, isActive: true }) : await result.current.updateItem(100, { id: 100, name: saved.name, isActive: true }) })
+		expect(receipt).toMatchObject({ id: 100, name: saved.name })
+		expect(writes).toHaveBeenCalledOnce()
+		expect(result.current.error).toBeTruthy()
+	})
+
 	// ── updateItem ─────────────────────────────────────────────────────────────
 
 	it('updateItem() calls update thunk and returns updated platform', async () => {

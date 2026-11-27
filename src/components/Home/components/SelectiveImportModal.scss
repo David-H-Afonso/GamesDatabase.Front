@@ -49,7 +49,7 @@
 			color: var(--color-text, #ddd);
 		}
 		em {
-			color: var(--color-accent, #61afef);
+			color: var(--gdb-accent);
 			font-style: normal;
 		}
 	}
@@ -99,9 +99,9 @@
 		}
 
 		&.is-active {
-			background: var(--color-accent, #61afef);
-			border-color: var(--color-accent, #61afef);
-			color: #fff;
+			background: var(--gdb-button);
+			border-color: var(--gdb-button);
+			color: var(--gdb-button-ink);
 		}
 	}
 
@@ -220,10 +220,13 @@
 
 	&__per-game-header {
 		width: 100%;
+		min-width: 0;
+		min-height: 44px;
+		flex: 1;
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
-		padding: 0.45rem 0.75rem;
+		padding: 0.5rem 0.75rem;
 		background: var(--color-bg-panel, #1e1e1e);
 		border: none;
 		color: var(--color-text, #eee);
@@ -235,6 +238,13 @@
 		&:hover {
 			background: var(--color-bg-hover, #262626);
 		}
+	}
+
+	&__per-game-controls {
+		display: flex;
+		align-items: center;
+		min-width: 0;
+		background: var(--color-bg-panel, #1e1e1e);
 	}
 
 	&__per-game-arrow {
@@ -261,24 +271,27 @@
 		flex-shrink: 0;
 
 		.sim__per-game-item--overridden & {
-			background: rgba(97, 175, 239, 0.15);
-			color: var(--color-accent, #61afef);
+			background: var(--gdb-input);
+			color: var(--gdb-accent);
 		}
 	}
 
 	&__per-game-reset {
-		background: transparent;
-		border: 1px solid var(--color-border, #555);
+		background: var(--gdb-input);
+		border: 1px solid var(--gdb-control);
 		border-radius: 4px;
-		color: var(--color-text-muted, #aaa);
+		color: var(--gdb-text);
 		font-size: 0.72rem;
 		cursor: pointer;
-		padding: 0.1rem 0.4rem;
+		min-height: 44px;
+		min-width: 44px;
+		margin: 4px 8px 4px 0;
+		padding: 0.4rem 0.55rem;
 		flex-shrink: 0;
 
 		&:hover {
-			color: var(--color-error, #e06c75);
-			border-color: var(--color-error, #e06c75);
+			color: var(--gdb-text);
+			border-color: var(--gdb-accent);
 		}
 	}
 
@@ -359,13 +372,41 @@
 		}
 
 		&--primary {
-			background: var(--color-accent, #61afef);
-			border: 1px solid var(--color-accent, #61afef);
-			color: #fff;
+			background: var(--gdb-button);
+			border: 1px solid var(--gdb-button);
+			color: var(--gdb-button-ink);
 
 			&:hover:not(:disabled) {
-				background: color-mix(in srgb, var(--color-accent, #61afef) 80%, white);
+				background: var(--gdb-button);
+				box-shadow: inset 0 0 0 1px currentColor;
 			}
 		}
+	}
+}
+
+.sim :is(.sim__per-game-header, .sim__per-game-reset, .sim__preview-list):focus-visible {
+	outline: 2px solid var(--gdb-accent);
+	outline-offset: -3px;
+}
+
+@media (max-width: 650px) {
+	.sim__per-game-header {
+		display: grid;
+		grid-template-columns: 12px minmax(0, 1fr);
+		gap: 4px 8px;
+	}
+	.sim__per-game-arrow {
+		grid-column: 1;
+		grid-row: 1 / span 2;
+		align-self: center;
+	}
+	.sim__per-game-name,
+	.sim__per-game-badge {
+		grid-column: 2;
+		min-width: 0;
+	}
+	.sim__per-game-badge {
+		justify-self: start;
+		white-space: normal;
 	}
 }

@@ -196,6 +196,20 @@ describe('useGameStatus', () => {
 	})
 
 	// ── updateExistingStatus ──────────────────────────────────────────────────
+	it('does not reject or repeat a confirmed status update when the following catalog reads fail', async () => {
+		const saved = createGameStatus({ id: 5, name: 'Confirmed status' }), writes = vi.fn()
+		server.use(
+			http.put(`${BASE}/gamestatus/5`, () => { writes(); return HttpResponse.json(saved) }),
+			http.get(`${BASE}/gamestatus/5`, () => HttpResponse.json(saved)),
+			http.get(`${BASE}/gamestatus`, () => HttpResponse.json({ message: 'Fixture read unavailable' }, { status: 503 })),
+			http.get(`${BASE}/gamestatus/active`, () => HttpResponse.json({ message: 'Fixture read unavailable' }, { status: 503 })),
+		)
+		const { result } = renderHook(() => useGameStatus(), { wrapper: createWrapperWithStore(store) })
+		let receipt: unknown
+		await act(async () => { receipt = await result.current.updateExistingStatus(5, { id: 5, name: saved.name, isActive: true }) })
+		expect(receipt).toMatchObject({ id: 5, name: saved.name })
+		expect(writes).toHaveBeenCalledOnce(); expect(result.current.error).toBeTruthy()
+	})
 
 	it('updateExistingStatus() calls update thunk and returns updated status', async () => {
 		const updated = createGameStatus({ id: 5, name: 'Updated Status' })

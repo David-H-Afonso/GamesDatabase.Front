@@ -59,16 +59,12 @@ export const AdminReplayTypes: React.FC = () => {
 
 	const handleSubmit = async (event: React.FormEvent) => {
 		event.preventDefault()
-		try {
-			if (editingType) {
-				await crud.updateItem(editingType.id, { ...formData, id: editingType.id } as GameReplayTypeUpdateDto)
-			} else {
-				await crud.createItem(formData)
-			}
-			handleCloseModal()
-		} catch (err) {
-			console.error('Error saving replay type:', err)
+		if (editingType) {
+			await crud.updateItem(editingType.id, { ...formData, id: editingType.id } as GameReplayTypeUpdateDto)
+		} else {
+			await crud.createItem(formData)
 		}
+		handleCloseModal()
 	}
 
 	const handleDelete = (type: GameReplayType) => {
@@ -92,7 +88,7 @@ export const AdminReplayTypes: React.FC = () => {
 				</button>
 			</div>
 
-			{crud.error && <div className='alert alert-error'>{crud.error}</div>}
+			{crud.error && <div className='alert alert-error' role='alert'>{t('admin.crud.loadError')} <button type='button' className='btn btn-secondary' disabled={crud.loading} onClick={() => { void crud.reload().catch(() => undefined) }}>{t('common.retry')}</button></div>}
 
 			<AdminCrudTable
 				items={crud.items}

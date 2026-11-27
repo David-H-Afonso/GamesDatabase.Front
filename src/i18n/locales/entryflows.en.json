@@ -1,0 +1,54 @@
+{
+	"steam": {
+		"processing": "Processing Steam sign-in...",
+		"failed": "Steam sign-in could not be completed. Please try again.",
+		"errors": {
+			"invalidNonce": "This Steam sign-in request is invalid. Start again.",
+			"expiredNonce": "This Steam sign-in request expired. Start again.",
+			"validationFailed": "Steam could not verify this sign-in. Please try again.",
+			"userUnavailable": "This Games Database account is no longer available.",
+			"alreadyLinked": "This Steam account is already linked to another Games Database account.",
+			"noLinkedAccount": "No Games Database account is linked to this Steam account."
+		}
+	},
+	"game": {
+		"loading": "Loading…"
+	},
+	"household": {
+		"connectionEyebrow": "Account connection",
+		"title": "Household wants to access Games Database",
+		"connectingAs": "Connecting as",
+		"accountExplanation": "Household will only receive the permissions you approve here.",
+		"permissionsTitle": "Household will be able to",
+		"securityNote": "Your password is not shared. You can revoke this connection at any time. The return is limited to",
+		"deniedEyebrow": "Request rejected",
+		"invalidTitle": "We cannot open this connection",
+		"restartNote": "Return to Household and start the connection again.",
+		"deny": "Deny",
+		"allow": "Allow connection",
+		"denying": "Cancelling…",
+		"approving": "Connecting…",
+		"submitFailed": "The authorization could not be completed. Check the request or try again.",
+		"scopes": {
+			"profile": {
+				"title": "View your profile",
+				"description": "Read this account's display name to identify the connection."
+			},
+			"games": {
+				"title": "View your collection",
+				"description": "Read this account's game summary and game statuses."
+			},
+			"status": {
+				"title": "Update game statuses",
+				"description": "Change only the status of games belonging to this account."
+			}
+		},
+		"errors": {
+			"invalidClient": "The integration client is not valid.",
+			"missingParameters": "The request does not include all the required information.",
+			"invalidRedirect": "The return URL is not valid.",
+			"invalidPkce": "The request does not use PKCE S256 correctly.",
+			"unsupportedScope": "Household requested an unsupported permission."
+		}
+	}
+}

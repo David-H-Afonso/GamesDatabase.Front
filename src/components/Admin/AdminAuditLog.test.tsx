@@ -1,6 +1,7 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import React from 'react'
 import { renderWithProviders } from '@/test/utils/renderWithProviders'
+import i18n from '@/i18n'
 
 const mockEntries = vi.hoisted(() => [
 	{
@@ -140,8 +141,60 @@ describe('AdminAuditLog', () => {
 		const C = await loadComponent()
 		renderWithProviders(<C />, { preloadedState: adminState as any })
 		expect(screen.getByRole('combobox', { name: 'Filtrar por campo' })).toBeInTheDocument()
+		expect(screen.getByRole('combobox', { name: i18n.t('admin.audit.filterActionLabel') })).toBeInTheDocument()
 		expect(screen.getByPlaceholderText('Buscar por juego, campo, acción, descripción o valores...')).toBeInTheDocument()
 		await screen.findByText('Elden Ring')
+	})
+
+	it('distinguishes a failed read from an empty audit and retries the current query without leaking server details', async () => {
+		const { getAdminHistory } = await import('@/services/GameHistoryService')
+		vi.mocked(getAdminHistory).mockRejectedValueOnce(new Error('private-fixture-path /database.sqlite'))
+		const C = await loadComponent()
+		renderWithProviders(<C />, { preloadedState: adminState as any })
+		expect(await screen.findByRole('alert')).toHaveTextContent(i18n.t('admin.audit.loadError'))
+		expect(screen.queryByText(i18n.t('admin.audit.empty'))).not.toBeInTheDocument()
+		expect(screen.queryByText(/private-fixture-path/)).not.toBeInTheDocument()
+		fireEvent.click(screen.getByRole('button', { name: i18n.t('common.retry') }))
+		expect(await screen.findByText('Elden Ring')).toBeInTheDocument()
+		expect(getAdminHistory).toHaveBeenLastCalledWith({ page: 1, pageSize: 50 })
+	})
+
+	it('keeps a failed revert review visible and retries only after another explicit confirmation', async () => {
+		mockUpdateGame.mockRejectedValueOnce(new Error('private-fixture-path'))
+		const C = await loadComponent()
+		renderWithProviders(<C />, { preloadedState: adminState as any })
+		const row = (await screen.findByText('The Alters')).closest('tr')!
+		fireEvent.click(row.querySelector('.aal-action-btn--revert')!)
+		const dialog = await screen.findByRole('alertdialog')
+		fireEvent.click(within(dialog).getByRole('button', { name: i18n.t('common.confirm') }))
+		expect(await within(dialog).findByRole('alert')).toHaveTextContent(i18n.t('admin.audit.revertError'))
+		expect(dialog).toHaveTextContent('The Alters')
+		expect(dialog).not.toHaveTextContent('private-fixture-path')
+		expect(mockUpdateGame).toHaveBeenCalledOnce()
+		fireEvent.click(within(dialog).getByRole('button', { name: i18n.t('common.confirm') }))
+		await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument())
+		expect(mockUpdateGame).toHaveBeenCalledTimes(2)
+		expect(mockUpdateGame).toHaveBeenLastCalledWith(12, { comment: 'De la librería de Kayko' })
+	})
+
+	it('catches a failed game read and leaves the audit available with safe feedback', async () => {
+		mockFetchGameDetails.mockRejectedValueOnce(new Error('private-detail-failure'))
+		const C = await loadComponent()
+		renderWithProviders(<C />, { preloadedState: adminState as any })
+		const row = (await screen.findByText('The Alters')).closest('tr')!
+		fireEvent.click(within(row).getByRole('button', { name: i18n.t('admin.audit.openGame') }))
+		expect(await screen.findByRole('alert')).toHaveTextContent(i18n.t('admin.audit.openError'))
+		expect(screen.queryByTestId('game-details')).not.toBeInTheDocument()
+		expect(screen.queryByText(/private-detail-failure/)).not.toBeInTheDocument()
+	})
+
+	it('keeps the empty horizontally scrolling audit reachable and named for keyboard readers', async () => {
+		const { getAdminHistory } = await import('@/services/GameHistoryService')
+		vi.mocked(getAdminHistory).mockResolvedValueOnce({ data: [], totalPages: 1, totalCount: 0, page: 1, pageSize: 50, hasNextPage: false, hasPreviousPage: false })
+		const C = await loadComponent()
+		renderWithProviders(<C />, { preloadedState: adminState as any })
+		await screen.findByText(i18n.t('admin.audit.empty'))
+		expect(screen.getByRole('region', { name: i18n.t('admin.audit.tableLabel') })).toHaveAttribute('tabindex', '0')
 	})
 
 	it('can filter by Comment field', async () => {

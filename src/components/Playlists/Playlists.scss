@@ -41,7 +41,7 @@
 .playlist-import{display:grid;gap:14px;color:var(--gdb-text)}
 .playlist-import p{margin:0;color:var(--gdb-secondary)}
 .playlist-import textarea{width:100%;resize:vertical;border:1px solid var(--gdb-control);border-radius:7px;padding:12px;color:var(--gdb-text);background:var(--gdb-input);font:13px/1.6 ui-monospace,monospace}
-.playlist-import__error{color:var(--error)!important}
+.playlist-import__error{color:var(--gdb-text)!important;border-inline-start:3px solid var(--error);padding-inline-start:12px}
 .playlist-import__file-input{display:none}
 .playlist-import__file-button{justify-self:start}
 .playlist-import__file-name{color:var(--gdb-secondary);font-size:13px}

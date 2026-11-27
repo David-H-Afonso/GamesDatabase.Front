@@ -10,6 +10,8 @@ import { environment } from '@/environments'
 import { userService } from '@/services/UserService/UserService'
 import './Login.scss'
 
+const STEAM_ICON_URL = `${import.meta.env.BASE_URL}platform-icons/steam.png`
+
 export const Login = () => {
 	const { t } = useTranslation()
 	const navigate = useNavigate()
@@ -203,7 +205,7 @@ export const Login = () => {
 				</div>
 
 				<button type='button' className='btn btn-steam btn-block' onClick={handleSteamLogin} disabled={loading}>
-					<img src='https://store.steampowered.com/favicon.ico' alt='' width={16} height={16} style={{ marginRight: 8 }} />
+					<img src={STEAM_ICON_URL} alt='' width={16} height={16} style={{ marginRight: 8 }} />
 					{t('auth.steamLogin')}
 				</button>
 			</div>

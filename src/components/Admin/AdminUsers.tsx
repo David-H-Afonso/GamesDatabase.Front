@@ -329,8 +329,8 @@ export const AdminUsers = () => {
 			<Modal isOpen={isPasswordModalOpen} onClose={() => setIsPasswordModalOpen(false)} title={t('admin.users.changePasswordTitle')} maxWidth='500px'>
 				<form onSubmit={handleChangePassword} className='admin-users-modal'>
 					<div className='form-group'>
-						<label>{t('admin.users.newPasswordLabel')}</label>
-						<input type='password' value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder={t('admin.users.newPasswordPlaceholder')} />
+							<label htmlFor='gdb-user-new-password'>{t('admin.users.newPasswordLabel')}</label>
+							<input id='gdb-user-new-password' type='password' value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder={t('admin.users.newPasswordPlaceholder')} />
 						<small>{t('admin.users.passwordSmallHint')}</small>
 					</div>
 

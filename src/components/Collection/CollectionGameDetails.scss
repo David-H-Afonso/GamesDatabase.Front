@@ -7,7 +7,7 @@
 .gdb-detail-breadcrumb>span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .gdb-detail-options{position:absolute;top:56px;right:24px;width:280px;max-width:calc(100vw - 48px);padding:6px;border:1px solid var(--gdb-control);border-radius:8px;background:var(--gdb-surface);color:var(--gdb-text);box-shadow:0 12px 30px #0005;z-index:30}
 .gdb-detail-options>button{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;margin:0;padding:10px;border:0;border-radius:4px;background:transparent;color:inherit;font:450 13px/1.5 var(--gdb-body);text-align:left;cursor:pointer}
-.gdb-detail-options>button.gdb-detail-delete{color:var(--error)}
+.gdb-detail-options>button.gdb-detail-delete{color:var(--gdb-text);border-inline-start:3px solid var(--error)}
 .gdb-detail-options .gdb-icon{width:17px;height:17px}
 .gdb-detail-hero{position:relative;width:100%;height:210px;min-height:0;margin:0;padding:0;overflow:hidden;background:var(--gdb-raised)}
 .gdb-detail-hero>.optimized-image-container,.gdb-detail-hero>.gdb-art-empty{display:block;width:100%;height:100%;position:static}
@@ -167,3 +167,4 @@
   .gdb-editor-panel>.gdb-form-grid{gap:18px 14px}
   .gdb-editor-people{grid-template-columns:repeat(2,minmax(0,1fr));padding:12px}
 }
+.gdb-game-sheet{scroll-padding-block-start:calc(var(--gdb-sheet-head-height,64px) + 62px);scroll-padding-block-end:24px}

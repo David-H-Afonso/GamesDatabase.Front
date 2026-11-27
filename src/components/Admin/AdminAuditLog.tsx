@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getGlobalHistory, getAdminHistory } from '@/services/GameHistoryService'
 import { updateGame } from '@/services/GamesService'
@@ -105,6 +105,11 @@ export const AdminAuditLog: React.FC = () => {
 
 	const [entries, setEntries] = useState<GameHistoryEntry[]>([])
 	const [loading, setLoading] = useState(false)
+	const [readFailed, setReadFailed] = useState(false)
+	const [openFailed, setOpenFailed] = useState(false)
+	const [revertFailed, setRevertFailed] = useState(false)
+	const readRevision = useRef(0)
+	const reverting = useRef(false)
 	const [selectedGame, setSelectedGame] = useState<Game | null>(null)
 	const [openingGameId, setOpeningGameId] = useState<number | null>(null)
 	const [revertingEntryId, setRevertingEntryId] = useState<number | null>(null)
@@ -123,7 +128,9 @@ export const AdminAuditLog: React.FC = () => {
 
 	const load = useCallback(
 		async (currentPage: number, currentFilters: GameHistoryQueryParameters) => {
+			const revision = ++readRevision.current
 			setLoading(true)
+			setReadFailed(false)
 			try {
 				const params: GameHistoryQueryParameters = {
 					page: currentPage,
@@ -136,13 +143,14 @@ export const AdminAuditLog: React.FC = () => {
 				}
 				const fetcher = isAdmin ? getAdminHistory : getGlobalHistory
 				const result = await fetcher(params)
+				if (revision !== readRevision.current) return
 				setEntries(result.data)
 				setTotalPages(result.totalPages)
 				setTotalCount(result.totalCount)
 			} catch {
-				setEntries([])
+				if (revision === readRevision.current) setReadFailed(true)
 			} finally {
-				setLoading(false)
+				if (revision === readRevision.current) setLoading(false)
 			}
 		},
 		[isAdmin]
@@ -150,6 +158,7 @@ export const AdminAuditLog: React.FC = () => {
 
 	useEffect(() => {
 		void load(page, filters)
+		return () => { readRevision.current++ }
 	}, [load, page, filters])
 
 	const handleFilterChange = (key: keyof GameHistoryQueryParameters, value: string) => {
@@ -172,9 +181,12 @@ export const AdminAuditLog: React.FC = () => {
 	const openGameDetails = async (entry: GameHistoryEntry) => {
 		if (!entry.gameId || openingGameId !== null) return
 		setOpeningGameId(entry.gameId)
+		setOpenFailed(false)
 		try {
 			const game = await fetchGameDetails(entry.gameId)
 			setSelectedGame(game as Game)
+		} catch {
+			setOpenFailed(true)
 		} finally {
 			setOpeningGameId(null)
 		}
@@ -183,25 +195,34 @@ export const AdminAuditLog: React.FC = () => {
 	const requestRevert = (entry: GameHistoryEntry) => {
 		const disabledReason = getRevertDisabledReason(entry)
 		if (disabledReason || !entry.gameId || revertingEntryId !== null) return
+		setRevertFailed(false)
 		setRevertTarget(entry)
 	}
 
 	const confirmRevert = async () => {
 		const entry = revertTarget
-		setRevertTarget(null)
-		if (!entry || !entry.gameId) return
+		if (!entry?.gameId || reverting.current) return
 
+		reverting.current = true
+		setRevertFailed(false)
 		setRevertingEntryId(entry.id)
 		try {
 			const updateKey = FIELD_TO_UPDATE_KEY[entry.field]
 			const updateValue = parseHistoryValue(entry.field, entry.oldValue)
 			await updateGame(entry.gameId, { [updateKey]: updateValue } as any)
+			// The write is confirmed. A failed refresh must never offer to repeat it.
+			setRevertTarget(null)
 			await load(page, filters)
 			if (selectedGame?.id === entry.gameId) {
-				const refreshed = await fetchGameDetails(entry.gameId)
-				setSelectedGame(refreshed as Game)
+				try {
+					const refreshed = await fetchGameDetails(entry.gameId)
+					setSelectedGame(refreshed as Game)
+				} catch { setOpenFailed(true) }
 			}
+		} catch {
+			setRevertFailed(true)
 		} finally {
+			reverting.current = false
 			setRevertingEntryId(null)
 		}
 	}
@@ -212,11 +233,11 @@ export const AdminAuditLog: React.FC = () => {
 
 			<div className='admin-header'>
 				<h1>{isAdmin ? t('admin.audit.titleAll') : t('admin.audit.title')}</h1>
-				<span className='aal-count'>{t('admin.audit.entriesCount', { count: totalCount })}</span>
+				{!readFailed && !loading && <span className='aal-count'>{t('admin.audit.entriesCount', { count: totalCount })}</span>}
 			</div>
 
 			<div className='aal-filters'>
-				<select value={filters.actionType ?? ''} onChange={(e) => handleFilterChange('actionType', e.target.value)}>
+				<select aria-label={t('admin.audit.filterActionLabel')} value={filters.actionType ?? ''} onChange={(e) => handleFilterChange('actionType', e.target.value)}>
 					<option value=''>{t('admin.audit.filterAllActions')}</option>
 					<option value='Created'>{t('admin.audit.filterCreated')}</option>
 					<option value='Updated'>{t('admin.audit.filterUpdated')}</option>
@@ -230,16 +251,19 @@ export const AdminAuditLog: React.FC = () => {
 						</option>
 					))}
 				</select>
-				<input type='text' placeholder={t('admin.audit.filterSearchPlaceholder')} value={filters.search ?? ''} onChange={(e) => handleFilterChange('search', e.target.value)} />
+				<input type='text' aria-label={t('admin.audit.filterSearchPlaceholder')} placeholder={t('admin.audit.filterSearchPlaceholder')} value={filters.search ?? ''} onChange={(e) => handleFilterChange('search', e.target.value)} />
 				<input type='date' value={filters.from ?? ''} onChange={(e) => handleFilterChange('from', e.target.value)} title={t('admin.audit.dateFrom')} />
 				<input type='date' value={filters.to ?? ''} onChange={(e) => handleFilterChange('to', e.target.value)} title={t('admin.audit.dateTo')} />
 			</div>
 
+			{openFailed && <p className='aal-error' role='alert'>{t('admin.audit.openError')}</p>}
 			{loading ? (
 				<div className='loading'>{t('common.loading')}</div>
+			) : readFailed ? (
+				<div className='aal-error' role='alert'><p>{t('admin.audit.loadError')}</p><button type='button' className='btn btn-secondary' onClick={() => void load(page, filters)}>{t('common.retry')}</button></div>
 			) : (
 				<>
-					<div className='aal-table-wrapper'>
+					<div className='aal-table-wrapper' role='region' aria-label={t('admin.audit.tableLabel')} tabIndex={0}>
 						<table className='aal-table'>
 							<thead>
 								<tr>
@@ -320,8 +344,9 @@ export const AdminAuditLog: React.FC = () => {
 			<ConfirmDialog
 				isOpen={revertTarget !== null}
 				title={t('admin.audit.revertChange')}
-				message={revertTarget ? t('admin.audit.revertConfirm', { game: revertTarget.gameName, field: revertTarget.field }) : ''}
+				message={<>{revertTarget ? t('admin.audit.revertConfirm', { game: revertTarget.gameName, field: revertTarget.field }) : ''}{revertFailed && <p className='aal-error' role='alert'>{t('admin.audit.revertError')}</p>}</>}
 				variant='primary'
+				isConfirming={revertingEntryId !== null}
 				onConfirm={confirmRevert}
 				onCancel={() => setRevertTarget(null)}
 			/>

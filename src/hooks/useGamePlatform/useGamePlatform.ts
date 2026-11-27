@@ -42,7 +42,8 @@ export const useGamePlatform = () => {
 	const createItem = useCallback(
 		async (payload: GamePlatformCreateDto) => {
 			const result = (await dispatchAndUnwrapAsync(dispatch, createPlatformThunk(payload))) as any
-			if ((result as any).isActive) await fetchActiveList()
+			// The mutation receipt is authoritative even if this follow-up read fails.
+			if ((result as any).isActive) await fetchActiveList().catch(() => undefined)
 			return result
 		},
 		[dispatch, fetchActiveList]
@@ -52,7 +53,7 @@ export const useGamePlatform = () => {
 	const updateItem = useCallback(
 		async (id: number, payload: GamePlatformUpdateDto) => {
 			const updated = (await dispatchAndUnwrapAsync(dispatch, updatePlatformThunk({ id, data: payload }))) as any
-			await fetchActiveList()
+			await fetchActiveList().catch(() => undefined)
 			return updated
 		},
 		[dispatch, fetchActiveList]

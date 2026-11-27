@@ -50,16 +50,12 @@ export const AdminPlayWith: React.FC = () => {
 
 	const handleSubmit = async (event: React.FormEvent) => {
 		event.preventDefault()
-		try {
-			if (editingOption) {
-				await crud.updateItem(editingOption.id, { ...formData, id: editingOption.id } as GamePlayWithUpdateDto)
-			} else {
-				await crud.createItem(formData)
-			}
-			handleCloseModal()
-		} catch (error) {
-			console.error('Error saving play with option:', error)
+		if (editingOption) {
+			await crud.updateItem(editingOption.id, { ...formData, id: editingOption.id } as GamePlayWithUpdateDto)
+		} else {
+			await crud.createItem(formData)
 		}
+		handleCloseModal()
 	}
 
 	const handleDelete = (option: GamePlayWith) => {
@@ -75,7 +71,7 @@ export const AdminPlayWith: React.FC = () => {
 				</button>
 			</div>
 
-			{crud.error && <div className='alert alert-error'>{crud.error}</div>}
+			{crud.error && <div className='alert alert-error' role='alert'>{t('admin.crud.loadError')} <button type='button' className='btn btn-secondary' disabled={crud.loading} onClick={() => { void crud.reload().catch(() => undefined) }}>{t('common.retry')}</button></div>}
 
 			<AdminCrudTable
 				items={crud.items}

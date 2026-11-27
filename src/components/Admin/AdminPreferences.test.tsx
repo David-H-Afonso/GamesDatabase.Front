@@ -1,6 +1,9 @@
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test/utils/renderWithProviders'
+import { http, HttpResponse } from 'msw'
+import { server } from '@/test/mocks/server'
+import i18n from '@/i18n'
 
 vi.mock('./AdminPreferences.scss', () => ({}))
 
@@ -60,8 +63,30 @@ describe('AdminPreferences', () => {
 		renderWithProviders(<C />, { preloadedState: prefsState as any })
 		const checkboxes = screen.getAllByRole('checkbox')
 		// First checkbox is score colors
+		await waitFor(() => expect(checkboxes[0]).toBeEnabled())
 		await user.click(checkboxes[0])
 		// The local state updates immediately even if thunk fails
 		expect(checkboxes[0]).toBeChecked()
+	})
+
+	it('discloses a failed refresh, keeps cached choices read-only, and recovers with a read-only retry', async () => {
+		let unavailable = true
+		const writes = vi.fn()
+		server.use(
+			http.get(/\/api\/users\/1$/, () => unavailable ? HttpResponse.json({ message: 'private-preference-path' }, { status: 503 }) : HttpResponse.json({ ...prefsState.auth.user, useScoreColors: true, scoreProvider: 'OpenCritic' })),
+			http.put(/\/api\/users\/1$/, () => { writes(); return new HttpResponse(null, { status: 204 }) }),
+		)
+		const C = await loadComponent()
+		renderWithProviders(<C />, { preloadedState: prefsState as any })
+		expect(await screen.findByRole('alert')).toHaveTextContent(i18n.t('admin.preferences.loadError'))
+		const score = screen.getByRole('checkbox', { name: i18n.t('admin.preferences.scoreColors') })
+		expect(score).not.toBeChecked(); expect(score).toBeDisabled()
+		expect(screen.queryByText(/private-preference-path/)).not.toBeInTheDocument()
+		unavailable = false
+		await userEvent.click(screen.getByRole('button', { name: i18n.t('common.retry') }))
+		await waitFor(() => expect(score).toBeEnabled())
+		expect(score).toBeChecked()
+		expect(screen.getByRole('combobox', { name: i18n.t('admin.preferences.scoreProvider') })).toHaveValue('OpenCritic')
+		expect(writes).not.toHaveBeenCalled()
 	})
 })

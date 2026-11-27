@@ -104,6 +104,11 @@ describe('Login', () => {
 		renderWithProviders(<Login />, { store })
 		expect(screen.getByRole('button', { name: /^iniciar sesión$/i })).toBeInTheDocument()
 	})
+	it('uses the existing bundled Steam icon without a third-party image request before sign-in', () => {
+		const { container } = renderWithProviders(<Login />, { store })
+		expect(container.querySelector('.btn-steam img')).toHaveAttribute('src', '/platform-icons/steam.png')
+		expect(container.querySelector('.btn-steam img')).toHaveAttribute('alt', '')
+	})
 
 	// ── Error display ─────────────────────────────────────────────────────────
 

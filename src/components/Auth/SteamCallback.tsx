@@ -1,8 +1,18 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { setSteamProfile, steamLoginUser } from '@/store/features/auth/authSlice'
 import { selectIsAuthenticated } from '@/store/features/auth/selector'
+
+const steamErrorKeys = new Map([
+	['invalid_nonce', 'entryflows.steam.errors.invalidNonce'],
+	['nonce_expired', 'entryflows.steam.errors.expiredNonce'],
+	['validation_failed', 'entryflows.steam.errors.validationFailed'],
+	['user_not_found', 'entryflows.steam.errors.userUnavailable'],
+	['steam_already_linked', 'entryflows.steam.errors.alreadyLinked'],
+	['no_account_linked', 'entryflows.steam.errors.noLinkedAccount'],
+])
 
 /**
  * Handles Steam OpenID callback redirects.
@@ -12,10 +22,14 @@ import { selectIsAuthenticated } from '@/store/features/auth/selector'
  * Error mode:  `?error=<reason>`     → redirect to login with error message
  */
 export const SteamCallback = () => {
+	const { t } = useTranslation()
+	const translate = useRef(t)
 	const dispatch = useAppDispatch()
 	const navigate = useNavigate()
 	const [searchParams] = useSearchParams()
 	const isAuthenticated = useAppSelector(selectIsAuthenticated)
+	// Locale changes must update copy without repeating a one-time code exchange.
+	useEffect(() => { translate.current = t }, [t])
 
 	useEffect(() => {
 		let cancelled = false
@@ -31,7 +45,7 @@ export const SteamCallback = () => {
 			if (error) {
 				const storedReturnTo = sessionStorage.getItem('householdAuthorizationReturnTo')
 				sessionStorage.removeItem('householdAuthorizationReturnTo')
-				const params = new URLSearchParams({ steamError: error })
+				const params = new URLSearchParams({ steamError: translate.current(steamErrorKeys.get(error) ?? 'entryflows.steam.failed') })
 				if (storedReturnTo?.startsWith('/integrations/household/authorize')) params.set('returnTo', storedReturnTo)
 				navigate(`/login?${params}`, { replace: true })
 				return
@@ -59,11 +73,10 @@ export const SteamCallback = () => {
 					sessionStorage.removeItem('householdAuthorizationReturnTo')
 					const returnTo = storedReturnTo?.startsWith('/integrations/household/authorize') ? storedReturnTo : '/'
 					if (!cancelled) navigate(returnTo, { replace: true })
-				} catch (err) {
-					const message = err instanceof Error ? err.message : String(err || 'steam_login_failed')
+				} catch {
 					const storedReturnTo = sessionStorage.getItem('householdAuthorizationReturnTo')
 					sessionStorage.removeItem('householdAuthorizationReturnTo')
-					const params = new URLSearchParams({ steamError: message })
+					const params = new URLSearchParams({ steamError: translate.current('entryflows.steam.failed') })
 					if (storedReturnTo?.startsWith('/integrations/household/authorize')) params.set('returnTo', storedReturnTo)
 					if (!cancelled) navigate(`/login?${params}`, { replace: true })
 				}
@@ -83,7 +96,7 @@ export const SteamCallback = () => {
 
 	return (
 		<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-			<p>Procesando inicio de sesión con Steam...</p>
+			<p>{t('entryflows.steam.processing')}</p>
 		</div>
 	)
 }

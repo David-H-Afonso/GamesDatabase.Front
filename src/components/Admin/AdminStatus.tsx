@@ -64,24 +64,20 @@ export const AdminStatus: React.FC = () => {
 
 	const handleSubmit = async (event: React.FormEvent) => {
 		event.preventDefault()
-		try {
-			if (editingStatus) {
-				await updateStatus(editingStatus.id, { ...formData, id: editingStatus.id } as GameStatusUpdateDto)
-				if (formData.statusType && editingStatus.statusType !== formData.statusType) {
-					try {
-						await reassignSpecial({ newDefaultStatusId: editingStatus.id, statusType: formData.statusType })
-					} catch (err) {
-						console.warn('Failed to reassign special statuses:', err)
-					}
+		if (editingStatus) {
+			await updateStatus(editingStatus.id, { ...formData, id: editingStatus.id } as GameStatusUpdateDto)
+			if (formData.statusType && editingStatus.statusType !== formData.statusType) {
+				try {
+					await reassignSpecial({ newDefaultStatusId: editingStatus.id, statusType: formData.statusType })
+				} catch (err) {
+					console.warn('Failed to reassign special statuses:', err)
 				}
-				await crud.reload()
-			} else {
-				await crud.createItem(formData)
 			}
-			handleCloseModal()
-		} catch (error) {
-			console.error('Error saving status:', error)
+			await Promise.resolve(crud.reload()).catch(() => undefined)
+		} else {
+			await crud.createItem(formData)
 		}
+		handleCloseModal()
 	}
 
 	const handleDelete = (status: GameStatus) => {
@@ -100,7 +96,7 @@ export const AdminStatus: React.FC = () => {
 				</button>
 			</div>
 
-			{crud.error && <div className='alert alert-error'>{crud.error}</div>}
+			{crud.error && <div className='alert alert-error' role='alert'>{t('admin.crud.loadError')} <button type='button' className='btn btn-secondary' disabled={crud.loading} onClick={() => { void crud.reload().catch(() => undefined) }}>{t('common.retry')}</button></div>}
 
 			<AdminCrudTable
 				items={crud.items}

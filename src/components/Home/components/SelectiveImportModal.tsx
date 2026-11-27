@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useId } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Modal } from '@/components/elements'
 import { selectiveImportGames, parseCSVGameNames } from '@/services'
@@ -19,6 +19,7 @@ const DEFAULT_GLOBAL_CONFIG: GameImportConfig = { mode: 'simple' }
 
 const SelectiveImportModal: React.FC<Props> = ({ isOpen, onClose, onImportComplete }) => {
 	const { t } = useTranslation()
+	const modalId = useId()
 	const fileInputRef = useRef<HTMLInputElement>(null)
 
 	const [sourceType, setSourceType] = useState<'file' | 'text'>('file')
@@ -225,8 +226,8 @@ const SelectiveImportModal: React.FC<Props> = ({ isOpen, onClose, onImportComple
 				{/* ── Section 2: Preview ────────────────────────────────────────── */}
 				{parsedGameNames.length > 0 && (
 					<section className='sim__section'>
-						<h3 className='sim__section-title'>{t('home.importModal.section2', { count: parsedGameNames.length })}</h3>
-						<div className='sim__preview-list'>
+						<h3 id={`${modalId}-preview-label`} className='sim__section-title'>{t('home.importModal.section2', { count: parsedGameNames.length })}</h3>
+						<div className='sim__preview-list' role='region' aria-labelledby={`${modalId}-preview-label`} tabIndex={0}>
 							{parsedGameNames.map((name, index) => (
 								<span key={`${name}-${index}`} className='sim__preview-chip'>
 									{name}
@@ -256,33 +257,42 @@ const SelectiveImportModal: React.FC<Props> = ({ isOpen, onClose, onImportComple
 						<p className='sim__section-desc'>{t('home.importModal.overrideDesc')}</p>
 
 						<div className='sim__per-game-list'>
-							{pagedGameNames.map((name) => {
+							{pagedGameNames.map((name, index) => {
 								const hasOverride = !!perGameConfig[name]
 								const isExpanded = expandedGameName === name
 								const gameCfg = perGameConfig[name] ?? DEFAULT_GLOBAL_CONFIG
+								const itemId = `${modalId}-game-${perGamePage * ITEMS_PER_PAGE + index}`
 
 								return (
 									<div key={name} className={`sim__per-game-item ${hasOverride ? 'sim__per-game-item--overridden' : ''}`}>
-										<button type='button' className='sim__per-game-header' onClick={() => toggleExpand(name)}>
-											<span className='sim__per-game-arrow'>{isExpanded ? '▾' : '▸'}</span>
-											<span className='sim__per-game-name'>{name}</span>
-											<span className='sim__per-game-badge'>{hasOverride ? t('home.importModal.overrideActive') : t('home.importModal.usingGlobal')}</span>
+										<div className='sim__per-game-controls'>
+											<button
+												type='button'
+												id={`${itemId}-header`}
+												className='sim__per-game-header'
+												aria-expanded={isExpanded}
+												aria-controls={`${itemId}-body`}
+												onClick={() => toggleExpand(name)}>
+												<span className='sim__per-game-arrow' aria-hidden='true'>{isExpanded ? '▾' : '▸'}</span>
+												<span className='sim__per-game-name'>{name}</span>
+												<span className='sim__per-game-badge'>{hasOverride ? t('home.importModal.overrideActive') : t('home.importModal.usingGlobal')}</span>
+											</button>
 											{hasOverride && (
 												<button
 													type='button'
 													className='sim__per-game-reset'
 													title={t('home.importModal.removeOverride')}
 													onClick={(e) => {
-														e.stopPropagation()
+														e.currentTarget.parentElement?.querySelector<HTMLButtonElement>('.sim__per-game-header')?.focus()
 														updatePerGameConfig(name, null)
 													}}>
 													{t('home.importModal.resetOverride')}
 												</button>
 											)}
-										</button>
+										</div>
 
 										{isExpanded && (
-											<div className='sim__per-game-body'>
+											<div className='sim__per-game-body' role='region' aria-labelledby={`${itemId}-header`} id={`${itemId}-body`}>
 												<PropertyConfigPanel
 													panelMode='import'
 													config={gameCfg}

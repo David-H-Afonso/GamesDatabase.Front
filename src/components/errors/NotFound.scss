@@ -13,10 +13,7 @@
 		.not-found-code {
 			font-size: 8rem;
 			font-weight: 700;
-			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-			-webkit-background-clip: text;
-			-webkit-text-fill-color: transparent;
-			background-clip: text;
+			color: var(--gdb-accent);
 			margin-bottom: 1rem;
 			line-height: 1;
 		}
@@ -36,7 +33,7 @@
 		.btn {
 			display: inline-block;
 			padding: 0.75rem 2rem;
-			background: #667eea;
+			background: #5568d3;
 			color: white;
 			text-decoration: none;
 			border-radius: 8px;

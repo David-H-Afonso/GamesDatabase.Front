@@ -227,6 +227,7 @@
 		display: flex;
 		align-items: center;
 		gap: $space-sm;
+		flex-wrap: wrap;
 	}
 
 	&__time-sep {
@@ -246,7 +247,8 @@
 		color: var(--text-secondary);
 		cursor: help;
 		margin-left: $space-xs;
-		white-space: nowrap;
+		max-width: 100%;
+		overflow-wrap: anywhere;
 	}
 
 	&__select {

@@ -40,7 +40,7 @@ export const AdminGameViews: React.FC = () => {
 	})
 
 	useEffect(() => {
-		loadGameViews(queryParams)
+		void Promise.resolve(loadGameViews(queryParams)).catch(() => undefined)
 	}, [loadGameViews, queryParams])
 
 	useEffect(() => {
@@ -359,7 +359,7 @@ export const AdminGameViews: React.FC = () => {
 				</div>
 			)}
 
-			{error && <div className='alert alert-error'>{error}</div>}
+			{error && <div className='alert alert-error' role='alert'>{t('admin.crud.loadError')} <button type='button' className='btn btn-secondary' disabled={loading} onClick={() => { void loadGameViews(queryParams).catch(() => undefined) }}>{t('common.retry')}</button></div>}
 
 			<div className='controls'>
 				<input

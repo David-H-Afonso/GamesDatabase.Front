@@ -180,6 +180,21 @@ describe('useGamePlayedStatus', () => {
 	})
 
 	// ── updateItem ─────────────────────────────────────────────────────────────
+	it.each(['create', 'update'] as const)('keeps the confirmed %s receipt when active played-status refresh fails', async operation => {
+		const saved = createGamePlayedStatus({ id: 100, name: 'Confirmed played status', isActive: true })
+		const writes = vi.fn()
+		server.use(
+			http.post(`${BASE}/gameplayedstatus`, () => { writes(); return HttpResponse.json(saved) }),
+			http.put(`${BASE}/gameplayedstatus/100`, () => { writes(); return HttpResponse.json(saved) }),
+			http.get(`${BASE}/gameplayedstatus/100`, () => HttpResponse.json(saved)),
+			http.get(`${BASE}/gameplayedstatus/active`, () => HttpResponse.json({ message: 'Fixture read unavailable' }, { status: 503 })),
+		)
+		const { result } = renderHook(() => useGamePlayedStatus(), { wrapper: createWrapperWithStore(store) })
+		let receipt: unknown
+		await act(async () => { receipt = operation === 'create' ? await result.current.createItem({ name: saved.name, isActive: true }) : await result.current.updateItem(100, { id: 100, name: saved.name, isActive: true }) })
+		expect(receipt).toMatchObject({ id: 100, name: saved.name })
+		expect(writes).toHaveBeenCalledOnce(); expect(result.current.error).toBeTruthy()
+	})
 
 	it('updateItem() calls update thunk and returns updated item', async () => {
 		const updated = createGamePlayedStatus({ id: 5, name: 'Updated Status' })

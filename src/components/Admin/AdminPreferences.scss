@@ -78,6 +78,13 @@
 		margin: 0;
 	}
 
+	&__read-error { padding: $space-md; border: 1px solid var(--error); border-radius: $border-radius-md; background: var(--gdb-input); color: var(--gdb-text); }
+	&__read-error>p { margin: 0 0 $space-md; }
+	&__score-example { display: inline-block; margin-top: 6px; padding: 2px 6px; border-radius: 4px; color: #000; font-weight: 700; }
+	&__score-example--green { background: #66cc33; }
+	&__score-example--yellow { background: #ffcc33; }
+	&__score-example--red { background: #ff0000; }
+
 	&__toggle {
 		position: relative;
 		display: inline-block;
@@ -91,6 +98,7 @@
 		opacity: 0;
 		width: 0;
 		height: 0;
+		&:focus-visible + .admin-preferences__toggle-slider { outline: 2px solid var(--gdb-accent); outline-offset: 4px; }
 
 		&:checked + .admin-preferences__toggle-slider {
 			background-color: $color-primary;

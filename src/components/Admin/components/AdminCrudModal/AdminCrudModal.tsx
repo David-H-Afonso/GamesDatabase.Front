@@ -1,4 +1,4 @@
-import type { FormEvent, ReactNode } from 'react'
+import { type FormEvent, type ReactNode, useEffect, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Modal } from '@/components/elements'
 import './AdminCrudModal.scss'
@@ -11,25 +11,43 @@ export interface AdminCrudModalProps {
 	onColorChange: (value: string) => void
 	submitLabel: string
 	onClose: () => void
-	onSubmit: (event: FormEvent) => void
+	onSubmit: (event: FormEvent) => void | Promise<void>
 	children?: ReactNode
 }
 
 export const AdminCrudModal = ({ title, name, onNameChange, color, onColorChange, submitLabel, onClose, onSubmit, children }: AdminCrudModalProps) => {
 	const { t } = useTranslation()
+	const id = useId()
+	const submitting = useRef(false)
+	const errorRef = useRef<HTMLParagraphElement>(null)
+	const [saving, setSaving] = useState(false)
+	const [failed, setFailed] = useState(false)
+	useEffect(() => { if (failed && !saving) errorRef.current?.focus() }, [failed, saving])
+	const submit = async (event: FormEvent) => {
+		event.preventDefault()
+		if (submitting.current) return
+		submitting.current = true
+		setSaving(true)
+		setFailed(false)
+		try { await onSubmit(event) }
+		catch { setFailed(true) }
+		finally { submitting.current = false; setSaving(false) }
+	}
 
 	return (
-		<Modal isOpen onClose={onClose} title={title} maxWidth='500px'>
-			<form onSubmit={onSubmit} className='admin-crud-modal'>
+		<Modal isOpen onClose={() => { if (!submitting.current) onClose() }} closeDisabled={saving} bodyLabel={saving ? t('admin.crud.pendingFormLabel', { title }) : undefined} title={title} maxWidth='500px'>
+			<form onSubmit={event => void submit(event)} className='admin-crud-modal' aria-busy={saving}>
+				{failed && <p ref={errorRef} tabIndex={-1} role='alert' className='admin-crud-modal__error'>{t('admin.crud.saveError')}</p>}
+				<fieldset disabled={saving}>
 				<div className='form-group'>
-					<label htmlFor='name'>{t('admin.crud.form.nameLabel')}</label>
-					<input type='text' id='name' value={name} onChange={(event) => onNameChange(event.target.value)} required />
+					<label htmlFor={`${id}-name`}>{t('admin.crud.form.nameLabel')}</label>
+					<input type='text' id={`${id}-name`} value={name} onChange={(event) => onNameChange(event.target.value)} required />
 				</div>
 				<div className='form-group'>
-					<label htmlFor='color'>{t('admin.crud.form.colorLabel')}</label>
+					<label htmlFor={`${id}-color`}>{t('admin.crud.form.colorLabel')}</label>
 					<div className='admin-crud-modal__color'>
-						<input type='color' id='colorPicker' value={color || '#000000'} onChange={(event) => onColorChange(event.target.value)} />
-						<input type='text' id='color' value={color} onChange={(event) => onColorChange(event.target.value)} placeholder='#000000' pattern='^#[0-9A-Fa-f]{6}$' />
+						<input type='color' aria-label={t('admin.crud.form.colorPickerLabel')} value={color || '#000000'} onChange={(event) => onColorChange(event.target.value)} />
+						<input type='text' id={`${id}-color`} value={color} onChange={(event) => onColorChange(event.target.value)} placeholder='#000000' pattern='^#[0-9A-Fa-f]{6}$' />
 					</div>
 				</div>
 				{children}
@@ -38,9 +56,10 @@ export const AdminCrudModal = ({ title, name, onNameChange, color, onColorChange
 						{t('admin.crud.cancel')}
 					</button>
 					<button type='submit' className='btn btn-primary'>
-						{submitLabel}
+						{saving ? t('admin.crud.saving') : submitLabel}
 					</button>
 				</div>
+				</fieldset>
 			</form>
 		</Modal>
 	)

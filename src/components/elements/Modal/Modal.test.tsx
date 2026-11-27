@@ -113,4 +113,24 @@ describe('Modal', () => {
 		rerender(layers('Updated parent'))
 		expect(nested.contains(document.activeElement)).toBe(true)
 	})
+
+	it('keeps a fully disabled pending form focused after a real backdrop click and Tab', async () => {
+		const onClose = vi.fn()
+		render(<Modal {...defaultProps} closeDisabled onClose={onClose}><fieldset disabled><input aria-label='Pending fixture name' /><button>Save fixture</button></fieldset></Modal>)
+		const dialog = screen.getByRole('dialog')
+		await userEvent.click(document.querySelector('.modal-overlay')!)
+		expect(dialog.contains(document.activeElement)).toBe(true)
+		await userEvent.tab()
+		expect(dialog.contains(document.activeElement)).toBe(true)
+		expect(onClose).not.toHaveBeenCalled()
+	})
+
+	it('adds a named keyboard-readable body only when the caller explicitly requests it', () => {
+		const { rerender } = render(<Modal {...defaultProps} />)
+		expect(screen.queryByRole('region')).not.toBeInTheDocument()
+		rerender(<Modal {...defaultProps} closeDisabled bodyLabel='Read-only pending fields' />)
+		const region = screen.getByRole('region', { name: 'Read-only pending fields' })
+		expect(region).toHaveAttribute('tabindex', '0')
+		region.focus(); expect(region).toHaveFocus()
+	})
 })

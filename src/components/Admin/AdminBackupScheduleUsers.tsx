@@ -85,7 +85,7 @@ const UserRow: React.FC<UserRowProps> = ({ entry, onUpdated }) => {
 
 	return (
 		<div className='admin-backup-schedule__user-row'>
-			<button type='button' className='admin-backup-schedule__user-row-header' onClick={() => setExpanded((v) => !v)}>
+			<button type='button' className='admin-backup-schedule__user-row-header' aria-expanded={expanded} aria-controls={`backup-user-${entry.userId}`} onClick={() => setExpanded((v) => !v)}>
 				<span className='admin-backup-schedule__user-name'>{entry.username}</span>
 				<span className={statusClass(entry.schedule.lastRunStatus)}>{t(`admin.backupSchedule.status_${entry.schedule.lastRunStatus}`)}</span>
 				<span className='admin-backup-schedule__user-enabled'>{entry.schedule.isEnabled ? t('admin.backupScheduleUsers.enabled') : t('admin.backupScheduleUsers.disabled')}</span>
@@ -93,11 +93,11 @@ const UserRow: React.FC<UserRowProps> = ({ entry, onUpdated }) => {
 			</button>
 
 			{expanded && (
-				<div className='admin-backup-schedule__user-body'>
+				<div className='admin-backup-schedule__user-body' id={`backup-user-${entry.userId}`}>
 					{message && (
 						<div className={`backup-alert backup-alert--${message.type}`}>
 							{message.text}
-							<button className='backup-alert__close' onClick={() => setMessage(null)} aria-label='×'></button>
+							<button type='button' className='backup-alert__close' onClick={() => setMessage(null)} aria-label={t('common.close')}>×</button>
 						</div>
 					)}
 
@@ -120,9 +120,9 @@ const UserRow: React.FC<UserRowProps> = ({ entry, onUpdated }) => {
 							</div>
 
 							<div className='admin-backup-schedule__field'>
-								<label className='admin-backup-schedule__label'>{t('admin.backupSchedule.timeLabel')}</label>
-								<div className='admin-backup-schedule__time-row'>
-									<select value={backupHour} onChange={(e) => setBackupHour(Number(e.target.value))} className='admin-backup-schedule__select'>
+								<span className='admin-backup-schedule__label' id={`backup-time-${entry.userId}`}>{t('admin.backupSchedule.timeLabel')}</span>
+								<div className='admin-backup-schedule__time-row' role='group' aria-labelledby={`backup-time-${entry.userId}`}>
+									<select aria-label={t('admin.backupSchedule.hourFor', { user: entry.username })} value={backupHour} onChange={(e) => setBackupHour(Number(e.target.value))} className='admin-backup-schedule__select'>
 										{HOURS.map((h) => (
 											<option key={h} value={h}>
 												{pad(h)}
@@ -130,7 +130,7 @@ const UserRow: React.FC<UserRowProps> = ({ entry, onUpdated }) => {
 										))}
 									</select>
 									<span className='admin-backup-schedule__time-sep'>:</span>
-									<select value={backupMinute} onChange={(e) => setBackupMinute(Number(e.target.value))} className='admin-backup-schedule__select'>
+									<select aria-label={t('admin.backupSchedule.minuteFor', { user: entry.username })} value={backupMinute} onChange={(e) => setBackupMinute(Number(e.target.value))} className='admin-backup-schedule__select'>
 										{MINUTES.map((m) => (
 											<option key={m} value={m}>
 												{pad(m)}

@@ -1,0 +1,54 @@
+{
+	"steam": {
+		"processing": "Procesando inicio de sesión con Steam...",
+		"failed": "No se pudo completar el inicio de sesión con Steam. Inténtalo de nuevo.",
+		"errors": {
+			"invalidNonce": "Esta solicitud de inicio de sesión con Steam no es válida. Empieza de nuevo.",
+			"expiredNonce": "Esta solicitud de inicio de sesión con Steam ha caducado. Empieza de nuevo.",
+			"validationFailed": "Steam no pudo verificar este inicio de sesión. Inténtalo de nuevo.",
+			"userUnavailable": "Esta cuenta de Games Database ya no está disponible.",
+			"alreadyLinked": "Esta cuenta de Steam ya está vinculada a otra cuenta de Games Database.",
+			"noLinkedAccount": "No hay ninguna cuenta de Games Database vinculada a esta cuenta de Steam."
+		}
+	},
+	"game": {
+		"loading": "Cargando…"
+	},
+	"household": {
+		"connectionEyebrow": "Conexión de cuenta",
+		"title": "Household quiere acceder a Games Database",
+		"connectingAs": "Conectando como",
+		"accountExplanation": "Household solo recibirá los permisos que apruebes aquí.",
+		"permissionsTitle": "Household podrá",
+		"securityNote": "Tu contraseña no se comparte. Puedes revocar esta conexión en cualquier momento. El retorno se limita a",
+		"deniedEyebrow": "Solicitud rechazada",
+		"invalidTitle": "No podemos abrir esta conexión",
+		"restartNote": "Vuelve a Household e inicia la conexión otra vez.",
+		"deny": "Denegar",
+		"allow": "Permitir conexión",
+		"denying": "Cancelando…",
+		"approving": "Conectando…",
+		"submitFailed": "No se pudo completar la autorización. Revisa la solicitud o inténtalo de nuevo.",
+		"scopes": {
+			"profile": {
+				"title": "Ver tu perfil",
+				"description": "Leer el nombre visible de esta cuenta para identificar la conexión."
+			},
+			"games": {
+				"title": "Consultar tu colección",
+				"description": "Leer el resumen de juegos y sus estados para esta cuenta."
+			},
+			"status": {
+				"title": "Actualizar estados",
+				"description": "Cambiar únicamente el estado de juegos que pertenecen a esta cuenta."
+			}
+		},
+		"errors": {
+			"invalidClient": "El cliente de integración no es válido.",
+			"missingParameters": "La solicitud no incluye todos los datos necesarios.",
+			"invalidRedirect": "La URL de retorno no es válida.",
+			"invalidPkce": "La solicitud no usa PKCE S256 correctamente.",
+			"unsupportedScope": "Household ha solicitado un permiso no admitido."
+		}
+	}
+}

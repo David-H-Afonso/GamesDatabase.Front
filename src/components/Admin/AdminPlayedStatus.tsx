@@ -50,16 +50,12 @@ export const AdminPlayedStatus: React.FC = () => {
 
 	const handleSubmit = async (event: React.FormEvent) => {
 		event.preventDefault()
-		try {
-			if (editingStatus) {
-				await crud.updateItem(editingStatus.id, { ...formData, id: editingStatus.id } as GamePlayedStatusUpdateDto)
-			} else {
-				await crud.createItem(formData)
-			}
-			handleCloseModal()
-		} catch (error) {
-			console.error('Error saving played status:', error)
+		if (editingStatus) {
+			await crud.updateItem(editingStatus.id, { ...formData, id: editingStatus.id } as GamePlayedStatusUpdateDto)
+		} else {
+			await crud.createItem(formData)
 		}
+		handleCloseModal()
 	}
 
 	const handleDelete = (status: GamePlayedStatus) => {
@@ -75,7 +71,7 @@ export const AdminPlayedStatus: React.FC = () => {
 				</button>
 			</div>
 
-			{crud.error && <div className='alert alert-error'>{crud.error}</div>}
+			{crud.error && <div className='alert alert-error' role='alert'>{t('admin.crud.loadError')} <button type='button' className='btn btn-secondary' disabled={crud.loading} onClick={() => { void crud.reload().catch(() => undefined) }}>{t('common.retry')}</button></div>}
 
 			<AdminCrudTable
 				items={crud.items}

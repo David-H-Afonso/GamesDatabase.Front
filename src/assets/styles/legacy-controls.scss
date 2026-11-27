@@ -1,0 +1,53 @@
+// Existing administration/data dialogs share the palette's explicit ink roles.
+// Keep this scoped: Login, the global search and modern .gdb-button controls
+// retain their own styling; no palette definition or user preference is changed.
+html[data-experience='gallery'] {
+	:is(.admin-content, .modal-content, .confirm-dialog__panel, .steam-tab) {
+		.btn.btn-primary {
+			background: var(--gdb-button);
+			color: var(--gdb-button-ink);
+			border: 1px solid var(--gdb-button);
+		}
+		.btn.btn-secondary {
+			background: var(--gdb-raised);
+			color: var(--gdb-text);
+			border: 1px solid var(--gdb-control);
+		}
+		.btn.btn-danger {
+			background: #b91c1c;
+			color: #fff;
+			border: 1px solid #b91c1c;
+		}
+		.btn:is(.btn-primary,.btn-secondary,.btn-danger) {
+			min-height: 44px;
+			&:hover:not(:disabled) { filter: none; box-shadow: inset 0 0 0 1px currentColor; }
+			&:focus-visible { outline: 2px solid var(--gdb-accent); outline-offset: 3px; }
+		}
+		.btn.btn-primary:hover:not(:disabled) { background: var(--gdb-button); color: var(--gdb-button-ink); }
+		.btn.btn-secondary:hover:not(:disabled) { background: var(--gdb-raised); color: var(--gdb-text); }
+		.btn.btn-danger:hover:not(:disabled) { background: #991b1b; color: #fff; }
+	}
+	.admin-content {
+		.data-table__th { background: var(--gdb-input); color: var(--gdb-secondary); }
+		.status-pill.status-pill--active { background: var(--gdb-input); color: var(--gdb-green); }
+		.status-pill.status-pill--inactive { background: var(--gdb-input); color: var(--gdb-text); border: 1px solid var(--error); }
+		.alert { background: var(--gdb-input); color: var(--gdb-text); border-color: var(--gdb-control); }
+		.import-panel__error { color: var(--gdb-text); }
+		.admin-users .badge:is(.badge-admin,.badge-standard,.badge-info) { background: var(--gdb-input); color: var(--gdb-text); border: 1px solid var(--gdb-line); }
+		.admin-audit-log {
+			.aal-badge { background: var(--gdb-input); color: var(--gdb-text); border: 1px solid var(--gdb-line); }
+			.aal-old { color: var(--gdb-text); }
+			.aal-new { color: var(--gdb-green); }
+		}
+		.admin-preferences__message { background: var(--gdb-input); color: var(--gdb-text); }
+		.admin-steam-import {
+			.store-card-score { background: #155724; color: #fff; }
+			.store-card-price .price-discount { background: #155724; color: #fff; }
+			.store-card-price--free { color: var(--gdb-green); }
+		}
+		.admin-data-export {
+			.orphan-folder-list__reason { color: var(--gdb-secondary); }
+		}
+	}
+	.modal-content .warning-box strong { color: var(--gdb-text); }
+}

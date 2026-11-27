@@ -1,6 +1,7 @@
 {
 	"common": {
 		"loading": "Loading...",
+		"retry": "Try again",
 		"cancel": "Cancel",
 		"save": "Save",
 		"saving": "Saving...",
@@ -516,12 +517,16 @@
 			"create": "Create",
 			"save": "Save",
 			"saving": "Saving...",
+			"loadError": "The catalog could not be refreshed. Previously loaded items may be out of date.",
+			"saveError": "The change could not be saved. Your draft is still here; review it and try again.",
+			"pendingFormLabel": "Review {{title}} while saving",
 			"close": "×",
 			"form": {
 				"namePlaceholder": "Name",
 				"colorPlaceholder": "#000000",
 				"activeLabel": "Active",
 				"colorLabel": "Color",
+				"colorPickerLabel": "Pick a color",
 				"nameLabel": "Name"
 			},
 			"empty": "No items yet",
@@ -587,6 +592,7 @@
 			"reorderError": "Error reordering. Please try again."
 		},
 		"preferences": {
+			"loadError": "Your preferences could not be refreshed. Cached values are shown; reload before making changes.",
 			"title": "User Preferences",
 			"subtitle": "Customize your experience",
 			"visualSettings": "Visual Settings",
@@ -1083,6 +1089,11 @@
 			"importSuccessTitle": "Database imported successfully (MERGE mode)!"
 		},
 		"audit": {
+			"loadError": "The audit could not be loaded. This is not an empty result; try again.",
+			"openError": "The game could not be opened. The audit is unchanged; try opening it again.",
+			"revertError": "The change could not be reverted. This review is still open; check it before trying again.",
+			"tableLabel": "Audit entries",
+			"filterActionLabel": "Filter by action",
 			"title": "Audit",
 			"titleAll": "Audit (all users)",
 			"entriesCount": "{{count}} entries",
@@ -1125,6 +1136,8 @@
 			"enableLabel": "Enable scheduled backup",
 			"enableHint": "When enabled, backups will run automatically at the configured time",
 			"timeLabel": "Backup time (UTC)",
+			"hourFor": "Backup hour (UTC) for {{user}}",
+			"minuteFor": "Backup minute (UTC) for {{user}}",
 			"timeHint": "The backup will run at this time every day (UTC timezone)",
 			"timeLocalShort": "local",
 			"timeLocalTooltip": "Equivalent to {{time}} in your local timezone",
@@ -1174,6 +1187,9 @@
 			"unlinkConfirmMessage": "Disconnect your Steam account?",
 			"noGamesSelected": "No games selected to import or link",
 			"common": {
+				"selectVisibleSuggestions": "Select visible suggestions",
+				"selectSuggestion": "Select {{steam}} for {{game}}",
+				"actionFor": "Import action for {{game}}",
 				"steam": "Steam",
 				"gdb": "In GDB",
 				"confidence": "Confidence",

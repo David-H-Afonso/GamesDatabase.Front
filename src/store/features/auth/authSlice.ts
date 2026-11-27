@@ -325,15 +325,8 @@ const authSlice = createSlice({
 		// Fetch user preferences
 		builder.addCase(
 			fetchUserPreferences.fulfilled,
-			(
-				state,
-				action: PayloadAction<{
-					useScoreColors: boolean
-					scoreProvider: string
-					showPriceComparisonIcon: boolean
-				}>
-			) => {
-				if (state.user) {
+			(state, action) => {
+				if (state.user?.id === action.meta.arg) {
 					state.user.useScoreColors = action.payload.useScoreColors
 					state.user.scoreProvider = action.payload.scoreProvider
 					state.user.showPriceComparisonIcon = action.payload.showPriceComparisonIcon
@@ -344,15 +337,8 @@ const authSlice = createSlice({
 		// Update user preferences
 		builder.addCase(
 			updateUserPreferences.fulfilled,
-			(
-				state,
-				action: PayloadAction<{
-					useScoreColors?: boolean
-					scoreProvider?: string
-					showPriceComparisonIcon?: boolean
-				}>
-			) => {
-				if (state.user) {
+			(state, action) => {
+				if (state.user?.id === action.meta.arg.userId) {
 					if (action.payload.useScoreColors !== undefined) {
 						state.user.useScoreColors = action.payload.useScoreColors
 					}

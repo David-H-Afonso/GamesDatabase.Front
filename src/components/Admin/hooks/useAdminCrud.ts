@@ -38,7 +38,8 @@ export const useAdminCrud = <T, TCreate, TUpdate>(controller: AdminCrudControlle
 	const [reorderError, setReorderError] = useState(false)
 
 	useEffect(() => {
-		void load({ page, pageSize })
+		// Controllers already expose the read failure in their error state.
+		void Promise.resolve(load({ page, pageSize })).catch(() => undefined)
 	}, [load, page, pageSize])
 
 	const reload = useCallback(() => load({ page, pageSize }), [load, page, pageSize])
@@ -98,7 +99,7 @@ export const useAdminCrud = <T, TCreate, TUpdate>(controller: AdminCrudControlle
 	const createItem = useCallback(
 		async (dto: TCreate) => {
 			await create(dto)
-			await reload()
+			await Promise.resolve(reload()).catch(() => undefined)
 		},
 		[create, reload]
 	)
@@ -106,7 +107,7 @@ export const useAdminCrud = <T, TCreate, TUpdate>(controller: AdminCrudControlle
 	const updateItem = useCallback(
 		async (id: number, dto: TUpdate) => {
 			await update(id, dto)
-			await reload()
+			await Promise.resolve(reload()).catch(() => undefined)
 		},
 		[update, reload]
 	)
@@ -114,7 +115,7 @@ export const useAdminCrud = <T, TCreate, TUpdate>(controller: AdminCrudControlle
 	const removeItem = useCallback(
 		async (id: number) => {
 			await remove(id)
-			await reload()
+			await Promise.resolve(reload()).catch(() => undefined)
 		},
 		[remove, reload]
 	)

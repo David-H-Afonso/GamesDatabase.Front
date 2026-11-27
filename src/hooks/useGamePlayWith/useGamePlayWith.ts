@@ -81,7 +81,7 @@ export const useGamePlayWith = () => {
 				dispatch(setLoading(true))
 				dispatch(setError(null))
 				const updated = (await dispatchAndUnwrapAsync(dispatch, updatePlayWithThunk({ id, data: payload }))) as any
-				await dispatchAndUnwrapAsync(dispatch, fetchPlayWithOptions({}))
+				await dispatchAndUnwrapAsync(dispatch, fetchPlayWithOptions({})).catch(() => undefined)
 				await fetchActiveOptions()
 				return updated
 			} catch (err: any) {

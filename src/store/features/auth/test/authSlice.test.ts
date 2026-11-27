@@ -203,6 +203,18 @@ describe('authSlice — extraReducers', () => {
 		expect(next.user).toBeNull()
 	})
 
+	it('ignores a late preference read belonging to a different account', () => {
+		const state = loggedInState()
+		const action = fetchUserPreferences.fulfilled({ useScoreColors: false, scoreProvider: 'OpenCritic', showPriceComparisonIcon: true }, 'old-read', 2)
+		expect(authReducer(state, action)).toEqual(state)
+	})
+
+	it('ignores a late preference save belonging to a different account', () => {
+		const state = loggedInState()
+		const action = updateUserPreferences.fulfilled({ scoreProvider: 'OpenCritic' }, 'old-save', { userId: 2, scoreProvider: 'OpenCritic' })
+		expect(authReducer(state, action)).toEqual(state)
+	})
+
 	it('updateUserPreferences.fulfilled updates partial fields when user exists', () => {
 		const action = updateUserPreferences.fulfilled({ useScoreColors: false }, '', { userId: 1, useScoreColors: false })
 		const next = authReducer(loggedInState(), action)

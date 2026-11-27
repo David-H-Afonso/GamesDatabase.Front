@@ -180,6 +180,20 @@ describe('useGamePlayWith', () => {
 	})
 
 	// ── updateOption ───────────────────────────────────────────────────────────
+	it('does not reject or repeat a confirmed play-with update when the following catalog reads fail', async () => {
+		const saved = createGamePlayWith({ id: 5, name: 'Confirmed play-with' }), writes = vi.fn()
+		server.use(
+			http.put(`${BASE}/gameplaywith/5`, () => { writes(); return HttpResponse.json(saved) }),
+			http.get(`${BASE}/gameplaywith/5`, () => HttpResponse.json(saved)),
+			http.get(`${BASE}/gameplaywith`, () => HttpResponse.json({ message: 'Fixture read unavailable' }, { status: 503 })),
+			http.get(`${BASE}/gameplaywith/active`, () => HttpResponse.json({ message: 'Fixture read unavailable' }, { status: 503 })),
+		)
+		const { result } = renderHook(() => useGamePlayWith(), { wrapper: createWrapperWithStore(store) })
+		let receipt: unknown
+		await act(async () => { receipt = await result.current.updateOption(5, { id: 5, name: saved.name, isActive: true }) })
+		expect(receipt).toMatchObject({ id: 5, name: saved.name })
+		expect(writes).toHaveBeenCalledOnce(); expect(result.current.error).toBeTruthy()
+	})
 
 	it('updateOption() calls update thunk and returns updated option', async () => {
 		const updated = createGamePlayWith({ id: 5, name: 'Updated Co-op' })
