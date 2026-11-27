@@ -1,0 +1,2 @@
+/** Exact public critic destinations only; no redirects, credentials or arbitrary URLs. */
+export const metadataCriticUrl = (provider: string | null | undefined, url: unknown): url is string => typeof url === 'string' && url.length <= 600 && (provider === 'Metacritic' ? /^https:\/\/www\.metacritic\.com\/game\/(?:[a-z0-9]+(?:-[a-z0-9]+)*\/){1,2}$/.test(url) : provider === 'OpenCritic' && /^https:\/\/opencritic\.com\/game\/[1-9][0-9]*\/[a-z0-9]+(?:-[a-z0-9]+)*$/.test(url))

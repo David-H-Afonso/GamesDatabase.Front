@@ -6,11 +6,12 @@ import { createGame } from '@/test/factories'
 import i18n from '@/i18n'
 import CreateGame from './CreateGame'
 
-const calls = vi.hoisted(() => ({ create: vi.fn(), details: vi.fn(), bulk: vi.fn(), remove: vi.fn(), open: vi.fn(), active: vi.fn(), special: vi.fn(), library: vi.fn(), search: vi.fn(), import: vi.fn() }))
+const calls = vi.hoisted(() => ({ create: vi.fn(), details: vi.fn(), bulk: vi.fn(), remove: vi.fn(), open: vi.fn(), active: vi.fn(), special: vi.fn(), library: vi.fn(), search: vi.fn(), import: vi.fn(), autofill: vi.fn() }))
 vi.mock('@/hooks/useGames', () => ({ useGames: () => ({ createNewGame: calls.create, fetchGameDetails: calls.details, bulkUpdateGamesById: calls.bulk, deleteGameById: calls.remove }) }))
 vi.mock('@/hooks', () => ({ useGameStatus: () => ({ fetchActiveStatusList: calls.active, fetchSpecialStatusList: calls.special }) }))
 vi.mock('@/services', async original => ({ ...await original<typeof import('@/services')>(), steamService: { getLibrary: calls.library, searchStore: calls.search, importGames: calls.import } }))
 vi.mock('@/components/Collection/collectionDetailsContext', () => ({ useCollectionDetails: () => ({ open: calls.open }) }))
+vi.mock('@/components/Collection/gameMetadataContext', () => ({ useGameMetadata: () => ({ openBatch: calls.autofill }) }))
 vi.mock('@/components/Collection/CollectionGameDetailsLazy', () => ({ CollectionGameDetails: () => null }))
 const auth = { user: { id: 1, username: 'Batch fixture', role: 'Standard', steamId: '76561198000000000' }, token: 'fixture', refreshToken: null, isAuthenticated: true, loading: false, error: null } as const
 const open = async () => {
@@ -36,9 +37,11 @@ describe('compact multi-create drafts and retry receipts', () => {
 		calls.search.mockResolvedValue([{ appId: 570, name: 'Imported Steam fixture', heroUrl: '/sample-artwork/amber-hero.svg', coverUrl: '/sample-artwork/amber-cover.svg' }])
 		calls.import.mockResolvedValue({ success: true, created: 1, linked: 0, skipped: 0, importedGames: [{ appId: 570, name: 'Imported Steam fixture', gdbGameId: 200, action: 'created' }] })
 		calls.details.mockResolvedValue(createGame({ id: 200, name: 'Imported Steam fixture' }))
+		calls.autofill.mockReturnValue(true)
 	})
 	it('keeps one compact title row, an adjacent opt-in Steam icon and all secondary fields collapsed', async () => {
 		const { user, sheet, container } = await open(); await user.type(sheet().getByRole('textbox', { name: 'Title' }), 'Manual only')
+		expect(sheet().getByRole('textbox', { name: 'Title' })).toHaveAttribute('autocomplete', 'off')
 		expect(calls.search).not.toHaveBeenCalled(); expect(calls.library).not.toHaveBeenCalled()
 		expect(sheet().queryByRole('combobox')).not.toBeInTheDocument(); expect(sheet().queryByRole('searchbox')).not.toBeInTheDocument()
 		const toggle = sheet().getByRole('button', { name: 'Search Steam' }); expect(toggle).toHaveAttribute('aria-pressed', 'false')
@@ -57,6 +60,7 @@ describe('compact multi-create drafts and retry receipts', () => {
 		expect(sheet().getByRole('combobox', { name: 'Status' })).toHaveValue('1'); expect(sheet().getByRole('combobox', { name: 'Cheaper by' })).toHaveValue('key')
 		await user.click(sheet().getByRole('button', { name: 'Add Game' })); await waitFor(() => expect(calls.create).toHaveBeenCalledWith(expect.objectContaining({ name: 'Imported Steam fixture', statusId: 1, isCheaperByKey: true })))
 		expect(calls.import).not.toHaveBeenCalled()
+		expect(calls.autofill).not.toHaveBeenCalled()
 	})
 	it('cancels a late Steam search when switched off and retains the manual title', async () => {
 		let resolve!: (value: unknown[]) => void; calls.search.mockImplementation(() => new Promise(yes => { resolve = yes }))
@@ -125,5 +129,57 @@ describe('compact multi-create drafts and retry receipts', () => {
 		act(() => { store.dispatch({ type: 'auth/login/fulfilled', payload: { userId: 2, username: 'Other fixture', role: 'Standard', token: 'other-fixture', refreshToken: null } }) })
 		await act(async () => { resolve(createGame({ id: 100 })); await pending })
 		expect(screen.queryByRole('dialog', { name: 'Add Game' })).not.toBeInTheDocument(); expect(calls.import).not.toHaveBeenCalled(); expect(calls.open).not.toHaveBeenCalled()
+		expect(calls.autofill).not.toHaveBeenCalled()
+	})
+	it('retains explicit Steam on and off for new rows, reopened modal and remounted owner UI', async () => {
+		const first = await open(); await first.user.click(first.sheet().getByRole('button', { name: 'Search Steam' })); first.unmount()
+		const second = await open(); expect(second.sheet().getByRole('button', { name: 'Search Steam' })).toHaveAttribute('aria-pressed', 'true')
+		expect(second.sheet().getByRole('textbox', { name: 'Title' })).toHaveFocus()
+		await second.user.click(second.sheet().getByRole('button', { name: 'Add another row' })); expect(second.sheet().getAllByRole('button', { name: 'Search Steam' })[1]).toHaveAttribute('aria-pressed', 'true')
+		await second.user.click(second.sheet().getAllByRole('button', { name: 'Search Steam' })[1]); await second.user.click(second.sheet().getByRole('button', { name: 'Cancel' })); await second.user.click(screen.getByRole('button', { name: 'Add Game' }))
+		expect(second.sheet().getAllByRole('textbox', { name: 'Title' })[0]).toHaveFocus(); second.unmount()
+		const third = await open(); expect(third.sheet().getByRole('button', { name: 'Search Steam' })).toHaveAttribute('aria-pressed', 'false')
+		await third.user.click(third.sheet().getByRole('button', { name: 'Add another row' })); expect(third.sheet().getAllByRole('button', { name: 'Search Steam' })[1]).toHaveAttribute('aria-pressed', 'false')
+	})
+	it('keeps the final post-import autofill checkbox opt-in and does not remember it for another batch', async () => {
+		const { user, sheet } = await open(), option = sheet().getByRole('checkbox', { name: 'Try to autofill info after import' })
+		expect(option).not.toBeChecked(); expect(option).toBeEnabled(); expect(option.closest('label')).toBe(document.getElementById('gdb-create-game-form')!.lastElementChild)
+		await user.type(sheet().getByRole('textbox', { name: 'Title' }), 'First fixture'); await user.click(sheet().getByRole('button', { name: 'Add Game' })); await waitFor(() => expect(calls.open).toHaveBeenCalled())
+		expect(calls.autofill).not.toHaveBeenCalled(); await user.click(screen.getByRole('button', { name: 'Add Game' })); expect(sheet().getByRole('checkbox', { name: 'Try to autofill info after import' })).not.toBeChecked()
+	})
+	it('starts empty-only autofill after confirmed manual and Steam receipts, preserving the Steam-linked ID', async () => {
+		const order: string[] = []; calls.bulk.mockImplementation(async () => { order.push('settings'); return { updatedCount: 1, totalRequested: 1 } }); calls.autofill.mockImplementation(() => { order.push('autofill'); return true })
+		const { user, sheet } = await open(); await user.type(sheet().getByRole('textbox', { name: 'Title' }), 'First fixture'); await steamRow(user, sheet()); await user.click(sheet().getByRole('checkbox', { name: 'Try to autofill info after import' }))
+		await user.click(sheet().getByRole('button', { name: 'Add 2 games' })); await waitFor(() => expect(calls.autofill).toHaveBeenCalledExactlyOnceWith([{ id: 100, name: 'First fixture' }, { id: 200, name: 'Imported Steam fixture' }], { overwrite: false }))
+		expect(order).toEqual(['settings', 'autofill']); expect(calls.create).toHaveBeenCalledOnce(); expect(calls.import).toHaveBeenCalledOnce(); expect(calls.open).not.toHaveBeenCalled(); expect(calls.details).not.toHaveBeenCalled()
+		expect(screen.queryByRole('dialog', { name: 'Add Game' })).not.toBeInTheDocument()
+		await user.click(screen.getByRole('button', { name: 'Add Game' })); expect(sheet().getByRole('checkbox', { name: 'Try to autofill info after import' })).not.toBeChecked()
+	})
+	it.each(['exists', 'skipped'])('never includes an existing or skipped Steam receipt in a newly added autofill batch (%s)', async action => {
+		calls.import.mockResolvedValue({ success: true, created: 0, linked: 0, skipped: 1, importedGames: [{ appId: 570, gdbGameId: 200, name: 'Imported Steam fixture', action }] })
+		const { user, sheet } = await open(); await user.type(sheet().getByRole('textbox', { name: 'Title' }), 'First fixture'); await steamRow(user, sheet()); await user.click(sheet().getByRole('checkbox', { name: 'Try to autofill info after import' })); await user.click(sheet().getByRole('button', { name: 'Add 2 games' }))
+		await waitFor(() => expect(calls.autofill).toHaveBeenCalledExactlyOnceWith([{ id: 100, name: 'First fixture' }], { overwrite: false })); expect(calls.bulk).not.toHaveBeenCalled()
+	})
+	it('retains the opt-in and all successful creation receipts across partial failure before starting information lookup once', async () => {
+		let attempt = 0; calls.create.mockImplementation(async ({ name }) => { if (name === 'Second fixture' && ++attempt === 1) throw new Error('Second row unavailable'); return createGame({ id: name === 'First fixture' ? 100 : 101, name }) })
+		const { user, sheet } = await open(); await user.type(sheet().getByRole('textbox', { name: 'Title' }), 'First fixture'); await user.click(sheet().getByRole('button', { name: 'Add another row' })); await user.type(sheet().getAllByRole('textbox', { name: 'Title' })[1], 'Second fixture'); await user.click(sheet().getByRole('checkbox', { name: 'Try to autofill info after import' })); await user.click(sheet().getByRole('button', { name: 'Add 2 games' }))
+		await sheet().findByText('1 of 2 added. Review the unfinished rows before retrying.'); expect(calls.autofill).not.toHaveBeenCalled()
+		await user.click(sheet().getByRole('button', { name: 'Cancel' })); await user.click(screen.getByRole('button', { name: 'Add Game' })); expect(sheet().getByRole('checkbox', { name: 'Try to autofill info after import' })).toBeChecked()
+		await user.click(sheet().getByRole('button', { name: 'Retry unfinished (1)' })); await waitFor(() => expect(calls.autofill).toHaveBeenCalledExactlyOnceWith([{ id: 100, name: 'First fixture' }, { id: 101, name: 'Second fixture' }], { overwrite: false }))
+		expect(calls.create.mock.calls.map(([payload]) => payload.name)).toEqual(['First fixture', 'Second fixture', 'Second fixture']); expect(calls.create.mock.calls[1][0].creationRequestId).toBe(calls.create.mock.calls[2][0].creationRequestId)
+	})
+	it('retries only starting information after a start failure, never successful creation or Steam import', async () => {
+		calls.autofill.mockReturnValueOnce(false).mockReturnValue(true)
+		const { user, sheet } = await open(); await user.type(sheet().getByRole('textbox', { name: 'Title' }), 'First fixture'); await steamRow(user, sheet()); await user.click(sheet().getByRole('checkbox', { name: 'Try to autofill info after import' })); await user.click(sheet().getByRole('button', { name: 'Add 2 games' }))
+		await sheet().findByText('Autofill could not start. The current game selection is kept.'); expect(calls.create).toHaveBeenCalledOnce(); expect(calls.import).toHaveBeenCalledOnce(); expect(calls.bulk).toHaveBeenCalledOnce()
+		await user.click(sheet().getByRole('button', { name: 'Done' })); await waitFor(() => expect(calls.autofill).toHaveBeenCalledTimes(2))
+		expect(calls.autofill.mock.calls[1]).toEqual(calls.autofill.mock.calls[0]); expect(calls.create).toHaveBeenCalledOnce(); expect(calls.import).toHaveBeenCalledOnce(); expect(calls.bulk).toHaveBeenCalledOnce(); expect(calls.open).not.toHaveBeenCalled()
+	})
+	it('keeps each owner Steam choice separate when switching accounts without persisting game titles', async () => {
+		const { user, sheet, store } = await open(); await user.type(sheet().getByRole('textbox', { name: 'Title' }), 'Must stay in memory'); await user.click(sheet().getByRole('button', { name: 'Search Steam' }))
+		act(() => { store.dispatch({ type: 'auth/login/fulfilled', payload: { userId: 2, username: 'Other public fixture', role: 'Standard', steamId: '76561198000000001', token: 'other-fixture', refreshToken: null } }) })
+		await user.click(screen.getByRole('button', { name: 'Add Game' })); await waitFor(() => expect(sheet().getByRole('button', { name: 'Add Game' })).toBeEnabled())
+		expect(sheet().getByRole('textbox', { name: 'Title' })).toHaveValue(''); expect(sheet().getByRole('button', { name: 'Search Steam' })).toHaveAttribute('aria-pressed', 'false')
+		expect(Array.from({ length: localStorage.length }, (_, index) => localStorage.getItem(localStorage.key(index)!)).join('\n')).not.toContain('Must stay in memory')
 	})
 })

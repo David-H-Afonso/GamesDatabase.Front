@@ -12,6 +12,7 @@
 .gdb-create-row__main{display:flex;align-items:center;gap:6px;min-width:0}
 .gdb-create-title-field,.gdb-create-steam-title,.gdb-create-saved{flex:1;min-width:0}
 .gdb-create-game-sheet .gdb-create-name{height:44px;min-height:44px;padding:8px 11px}
+.gdb-create-game-sheet .gdb-create-name:is(:focus,:focus-visible){box-shadow:none;outline:2px solid var(--gdb-accent);outline-offset:-2px;border-color:var(--gdb-accent)}
 .gdb-create-source{position:relative;border:1px solid var(--gdb-control);background:var(--gdb-input)}
 .gdb-create-source>img{width:24px;height:24px;filter:grayscale(1);opacity:.55}
 .gdb-create-source[aria-pressed=true]{border-color:var(--gdb-accent);background:var(--gdb-accent-soft);color:var(--gdb-accent)}
@@ -28,6 +29,9 @@
 .gdb-create-game-sheet .add-game-row__status-select:focus{box-shadow:none}
 .gdb-create-add-row{align-self:flex-start;padding-inline:0;font-size:14px;gap:8px}
 .gdb-create-add-row>.gdb-icon{width:18px;height:18px}
+.gdb-create-game-sheet .gdb-form>.gdb-create-autofill{display:flex;flex-direction:row;align-items:center;gap:12px;min-height:44px;margin-top:4px;padding-top:10px;border-top:1px solid var(--gdb-line);font:450 14px/1.5 var(--gdb-body);cursor:pointer}
+.gdb-create-autofill>input{width:20px;height:20px;flex-shrink:0;accent-color:var(--gdb-accent)}
+.gdb-create-game-sheet .gdb-create-autofill-help{margin:0;color:var(--gdb-secondary);font:450 13px/1.6 var(--gdb-body)}
 .gdb-create-steam-title{font:550 16px/1.5 var(--gdb-body);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .gdb-create-steam-identity{display:flex;align-items:center;gap:10px;min-width:0;font-size:14px;color:var(--gdb-text)}
 .gdb-create-steam-identity>img{width:54px;aspect-ratio:1.9;object-fit:cover;border-radius:4px}
@@ -59,6 +63,7 @@
   .gdb-create-game-sheet>.gdb-sheet__body{padding:16px 14px 10px}
   .gdb-create-game-sheet>.gdb-sheet__footer{padding:12px 14px max(12px,env(safe-area-inset-bottom,0px))}
   .gdb-create-game-sheet .gdb-form label,.gdb-create-add-row{font-size:16px}
+  .gdb-create-game-sheet .gdb-create-autofill-help{font-size:16px}
   .gdb-create-row__main{gap:4px}
   .gdb-create-options{padding:12px;gap:12px}
   .gdb-create-steam-identity{grid-column:1/-1}

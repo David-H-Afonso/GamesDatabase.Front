@@ -1,4 +1,4 @@
-import { act, fireEvent, screen, waitFor } from '@testing-library/react'
+import { act, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test/utils/renderWithProviders'
 import type { RootState } from '@/store'
@@ -58,6 +58,9 @@ const mockBulkUpdateGamesById = vi.fn().mockResolvedValue({ updatedCount: 2, tot
 const mockUpdateGameById = vi.fn().mockResolvedValue(undefined)
 const mockFetchGameDetails = vi.fn()
 const mockLoadPublicGameViews = vi.fn().mockResolvedValue(undefined)
+const mockMetadata = vi.hoisted(() => ({ start: vi.fn(), artwork: vi.fn() }))
+let metadataBatch: { busy: boolean; artworkField?: 'cover' } | null = null
+vi.mock('@/components/Collection/gameMetadataContext', () => ({ useGameMetadata: () => ({ batch: metadataBatch, openBatch: mockMetadata.start, openArtworkBatch: mockMetadata.artwork }) }))
 const mockSteamService = vi.hoisted(() => ({
 	syncGame: vi.fn().mockResolvedValue({}),
 }))
@@ -118,7 +121,10 @@ vi.mock('./GameFiltersChips', () => ({
 			<button data-testid='bulk-refresh-cover' onClick={() => props.onBulkRefreshImages?.('cover')} disabled={props.bulkImagesDisabled}>
 				Bulk Refresh Cover
 			</button>
+			<button data-testid='bulk-autofill' onClick={() => props.onBulkAutofill?.({ overwrite: false })} disabled={props.bulkAutofillBusy}>Autofill empty</button>
+			<button data-testid='bulk-replace' onClick={() => props.onBulkAutofill?.({ overwrite: true })} disabled={props.bulkAutofillBusy}>Autofill replace</button>
 			<span data-testid='selected-count'>{props.selectedCount}</span>
+			<span data-testid='selection-key'>{props.selectionKey}</span>
 		</div>
 	),
 }))
@@ -179,17 +185,7 @@ describe('HomeComponent', () => {
 		currentGames = mockGames
 		currentError = null
 		currentPagination = mockPagination
-		mockFetchGameDetails.mockResolvedValue({ cover: 'https://example.com/refreshed-cover.jpg' })
-		vi.stubGlobal(
-			'Image',
-			class {
-				onload: (() => void) | null = null
-				onerror: (() => void) | null = null
-				set src(_value: string) {
-					queueMicrotask(() => this.onload?.())
-				}
-			}
-		)
+		metadataBatch = null; mockMetadata.start.mockReturnValue(true); mockMetadata.artwork.mockReturnValue(true)
 	})
 
 	// Import dynamically so mocks are applied
@@ -364,6 +360,7 @@ describe('HomeComponent', () => {
 
 	it('deletes selected games sequentially and continues after one failure', async () => {
 		const user = userEvent.setup()
+		const log = vi.spyOn(console, 'error').mockImplementation(() => undefined)
 		const deleteOrder: number[] = []
 		mockDeleteGameById.mockImplementation(async (id: number) => {
 			deleteOrder.push(id)
@@ -380,9 +377,10 @@ describe('HomeComponent', () => {
 		await waitFor(() => expect(deleteOrder).toEqual([1, 2]))
 		expect(mockRefreshGames).toHaveBeenCalledWith(expect.objectContaining({ page: 1 }))
 		expect(screen.getByRole('status')).toHaveTextContent('Some selected games could not be deleted.')
+		try { expect(log).toHaveBeenCalledExactlyOnceWith('Error deleting game 1', expect.objectContaining({ message: 'database is busy' })) } finally { log.mockRestore() }
 	})
 
-	it('bulk refreshes the selected Steam cover images', async () => {
+	it('hands only the exact selected linked IDs to safe role-only artwork review, never clear-then-sync', async () => {
 		const user = userEvent.setup()
 		currentGames = [
 			{ id: 1, name: 'Dark Souls', statusId: 1, platformId: 1, steamAppId: 570 },
@@ -395,82 +393,47 @@ describe('HomeComponent', () => {
 		await user.click(screen.getByTestId('select-2'))
 		await user.click(screen.getByTestId('bulk-refresh-cover'))
 
-		await waitFor(() => expect(mockUpdateGameById).toHaveBeenCalledWith(1, { cover: null }))
-		expect(mockSteamService.syncGame).toHaveBeenCalledWith(1)
-		expect(mockUpdateGameById).not.toHaveBeenCalledWith(2, expect.anything())
+		expect(mockMetadata.artwork).toHaveBeenCalledExactlyOnceWith([{ id: 1, name: 'Dark Souls' }], 'cover')
+		expect(mockUpdateGameById).not.toHaveBeenCalled(); expect(mockSteamService.syncGame).not.toHaveBeenCalled(); expect(mockFetchGameDetails).not.toHaveBeenCalled()
+		expect(screen.getByTestId('selected-count')).toHaveTextContent('2')
 	})
 
-	it('restores the previous image when Steam returns an unavailable image', async () => {
+	it('keeps selection and all saved URLs if the shared artwork batch cannot start', async () => {
 		const user = userEvent.setup()
-		currentGames = [{ id: 1, name: 'Final Fantasy VII Revelation', statusId: 1, cover: 'https://gdb.example/game-images/1/Games/Final_Fantasy_VII_Revelation/cover.jpg', steamAppId: 4354570 }]
-		mockFetchGameDetails.mockResolvedValue({ cover: 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4354570/library_600x900.jpg' })
-		vi.stubGlobal(
-			'Image',
-			class {
-				onload: (() => void) | null = null
-				onerror: (() => void) | null = null
-				set src(_value: string) {
-					queueMicrotask(() => this.onerror?.())
-				}
-			}
-		)
-
+		currentGames = [{ id: 1, name: 'Artwork retention fixture', statusId: 1, cover: 'https://artwork.invalid/kept-cover.jpg', steamAppId: 100 }]
+		mockMetadata.artwork.mockReturnValue(false)
 		const HomeComponent = await loadHomeComponent()
 		renderWithProviders(<HomeComponent />, { preloadedState: defaultState })
 
 		await user.click(screen.getByTestId('select-1'))
 		await user.click(screen.getByTestId('bulk-refresh-cover'))
 
-		await waitFor(() => expect(mockUpdateGameById).toHaveBeenCalledWith(1, { cover: 'https://gdb.example/game-images/1/Games/Final_Fantasy_VII_Revelation/cover.jpg' }))
+		expect(screen.getByRole('status')).toHaveTextContent('metadata.batch.startFailed'); expect(screen.getByTestId('selected-count')).toHaveTextContent('1')
+		expect(currentGames[0].cover).toBe('https://artwork.invalid/kept-cover.jpg'); expect(mockUpdateGameById).not.toHaveBeenCalled(); expect(mockSteamService.syncGame).not.toHaveBeenCalled()
 	})
 
-	it('continues with the remaining games when one refresh fails', async () => {
-		currentGames = [
-			{ id: 1, name: 'Broken Game', statusId: 1, platformId: 1, steamAppId: 570 },
-			{ id: 2, name: 'Working Game', statusId: 2, platformId: 2, steamAppId: 730 },
-		]
-		mockSteamService.syncGame.mockRejectedValueOnce(new Error('first game failed')).mockRejectedValueOnce(new Error('first game failed')).mockRejectedValueOnce(new Error('first game failed')).mockResolvedValue({})
-
-		const HomeComponent = await loadHomeComponent()
+	it('freezes metadata scope for selected displayed games, including unlinked games, in either explicit mode', async () => {
+		const HomeComponent = await loadHomeComponent(), user = userEvent.setup()
 		renderWithProviders(<HomeComponent />, { preloadedState: defaultState })
-
-		const user = userEvent.setup()
-		await user.click(screen.getByTestId('select-1'))
-		await user.click(screen.getByTestId('select-2'))
-		vi.useFakeTimers()
-		try {
-			fireEvent.click(screen.getByTestId('bulk-refresh-cover'))
-			await act(async () => { await vi.runAllTimersAsync() })
-			await Promise.resolve()
-
-			expect(mockSteamService.syncGame).toHaveBeenCalledWith(2)
-			expect(mockSteamService.syncGame).toHaveBeenCalledTimes(4)
-			expect(mockUpdateGameById).toHaveBeenCalledWith(2, { cover: null })
-		} finally {
-			vi.useRealTimers()
-		}
+		await user.click(screen.getByTestId('select-1')); await user.click(screen.getByTestId('select-3')); await user.click(screen.getByTestId('bulk-autofill'))
+		const expected = [{ id: 1, name: 'Dark Souls' }, { id: 3, name: 'Celeste' }]
+		expect(mockMetadata.start).toHaveBeenCalledExactlyOnceWith(expected, { overwrite: false }); expect(mockMetadata.artwork).not.toHaveBeenCalled()
+		await user.click(screen.getByTestId('bulk-replace')); expect(mockMetadata.start).toHaveBeenLastCalledWith(expected, { overwrite: true })
+		expect(mockUpdateGameById).not.toHaveBeenCalled(); expect(mockSteamService.syncGame).not.toHaveBeenCalled()
 	})
 
-	it('retries a failed game twice before marking it as failed', async () => {
-		currentGames = [{ id: 1, name: 'Transient Game', statusId: 1, platformId: 1, steamAppId: 570 }]
-		mockUpdateGameById.mockRejectedValueOnce(new Error('temporary failure')).mockRejectedValueOnce(new Error('temporary failure')).mockResolvedValue(undefined)
-
-		const HomeComponent = await loadHomeComponent()
-		renderWithProviders(<HomeComponent />, { preloadedState: defaultState })
-
-		const user = userEvent.setup()
-		await user.click(screen.getByTestId('select-1'))
-		vi.useFakeTimers()
-		try {
-			fireEvent.click(screen.getByTestId('bulk-refresh-cover'))
-			await act(async () => { await vi.runAllTimersAsync() })
-			await Promise.resolve()
-
-			expect(mockSteamService.syncGame).toHaveBeenCalledWith(1)
-			expect(mockUpdateGameById).toHaveBeenCalledTimes(3)
-		} finally {
-			vi.useRealTimers()
-		}
+	it('binds Replace authorization to owner, query and exact IDs rather than only selection count', async () => {
+		const HomeComponent = await loadHomeComponent(), user = userEvent.setup()
+		const { store } = renderWithProviders(<HomeComponent />, { preloadedState: { ...defaultState, auth: { user: { id: 1, username: 'Selection fixture', role: 'Standard' }, token: 'fixture', refreshToken: null, isAuthenticated: true, loading: false, error: null } } })
+		await user.click(screen.getByTestId('select-1')); const first = screen.getByTestId('selection-key').textContent
+		expect(first).toMatch(/^1:/); expect(first).toMatch(/:1$/)
+		await user.click(screen.getByTestId('select-1')); await user.click(screen.getByTestId('select-2')); expect(screen.getByTestId('selection-key').textContent).not.toBe(first); expect(screen.getByTestId('selection-key').textContent).toMatch(/:2$/)
+		act(() => { store.dispatch({ type: 'games/setFilters', payload: { ...defaultState.games!.filters, page: 2 } }) }); expect(screen.getByTestId('selected-count')).toHaveTextContent('0'); expect(screen.getByTestId('selection-key').textContent).not.toBe(first)
+	})
+	it('does not start a second information or artwork operation while the shared batch is busy', async () => {
+		const HomeComponent = await loadHomeComponent(), user = userEvent.setup(), view = renderWithProviders(<HomeComponent />, { preloadedState: defaultState })
+		await user.click(screen.getByTestId('select-1')); metadataBatch = { busy: true }; view.rerender(<HomeComponent />)
+		expect(screen.getByTestId('bulk-autofill')).toBeDisabled(); await user.click(screen.getByTestId('bulk-refresh-cover')); expect(mockMetadata.start).not.toHaveBeenCalled(); expect(mockMetadata.artwork).not.toHaveBeenCalled()
 	})
 
 	it('retains the extended sortable row columns behind More columns', async () => {

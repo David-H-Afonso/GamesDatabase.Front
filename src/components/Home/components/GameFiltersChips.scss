@@ -19,38 +19,6 @@
 		box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.45);
 	}
 
-	&__selection {
-		display: flex;
-		align-items: center;
-		gap: 10px;
-		padding: 10px 14px;
-		background: $color-bg-secondary;
-		border: 1px solid $color-border-primary;
-		border-radius: 10px;
-		flex-wrap: wrap;
-
-		[data-theme='dark'] & {
-			background: rgba(255, 255, 255, 0.05);
-			border: 1px solid rgba(255, 255, 255, 0.12);
-		}
-
-		@media (max-width: 768px) {
-			gap: 8px;
-			padding: 8px 10px;
-		}
-	}
-
-	&__selection-count {
-		font-size: 12px;
-		font-weight: 600;
-		color: $color-text-muted;
-		white-space: nowrap;
-
-		@media (max-width: 768px) {
-			font-size: 11px;
-		}
-	}
-
 	&__reset-btn {
 		padding: 7px 14px;
 		border-radius: 8px;
@@ -72,74 +40,6 @@
 			border-color: $color-primary;
 			background: rgba($color-primary, 0.1);
 			color: $color-primary;
-		}
-	}
-
-	&__selection-btn {
-		display: inline-flex;
-		align-items: center;
-		gap: 5px;
-		padding: 7px 14px;
-		border-radius: 8px;
-		border: 1px solid $color-border-primary;
-		background: $color-bg-secondary;
-		color: $color-text-secondary;
-
-		[data-theme='dark'] & {
-			background: rgba(255, 255, 255, 0.05);
-			border: 1px solid rgba(255, 255, 255, 0.12);
-		}
-		font-size: 12px;
-		font-weight: 500;
-		cursor: pointer;
-		transition: all 0.15s ease;
-		white-space: nowrap;
-
-		@media (max-width: 768px) {
-			padding: 6px 10px;
-			font-size: 11px;
-		}
-
-		&:hover {
-			border-color: $color-border-hover;
-			background: $color-bg-tertiary;
-			color: $color-text-primary;
-		}
-
-		&--danger {
-			&:hover {
-				border-color: $color-error;
-				background: rgba(239, 68, 68, 0.1);
-				color: $color-error;
-			}
-		}
-	}
-
-	&__selection-image-refresh {
-		display: inline-flex;
-		align-items: center;
-		gap: 6px;
-	}
-
-	&__selection-select {
-		min-height: 32px;
-		padding: 7px 26px 7px 10px;
-		border-radius: 8px;
-		border: 1px solid $color-border-primary;
-		background: $color-bg-secondary;
-		color: $color-text-secondary;
-		font-size: 12px;
-		font-weight: 500;
-		cursor: pointer;
-
-		[data-theme='dark'] & {
-			background: rgba(255, 255, 255, 0.05);
-			border-color: rgba(255, 255, 255, 0.12);
-		}
-
-		&:disabled {
-			cursor: not-allowed;
-			opacity: 0.65;
 		}
 	}
 

@@ -8,11 +8,13 @@ import { fetchUserPreferences } from '@/store/features/auth/authSlice'
 import { getActiveGameReplayTypes } from '@/services/GameReplayTypeService'
 import { CollectionIcon } from '@/components/Collection/CollectionIcon'
 import { CollectionSheet } from '@/components/Collection/CollectionSheet'
+import { CollectionSegmentedControl } from '@/components/Collection/CollectionSegmentedControl'
 import { NameSearchField, type NameSearchFieldHandle } from '@/components/Collection/NameSearchField'
 import { createNameSearch } from '@/utils/nameSearch'
 import { cloneFilters } from '@/utils/filterUtils/filterUtils'
 import { countGameFilters } from '@/utils/countGameFilters'
 import { setCardColumns } from '@/store/features/theme/themeSlice'
+import { LibrarySelectionToolbar } from './LibrarySelectionToolbar'
 import './GameFiltersChips.scss'
 
 interface Props {
@@ -32,6 +34,9 @@ interface Props {
 	onDeselectAll?: () => void
 	onBulkDelete?: () => void
 	onBulkEdit?: () => void
+	onBulkAutofill?: (options: { overwrite: boolean }) => void
+	bulkAutofillBusy?: boolean
+	selectionKey?: string
 	onBulkRefreshImages?: (field: 'logo' | 'hero' | 'cover') => void
 	bulkImagesDisabled?: boolean
 	/** Open the Export modal for the currently selected games */
@@ -57,7 +62,6 @@ type PopoverKey =
 	| 'favorite'
 	| 'criticProvider'
 	| 'excluded'
-	| 'pageSize'
 
 const sortOptions = [
 	{ value: 'status', labelKey: 'home.filters.fieldStatus' },
@@ -103,6 +107,9 @@ const GameFiltersChips: React.FC<Props> = ({
 	onDeselectAll,
 	onBulkDelete,
 	onBulkEdit,
+	onBulkAutofill,
+	bulkAutofillBusy = false,
+	selectionKey,
 	onBulkRefreshImages,
 	bulkImagesDisabled = false,
 	onBulkExport,
@@ -120,16 +127,9 @@ const GameFiltersChips: React.FC<Props> = ({
 	const appliedCount = appliedFilterCount ?? (locked ? 0 : countGameFilters(appliedFilters))
 	const extraFiltersRef = useRef<HTMLDetailsElement>(null)
 	const popoverOpenerRef = useRef<HTMLElement | null>(null)
-	const [bulkImageField, setBulkImageField] = useState<'logo' | 'hero' | 'cover'>('cover')
 	const { t } = useTranslation()
 	const popoverRef = useRef<HTMLDivElement | null>(null)
 	const chipsContainerRef = useRef<HTMLDivElement | null>(null)
-	const selectionMenu = useRef<HTMLDetailsElement>(null)
-	useEffect(() => {
-		const close = (event: PointerEvent) => { if (selectionMenu.current && !selectionMenu.current.contains(event.target as Node)) selectionMenu.current.open = false }
-		document.addEventListener('pointerdown', close)
-		return () => document.removeEventListener('pointerdown', close)
-	}, [])
 	useEffect(() => {
 		const focusSearch = (event: KeyboardEvent) => {
 			if (locked || event.key !== '/' || event.ctrlKey || event.metaKey || event.altKey || document.querySelector('dialog[open]')) return
@@ -141,7 +141,8 @@ const GameFiltersChips: React.FC<Props> = ({
 	}, [locked])
 
 	const dispatch = useAppDispatch()
-	const cardColumns = useAppSelector(state => state.theme.cardColumns === 4 ? 4 : 3)
+	const cardColumns = useAppSelector(state => state.theme.cardColumns === 3 ? 3 : 4)
+	const completionMode = filters.allAchievements === true ? 'strict' : filters.fullCompletion === true ? 'broad' : filters.fullCompletion === false ? 'unfinished' : filters.allAchievements === false ? 'not-strict' : 'all'
 	const currentUser = useAppSelector((state) => state.auth.user)
 	const token = useAppSelector((state) => state.auth.token)
 	const { fetchList: fetchPlatforms } = useGamePlatform()
@@ -369,11 +370,6 @@ const GameFiltersChips: React.FC<Props> = ({
 		return t('home.filters.exclusionsCount', { count: filters.excludeStatusIds.length })
 	}
 
-	const pageSizeLabel = () => {
-		if (!filters.pageSize) return t('home.filters.defaultPageSize', { size: GALLERY_PAGE_SIZE })
-		return t('home.filters.gamesPerPage', { size: filters.pageSize })
-	}
-
 	const resetAllFilters = () => {
 		setFilters({
 			search: undefined,
@@ -479,8 +475,6 @@ const GameFiltersChips: React.FC<Props> = ({
 				return !!filters.criticProvider
 			case 'excluded':
 				return !!filters.excludeStatusIds?.length
-			case 'pageSize':
-				return false
 			default:
 				return false
 		}
@@ -512,55 +506,20 @@ const GameFiltersChips: React.FC<Props> = ({
 		<section className='game-filters-chips'>
 			{/* SELECTION CONTROLS */}
 			{(selectedCount > 0 || selecting) && (
-				<div className='game-filters-chips__selection'>
-					<span className='game-filters-chips__selection-count'>{t('home.chips.selected', { count: selectedCount })}</span>
-					{onToggleSelection && onSelectAll && <button type='button' className='game-filters-chips__selection-btn' onClick={onSelectAll}>{t('gallery.library.selectVisible')}</button>}
-					{onDeselectAll && (
-						<button type='button' className='game-filters-chips__selection-btn' onClick={onDeselectAll}>
-							{t('home.chips.deselect')}
-						</button>
-					)}
-					{onBulkEdit && (
-						<button type='button' className='game-filters-chips__selection-btn' disabled={!selectedCount} onClick={onBulkEdit}>
-							{t('home.chips.bulkEdit')}
-						</button>
-					)}
-					<details ref={selectionMenu} className='gdb-selection-more' onKeyDown={event => { if (event.key === 'Escape' && event.currentTarget.open) { event.preventDefault(); event.stopPropagation(); event.currentTarget.open = false; event.currentTarget.querySelector('summary')?.focus() } }}><summary aria-label={t('gallery.library.moreActions')}><CollectionIcon name='more' /></summary><div>
-					{onBulkRefreshImages && (
-						<div className='game-filters-chips__selection-image-refresh'>
-							<select
-								className='game-filters-chips__selection-select'
-								value={bulkImageField}
-								onChange={(event) => setBulkImageField(event.target.value as 'logo' | 'hero' | 'cover')}
-									disabled={bulkImagesDisabled || !selectedCount}
-								aria-label={t('home.chips.bulkImageField')}>
-								<option value='cover'>{t('home.imageFields.cover')}</option>
-								<option value='hero'>{t('home.imageFields.hero')}</option>
-								<option value='logo'>{t('home.imageFields.logo')}</option>
-							</select>
-							<button type='button' className='game-filters-chips__selection-btn' onClick={() => onBulkRefreshImages(bulkImageField)} disabled={bulkImagesDisabled || !selectedCount}>
-								{bulkImagesDisabled ? t('home.chips.bulkImagesRefreshing') : t('home.chips.bulkImages')}
-							</button>
-						</div>
-					)}
-					{onBulkDelete && (
-						<button type='button' className='game-filters-chips__selection-btn game-filters-chips__selection-btn--danger' disabled={!selectedCount} onClick={onBulkDelete}>
-							{t('home.chips.bulkDelete')}
-						</button>
-					)}
-					{onBulkExport && (
-						<button type='button' className='game-filters-chips__selection-btn' disabled={!selectedCount} onClick={onBulkExport}>
-							<svg width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2.5' strokeLinecap='round' strokeLinejoin='round' aria-hidden='true'>
-								<path d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4' />
-								<polyline points='17 8 12 3 7 8' />
-								<line x1='12' y1='3' x2='12' y2='15' />
-							</svg>
-							{t('home.chips.bulkExport')}
-						</button>
-					)}
-					</div></details>
-					{onToggleSelection && <button type='button' className='gdb-text-button gdb-selection-done' onClick={onToggleSelection}>{t('gallery.common.done')}<CollectionIcon name='close' /></button>}
-				</div>
+				<LibrarySelectionToolbar
+					selectedCount={selectedCount}
+					selectionKey={JSON.stringify([currentUser?.id, selectionKey, appliedFilters, currentView])}
+					onSelectAll={onToggleSelection ? onSelectAll : undefined}
+					onDeselectAll={onDeselectAll}
+					onBulkEdit={onBulkEdit}
+					onBulkDelete={onBulkDelete}
+					onBulkExport={onBulkExport}
+					onBulkRefreshImages={onBulkRefreshImages}
+					bulkImagesDisabled={bulkImagesDisabled}
+					onBulkAutofill={onBulkAutofill}
+					bulkAutofillBusy={bulkAutofillBusy}
+					onDone={onToggleSelection}
+				/>
 			)}
 
 			{/* TOP ROW */}
@@ -709,9 +668,16 @@ const GameFiltersChips: React.FC<Props> = ({
 					<label>{t('gallery.library.statusLabel')}<select aria-label={t('gallery.library.statusLabel')} value={filters.statusId ?? ''} onChange={event => setFilters({ statusId: event.target.value ? Number(event.target.value) : undefined })}><option value=''>{t('gallery.library.anyStatus')}</option>{statusOptions.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
 					<label>{t('home.filters.platform')}<select aria-label={t('home.filters.platform')} value={filters.platformId ?? ''} onChange={event => setFilters({ platformId: event.target.value ? Number(event.target.value) : undefined })}><option value=''>{t('gallery.library.allPlatforms')}</option>{platformOptions.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
 					<label>{t('home.filters.playedStatus')}<select aria-label={t('home.filters.playedStatus')} value={filters.playedStatusId ?? ''} onChange={event => setFilters({ playedStatusId: event.target.value ? Number(event.target.value) : undefined })}><option value=''>{t('gallery.library.anyPlayedStatus')}</option>{playedStatusOptions.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
-					<label>{t('gallery.library.completion')}<select aria-label={t('gallery.library.completion')} value={filters.allAchievements === true ? 'strict' : filters.fullCompletion === true ? 'broad' : filters.fullCompletion === false ? 'unfinished' : filters.allAchievements === false ? 'not-strict' : 'all'} onChange={event => setFilters({ fullCompletion: event.target.value === 'broad' ? true : event.target.value === 'unfinished' ? false : undefined, allAchievements: event.target.value === 'strict' ? true : event.target.value === 'not-strict' ? false : undefined })}><option value='all'>{t('gallery.library.allGames')}</option><option value='broad'>{t('home.filters.fullCompletion')}</option><option value='strict'>{t('gallery.statistics.strict')}</option><option value='unfinished'>{t('gallery.library.unfinished')}</option>{filters.allAchievements === false && <option value='not-strict'>{t('gallery.library.notStrict')}</option>}</select></label>
 					<label>{t('gallery.library.historyMaximum')}<span className='gdb-filter-unit'><input type='number' min={0} step={1} aria-label={t('gallery.library.historyMaximum')} placeholder={t('gallery.library.noLimit')} value={filters.maxStory ?? ''} onChange={event => setFilters({ maxStory: event.target.value === '' ? undefined : Number(event.target.value) })} /><span>{t('gallery.library.hoursUnit')}</span></span></label>
+					<label>{t('home.filters.pageSize')}<select aria-label={t('home.filters.pageSize')} value={filters.pageSize ?? ''} onChange={event => setFilters({ pageSize: event.target.value ? Number(event.target.value) : undefined })}><option value=''>{t('home.filters.defaultPageSize', { size: GALLERY_PAGE_SIZE })}</option>{filters.pageSize && ![10, 25, 50, 100, 200].includes(filters.pageSize) && <option value={filters.pageSize}>{t('home.filters.gamesPerPage', { size: filters.pageSize })}</option>}{[10, 25, 50, 100, 200].map(size => <option key={size} value={size}>{t('home.filters.gamesPerPage', { size })}</option>)}</select></label>
 					<label className='gdb-check-label gdb-filter-favorites'><input type='checkbox' checked={filters.favorite === true} onChange={event => setFilters({ favorite: event.target.checked ? true : undefined })} /><span>{t('gallery.library.onlyFavorites')}</span><CollectionIcon name='star' /></label>
+					<CollectionSegmentedControl className='gdb-filter-completion' label={t('gallery.library.completion')} value={completionMode} options={[
+						{ value: 'all', label: t('gallery.library.allGames') },
+						{ value: 'broad', label: t('home.filters.fullCompletion'), description: t('home.filters.fullCompletionHint') },
+						{ value: 'strict', label: t('home.filters.allAchievements'), description: t('home.filters.allAchievementsHint') },
+						{ value: 'unfinished', label: t('gallery.library.unfinished') },
+						...(filters.allAchievements === false ? [{ value: 'not-strict', label: t('gallery.library.notStrict') }] : []),
+					]} onChange={value => setFilters({ fullCompletion: value === 'broad' ? true : value === 'unfinished' ? false : undefined, allAchievements: value === 'strict' ? true : value === 'not-strict' ? false : undefined })} />
 					{onToggleSelection && <button type='button' className='gdb-text-button gdb-filter-select' onClick={() => { setShowAdvancedFilters(false); onToggleSelection() }}><CollectionIcon name='select' />{t(selecting ? 'gallery.library.finishSelection' : 'gallery.library.select')}</button>}
 					{validationError && <p className='gdb-error' role='alert'>{t('gallery.rules.invalidBounds')}</p>}
 					<details ref={extraFiltersRef} className='gdb-library-extra-filters' onToggle={event => { if (!event.currentTarget.open) setOpenPopover(null) }}><summary>{t('gallery.library.moreFilters')}<CollectionIcon name='down' /></summary><div>
@@ -846,23 +812,6 @@ const GameFiltersChips: React.FC<Props> = ({
 							{t('home.filters.exclusions')}: <span>{excludedLabel()}</span>
 						</button>
 
-						<button type='button' className={'game-filters-chips__chip' + (hasActiveFilter('pageSize') ? ' is-active' : '')} onClick={() => togglePopover('pageSize')}>
-							{t('home.filters.page')}: <span>{pageSizeLabel()}</span>
-						</button>
-
-						<button
-							type='button'
-							className={'game-filters-chips__chip' + (filters.fullCompletion === true ? ' is-active' : '')}
-							aria-pressed={filters.fullCompletion === true}
-							title={t('home.filters.fullCompletionHint')}
-							onClick={() => setFilters({ fullCompletion: filters.fullCompletion === true ? undefined : true, allAchievements: undefined })}>
-							{t('home.filters.fullCompletion')}
-						</button>
-						<button type='button' className={'game-filters-chips__chip' + (filters.allAchievements === true ? ' is-active' : '')}
-							aria-pressed={filters.allAchievements === true} title={t('home.filters.allAchievementsHint')}
-							onClick={() => setFilters({ allAchievements: filters.allAchievements === true ? undefined : true, fullCompletion: undefined })}>
-							{t('home.filters.allAchievements')}
-						</button>
 					</div>
 					{openPopover && (
 						<div className='game-filters-chips__popover' ref={popoverRef}>
@@ -1375,29 +1324,6 @@ const GameFiltersChips: React.FC<Props> = ({
 									<button type='button' className='game-filters-chips__clear-btn' onClick={() => setFilters({ excludeStatusIds: undefined })}>
 										{t('common.clear')}
 									</button>
-								</>
-							)}
-
-							{openPopover === 'pageSize' && (
-								<>
-									<strong className='game-filters-chips__popover-title'>{t('home.filters.pageSize')}</strong>
-									<div className='game-filters-chips__popover-options'>
-										<button
-											type='button'
-											className={'game-filters-chips__option' + (!filters.pageSize || filters.pageSize === GALLERY_PAGE_SIZE ? ' is-active' : '')}
-											onClick={() => setFilters({ pageSize: undefined })}>
-											{t('common.default')}
-										</button>
-										{[10, 25, 50, 100, 200].map((size) => (
-											<button
-												key={size}
-												type='button'
-												className={'game-filters-chips__option' + (filters.pageSize === size ? ' is-active' : '')}
-												onClick={() => setFilters({ pageSize: size })}>
-												{t('home.filters.gamesCount', { size })}
-											</button>
-										))}
-									</div>
 								</>
 							)}
 

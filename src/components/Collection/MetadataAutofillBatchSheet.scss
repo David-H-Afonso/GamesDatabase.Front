@@ -1,0 +1,26 @@
+.gdb-metadata-batch-sheet {
+	width: min(660px, 100vw);
+	&[open] { display: flex; flex-direction: column; overflow: hidden; }
+	> .gdb-sheet__head, > .gdb-sheet__footer { position: static; flex-shrink: 0; }
+	> .gdb-sheet__body { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; scroll-padding-block: 16px; }
+	> .gdb-sheet__body:focus-visible { outline: 2px solid var(--gdb-accent); outline-offset: -4px; }
+	.gdb-sheet__footer { flex-wrap: wrap; gap: 10px; }
+}
+.gdb-metadata-batch-progress {
+	display: grid; gap: 12px; margin-block: 22px; padding: 18px; border: 1px solid var(--gdb-line); border-radius: 8px; background: var(--gdb-raised); color: var(--gdb-text);
+	strong { font: 550 16px/1.5 var(--gdb-body); }
+	progress { width: 100%; height: 8px; accent-color: var(--gdb-accent); }
+	p { margin: 0; overflow-wrap: anywhere; color: var(--gdb-secondary); font: 450 14px/1.5 var(--gdb-body); }
+}
+.gdb-metadata-batch-results {
+	list-style: none; padding: 0; margin: 0;
+	li { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding-block: 16px; border-top: 1px solid var(--gdb-line); }
+	li > div { min-width: 0; display: grid; gap: 5px; }
+	strong { font: 550 15px/1.5 var(--gdb-body); color: var(--gdb-text); overflow-wrap: anywhere; }
+	span, p { margin: 0; font: 450 13px/1.6 var(--gdb-body); color: var(--gdb-secondary); overflow-wrap: anywhere; }
+	li > button { flex-shrink: 0; min-height: 44px; }
+}
+@media (max-width: 650px) {
+	.gdb-metadata-batch-progress p, .gdb-metadata-batch-results strong, .gdb-metadata-batch-results span, .gdb-metadata-batch-results p { font-size: 16px; }
+	.gdb-metadata-batch-results li { flex-wrap: wrap; }
+}

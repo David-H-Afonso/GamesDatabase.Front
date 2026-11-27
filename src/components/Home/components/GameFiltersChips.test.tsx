@@ -6,8 +6,15 @@ import type { RootState } from '@/store'
 
 vi.mock('react-i18next', () => ({
 	useTranslation: () => ({
+		i18n: { language: 'en', resolvedLanguage: 'en' },
 		t: (key: string, options?: Record<string, unknown>) => {
 			const translations: Record<string, string> = {
+				'gallery.bulkToolbar.label': 'Selection actions',
+				'gallery.bulkToolbar.autofill': 'Autofill',
+				'gallery.bulkToolbar.replaceLabel': 'Replace existing metadata',
+				'gallery.bulkToolbar.replaceTitle': 'Allow replacing existing values?',
+				'gallery.bulkToolbar.enableReplace': 'Enable Replace',
+				'gallery.bulkToolbar.keepExisting': 'Keep existing',
 				'gallery.library.filters': 'Filters',
 				'gallery.library.applyFilters': 'Apply filters',
 				'gallery.library.filterTitle': 'Filter library',
@@ -155,6 +162,16 @@ const renderLoaded = async (...args: Parameters<typeof renderWithProviders>) => 
 
 describe('GameFiltersChips', () => {
 	const user = userEvent.setup()
+	it('puts page size immediately before favorites and completion choices after them, outside More filters', async () => {
+		const GameFiltersChips = await loadGameFiltersChips(), onFiltersChange = vi.fn()
+		await renderLoaded(<GameFiltersChips filters={{ pageSize: 12, fullCompletion: false }} onFiltersChange={onFiltersChange} onSearchChange={vi.fn()} onSortChange={vi.fn()} />, { preloadedState: defaultState })
+		await user.click(screen.getByRole('button', { name: 'Filters' }))
+		const page = screen.getByRole('combobox', { name: 'Page size' }), favorite = screen.getByRole('checkbox', { name: 'Only my favorites' }), completion = screen.getByRole('group', { name: 'Completion' })
+		expect(page.closest('details')).toBeNull(); expect(completion.closest('details')).toBeNull(); expect(page.closest('label')?.nextElementSibling).toBe(favorite.closest('label')); expect(favorite.closest('label')?.nextElementSibling).toBe(completion)
+		expect(page).toHaveValue('12'); expect(screen.getByRole('radio', { name: 'gallery.library.unfinished' })).toBeChecked()
+		await user.selectOptions(page, '50'); await user.click(screen.getByRole('radio', { name: '100% total' })); expect(onFiltersChange).not.toHaveBeenCalled()
+		await user.click(screen.getByRole('button', { name: 'View games' })); expect(onFiltersChange).toHaveBeenLastCalledWith(expect.objectContaining({ pageSize: 50, page: 1, allAchievements: true, fullCompletion: undefined }))
+	})
 
 	it('keeps broad completion and strict 100% as separate mutually exclusive filters', async () => {
 		const onFiltersChange = vi.fn()
@@ -162,13 +179,13 @@ describe('GameFiltersChips', () => {
 		const props = { onFiltersChange, onSearchChange: vi.fn(), onSortChange: vi.fn() }
 		const { rerender } = await renderLoaded(<GameFiltersChips {...props} filters={{ fullCompletion: true }} />, { preloadedState: defaultState })
 		await user.click(screen.getByRole('button', { name: 'Filters' }))
-		await user.selectOptions(screen.getByRole('combobox', { name: 'Completion' }), 'strict')
+		await user.click(screen.getByRole('radio', { name: '100% total' }))
 		expect(onFiltersChange).not.toHaveBeenCalled()
 		await user.click(screen.getByRole('button', { name: 'View games' }))
 		expect(onFiltersChange).toHaveBeenLastCalledWith(expect.objectContaining({ fullCompletion: undefined, allAchievements: true }))
 		rerender(<GameFiltersChips {...props} filters={{ allAchievements: true }} />)
 		await user.click(screen.getByRole('button', { name: 'Filters' }))
-		await user.selectOptions(screen.getByRole('combobox', { name: 'Completion' }), 'broad')
+		await user.click(screen.getByRole('radio', { name: 'Completed' }))
 		await user.click(screen.getByRole('button', { name: 'View games' }))
 		expect(onFiltersChange).toHaveBeenLastCalledWith(expect.objectContaining({ fullCompletion: true, allAchievements: undefined }))
 	})
@@ -301,6 +318,40 @@ describe('GameFiltersChips', () => {
 		expect(screen.getByText('Delete')).toBeInTheDocument()
 	})
 
+	it('forwards confirmed Autofill mode and resets it on exact selection changes without changing search or layout controls', async () => {
+		const GameFiltersChips = await loadGameFiltersChips(), onBulkAutofill = vi.fn()
+		const props = { filters: defaultFilters, onFiltersChange: vi.fn(), onSearchChange: vi.fn(), onSortChange: vi.fn(), onViewModeChange: vi.fn(), viewMode: 'cover' as const, selectedCount: 2, onBulkAutofill }
+		const view = await renderLoaded(<GameFiltersChips {...props} selectionKey='owner:1/query:a/11,12' />, { preloadedState: defaultState })
+		await user.click(screen.getByRole('button', { name: 'Autofill' }))
+		expect(onBulkAutofill).toHaveBeenCalledExactlyOnceWith({ overwrite: false })
+		onBulkAutofill.mockClear()
+		await user.click(screen.getByRole('checkbox', { name: 'Replace existing metadata' }))
+		expect(onBulkAutofill).not.toHaveBeenCalled()
+		await user.keyboard('/')
+		expect(screen.getByRole('button', { name: 'Keep existing' })).toHaveFocus()
+		await user.click(screen.getByRole('button', { name: 'Enable Replace' }))
+		expect(onBulkAutofill).not.toHaveBeenCalled()
+		await user.click(screen.getByRole('button', { name: 'Autofill' }))
+		expect(onBulkAutofill).toHaveBeenCalledExactlyOnceWith({ overwrite: true })
+		view.rerender(<GameFiltersChips {...props} selectionKey='owner:1/query:a/21,22' />)
+		expect(screen.getByRole('checkbox', { name: 'Replace existing metadata' })).not.toBeChecked()
+		expect(screen.getByRole('searchbox', { name: 'Search' })).toHaveAttribute('type', 'search')
+		expect(screen.getByRole('button', { name: 'Cards' })).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: 'Row' })).toBeInTheDocument()
+		expect(props.onFiltersChange).not.toHaveBeenCalled(); expect(props.onSearchChange).not.toHaveBeenCalled()
+	})
+
+	it('also resets replacement mode on an applied Library query change when the optional selection key is absent', async () => {
+		const GameFiltersChips = await loadGameFiltersChips()
+		const props = { onFiltersChange: vi.fn(), onSearchChange: vi.fn(), onSortChange: vi.fn(), selectedCount: 2, onBulkAutofill: vi.fn() }
+		const view = await renderLoaded(<GameFiltersChips {...props} filters={{ favorite: true }} />, { preloadedState: defaultState })
+		await user.click(screen.getByRole('checkbox', { name: 'Replace existing metadata' }))
+		await user.click(screen.getByRole('button', { name: 'Enable Replace' }))
+		view.rerender(<GameFiltersChips {...props} filters={{ favorite: false }} />)
+		expect(screen.getByRole('checkbox', { name: 'Replace existing metadata' })).not.toBeChecked()
+		expect(props.onBulkAutofill).not.toHaveBeenCalled()
+	})
+
 	it('calls onBulkDelete when Eliminar button is clicked', async () => {
 		const onBulkDelete = vi.fn()
 		const GameFiltersChips = await loadGameFiltersChips()
@@ -342,7 +393,7 @@ describe('GameFiltersChips', () => {
 
 		expect(screen.getByRole('combobox', { name: 'Platform' })).toBeVisible()
 		expect(screen.getByRole('combobox', { name: 'Status' })).toBeVisible()
-		expect(screen.getByRole('combobox', { name: 'Completion' })).toBeVisible()
+		expect(screen.getByRole('group', { name: 'Completion' })).toBeVisible()
 		await user.click(screen.getByText('More filters'))
 		expect(screen.getByText(/Grade:/)).toBeVisible()
 	})
@@ -365,7 +416,7 @@ describe('GameFiltersChips', () => {
 		expect(screen.getByRole('spinbutton', { name: 'Estimated story, at most' })).toHaveValue(20)
 		await user.clear(screen.getByRole('spinbutton', { name: 'Estimated story, at most' }))
 		await user.type(screen.getByRole('spinbutton', { name: 'Estimated story, at most' }), '0')
-		await user.selectOptions(screen.getByRole('combobox', { name: 'Completion' }), 'unfinished')
+		await user.click(screen.getByRole('radio', { name: 'gallery.library.unfinished' }))
 		await user.click(screen.getByRole('button', { name: 'View games' }))
 		expect(onFiltersChange).toHaveBeenLastCalledWith(expect.objectContaining({ favorite: true, maxStory: 0, fullCompletion: false, allAchievements: undefined }))
 	})

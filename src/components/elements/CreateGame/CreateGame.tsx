@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState, type ReactNode } from 'react'
+import { forwardRef, useEffect, useId, useImperativeHandle, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Game, GameCreateDto } from '@/models/api/Game'
 import { Modal, GameDetails, ConfirmDialog } from '@/components/elements'
@@ -17,6 +17,8 @@ import { useCollectionDetails } from '@/components/Collection/collectionDetailsC
 import { CollectionGameDetails } from '@/components/Collection/CollectionGameDetailsLazy'
 import './GalleryCreateGame.scss'
 import { creationRequestId } from '@/utils/creationRequestId'
+import { readCreateSteamPreference, saveCreateSteamPreference } from '@/utils/createGamePreferences'
+import { useGameMetadata } from '@/components/Collection/gameMetadataContext'
 
 const STEAM_ICON_URL = `${import.meta.env.BASE_URL}platform-icons/steam.png`
 const STEAM_SEARCH_DEBOUNCE_MS = 350
@@ -188,16 +190,22 @@ const OwnedCreateGame = forwardRef<CreateGameHandle, CreateGameProps>(({ classNa
 	const { t } = useTranslation()
 	const dispatch = useAppDispatch()
 	const details = useCollectionDetails()
+	const metadata = useGameMetadata()
+	const authUser = useAppSelector((state) => state.auth.user)
+	const lastSteamSearchEnabled = useRef<boolean | undefined>(undefined)
+	if (lastSteamSearchEnabled.current === undefined) lastSteamSearchEnabled.current = readCreateSteamPreference(authUser?.id)
+	const initialTitleFocus = useRef<HTMLElement | null>(null)
 	const platforms = useAppSelector((state) => (state.gamePlatform.platforms.length ? state.gamePlatform.platforms : state.gamePlatform.activePlatforms))
 	const [isModalOpen, setIsModalOpen] = useState(false)
 	const [isSubmitting, setIsSubmitting] = useState(false)
+	const [autofillAfterImport, setAutofillAfterImport] = useState(false)
+	const autofillHelpId = useId()
 	const [submitError, setSubmitError] = useState<string | null>(null)
 	const [createdGameId, setCreatedGameId] = useState<number | null>(null)
 	const [createdGameFallback, setCreatedGameFallback] = useState<Game | null>(null)
 	const [isDetailsOpen, setIsDetailsOpen] = useState(false)
 	const [deleteTarget, setDeleteTarget] = useState<Game | null>(null)
 	const [lastAddedRowId, setLastAddedRowId] = useState<string | null>(null)
-	const [lastSteamSearchEnabled, setLastSteamSearchEnabled] = useState(false)
 	const [touchedRows, setTouchedRows] = useState<Set<string>>(new Set())
 	const [steamSearchByRowId, setSteamSearchByRowId] = useState<Record<string, SteamSearchState>>({})
 	const searchSequenceByRowId = useRef<Record<string, number>>({})
@@ -208,7 +216,6 @@ const OwnedCreateGame = forwardRef<CreateGameHandle, CreateGameProps>(({ classNa
 	const mounted = useRef(true)
 	useEffect(() => { mounted.current = true; return () => { mounted.current = false } }, [])
 
-	const authUser = useAppSelector((state) => state.auth.user)
 	const isSteamLinked = !!authUser?.steamId
 	const { library, libraryLoading } = useAppSelector((state) => state.steam)
 	const storeCreatedGame = useAppSelector((state) => (createdGameId ? selectGameById(createdGameId)(state) : undefined))
@@ -218,7 +225,9 @@ const OwnedCreateGame = forwardRef<CreateGameHandle, CreateGameProps>(({ classNa
 	const [statusOptions, setStatusOptions] = useState<{ value: number; label: string }[]>([])
 	const [catalogLoading, setCatalogLoading] = useState(true), [catalogError, setCatalogError] = useState(false)
 	const [defaultStatusId, setDefaultStatusId] = useState<number | undefined>(undefined)
-	const [rows, setRows] = useState<GameRow[]>(() => [createManualRow('')])
+	const [rows, setRows] = useState<GameRow[]>(() => [createManualRow('', lastSteamSearchEnabled.current)])
+	const focusTargetRowId = lastAddedRowId ?? rows.find(row => row.type === 'manual' && !savedRows.current.has(row.id))?.id ?? rows[0]?.id
+	const rememberSteamSearch = (enabled: boolean) => { lastSteamSearchEnabled.current = enabled; saveCreateSteamPreference(authUser?.id, enabled) }
 
 	useEffect(() => {
 		if (storeCreatedGame) {
@@ -343,13 +352,14 @@ const OwnedCreateGame = forwardRef<CreateGameHandle, CreateGameProps>(({ classNa
 	}, [gallery, isModalOpen, lastAddedRowId, rows.length])
 
 	const resetRows = () => {
-		const row = createManualRow(defaultStatusId ?? '', lastSteamSearchEnabled)
+		const row = createManualRow(defaultStatusId ?? '', lastSteamSearchEnabled.current)
 		setRows([row])
 		setLastAddedRowId(row.id)
 		setTouchedRows(new Set())
 		setSteamSearchByRowId({})
 		setSubmitError(null)
 		setOutcomes({}); createdRows.current.clear(); importedRows.current.clear(); savedRows.current.clear()
+		setAutofillAfterImport(false)
 		setActiveSearchRowId(null)
 	}
 
@@ -374,7 +384,7 @@ const OwnedCreateGame = forwardRef<CreateGameHandle, CreateGameProps>(({ classNa
 	}
 
 	const addRow = () => {
-		const newRow = createManualRow(defaultStatusId ?? '', lastSteamSearchEnabled)
+		const newRow = createManualRow(defaultStatusId ?? '', lastSteamSearchEnabled.current)
 		setRows((currentRows) => [...currentRows, newRow])
 		setLastAddedRowId(newRow.id)
 	}
@@ -382,7 +392,7 @@ const OwnedCreateGame = forwardRef<CreateGameHandle, CreateGameProps>(({ classNa
 	const removeRow = (rowId: string) => {
 		const index = rows.findIndex(row => row.id === rowId)
 		const remaining = rows.filter(row => row.id !== rowId)
-		const next = remaining.length ? remaining : [createManualRow(defaultStatusId ?? '', lastSteamSearchEnabled)]
+		const next = remaining.length ? remaining : [createManualRow(defaultStatusId ?? '', lastSteamSearchEnabled.current)]
 		setRows(next)
 		setLastAddedRowId(next[Math.min(Math.max(0, index), next.length - 1)].id)
 		if (activeSearchRowId === rowId) setActiveSearchRowId(null)
@@ -411,7 +421,7 @@ const OwnedCreateGame = forwardRef<CreateGameHandle, CreateGameProps>(({ classNa
 
 	const toggleSteamSearch = (row: ManualGameRow) => {
 		const nextEnabled = !row.steamSearchEnabled
-		setLastSteamSearchEnabled(nextEnabled)
+		rememberSteamSearch(nextEnabled)
 		updateManualRow(row.id, { steamSearchEnabled: nextEnabled })
 		setActiveSearchRowId(nextEnabled ? row.id : null)
 		if (gallery) document.getElementById(`${row.id}-name`)?.focus()
@@ -427,6 +437,7 @@ const OwnedCreateGame = forwardRef<CreateGameHandle, CreateGameProps>(({ classNa
 
 	const selectSteamSuggestion = (row: ManualGameRow, suggestion: SteamSuggestion) => {
 		if (suggestion.gdbGameId || rows.some(value => value.type === 'steam' && value.appId === suggestion.appId)) return
+		rememberSteamSearch(true)
 
 		const selectedRow: SteamGameRow = {
 			id: row.id,
@@ -455,9 +466,11 @@ const OwnedCreateGame = forwardRef<CreateGameHandle, CreateGameProps>(({ classNa
 
 	const unlinkSteamRow = (row: SteamGameRow) => {
 		if (importedRows.current.has(row.id)) return
+		rememberSteamSearch(false)
 		const manual: ManualGameRow = { ...(row.manualDraft ?? createManualRow(row.statusId)), id: row.id, name: row.name, statusId: row.statusId, cheaperBy: row.cheaperBy, showExtraFields: row.showExtraFields, steamSearchEnabled: false }
 		setRows(current => current.map(value => value.id === row.id ? manual : value))
 		setActiveSearchRowId(null)
+		setLastAddedRowId(row.id)
 	}
 
 	const markRowTouched = (rowId: string, shouldValidate = true) => {
@@ -479,17 +492,14 @@ const OwnedCreateGame = forwardRef<CreateGameHandle, CreateGameProps>(({ classNa
 			return updates
 		}, new Map<string, { gameIds: number[]; statusId: number; isCheaperByKey?: boolean }>())
 
-		await Promise.all(
-			Array.from(updatesByPatch.values()).map(async (patch) => {
-				const result = await bulkUpdateGamesById({
-					gameIds: patch.gameIds,
-					statusId: patch.statusId,
-					...(patch.isCheaperByKey !== undefined ? { isCheaperByKey: patch.isCheaperByKey } : {}),
-				})
-				if (result.updatedCount !== patch.gameIds.length) throw new Error('Incomplete import settings update')
-			}
-			)
-		)
+		for (const patch of updatesByPatch.values()) {
+			const result = await bulkUpdateGamesById({
+				gameIds: patch.gameIds,
+				statusId: patch.statusId,
+				...(patch.isCheaperByKey !== undefined ? { isCheaperByKey: patch.isCheaperByKey } : {}),
+			})
+			if (result.updatedCount !== patch.gameIds.length) throw new Error('Incomplete import settings update')
+		}
 	}
 
 	const handleBatchSubmit = async () => {
@@ -571,6 +581,18 @@ const OwnedCreateGame = forwardRef<CreateGameHandle, CreateGameProps>(({ classNa
 				return
 			}
 
+			if (autofillAfterImport) {
+				const targets = [...new Map(rows.flatMap(row => {
+					const created = createdRows.current.get(row.id), imported = importedRows.current.get(row.id)
+					if (created) return [[created.id, { id: created.id, name: created.name }] as const]
+					if (imported?.gdbGameId && (imported.action === 'created' || imported.action === 'linked')) return [[imported.gdbGameId, { id: imported.gdbGameId, name: imported.name }] as const]
+					return []
+				})).values()]
+				if (targets.length) {
+					if (!metadata?.openBatch(targets, { overwrite: false })) { setSubmitError(t('metadata.batch.startFailed')); return }
+					setIsModalOpen(false); resetRows(); dispatch(triggerGamesRefresh()); return
+				}
+			}
 			const createdGames = rows.flatMap(row => createdRows.current.has(row.id) ? [createdRows.current.get(row.id)!] : [])
 			const uniqueImportedIds = [...new Set(rows.flatMap(row => importedRows.current.get(row.id)?.gdbGameId ?? []))]
 			let onlyGame = createdGames.length + uniqueImportedIds.length === 1 ? createdGames[0] : undefined
@@ -823,6 +845,7 @@ const OwnedCreateGame = forwardRef<CreateGameHandle, CreateGameProps>(({ classNa
 							<div className='gdb-create-saved'><strong>{row.name}</strong>{outcomes[row.id]?.message && <span>{outcomes[row.id].message}</span>}</div>
 						</> : <>
 							{isSteamLinked && <button id={`${row.id}-source`} type='button' className='gdb-icon-button gdb-create-source'
+								ref={row.type === 'steam' && row.id === focusTargetRowId ? node => { initialTitleFocus.current = node } : undefined}
 								aria-label={t(row.type === 'steam' ? 'gallery.create.manual' : 'gallery.create.searchSteam')}
 								aria-pressed={steamEnabled}
 								title={t(row.type === 'steam' ? 'gallery.create.manual' : row.steamSearchEnabled ? 'game.createModal.steamSearchEnabled' : 'game.createModal.steamSearchDisabled')}
@@ -832,7 +855,7 @@ const OwnedCreateGame = forwardRef<CreateGameHandle, CreateGameProps>(({ classNa
 							</button>}
 							{row.type === 'manual' ? <label className='gdb-create-title-field'>
 								<span className='sr-only'>{t('gallery.create.titleLabel')}</span>
-								<input id={`${row.id}-name`} className='gdb-create-name' value={row.name} onFocus={() => setActiveSearchRowId(row.id)} onChange={event => { updateManualRow(row.id, { name: event.target.value, hasEditedName: true }); setActiveSearchRowId(row.id) }} placeholder={t('game.titlePlaceholder')} required pattern='.*\S.*' maxLength={500} onBlur={() => markRowTouched(row.id, row.hasEditedName)} onInvalid={() => markRowTouched(row.id)} aria-invalid={touchedRows.has(row.id) && !row.name.trim() || undefined} aria-describedby={row.steamSearchEnabled ? `${row.id}-steam-help` : undefined} aria-controls={searchVisible ? `${row.id}-results` : undefined}
+								<input id={`${row.id}-name`} className='gdb-create-name' autoComplete='off' autoFocus={row.id === focusTargetRowId} ref={row.id === focusTargetRowId ? node => { initialTitleFocus.current = node } : undefined} value={row.name} onFocus={() => setActiveSearchRowId(row.id)} onChange={event => { updateManualRow(row.id, { name: event.target.value, hasEditedName: true }); setActiveSearchRowId(row.id) }} placeholder={t('game.titlePlaceholder')} required pattern='.*\S.*' maxLength={500} onBlur={() => markRowTouched(row.id, row.hasEditedName)} onInvalid={() => markRowTouched(row.id)} aria-invalid={touchedRows.has(row.id) && !row.name.trim() || undefined} aria-describedby={row.steamSearchEnabled ? `${row.id}-steam-help` : undefined} aria-controls={searchVisible ? `${row.id}-results` : undefined}
 									onKeyDown={event => { if (event.key === 'ArrowDown' && searchVisible) { const result = document.getElementById(`${row.id}-results`)?.querySelector<HTMLButtonElement>('button:not(:disabled)'); if (result) { event.preventDefault(); result.focus() } } }} />
 							</label> : <strong className='gdb-create-steam-title' title={row.name}>{row.name}</strong>}
 							{row.type === 'manual' && row.steamSearchEnabled && <span id={`${row.id}-steam-help`} className='sr-only'>{t('gallery.create.steamHelp')}</span>}
@@ -857,6 +880,8 @@ const OwnedCreateGame = forwardRef<CreateGameHandle, CreateGameProps>(({ classNa
 				<CollectionIcon name='plus' />
 				{t('game.addAnotherRow')}
 			</button>
+			<label className='gdb-check-label gdb-create-autofill'><input type='checkbox' checked={autofillAfterImport} disabled={isSubmitting || !metadata?.openBatch} aria-describedby={autofillAfterImport ? autofillHelpId : undefined} onChange={event => setAutofillAfterImport(event.target.checked)} />{t('metadata.batch.autoAfterImport')}</label>
+			{autofillAfterImport && <p id={autofillHelpId} className='gdb-hint gdb-create-autofill-help'>{t('metadata.batch.afterImportHelp')}</p>}
 		</form>
 	)
 
@@ -869,6 +894,8 @@ const OwnedCreateGame = forwardRef<CreateGameHandle, CreateGameProps>(({ classNa
 						onClose={() => !isSubmitting && closeModal()}
 						title={t('game.addGame')}
 						className='gdb-create-game-sheet'
+						initialFocusRef={initialTitleFocus}
+						closeDisabled={isSubmitting}
 						footer={
 							<>
 								<button type='button' className='gdb-button' disabled={isSubmitting} onClick={closeModal}>

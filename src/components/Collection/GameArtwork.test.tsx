@@ -1,8 +1,9 @@
-import { fireEvent, screen } from '@testing-library/react'
+import { act, fireEvent, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { renderWithProviders } from '@/test/utils/renderWithProviders'
 import i18n from '@/i18n'
 import { GameArtwork } from './GameArtwork'
+import { gameArtworkRefreshed } from '@/services/CollectionService/collectionEvents'
 
 const game = { name: 'Artwork fixture', cover: 'https://cdn.test/cover.jpg', hero: 'https://cdn.test/hero.jpg', logo: 'https://cdn.test/logo.png' }
 
@@ -45,5 +46,13 @@ describe('display artwork fallback', () => {
 	it('keeps decorative fallback images decorative', () => {
 		const { container } = renderWithProviders(<GameArtwork game={{ ...game, cover: undefined }} decorative />)
 		expect(container.querySelector('img')).toHaveAttribute('alt', ''); expect(container.querySelector('img')).toHaveAttribute('src', game.hero)
+	})
+	it('retries a confirmed same-URL refresh only for that game without clearing or changing its role URL', () => {
+		const saved = Object.freeze({ ...game, id: 9101 }), other = Object.freeze({ ...game, id: 9102, name: 'Different fixture' })
+		renderWithProviders(<><GameArtwork game={saved} /><GameArtwork game={other} /></>)
+		fireEvent.error(screen.getByAltText(saved.name)); expect(screen.getByAltText(saved.name)).toHaveAttribute('src', game.hero)
+		const untouched = screen.getByAltText(other.name)
+		act(() => gameArtworkRefreshed(saved.id)); expect(screen.getByAltText(saved.name)).toHaveAttribute('src', game.cover); expect(screen.getByAltText(other.name)).toBe(untouched)
+		expect(saved.cover).toBe(game.cover); expect(saved.hero).toBe(game.hero)
 	})
 })

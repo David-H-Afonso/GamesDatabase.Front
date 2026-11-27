@@ -10,7 +10,7 @@ interface AppLayoutProps {
 }
 
 export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
-	const columns = useAppSelector(state => state.theme.cardColumns === 4 ? 4 : 3)
+	const columns = useAppSelector(state => state.theme.cardColumns === 3 ? 3 : 4)
 	return (
 		<CollectionDetailsProvider><div className='app-layout gallery-app' data-card-columns={columns}>
 			<DataLoader />

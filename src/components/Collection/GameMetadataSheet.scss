@@ -8,6 +8,7 @@
 	> label { grid-column: 1 / -1; display: flex; align-items: center; gap: 11px; min-height: 44px; b { font-weight: 550; } input { width: 19px; height: 19px; accent-color: var(--gdb-accent); } }
 	> div { min-width: 0; display: grid; gap: 6px; align-content: start; small { color: var(--gdb-secondary); font-size: 12px; } span { overflow-wrap: anywhere; font-size: 14px; line-height: 1.5; } }
 	> a { grid-column: 1 / -1; display: inline-flex; align-items: center; gap: 7px; color: var(--gdb-accent); font-size: 12px; min-height: 44px; justify-self: start; }
+	> .gdb-metadata-duration-note { grid-column: 1 / -1; margin: 0; color: var(--gdb-secondary); font-size: 13px; line-height: 1.6; }
 	> .gdb-metadata-artwork-value {
 		gap: 8px;
 		> .gdb-editor-artwork-preview { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 100%; }

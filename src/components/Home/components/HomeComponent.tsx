@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useSyncExternalStore, lazy, Suspense } from 'react'
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, lazy, Suspense } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { GameCard, GameCardSkeleton, ConfirmDialog, Toast } from '@/components/elements'
@@ -8,7 +8,7 @@ import { setCardStyle, setViewMode } from '@/store/features/theme/themeSlice'
 import { setFilters as setGamesFilters, clearGamesRefresh } from '@/store/features/games/gamesSlice'
 import { selectGamesFilters, selectNeedsRefresh } from '@/store/features/games/selector'
 import type { GameQueryParameters } from '@/models/api/Game'
-import { steamService } from '@/services'
+import type { GameView } from '@/models/api/GameView'
 import type { BulkEditData } from './BulkEditModal'
 import GameFiltersChips from './GameFiltersChips'
 import SelectiveExportModal from './SelectiveExportModal'
@@ -19,28 +19,16 @@ import { getGamesSummary } from '@/services/GamesService/GamesService'
 import { useCollectionResource } from '@/hooks/useCollectionResource'
 import { useDisplayedGames } from '@/hooks/useDisplayedGames'
 import { recentGameViews } from '@/utils/recentGameViews'
-import { recordGameViewUse } from '@/services/GameViewService/GameViewService'
-import { recordViewUsage } from '@/store/features/gameViews/gameViewSlice'
+import { recordGameViewUse, setGameViewPinned } from '@/services/GameViewService/GameViewService'
+import { recordViewUsage, applyViewPins } from '@/store/features/gameViews/gameViewSlice'
 import { GALLERY_PAGE_SIZE } from '@/utils/constants'
 import './HomeComponent.scss'
 import './GalleryLibrary.scss'
 import { areFiltersEqual } from '@/utils/filterUtils/filterUtils'
+import { useGameMetadata } from '@/components/Collection/gameMetadataContext'
 
 const BulkEditModal = lazy(() => import('./BulkEditModal'))
 type BulkImageField = 'logo' | 'hero' | 'cover'
-
-const BULK_IMAGE_REFRESH_MAX_ATTEMPTS = 3
-const BULK_IMAGE_REFRESH_COOLDOWN_MS = 1000
-
-const waitForBulkImageRefreshCooldown = () => new Promise<void>((resolve) => setTimeout(resolve, BULK_IMAGE_REFRESH_COOLDOWN_MS))
-
-const preloadImage = (url: string) =>
-	new Promise<boolean>((resolve) => {
-		const image = new Image()
-		image.onload = () => resolve(true)
-		image.onerror = () => resolve(false)
-		image.src = url
-	})
 
 const rowHeaderColumns = [
 	{ className: 'gr-status', labelKey: 'home.columns.status', sortBy: 'status' },
@@ -60,7 +48,7 @@ const rowHeaderColumns = [
 ] as const
 
 const HomeComponent = () => {
-	const { games, error, loading, lastAppliedFilters, pagination, refreshGames, fetchGameDetails, deleteGameById, bulkUpdateGamesById, updateGameById } = useGames()
+	const { games, error, loading, lastAppliedFilters, pagination, refreshGames, deleteGameById, bulkUpdateGamesById } = useGames()
 	const { publicGameViews, loadPublicGameViews } = useGameViews()
 
 	const { t } = useTranslation()
@@ -80,7 +68,9 @@ const HomeComponent = () => {
 	const [exportPreSelected, setExportPreSelected] = useState<Array<{ id: number; name: string }>>([])
 	const [pendingDelete, setPendingDelete] = useState<{ kind: 'bulk' } | { kind: 'single'; id: number } | null>(null)
 	const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
-	const [bulkImageRefreshing, setBulkImageRefreshing] = useState(false)
+	const metadata = useGameMetadata()
+	const bulkImageRefreshing = Boolean(metadata?.batch?.busy && metadata.batch.artworkField)
+	const bulkAutofillBusy = Boolean(metadata?.batch?.busy)
 	const [selecting, setSelecting] = useState(false), [advancedColumns, setAdvancedColumns] = useState(false)
 	const rawViewId = searchParams.get('viewId'), routeViewId = rawViewId ? Number(rawViewId) : undefined
 	const invalidView = rawViewId !== null && (!Number.isSafeInteger(routeViewId) || Number(routeViewId) <= 0)
@@ -91,6 +81,27 @@ const HomeComponent = () => {
 	const [readRevision, setReadRevision] = useState(0)
 	const readFailed = Boolean(invalidView || viewError || error)
 	const quickViews = recentGameViews(publicGameViews)
+	const pinningSupported = publicGameViews.length > 0 && publicGameViews.every(view => Object.hasOwn(view, 'pinnedSlot'))
+	const [pinBusy, setPinBusy] = useState<number | null>(null), [pinError, setPinError] = useState<'limit' | 'request' | null>(null)
+	const pinRequest = useRef<AbortController | null>(null), pinOwner = useRef(ownerId)
+	pinOwner.current = ownerId
+	useEffect(() => {
+		setPinBusy(null); setPinError(null)
+		return () => { pinRequest.current?.abort(); pinRequest.current = null }
+	}, [ownerId])
+	const pinView = async (view: GameView) => {
+		if (!ownerId || pinRequest.current || !pinningSupported) return
+		const controller = new AbortController(), expectedOwner = ownerId
+		pinRequest.current = controller; setPinBusy(view.id); setPinError(null)
+		try {
+			const index = quickViews.findIndex(candidate => candidate.id === view.id)
+			const views = await setGameViewPinned(view.id, view.pinnedSlot == null, index >= 0 ? index + 1 : undefined, controller.signal)
+			if (!controller.signal.aborted && pinOwner.current === expectedOwner) { dispatch(applyViewPins(views)); void loadPublicGameViews().catch(() => {}) }
+		} catch (reason) { if (!controller.signal.aborted && pinOwner.current === expectedOwner) setPinError((reason as { status?: number }).status === 409 ? 'limit' : 'request') }
+		finally { if (pinRequest.current === controller) { pinRequest.current = null; setPinBusy(null) } }
+	}
+	const pinControl = (view: GameView, current = false) => pinningSupported ? <button type='button' className={`gdb-view-pin${current && quickViews.some(candidate => candidate.id === view.id) ? ' gdb-view-pin--current' : ''}`} aria-label={t('gallery.library.pinView', { name: view.name })} title={t(view.pinnedSlot == null ? 'gallery.library.pinView' : 'gallery.library.unpinView', { name: view.name })} aria-pressed={view.pinnedSlot != null} aria-busy={pinBusy === view.id} disabled={pinBusy !== null} onClick={() => { void pinView(view) }}><CollectionIcon name={pinBusy === view.id ? 'refresh' : 'pin'} /></button> : null
+	const selectedPublicView = publicGameViews.find(view => routeViewId ? view.id === routeViewId : savedView && view.name === viewMode)
 	const [usageError, setUsageError] = useState(false)
 	const usedViewId = savedView && !invalidView ? publicGameViews.find(view => routeViewId ? view.id === routeViewId : view.name === viewMode)?.id : undefined
 	useDisplayedGames(invalidView || viewError || error ? [] : games, JSON.stringify(query), loading || !areFiltersEqual(query, lastAppliedFilters ?? null))
@@ -228,67 +239,20 @@ const HomeComponent = () => {
 		}
 	}
 
-	const handleBulkRefreshImages = async (field: BulkImageField) => {
-		if (bulkImageRefreshing) return
+	const handleBulkRefreshImages = (field: BulkImageField) => {
+		if (bulkAutofillBusy) return
 		const selectedSteamGames = games.filter((game: any) => selectedGames.includes(game.id) && game.steamAppId)
 		if (selectedSteamGames.length === 0) {
 			setToast({ message: t('home.bulkImageRefreshNoSteam'), type: 'error' })
 			return
 		}
 
-		setBulkImageRefreshing(true)
-		try {
-			let updated = 0
-			for (const [gameIndex, game] of selectedSteamGames.entries()) {
-				const previousImage = game[field]
-				let refreshed = false
-				for (let attempt = 1; attempt <= BULK_IMAGE_REFRESH_MAX_ATTEMPTS; attempt++) {
-					try {
-						await updateGameById(game.id, { [field]: null } as any)
-						await steamService.syncGame(game.id)
-						const refreshedGame = await fetchGameDetails(game.id)
-						const refreshedImage = refreshedGame?.[field]
-						if (!refreshedImage || !(await preloadImage(refreshedImage))) {
-							console.error(`Steam returned an unavailable ${field} image for game ${game.id}`)
-							break
-						}
-						refreshed = true
-						break
-					} catch (error) {
-						if (attempt === BULK_IMAGE_REFRESH_MAX_ATTEMPTS) {
-							console.error(`Error refreshing ${field} for game ${game.id}`, error)
-						} else {
-							await waitForBulkImageRefreshCooldown()
-						}
-					}
-				}
-				if (!refreshed) {
-					try {
-						await updateGameById(game.id, { [field]: previousImage ?? null } as any)
-					} catch (restoreError) {
-						console.error(`Error restoring ${field} for game ${game.id}`, restoreError)
-					}
-				}
-				if (refreshed) updated++
-				if (gameIndex < selectedSteamGames.length - 1) await waitForBulkImageRefreshCooldown()
-			}
-			const failed = selectedSteamGames.length - updated
-			setToast({
-				message: t(failed > 0 ? 'home.bulkImageRefreshPartial' : 'home.bulkImageRefreshSuccess', {
-					updated,
-					total: selectedSteamGames.length,
-					field: t(`home.imageFields.${field}`),
-				}),
-				type: failed > 0 ? 'error' : 'success',
-			})
-			setSelectedGames([])
-			await refreshGames(query)
-		} catch (err) {
-			console.error('Error refreshing selected images', err)
-			setToast({ message: t('home.bulkImageRefreshError'), type: 'error' })
-		} finally {
-			setBulkImageRefreshing(false)
-		}
+		if (!metadata?.openArtworkBatch(selectedSteamGames.map(game => ({ id: game.id, name: game.name })), field)) setToast({ message: t('metadata.batch.startFailed'), type: 'error' })
+	}
+	const handleBulkAutofill = (options: { overwrite: boolean }) => {
+		if (bulkAutofillBusy) return
+		const selected = games.filter(game => selectedGames.includes(game.id)).map(game => ({ id: game.id, name: game.name }))
+		if (!metadata?.openBatch(selected, options)) setToast({ message: t('metadata.batch.startFailed'), type: 'error' })
 	}
 
 	return (
@@ -296,11 +260,13 @@ const HomeComponent = () => {
 			<div className='gdb-page-heading'>
 				<div className='gdb-page-title'><h1 className='sr-only'>{t('gallery.library.title')}</h1><button type='button' className='gdb-count gdb-count-select' aria-label={`${t('gallery.common.games', { count: pagination.totalCount })} · ${t(selecting ? 'gallery.library.finishSelection' : 'gallery.library.select')}`} title={t(selecting ? 'gallery.library.finishSelection' : 'gallery.library.select')} aria-pressed={selecting} onClick={() => { setSelecting(value => !value); setSelectedGames([]) }}>{summary.data && pagination.totalCount !== summary.data.totalGames ? t('gallery.library.filteredCount', { count: pagination.totalCount, total: summary.data.totalGames }) : t('gallery.common.games', { count: pagination.totalCount })}</button></div>
 				<div className='gdb-saved-views'>
-					<div><button type='button' aria-pressed={!savedView} onClick={() => chooseView('default')}>{t('gallery.library.allGames')}</button>{quickViews.map(view => <button type='button' key={view.id} aria-pressed={routeViewId === view.id || !routeViewId && viewMode === view.name} onClick={() => chooseView(view.name)}>{view.name}</button>)}</div>
+					<div><button type='button' aria-pressed={!savedView} onClick={() => chooseView('default')}>{t('gallery.library.allGames')}</button>{quickViews.map(view => <span className='gdb-quick-view' key={view.id} data-active={routeViewId === view.id || !routeViewId && viewMode === view.name} data-pinned={view.pinnedSlot != null}><button type='button' className='gdb-quick-view__choose' aria-pressed={routeViewId === view.id || !routeViewId && viewMode === view.name} onClick={() => chooseView(view.name)} title={view.name}>{view.name}</button>{pinControl(view)}</span>)}</div>
 					<label><span className='sr-only'>{t('home.view')}</span><select value={routeViewId ? publicGameViews.find(value => value.id === routeViewId)?.name ?? '__unlisted' : viewMode} onChange={event => chooseView(event.target.value)}><option value='default'>{t('gallery.library.allGames')}</option>{routeViewId && !publicGameViews.some(value => value.id === routeViewId) && <option value='__unlisted'>{t('gallery.home.view')}</option>}{publicGameViews.map(view => <option key={view.id} value={view.name}>{view.name}</option>)}</select></label>
+					{selectedPublicView && pinControl(selectedPublicView, true)}
 				</div>
 			</div>
 			{usageError && <p className='gdb-hint' role='status'>{t('gallery.library.recentFailed')}</p>}
+			{pinError && <p className='gdb-hint' role='status'>{t(pinError === 'limit' ? 'gallery.library.pinLimit' : 'gallery.library.pinFailed')}</p>}
 			{readFailed && <div className='gdb-error gdb-library-error' role='alert'><p>{t(invalidView ? 'gallery.library.viewUnavailable' : 'gallery.common.loadError')}</p>{!invalidView && <button type='button' className='gdb-button' disabled={loading} onClick={() => setReadRevision(value => value + 1)}>{t('gallery.common.retry')}</button>}</div>}
 
 			<div className='home-component__main'>
@@ -325,6 +291,9 @@ const HomeComponent = () => {
 					onBulkEdit={() => setBulkEditOpen(true)}
 					onBulkRefreshImages={handleBulkRefreshImages}
 					bulkImagesDisabled={bulkImageRefreshing}
+					onBulkAutofill={handleBulkAutofill}
+					bulkAutofillBusy={bulkAutofillBusy}
+					selectionKey={`${ownerId ?? 'anonymous'}:${JSON.stringify(query)}:${[...selectedGames].sort((a, b) => a - b).join(',')}`}
 					onBulkExport={() => {
 						const preSelected = games.filter((g: any) => selectedGames.includes(g.id)).map((g: any) => ({ id: g.id as number, name: g.name as string }))
 						setExportPreSelected(preSelected)

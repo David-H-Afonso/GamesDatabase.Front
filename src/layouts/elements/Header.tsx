@@ -25,6 +25,7 @@ import { useDisplayedGamesScope } from '@/components/Collection/displayedGamesCo
 
 const OnboardingGuide = lazy(() => import('@/components/Onboarding/OnboardingGuide').then(module => ({ default: module.OnboardingGuide })))
 const GameMetadataSheet = lazy(() => import('@/components/Collection/GameMetadataSheet').then(module => ({ default: module.GameMetadataSheet })))
+const MetadataAutofillBatchSheet = lazy(() => import('@/components/Collection/MetadataAutofillBatchSheet').then(module => ({ default: module.MetadataAutofillBatchSheet })))
 
 const isMac = typeof navigator !== 'undefined' && /mac/i.test(navigator.userAgent)
 
@@ -68,7 +69,7 @@ export const Header: React.FC = () => {
 	const random = useRandomGame(currentUser?.id, `${location.key}:${displayed?.signature ?? ''}:${displayed?.loading ? 'loading' : 'ready'}`, game => { setRandomOpen(false); openGame(game) })
 	const chooseRandom = () => { random.clearError(); setRandomOpen(true) }
 	useEffect(() => { setDetailGame(null); setRandomOpen(false) }, [location.key, currentUser?.id])
-	useEffect(() => { metadata?.close() }, [location.key, metadata?.close])
+	useEffect(() => { metadata?.close(); metadata?.closeBatch() }, [location.key, metadata?.close, metadata?.closeBatch])
 
 	const clearSearch = () => {
 		if ((filters.search ?? '') !== '' || filters.nameSearch) dispatch(setFilters({ ...filters, search: undefined, nameSearch: undefined, searchMetadata: false, page: 1 }))
@@ -194,6 +195,7 @@ export const Header: React.FC = () => {
 			)}
 			{guide?.open && <Suspense fallback={<CollectionSheet open title={t('guide.title')} onClose={guide.hide}><p role='status'>{t('gallery.common.loading')}</p></CollectionSheet>}><OnboardingGuide key={currentUser?.id ?? 'anonymous'} onAddGame={() => createGameRef.current?.open()} onOpenGame={openGame} onRandomGame={chooseRandom} /></Suspense>}
 			{metadata?.game && <Suspense fallback={<CollectionSheet open title={t('metadata.title')} onClose={() => metadata.close()}><p role='status'>{t('gallery.common.loading')}</p></CollectionSheet>}><GameMetadataSheet key={`${currentUser?.id}:${metadata.game.id}`} game={metadata.game} onClose={() => metadata.close(metadata.game!.id)} /></Suspense>}
+			{metadata?.batch && <Suspense fallback={<CollectionSheet open title={t('metadata.batch.title')} onClose={metadata.closeBatch} closeDisabled={metadata.batch.busy && metadata.batch.phase === 'saving'}><p role='status'>{t('gallery.common.loading')}</p></CollectionSheet>}><MetadataAutofillBatchSheet key={`${metadata.batch.ownerId}:${metadata.batch.targets.map(target => target.id).join(',')}`} batch={metadata.batch} onClose={metadata.closeBatch} onStop={metadata.stopBatch} onRetry={metadata.retryBatch} onReview={id => { metadata.closeBatch(); navigate(`/games/${id}`) }} /></Suspense>}
 		</>
 	)
 }

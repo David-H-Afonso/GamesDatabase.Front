@@ -1,0 +1,86 @@
+.gdb-bulk-toolbar {
+	position: sticky;
+	top: 8px;
+	z-index: 15;
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 8px;
+	min-width: 0;
+	margin-block-end: 8px;
+	padding: 10px 12px;
+	border: 1px solid var(--gdb-line);
+	border-radius: 10px;
+	background: var(--gdb-surface);
+	color: var(--gdb-text);
+	box-shadow: 0 5px 20px #0002;
+	font: 450 13px/1.5 var(--gdb-body);
+
+	&__count { display: inline-flex; align-items: center; box-sizing: border-box; flex: 0 0 auto; min-height: 44px; padding: 6px 10px; border: 1px solid var(--gdb-subtle-line); border-radius: 6px; background: var(--gdb-input); font-weight: 650; font-variant-numeric: tabular-nums; white-space: nowrap; }
+	&__group, &__end, &__artwork, &__autofill-controls { display: flex; align-items: center; flex: 0 0 auto; gap: 8px; }
+	&__end { margin-inline-start: auto; }
+	&__autofill { display: flex; flex: 0 0 auto; min-width: 0; padding-inline-start: 12px; border-inline-start: 1px solid var(--gdb-subtle-line); }
+	&__autofill-controls { gap: 8px; min-width: 0; }
+	&__autofill-copy { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; line-height: 1.25; }
+	&__hint { display: block; max-width: 100%; margin: 0; overflow: hidden; color: inherit; font: 450 12px/1.25 var(--gdb-body); text-overflow: ellipsis; white-space: nowrap; }
+	&__autofill + &__group { padding-inline-start: 12px; border-inline-start: 1px solid var(--gdb-subtle-line); }
+	&__replace { display: inline-flex; align-items: center; box-sizing: border-box; flex: 0 0 auto; gap: 8px; min-height: 44px; margin: 0; padding: 6px 8px; border: 1px solid var(--gdb-control); border-radius: 6px; background: var(--gdb-input); color: var(--gdb-text); font: 500 13px/1.5 var(--gdb-body); white-space: nowrap; cursor: pointer; touch-action: manipulation; }
+	&__replace[data-active='true'] { border-color: var(--gdb-accent); background: var(--gdb-accent-soft); }
+	&__replace input { width: 20px; height: 20px; flex: 0 0 20px; margin: 0; accent-color: var(--gdb-accent); cursor: inherit; }
+	&__replace:has(input:focus-visible) { outline: 2px solid var(--gdb-accent); outline-offset: 2px; }
+	// The native checkbox stays keyboard-focusable; its full44px label owns the ring.
+	&__replace input:focus-visible { outline: none; }
+	&__replace:has(input:disabled) { opacity: .5; cursor: not-allowed; }
+	&__replace input:disabled { opacity: 1 !important; }
+	&[data-compact='true'] { padding-block: 8px; }
+	&[data-compact='true'] &__autofill { flex-basis: 100%; padding: 6px 0 0; border-inline-start: 0; border-block-start: 1px solid var(--gdb-subtle-line); }
+	&[data-compact='true'] &__autofill-controls { width: 100%; }
+	&[data-compact='true'] .gdb-bulk-toolbar__button--primary { flex: 1 1 0; min-width: 0; justify-content: flex-start; }
+}
+
+// These selectors also cover the portalled action panel, outside the Library DOM.
+.gdb-bulk-toolbar__button,
+.gdb-bulk-toolbar-menu .gdb-bulk-toolbar__button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	gap: 7px;
+	min-width: 44px;
+	min-height: 44px;
+	margin: 0;
+	padding: 9px 10px;
+	border: 1px solid transparent;
+	border-radius: 6px;
+	background: transparent;
+	color: var(--gdb-text);
+	font: 500 13px/1.5 var(--gdb-body);
+	white-space: nowrap;
+	cursor: pointer;
+	touch-action: manipulation;
+
+	> .gdb-icon { width: 17px; height: 17px; }
+	&:focus-visible { outline: 2px solid var(--gdb-accent); outline-offset: 2px; }
+	&:disabled { opacity: .5; cursor: not-allowed; }
+	&--danger > .gdb-icon { color: var(--error); }
+}
+.gdb-bulk-toolbar__button.gdb-bulk-toolbar__button--primary { padding: 5px 13px; background: var(--gdb-button); border-color: var(--gdb-button); color: var(--gdb-button-ink); font-weight: 650; }
+.gdb-bulk-toolbar__done { color: var(--gdb-accent); }
+.gdb-bulk-toolbar__artwork select { box-sizing: border-box; flex: 0 0 108px; width: 108px; min-width: 0; min-height: 44px; margin: 0; padding: 8px; border: 1px solid var(--gdb-control); border-radius: 6px; background: var(--gdb-input); color: var(--gdb-text); font: 450 13px/1.5 var(--gdb-body); cursor: pointer; }
+.gdb-bulk-toolbar__artwork select option { color: var(--gdb-text); background: var(--gdb-surface); }
+.gdb-bulk-toolbar__artwork select:focus-visible { outline: 2px solid var(--gdb-accent); outline-offset: 3px; }
+.gdb-bulk-toolbar__artwork select:disabled { opacity: .5; cursor: not-allowed; }
+.gdb-bulk-toolbar-menu .gdb-bulk-toolbar-menu__group { display: flex; flex-direction: column; gap: 3px; }
+.gdb-bulk-toolbar-menu__group + .gdb-bulk-toolbar-menu__group, .gdb-bulk-toolbar-menu > .gdb-bulk-toolbar__button + .gdb-bulk-toolbar-menu__group { margin-block-start: 4px; padding-block-start: 7px; border-block-start: 1px solid var(--gdb-line); }
+.gdb-bulk-toolbar-menu .gdb-bulk-toolbar__button { justify-content: flex-start; width: 100%; text-align: left; white-space: normal; }
+.gdb-bulk-toolbar-menu__group > p { margin: 0; padding: 6px 10px; color: var(--gdb-secondary); font: 550 12px/1.5 var(--gdb-body); }
+.gdb-bulk-toolbar-menu .gdb-bulk-toolbar__artwork { flex-direction: column; align-items: stretch; gap: 5px; }
+.gdb-bulk-toolbar-menu .gdb-bulk-toolbar__artwork select { flex-basis: auto; width: 100%; font-size: 16px; }
+@media (max-width: 650px) {
+	.gdb-bulk-toolbar-menu .gdb-bulk-toolbar__button { font-size: 16px; }
+}
+@media (hover: hover) and (pointer: fine) {
+	.gdb-bulk-toolbar__button:not(:disabled):hover { background: var(--gdb-raised); }
+	.gdb-bulk-toolbar__button--primary:not(:disabled):hover { background: var(--gdb-text); border-color: var(--gdb-text); color: var(--gdb-page); }
+	.gdb-bulk-toolbar__replace:not(:has(input:disabled)):hover { border-color: var(--gdb-accent); background: var(--gdb-raised); }
+}
