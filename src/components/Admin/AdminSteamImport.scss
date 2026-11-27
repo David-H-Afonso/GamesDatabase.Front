@@ -185,6 +185,14 @@
 	.import-actions {
 		display: flex;
 		gap: 0.75rem;
+		flex-wrap: wrap;
+	}
+
+	.steam-library-quick-create {
+		border: 0; background: transparent; padding: 4px; color: inherit; font: inherit; text-align: left; cursor: pointer;
+		&:hover:not(:disabled) { text-decoration: underline; }
+		&:focus-visible { outline: 2px solid var(--gdb-accent); outline-offset: 3px; border-radius: 3px; }
+		&:disabled { cursor: default; opacity: .6; }
 	}
 
 	.library-table-wrapper {

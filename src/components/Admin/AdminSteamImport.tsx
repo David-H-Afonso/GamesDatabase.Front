@@ -21,6 +21,8 @@ import { useSteamSyncJob } from './useSteamSyncJob'
 import { SteamSyncPanel } from './SteamSyncPanel'
 import { SteamDateReview } from '@/components/Collection/SteamDateReview'
 import { steamErrorKey } from '@/utils/steamErrors'
+import { invalidateCollection } from '@/services/CollectionService/collectionEvents'
+import { invalidateCache, triggerGamesRefresh } from '@/store/features/games/gamesSlice'
 
 type ImportAction = 'create' | 'skip' | 'link'
 type ActiveTab = 'account' | 'library' | 'suggestions' | 'store' | 'storeSuggestions' | 'dateSuggestions'
@@ -64,6 +66,8 @@ export const AdminSteamImport = () => {
 	const [noGamesToast, setNoGamesToast] = useState(false)
 	const [manualSteamId, setManualSteamId] = useState('')
 	const [manualLinkLoading, setManualLinkLoading] = useState(false)
+	const quickImportRef = useRef(false)
+	const [quickImportId, setQuickImportId] = useState<number | null>(null)
 
 	// Store search state
 	const [storeQuery, setStoreQuery] = useState('')
@@ -420,6 +424,7 @@ export const AdminSteamImport = () => {
 	}
 
 	const handleImport = async () => {
+		if (quickImportRef.current) return
 		const appIds = library.filter((g) => getAction(g.appId) === 'create').map((g) => g.appId)
 
 		const toLink = library.filter((g) => getAction(g.appId) === 'link' && linkTargets.has(g.appId))
@@ -464,6 +469,29 @@ export const AdminSteamImport = () => {
 			if (!g.gdbGameId) newMap.set(g.appId, 'create')
 		})
 		setRowActions(newMap)
+	}
+
+	const handleQuickImport = async (appId: number) => {
+		if (quickImportRef.current || importLoading || linkLoading || libraryLoading || library.find(game => game.appId === appId)?.gdbGameId) return
+		quickImportRef.current = true
+		setQuickImportId(appId)
+		setMessage(null)
+		try {
+			const result = await dispatch(importSteamGames({ appIds: [appId], createMissing: true })).unwrap()
+			const imported = result.importedGames?.find(game => game.appId === appId)
+			if (!result.success || !imported?.gdbGameId || imported.action === 'error') throw new Error('Unconfirmed Steam import')
+			dispatch(markSteamGameLinked({ appId, gameId: imported.gdbGameId, gameName: imported.name }))
+			setRowActions(current => { const next = new Map(current); next.delete(appId); return next })
+			setLinkTargets(current => { const next = new Map(current); next.delete(appId); return next })
+			dispatch(invalidateCache()); dispatch(triggerGamesRefresh()); invalidateCollection()
+			await dispatch(fetchSteamLibrary()).unwrap()
+		} catch {
+			setMessage(t('admin.steam.libraryView.quickCreateError'))
+			setIsSuccess(false)
+		} finally {
+			quickImportRef.current = false
+			setQuickImportId(null)
+		}
 	}
 
 	const getStatusSortValue = (game: (typeof library)[number]) => (game.gdbGameId ? 1 : 0)
@@ -541,6 +569,12 @@ export const AdminSteamImport = () => {
 
 	const clampedLibraryPage = Math.min(libraryPage, libraryPageCount)
 	const pagedLibrary = filteredLibrary.slice((clampedLibraryPage - 1) * LIBRARY_PAGE_SIZE, clampedLibraryPage * LIBRARY_PAGE_SIZE)
+	const handleSelectVisible = () => {
+		// Exact current page/filter only: do not leave hidden create/link actions armed.
+		setRowActions(new Map(pagedLibrary.filter(game => !game.gdbGameId).map(game => [game.appId, 'create' as const])))
+		setLinkTargets(new Map())
+	}
+	const libraryBusy = libraryLoading || importLoading || linkLoading || quickImportId !== null
 
 	const filteredSuggestions = suggestions.filter(
 		(s) => !suggestionSearch.trim() || s.steamName.toLowerCase().includes(suggestionSearch.toLowerCase()) || s.gdbGameName.toLowerCase().includes(suggestionSearch.toLowerCase())
@@ -651,10 +685,10 @@ export const AdminSteamImport = () => {
 				</div>
 			)}
 
-			{activeTab !== 'account' && isSteamLinked && error && (
+			{activeTab !== 'account' && isSteamLinked && (error || !isSuccess && message) && (
 				<div className='alert alert--error' role='alert'>
 					<button type='button' className='steam-alert-dismiss' aria-label={t('common.close')} onClick={handleClearError}>×</button>
-					{t(steamErrorKey(error))}
+					{!isSuccess && message ? message : t(steamErrorKey(error))}
 				</div>
 			)}
 
@@ -948,10 +982,13 @@ export const AdminSteamImport = () => {
 							{t('admin.steam.libraryView.showOnlyUnmatched')}
 						</label>
 						<div className='import-actions'>
-							<button className='btn btn-secondary' onClick={handleSelectAllUnmatched} disabled={libraryLoading}>
+							<button type='button' className='btn btn-secondary' onClick={handleSelectVisible} disabled={libraryBusy || !pagedLibrary.some(game => !game.gdbGameId)}>
+								{t('admin.steam.libraryView.selectVisible')}
+							</button>
+							<button className='btn btn-secondary' onClick={handleSelectAllUnmatched} disabled={libraryBusy}>
 								{t('admin.steam.libraryView.selectAllUnmatched')}
 							</button>
-							<button className='btn btn-primary' onClick={handleImport} disabled={importLoading || linkLoading || totalActionCount === 0}>
+							<button className='btn btn-primary' onClick={handleImport} disabled={libraryBusy || totalActionCount === 0}>
 								{importLoading || linkLoading
 									? t('admin.steam.libraryView.processing')
 									: `${t('admin.steam.libraryView.apply')} (${toCreateCount > 0 ? t('admin.steam.libraryView.applyCreate', { count: toCreateCount }) : ''}${
@@ -1008,9 +1045,9 @@ export const AdminSteamImport = () => {
 											const action = getAction(game.appId)
 											return (
 												<tr key={game.appId} className={action === 'create' ? 'row--selected' : action === 'link' ? 'row--link' : ''}>
-													<td>{game.iconUrl ? <img src={game.iconUrl} alt='' width={32} height={32} style={{ borderRadius: 2 }} /> : <div className='no-icon' />}</td>
+													<td>{game.gdbGameId ? (game.iconUrl ? <img src={game.iconUrl} alt='' width={32} height={32} style={{ borderRadius: 2 }} /> : <div className='no-icon' />) : <button type='button' className='steam-library-quick-create' aria-label={t('admin.steam.libraryView.quickCreate', { game: game.name })} disabled={libraryBusy} onClick={() => { void handleQuickImport(game.appId) }}>{game.iconUrl ? <img src={game.iconUrl} alt='' width={32} height={32} style={{ borderRadius: 2 }} /> : <span aria-hidden='true'>＋</span>}</button>}</td>
 													<td>
-														<span className='game-name'>{game.name}</span>
+														{game.gdbGameId ? <span className='game-name'>{game.name}</span> : <button type='button' className='game-name steam-library-quick-create' disabled={libraryBusy} title={t('admin.steam.libraryView.quickCreate', { game: game.name })} onClick={() => { void handleQuickImport(game.appId) }}>{quickImportId === game.appId ? t('admin.steam.libraryView.processing') : game.name}</button>}
 														<span className='game-appid'>App {game.appId}</span>
 													</td>
 													<td>{game.playtimeForever > 0 ? `${Math.round(game.playtimeForever / 60)}h` : '—'}</td>
@@ -1022,7 +1059,7 @@ export const AdminSteamImport = () => {
 														)}
 													</td>
 													<td className='action-cell'>
-														<select aria-label={t('admin.steam.common.actionFor', { game: game.name })} value={action} onChange={(e) => setAction(game.appId, e.target.value as ImportAction)} className='action-select'>
+														<select aria-label={t('admin.steam.common.actionFor', { game: game.name })} value={action} disabled={libraryBusy} onChange={(e) => setAction(game.appId, e.target.value as ImportAction)} className='action-select'>
 															<option value='skip'>{t('admin.steam.libraryView.actionSkip')}</option>
 															<option value='create'>{t('admin.steam.libraryView.actionCreate')}</option>
 															<option value='link'>{t('admin.steam.libraryView.actionLink')}</option>
