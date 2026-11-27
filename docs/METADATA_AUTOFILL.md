@@ -26,7 +26,10 @@ not a provider chosen from the account default. Critic ratings use /100; the
 adjacent Metacritic user badge is not a critic rating.
 
 Deku's listed edition may be for another platform. Its Metacritic proposal carries
-that warning and needs deliberate review in an automatic batch. OpenCritic's
+that warning. Replace's once-per-scope confirmation explicitly accepts an attributed
+rating for the reliable matching edition; empty-only batches can accept all
+platform-only rating choices together from their results. Already-identical ratings
+never require another platform review. OpenCritic's
 attributed rating is identified as OpenCritic. SteamDB is not scraped or bypassed:
 its [FAQ](https://steamdb.info/faq/) prohibits automated scraping. No calculated
 Steam user-review percentage is newly written as a SteamDB critic rating by
@@ -58,17 +61,34 @@ Personal grade, notes, status, play dates, time, achievements and Steam links ar
 not metadata-enrichment fields. Secondary actions move into an accessible overflow
 only when there is insufficient room; the Library and global searches stay separate.
 
-The progress sheet keeps per-game results: updated, already matching/no new fields,
-needs review, partial, failed or not processed. Stop cancels read/wait work and
-remaining games; an active save is protected until it finishes. Leaving the route
-stops after the current save outcome. Account change/unmount aborts remaining work.
-Already committed changes are not undone, and a lost response is not proof of failure.
+The API persists the explicit job in SQLite. Use **Continue in background** or
+close/Escape the details sheet to keep using Library, Home or Administration.
+The global banner shows processed/total and **View details / Cancel autofill**.
+Navigation, logout and closing the browser stop only observation, not accepted work.
+The server must be running; after an API restart it resumes pending items once an
+expired process lease is recoverable (up to two minutes). No recurring library scan
+or new work is scheduled automatically.
+
+Results separate updated, unchanged, pending choices, partial, failed and cancelled
+games, and list the fields actually saved. Missing optional HLTB data is not an
+edition choice. Matching prefers the exact title, then one unique cosmetic match
+(punctuation, spaces, accents and trademarks), never another sequel/DLC/remaster.
+Reviewing a game retains its siblings, filter and expanded results; Back/Previous/
+Leave pending and next keep the rest accessible. Account menu **Autofill** opens
+current/earlier batches, including results hidden from the banner.
+
+Only **Cancel autofill** stops remaining work. An already-started transaction may
+finish; committed changes are never undone. A game edited since the job was queued
+requires a fresh manual choice instead of being silently overwritten.
 
 **Retry unfinished information** does a new metadata lookup only for failed,
 partial or cancelled results. It never repeats game creation or Steam import, and
-never automatically repeats an uncertain write. A short 429 wait may retry the
-read once; a longer explicit Retry-After is not shortened. The queue is in memory,
-not a persisted/scheduled job. Reloading does not restart it.
+never automatically repeats an uncertain write. Provider pauses are persisted and
+the worker retries transient source reads at most three times per item before
+retaining a failed/partial result. A metadata save and its exact job receipt commit
+in the same SQLite transaction, so recovery cannot repeat a committed item. Client
+submission uses an idempotent request ID; an uncertain POST is reconciled with GET,
+not an automatic second start. Reloading recovers status without submitting again.
 
 ## Opt in after creation/import
 
@@ -84,6 +104,10 @@ Only the separate explicit Steam on/off preference is persisted per account, as 
 boolean—not titles, drafts or sessions. The title receives focus on opening.
 
 ## Refresh artwork separately
+
+The persistent job described above is metadata autofill, including its selected
+artwork proposals. The separate role-only refresh below still validates image
+loading in the browser and is not an unattended server task.
 
 Choose Logo, Hero or Cover and **Refresh image**. This uses the current owned Steam
 App ID, loads a candidate and saves just that reviewed role. It does not clear a

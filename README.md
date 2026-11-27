@@ -27,6 +27,9 @@ version/SHA in [Web releases](https://github.com/David-H-Afonso/GamesDatabase.Fr
 and [API releases](https://github.com/David-H-Afonso/GamesDatabase.Api/releases).
 Duration/critic review, pins, reviewed dates and batch autofill require the compatible
 newer API; a source feature is not proof that an older image contains it.
+The newer durable-job extension below (background banner and recovery after browser/
+API closure) is not part of the earlier Web3.2.3/API3.2.2 artifacts; it also requires
+the additive `AddMetadataAutofillJobs` migration.
 
 ## What you can do
 
@@ -151,8 +154,12 @@ SteamDB is not scraped, and a Steam user-review percentage is not newly labelled
 its critic score. Replace searches populated groups too; verified no-ops do not invent edits.
 
 Library selection exposes lightning **Autofill** beside a separately confirmed
-**Replace** mode. Empty-only is the default. Batches retain exact IDs, per-game
-progress and partial results, with metadata-only retry. Artwork refresh remains a
+**Replace** mode. Empty-only is the default. Durable API jobs retain exact IDs,
+per-game progress/history and partial results, with metadata-only retry. Hide the
+details to continue in background: a global banner keeps progress accessible, and
+accepted work survives browser closure/API restart while the server is running.
+Replace confirms the matching edition's attributed rating policy once, not once
+per game; real ambiguities retain a multi-item review/return path. Artwork refresh remains a
 separate role-only operation, not player sync. See [Metadata review and batch
 autofill](docs/METADATA_AUTOFILL.md) for cancellation, ambiguity and recovery.
 

@@ -33,6 +33,23 @@ describe('automatic information is a reviewed sparse update', () => {
 		await userEvent.click(screen.getByRole('checkbox', { name: 'Release date' })); await userEvent.click(screen.getByRole('button', { name: 'Save selected fields' }))
 		await waitFor(() => expect(mocks.apply).toHaveBeenCalledWith(51, preview.token, ['developer'], expect.any(AbortSignal))); expect(close).toHaveBeenCalled()
 	})
+	it('explicitly includes validated source and critic links in native keyboard order', async () => {
+		mocks.preview.mockResolvedValue({ ...preview, notices: [], fields: [{ field: 'critic', current: null, value: 89, criticProvider: 'OpenCritic', criticUrl: 'https://opencritic.com/game/3985/hollow-knight', source: 'dekudeals', url: 'https://www.dekudeals.com/items/hollow-knight' }] })
+		renderWithProviders(<GameMetadataSheet game={game} onClose={vi.fn()} />)
+		await userEvent.click(screen.getByRole('button', { name: 'Look up information' }))
+		const source = await screen.findByRole('link', { name: /Source: OpenCritic via Deku Deals/ }), provider = screen.getByRole('link', { name: 'View OpenCritic' })
+		for (const link of [source, provider]) { expect(link).toHaveAttribute('tabindex', '0'); expect(link).toHaveAttribute('rel', 'noopener noreferrer') }
+		source.focus(); await userEvent.tab(); expect(provider).toHaveFocus()
+		await userEvent.tab({ shift: true }); expect(source).toHaveFocus(); expect(mocks.apply).not.toHaveBeenCalled()
+	})
+	it('does not turn a rejected provenance URL into a keyboard stop or render an unsafe critic link', async () => {
+		mocks.preview.mockResolvedValue({ ...preview, fields: [{ field: 'critic', current: null, value: 89, criticProvider: 'OpenCritic', criticUrl: 'https://untrusted.invalid/critic', source: 'steam', url: 'https://untrusted.invalid/source' }] })
+		renderWithProviders(<GameMetadataSheet game={game} onClose={vi.fn()} />)
+		await userEvent.click(screen.getByRole('button', { name: 'Look up information' }))
+		const source = await screen.findByText('Source: Steam')
+		expect(source).not.toHaveAttribute('href'); expect(source).not.toHaveAttribute('tabindex')
+		expect(screen.queryByRole('link', { name: /Source: Steam|View OpenCritic/ })).not.toBeInTheDocument(); expect(mocks.apply).not.toHaveBeenCalled()
+	})
 	it('overwrite is an explicit lookup setting, not permission to clear absent fields', async () => {
 		renderWithProviders(<GameMetadataSheet game={game} onClose={vi.fn()} />); await userEvent.click(screen.getByRole('radio', { name: 'Replace existing fields' })); await userEvent.click(screen.getByRole('checkbox', { name: 'Include artwork' })); await userEvent.click(screen.getByRole('button', { name: 'Look up information' })); await screen.findByText('Team Cherry')
 		expect(mocks.preview).toHaveBeenCalledWith(51, { ...lookup, overwrite: true, includeArtwork: false }, expect.any(AbortSignal))

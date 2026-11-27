@@ -1,3 +1,8 @@
+.gdb-metadata-sheet {
+	display: flex; flex-direction: column;
+	> .gdb-sheet__head, > .gdb-sheet__footer { flex: 0 0 auto; }
+	> .gdb-sheet__body { flex: 1 1 auto; min-height: 0; min-width: 0; overflow-y: auto; }
+}
 .gdb-metadata-sheet .gdb-sheet__footer { flex-wrap: wrap; gap: 10px; .gdb-button--primary { margin-left: auto; } }
 .gdb-metadata-sheet .gdb-hint { margin-block: 0 18px; }
 .gdb-metadata-mode { border: 1px solid var(--gdb-line); border-radius: 8px; padding: 18px; margin-bottom: 22px; legend { padding-inline: 6px; font-size: 14px; } .gdb-form & label { display: flex; flex-direction: row; align-items: center; gap: 12px; min-height: 44px; font-weight: 450; cursor: pointer; } input { width: 20px; height: 20px; accent-color: var(--gdb-accent); } }

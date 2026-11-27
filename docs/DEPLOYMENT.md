@@ -59,7 +59,13 @@ explicit reload/review. Do not sync Steam or invent missing data to make checks 
 Only a genuinely empty database initializes the current model/migration baseline.
 Metadata review plans use private DataProtection keys; persist them intentionally.
 
-Later critic/batch and security changes add no migration. Adopt the compatible API
+Critic review v2 and the scoped security repairs add no migration. The newer
+**persistent metadata jobs DO add `AddMetadataAutofillJobs`**, an owned job table
+with an idempotent request key, item receipts and process leases. Back it up with
+the SQLite database; CSV/ZIP library transfers do not resume jobs on another server.
+Only explicitly requested unfinished work resumes after startup. Retain the additive
+table on binary rollback: an older API pauses jobs rather than executing them, and
+running this migration Down would delete work/history. Adopt the compatible API
 before using attributed review v2; it separates its plan purpose from v1 so an old
 server cannot misapply an OpenCritic plan as Metacritic. Keep new writes on rollback;
 do not restore an old DB merely to discard a review plan.

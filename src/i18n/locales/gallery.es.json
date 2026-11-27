@@ -317,8 +317,8 @@
 		"emptyOnly": "Rellena los campos vacíos",
 		"replaceEnabled": "Puede reemplazar valores guardados",
 		"replaceTitle": "¿Permitir reemplazar valores existentes?",
-		"replaceMessage_one": "Autocompletar puede reemplazar los metadatos rellenados del juego seleccionado. No se modifica ningún dato hasta que pulses Autocompletar. Los valores que no ofrezcan los proveedores no borrarán la información guardada.",
-		"replaceMessage_other": "Autocompletar puede reemplazar los metadatos rellenados de estos {{count}} juegos seleccionados. No se modifica ningún dato hasta que pulses Autocompletar. Los valores que no ofrezcan los proveedores no borrarán la información guardada.",
+		"replaceMessage_one": "Autocompletar puede reemplazar los metadatos rellenados del juego seleccionado. Usará la mejor coincidencia fiable, incluida la nota atribuida de Deku cuando Steam no la aporte; esa nota puede ser de otra plataforma. No se modifica ningún dato hasta que pulses Autocompletar. Los valores ausentes no borrarán información guardada.",
+		"replaceMessage_other": "Autocompletar puede reemplazar los metadatos rellenados de estos {{count}} juegos seleccionados. Usará la mejor coincidencia fiable, incluida la nota atribuida de Deku cuando Steam no la aporte; esa nota puede ser de otra plataforma. No se modifica ningún dato hasta que pulses Autocompletar. Los valores ausentes no borrarán información guardada.",
 		"keepExisting": "Conservar valores",
 		"enableReplace": "Permitir reemplazar",
 		"artwork": "Refrescar imágenes"

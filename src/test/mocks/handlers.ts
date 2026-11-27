@@ -292,6 +292,8 @@ export const handlers = [
 
 	// ─── Auth / Users ────────────────────────────────────────
 	http.get(`${API_BASE}/onboarding`, () => HttpResponse.json({ version: '3.0.0', revision: 0, enabled: false, step: 'welcome', hasSamples: false, sampleGames: [], samplePlaylists: 0, sampleLists: [] })),
+	http.get(`${API_BASE}/metadata-autofill/jobs/current`, () => HttpResponse.json(null)),
+	http.get(`${API_BASE}/metadata-autofill/jobs`, () => HttpResponse.json([])),
 	http.get(`${API_BASE}/users/setup-status`, () => HttpResponse.json({ defaultCredentialsAvailable: false, defaultUsername: null })),
 	http.get(`${API_BASE}/users/:id`, ({ params }) => HttpResponse.json({ id: Number(params.id), username: 'Fixture user', role: 'Admin', isDefault: false, hasPassword: true, useScoreColors: false, scoreProvider: 'Metacritic', showPriceComparisonIcon: false, tutorialEnabled: false })),
 	http.get(`${API_BASE}/steam/sync/jobs/current`, () => HttpResponse.json({ job: null })),

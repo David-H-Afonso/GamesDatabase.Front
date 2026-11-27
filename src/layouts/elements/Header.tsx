@@ -21,6 +21,7 @@ import './GalleryHeader.scss'
 import { useRandomGame } from '@/hooks/useRandomGame'
 import { useOnboarding } from '@/components/Onboarding/onboardingContext'
 import { useGameMetadata } from '@/components/Collection/gameMetadataContext'
+import { MetadataAutofillJobBanner, MetadataAutofillJobPanel } from '@/components/Collection/MetadataAutofillJobPanel'
 import { useDisplayedGamesScope } from '@/components/Collection/displayedGamesContext'
 
 const OnboardingGuide = lazy(() => import('@/components/Onboarding/OnboardingGuide').then(module => ({ default: module.OnboardingGuide })))
@@ -69,7 +70,12 @@ export const Header: React.FC = () => {
 	const random = useRandomGame(currentUser?.id, `${location.key}:${displayed?.signature ?? ''}:${displayed?.loading ? 'loading' : 'ready'}`, game => { setRandomOpen(false); openGame(game) })
 	const chooseRandom = () => { random.clearError(); setRandomOpen(true) }
 	useEffect(() => { setDetailGame(null); setRandomOpen(false) }, [location.key, currentUser?.id])
-	useEffect(() => { metadata?.close(); metadata?.closeBatch() }, [location.key, metadata?.close, metadata?.closeBatch])
+	const metadataRoute = location.pathname + location.search + location.hash
+	useEffect(() => {
+		if (metadata?.observeRoute) metadata.observeRoute(metadataRoute)
+		else if (metadata?.hideAll) metadata.hideAll()
+		else { metadata?.close(); metadata?.closeBatch() }
+	}, [metadataRoute, metadata?.observeRoute, metadata?.hideAll, metadata?.close, metadata?.closeBatch])
 
 	const clearSearch = () => {
 		if ((filters.search ?? '') !== '' || filters.nameSearch) dispatch(setFilters({ ...filters, search: undefined, nameSearch: undefined, searchMetadata: false, page: 1 }))
@@ -163,6 +169,7 @@ export const Header: React.FC = () => {
 				</div>
 			</CollectionSheet>
 			{guide?.data?.enabled && !guide.open && <div className='gdb-learning-notice'><span>{t(`guide.steps.${guide.data.step}.title`)}</span><button type='button' className='gdb-text-button' onClick={() => { void guide.openGuide() }}>{t('guide.resume')}<CollectionIcon name='arrow' /></button></div>}
+			{metadata?.background && <MetadataAutofillJobBanner observer={metadata.background} />}
 
 			<CreateGame ref={createGameRef} gallery renderTrigger={() => null} />
 
@@ -173,6 +180,7 @@ export const Header: React.FC = () => {
 					<button type='button' className='gdb-account__link' onClick={() => { setIsUserMenuOpen(false); setAppearanceOpen(true) }}><CollectionIcon name='palette' />{t('gallery.theme.appearance')}<CollectionIcon name='arrow' /></button>
 					<button type='button' className='gdb-account__link' onClick={() => { setIsUserMenuOpen(false); chooseRandom() }}><CollectionIcon name='dice' />{t('gallery.discovery.random')}<CollectionIcon name='arrow' /></button>
 					{guide && <button type='button' className='gdb-account__link' onClick={() => { setIsUserMenuOpen(false); void guide.openGuide() }}><CollectionIcon name='help' />{t(guide.data?.enabled ? 'guide.resume' : 'guide.title')}<CollectionIcon name='arrow' /></button>}
+					{metadata?.background && <button type='button' className='gdb-account__link' onClick={() => { setIsUserMenuOpen(false); metadata.background?.show() }}><CollectionIcon name='auto' />{t('metadata.jobs.activity')}<CollectionIcon name='arrow' /></button>}
 					{guide && (guide.data?.hasSamples || guide.data?.sampleGames.length || guide.data?.samplePlaylists) ? <button type='button' className='gdb-account__link' onClick={() => { setIsUserMenuOpen(false); void guide.openGuide(false, 'finish') }}><CollectionIcon name='cards' />{t('guide.manageSamples')}<CollectionIcon name='arrow' /></button> : null}
 					<Link className='gdb-account__link' to='/statistics' onClick={() => setIsUserMenuOpen(false)}><CollectionIcon name='statistics' />{t('gallery.nav.statistics')}<CollectionIcon name='arrow' /></Link>
 					<Link className='gdb-account__link' to='/shelves' onClick={() => setIsUserMenuOpen(false)}><CollectionIcon name='playlists' />{t('gallery.shelves.title')}<CollectionIcon name='arrow' /></Link>
@@ -194,8 +202,9 @@ export const Header: React.FC = () => {
 					<GameDetails key={`${detailGame.ownerId}:${detailGame.game.id}`} game={detailGame.game} closeDetails={() => setDetailGame(null)} />
 			)}
 			{guide?.open && <Suspense fallback={<CollectionSheet open title={t('guide.title')} onClose={guide.hide}><p role='status'>{t('gallery.common.loading')}</p></CollectionSheet>}><OnboardingGuide key={currentUser?.id ?? 'anonymous'} onAddGame={() => createGameRef.current?.open()} onOpenGame={openGame} onRandomGame={chooseRandom} /></Suspense>}
-			{metadata?.game && <Suspense fallback={<CollectionSheet open title={t('metadata.title')} onClose={() => metadata.close()}><p role='status'>{t('gallery.common.loading')}</p></CollectionSheet>}><GameMetadataSheet key={`${currentUser?.id}:${metadata.game.id}`} game={metadata.game} onClose={() => metadata.close(metadata.game!.id)} /></Suspense>}
+			{metadata?.game && <Suspense fallback={<CollectionSheet open title={t('metadata.title')} onClose={() => metadata.close()}><p role='status'>{t('gallery.common.loading')}</p></CollectionSheet>}><GameMetadataSheet key={`${currentUser?.id}:${metadata.game.id}`} game={metadata.game} onClose={() => metadata.close(metadata.game!.id)} jobReview={metadata.jobReview} /></Suspense>}
 			{metadata?.batch && <Suspense fallback={<CollectionSheet open title={t('metadata.batch.title')} onClose={metadata.closeBatch} closeDisabled={metadata.batch.busy && metadata.batch.phase === 'saving'}><p role='status'>{t('gallery.common.loading')}</p></CollectionSheet>}><MetadataAutofillBatchSheet key={`${metadata.batch.ownerId}:${metadata.batch.targets.map(target => target.id).join(',')}`} batch={metadata.batch} onClose={metadata.closeBatch} onStop={metadata.stopBatch} onRetry={metadata.retryBatch} onReview={id => { metadata.closeBatch(); navigate(`/games/${id}`) }} /></Suspense>}
+			{metadata?.background && <MetadataAutofillJobPanel observer={metadata.background} onReview={id => metadata.reviewJobItem?.(id)} reviewLoadingId={metadata.reviewLoadingId} reviewError={metadata.reviewError} />}
 		</>
 	)
 }

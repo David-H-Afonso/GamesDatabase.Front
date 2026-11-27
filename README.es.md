@@ -28,6 +28,9 @@ versión/SHA exactos en [releases Web](https://github.com/David-H-Afonso/GamesDa
 y [releases API](https://github.com/David-H-Afonso/GamesDatabase.Api/releases).
 Duraciones/crítica, chinchetas, fechas revisadas y autorrellenado por lotes requieren
 la API posterior compatible; aparecer en el código no demuestra que una imagen antigua lo incluya.
+La ampliación posterior de trabajos persistentes (banner y recuperación al cerrar
+web/API) no forma parte de los artefactos Web3.2.3/API3.2.2 anteriores; requiere
+también la migración aditiva `AddMetadataAutofillJobs`.
 
 ## Qué puedes hacer
 
@@ -149,8 +152,13 @@ No se hace scraping de SteamDB ni se etiqueta un porcentaje de usuarios Steam co
 su crítica. Reemplazar busca también campos rellenados; un no-op no inventa ediciones.
 
 La selección de Biblioteca muestra **Autorrellenar** con rayo junto a **Reemplazar**,
-que exige confirmación separada. Por defecto rellena vacíos; fija los IDs, conserva
-progreso/resultados parciales y solo reintenta información pendiente. Refrescar imágenes
+que exige confirmación separada. Por defecto rellena vacíos; el trabajo persistente
+de la API fija IDs y conserva progreso/historial/resultados, reintentando solo datos
+pendientes. Oculta los detalles para seguir usando la app: un banner global mantiene
+el acceso y el trabajo aceptado sobrevive al cierre de web/reinicio de API mientras
+el servidor está encendido. Reemplazar confirma una vez la política de nota atribuida
+de la edición coincidente, no juego a juego; las ambigüedades reales conservan una
+cola navegable y el regreso a resultados. Refrescar imágenes
 sigue siendo otra operación de un rol, sin sincronizar jugadores. La casilla final de
 alta **Intentar rellenar información tras importar**, inicialmente desmarcada, usa ese
 mismo motor sin repetir importaciones ni perder vínculos Steam. El título recibe foco y

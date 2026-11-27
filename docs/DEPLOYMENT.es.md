@@ -56,7 +56,12 @@ realmente vacía inicializa el modelo actual y registra su baseline. Conserva
 Los candidatos de imágenes no guardan juegos ni sincronizan jugadores. Los planes
 de metadatos usan claves DataProtection que deben persistirse en privado.
 
-Los cambios posteriores de crítica/lotes y seguridad no añaden migración. Actualiza
+La crítica v2 y las reparaciones acotadas de seguridad no añaden migración. Los
+**trabajos persistentes de metadatos sí añaden `AddMetadataAutofillJobs`**: tabla
+propia con clave de envío idempotente, recibos y leases. Inclúyela en la copia
+SQLite; las transferencias CSV/ZIP no reanudan trabajos en otro servidor. Solo se
+retoma trabajo pendiente solicitado expresamente. Mantén la tabla aditiva al
+volver al binario anterior: este pausa los trabajos; Down eliminaría cola/historial. Actualiza
 primero la API compatible: v2 usa otro propósito de plan para que una API antigua
 no aplique OpenCritic como Metacritic. Mantén escrituras nuevas al volver atrás;
 no restaures una base antigua solo para descartar un plan de revisión.

@@ -41,12 +41,16 @@ Metadata Apply uses the server's signed review plan and timestamp conflict check
 Optional duration candidates include exact public `sourceHours` and a disclosed
 integer-hour proposal. The client never converts Steam playtime into an estimate.
 
-`GameMetadataProvider` also owns the explicit in-memory batch outside the router.
-`useMetadataAutofillBatch` freezes owner/target IDs, serializes preview/apply, protects
-an in-flight save and aborts remaining work on owner/unmount boundaries. Header closes
-route-scoped work without restarting it. Creation and Library selection share the same
-service; retries cannot repeat creation/import. Critic v2 validates provider/scope/link
-and exact save receipts. Role-only artwork refresh never clears a URL or runs player sync.
+`GameMetadataProvider` observes owned durable metadata jobs outside the router.
+`useMetadataAutofillJob` recovers the current job/history, polls active work and guards
+owner/read generations. Header hides surfaces on navigation, never cancels the job.
+The API freezes IDs and commits each signed Apply with its job receipt in SQLite.
+Banner/details visibility is separate from task lifetime; individual reviews keep
+their siblings and return path. Creation and Library selection share this service;
+retries cannot repeat creation/import. Critic v2 retains provider/scope/link and exact
+receipts; Replace explicitly accepts listed-platform ratings for reliable matches.
+`useMetadataAutofillBatch` remains for browser-validated role-only artwork refresh,
+which never clears a URL or runs player sync.
 See [Metadata workflows](METADATA_AUTOFILL.md).
 
 ## Discovery and onboarding

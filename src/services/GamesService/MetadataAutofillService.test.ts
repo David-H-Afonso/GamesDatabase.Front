@@ -72,6 +72,11 @@ describe('explicit metadata-only autofill scope', () => {
 		calls.apply.mockResolvedValue(receipt([developer], { unchangedFields: ['developer'] }))
 		expect((await autofillGameMetadata(target, true, controller().signal, vi.fn())).status).toBe('unchanged')
 	})
+	it('does not demand a platform review for an already-identical attributed rating', async () => {
+		const same: MetadataCandidate = { ...critic, criticProvider: 'Metacritic', currentCriticProvider: 'Metacritic', current: 91, value: 91, unchanged: true, criticUrl: 'https://www.metacritic.com/game/public-fixture/' }
+		calls.preview.mockResolvedValue(preview([same], { overwrite: true })); calls.apply.mockResolvedValue(receipt([same], { unchangedFields: ['critic'] }))
+		expect(await autofillGameMetadata(target, true, controller().signal, vi.fn())).toMatchObject({ status: 'unchanged', notices: [] })
+	})
 	it('distinguishes no new information from a source outage', async () => {
 		calls.preview.mockResolvedValueOnce(preview([], { token: null, notices: ['noChanges', 'durationUnavailable', 'criticUnavailable'] })).mockResolvedValueOnce(preview([], { token: null, notices: ['steamUnavailable'] }))
 		expect((await autofillGameMetadata(target, false, controller().signal, vi.fn())).status).toBe('unchanged')

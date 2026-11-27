@@ -11,12 +11,14 @@ import { CollectionSheet } from './CollectionSheet'
 import { CollectionIcon } from './CollectionIcon'
 import { GameArtworkPreview } from './GameArtworkPreview'
 import './GameMetadataSheet.scss'
+import { applyMetadataJobReview } from '@/services/GamesService/MetadataAutofillJobService'
 
 const isArtworkField = (field: MetadataField): field is 'logo' | 'hero' | 'cover' => field === 'logo' || field === 'hero' || field === 'cover'
 
-export const GameMetadataSheet = ({ game, onClose }: { game: Game; onClose: () => void }) => {
+interface JobReview { jobId: string; overwrite: boolean; position: number; total: number; previous?: () => void; next?: () => void }
+export const GameMetadataSheet = ({ game, onClose, jobReview }: { game: Game; onClose: () => void; jobReview?: JobReview }) => {
 	const { t, i18n } = useTranslation()
-	const [overwrite, setOverwrite] = useState(false), [artwork, setArtwork] = useState(true), [preview, setPreview] = useState<MetadataPreview | null>(null), [selected, setSelected] = useState<MetadataField[]>([])
+	const [overwrite, setOverwrite] = useState(jobReview?.overwrite ?? false), [artwork, setArtwork] = useState(true), [preview, setPreview] = useState<MetadataPreview | null>(null), [selected, setSelected] = useState<MetadataField[]>([])
 	const [durations, setDurations] = useState(true)
 	const [critic, setCritic] = useState(true)
 	const [busy, setBusy] = useState(false), [error, setError] = useState<'lookup' | 'save' | 'conflict' | null>(null)
@@ -32,7 +34,7 @@ export const GameMetadataSheet = ({ game, onClose }: { game: Game; onClose: () =
 		submitting.current = true; phase.current = 'lookup'; const controller = new AbortController(); request.current?.abort(); request.current = controller
 		setBusy(true); setError(null)
 		try {
-			const result = await previewGameMetadata(game.id, { overwrite, includeArtwork: artwork, includeDurations: durations, includeCritic: critic, reviewVersion: 2, ...identities.current }, controller.signal)
+			const result = await previewGameMetadata(game.id, { overwrite, includeArtwork: artwork, includeDurations: durations, includeCritic: critic, reviewVersion: 2, ...(jobReview ? { bestMatch: true } : {}), ...identities.current }, controller.signal)
 			if (!controller.signal.aborted) { setPreview(result); setSelected(result.fields.map(field => field.field)) }
 		} catch { if (!controller.signal.aborted) setError('lookup') }
 		finally { if (request.current === controller) { submitting.current = false; phase.current = null; setBusy(false) } }
@@ -42,7 +44,7 @@ export const GameMetadataSheet = ({ game, onClose }: { game: Game; onClose: () =
 		submitting.current = true; phase.current = 'save'; const controller = new AbortController(); request.current = controller
 		setBusy(true); setError(null)
 		try {
-			const receipt = await applyGameMetadata(game.id, preview.token, selected, controller.signal)
+			const receipt = jobReview ? await applyMetadataJobReview(jobReview.jobId, game.id, preview.token, selected, controller.signal) : await applyGameMetadata(game.id, preview.token, selected, controller.signal)
 			if (!confirmedMetadataReceipt(receipt, game.id, preview.fields.filter(candidate => selected.includes(candidate.field)))) throw new Error('Invalid metadata save receipt')
 			if (!controller.signal.aborted) { invalidateCollection(); onClose() }
 		} catch (reason) { if (!controller.signal.aborted) setError((reason as { status?: number }).status === 409 ? 'conflict' : 'save') }
@@ -53,9 +55,10 @@ export const GameMetadataSheet = ({ game, onClose }: { game: Game; onClose: () =
 	const sourceName = (source: string, field?: MetadataField, provider?: string | null) => source === 'steam' ? 'Steam' : source === 'dekudeals' ? field === 'critic' && provider ? t('metadata.criticViaDeku', { provider }) : field ? t('metadata.durationSource') : 'Deku Deals' : 'Wikidata'
 	const sourceUrl = (url: string) => /^https:\/\/(?:store\.steampowered\.com\/app\/\d+\/?|www\.wikidata\.org\/wiki\/Q\d+|www\.dekudeals\.com\/items\/[a-z0-9]+(?:-[a-z0-9]+)*)$/.test(url) ? url : undefined
 	return <CollectionSheet open onClose={cancel} closeDisabled={busy && phase.current === 'save'} title={t('metadata.title')} subtitle={game.name} wide className='gdb-metadata-sheet' footer={<>
-		<button type='button' className='gdb-button' disabled={busy && phase.current === 'save'} onClick={cancel}>{t('metadata.cancel')}</button>
+		<button type='button' className='gdb-button' disabled={busy && phase.current === 'save'} onClick={cancel}>{t(jobReview ? 'metadata.jobs.backToResults' : 'metadata.cancel')}</button>
 		{preview ? <><button type='button' className='gdb-text-button' disabled={busy} onClick={() => { setPreview(null); setError(null) }}>{t('metadata.back')}</button><button type='button' className='gdb-button gdb-button--primary' disabled={busy || !preview.token || !selected.length || error === 'conflict' || error === 'lookup'} onClick={() => { void save() }}>{t('metadata.save')}<CollectionIcon name='check' /></button></> : <button type='button' className='gdb-button gdb-button--primary' disabled={busy} onClick={() => { void lookup() }}>{t(busy ? 'metadata.looking' : 'metadata.lookup')}<CollectionIcon name='search' /></button>}
 	</>}>
+		{jobReview && <div className='gdb-metadata-review-nav'><button type='button' className='gdb-text-button' disabled={busy || !jobReview.previous} onClick={jobReview.previous}><CollectionIcon name='back' />{t('metadata.jobs.previousChoice')}</button><span>{t('metadata.jobs.choicePosition', { position: jobReview.position, total: jobReview.total })}</span><button type='button' className='gdb-text-button' disabled={busy || !jobReview.next} onClick={jobReview.next}>{t('metadata.jobs.nextChoice')}<CollectionIcon name='arrow' /></button></div>}
 		{error && <div className='gdb-error' role='alert'><p>{t(error === 'lookup' ? 'metadata.lookupFailed' : error === 'conflict' ? 'metadata.conflict' : 'metadata.saveFailed')}</p>{error === 'conflict' && <button type='button' className='gdb-text-button' disabled={busy} onClick={() => { void lookup() }}>{t('metadata.lookup')}</button>}</div>}
 		{!preview ? <div className='gdb-form'><p className='gdb-hint'>{t('metadata.sourceOrder')}</p><fieldset className='gdb-metadata-mode'><legend>{t('metadata.mode')}</legend><label><input type='radio' name='metadata-mode' checked={!overwrite} disabled={busy} onChange={() => setOverwrite(false)} />{t('metadata.emptyOnly')}</label><label><input type='radio' name='metadata-mode' checked={overwrite} disabled={busy} onChange={() => setOverwrite(true)} />{t('metadata.overwrite')}</label></fieldset>{overwrite && <p className='gdb-hint'>{t('metadata.replaceRefresh')}</p>}<label className='gdb-check-label'><input type='checkbox' checked={critic} disabled={busy} onChange={event => setCritic(event.target.checked)} />{t('metadata.includeCritic')}</label><label className='gdb-check-label'><input type='checkbox' checked={artwork} disabled={busy} onChange={event => setArtwork(event.target.checked)} />{t('metadata.includeArtwork')}</label><label className='gdb-check-label'><input type='checkbox' checked={durations} disabled={busy} onChange={event => setDurations(event.target.checked)} />{t('metadata.includeDurations')}</label><p className='gdb-hint'>{t('metadata.durationPrivacy')}</p></div> : <>
 			{preview.notices.map(notice => <p key={notice} className='gdb-hint'>{t(`metadata.${notice}`, { defaultValue: t('metadata.noChanges') })}</p>)}
@@ -74,8 +77,9 @@ export const GameMetadataSheet = ({ game, onClose }: { game: Game; onClose: () =
 				{candidate.sourceHours != null && <p className='gdb-metadata-duration-note'>{t(candidate.sourceHours !== candidate.value ? 'metadata.durationRounded' : 'metadata.durationEstimate', { source: formatCollectionNumber(candidate.sourceHours, i18n.language, 2), saved: candidate.value })}</p>}
 				{candidate.criticScope === 'listed-platform' && <p className='gdb-metadata-duration-note'>{t('metadata.criticPlatformScope')}</p>}
 				{candidate.unchanged && <p className='gdb-metadata-duration-note'>{t('metadata.alreadyMatches')}</p>}
-				<a href={sourceUrl(candidate.url)} target='_blank' rel='noopener noreferrer'>{t('metadata.source', { source: sourceName(candidate.source, candidate.field, candidate.criticProvider) })}<CollectionIcon name='external' /></a>
-				{candidate.criticUrl && metadataCriticUrl(candidate.criticProvider, candidate.criticUrl) && <a href={candidate.criticUrl} target='_blank' rel='noopener noreferrer'>{t('metadata.providerPage', { provider: candidate.criticProvider })}<CollectionIcon name='external' /></a>}
+				{/* Explicit native-link tab stops also work with WebKit's restricted link-tabbing policy. */}
+				<a href={sourceUrl(candidate.url)} tabIndex={sourceUrl(candidate.url) ? 0 : undefined} target='_blank' rel='noopener noreferrer'>{t('metadata.source', { source: sourceName(candidate.source, candidate.field, candidate.criticProvider) })}<CollectionIcon name='external' /></a>
+				{candidate.criticUrl && metadataCriticUrl(candidate.criticProvider, candidate.criticUrl) && <a href={candidate.criticUrl} tabIndex={0} target='_blank' rel='noopener noreferrer'>{t('metadata.providerPage', { provider: candidate.criticProvider })}<CollectionIcon name='external' /></a>}
 			</div>)}</fieldset>}
 		</>}
 	</CollectionSheet>

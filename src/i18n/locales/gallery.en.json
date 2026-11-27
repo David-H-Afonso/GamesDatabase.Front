@@ -317,8 +317,8 @@
 		"emptyOnly": "Fills empty fields",
 		"replaceEnabled": "Existing values may be replaced",
 		"replaceTitle": "Allow replacing existing values?",
-		"replaceMessage_one": "Autofill may replace populated metadata for this selected game. No data changes until you run Autofill. Missing provider values will not erase saved information.",
-		"replaceMessage_other": "Autofill may replace populated metadata for these {{count}} selected games. No data changes until you run Autofill. Missing provider values will not erase saved information.",
+		"replaceMessage_one": "Autofill may replace populated metadata for this selected game. It uses the best reliable match, including an attributed Deku rating when Steam has none; that rating may be for another platform. No data changes until you run Autofill. Missing provider values will not erase saved information.",
+		"replaceMessage_other": "Autofill may replace populated metadata for these {{count}} selected games. It uses the best reliable match, including an attributed Deku rating when Steam has none; that rating may be for another platform. No data changes until you run Autofill. Missing provider values will not erase saved information.",
 		"keepExisting": "Keep existing",
 		"enableReplace": "Enable Replace",
 		"artwork": "Refresh artwork"

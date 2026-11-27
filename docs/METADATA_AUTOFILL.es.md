@@ -27,7 +27,10 @@ predeterminado de la cuenta. Crítica usa /100; el indicador contiguo de usuario
 Metacritic no es una nota de crítica.
 
 La edición que muestra Deku puede ser de otra plataforma. Su propuesta Metacritic
-lo advierte y requiere revisión deliberada dentro de un lote automático. La nota
+lo advierte. La confirmación de Reemplazar acepta una vez por ámbito la nota
+atribuida de la edición con coincidencia fiable; los lotes de vacíos pueden aceptar
+juntas todas las notas cuya única duda sea la plataforma. Una nota que ya coincide
+no obliga a revisar otra vez. La nota
 atribuida a OpenCritic se identifica como OpenCritic. No se automatiza ni elude
 SteamDB: su [FAQ](https://steamdb.info/faq/) prohíbe scraping automatizado. Importar o
 sincronizar ya no guarda un porcentaje calculado de usuarios Steam como crítica
@@ -58,18 +61,34 @@ enriquece nota personal, notas, estado, fechas de partida, tiempo, logros ni ví
 Steam. Las acciones secundarias pasan al desbordamiento accesible solo cuando no
 caben; los buscadores de Biblioteca y global siguen siendo independientes.
 
-La hoja conserva resultados por juego: rellenado, coincidente/sin campos nuevos,
-necesita revisión, parcial, fallo o sin procesar. Detener cancela consultas/esperas
-y juegos pendientes; un guardado en curso queda protegido hasta terminar. Salir
-de la ruta detiene el resto tras el resultado del guardado actual. Cambiar de cuenta
-o desmontar cancela el trabajo restante. No se deshacen cambios ya confirmados y
-perder una respuesta no demuestra que el guardado fallara.
+La API guarda el trabajo explícito en SQLite. Usa **Continuar en segundo plano**,
+cierra la hoja o pulsa Escape para seguir en Biblioteca, Inicio o Administración.
+El banner global muestra procesados/total y **Ver detalles / Cancelar autorrellenado**.
+Navegar, cerrar sesión o cerrar la web solo detiene la observación, no el trabajo
+aceptado. El servidor debe seguir encendido; tras reiniciar la API se retoma lo
+pendiente al poder recuperar el lease del proceso anterior (hasta dos minutos).
+No se programa un escaneo periódico ni se descubren nuevos juegos automáticamente.
+
+Los resultados separan actualizados, sin cambios, elecciones, parciales, fallidos y
+cancelados, y enumeran los campos realmente guardados. La ausencia de HLTB opcional
+no es una duda de edición. Se prefiere el título exacto y después una sola
+coincidencia cosmética (puntuación, espacios, acentos o marcas), nunca otra secuela,
+DLC o remaster. Revisar un juego conserva los demás, el filtro y la lista ampliada;
+Volver/Anterior/Dejar pendiente y siguiente mantienen la cola accesible. El menú
+de cuenta **Autorrellenado** permite recuperar lotes anteriores, incluidos avisos ocultos.
+
+Solo **Cancelar autorrellenado** detiene lo pendiente. Una transacción iniciada puede
+terminar; no se deshace lo guardado. Un juego editado después de encolar el lote
+requiere una elección manual nueva, en vez de sobrescribir esos cambios.
 
 **Reintentar información pendiente** hace una consulta nueva solo de los resultados
 fallidos, parciales o cancelados. Nunca repite altas/importaciones Steam ni reenvía
-automáticamente un guardado incierto. Una espera breve por 429 puede reintentar la
-lectura una vez; no acorta un Retry-After mayor. La cola vive en memoria, no es una
-tarea persistente ni programada. Recargar no la reanuda automáticamente.
+automáticamente un guardado incierto. Las pausas de proveedor se guardan y el worker
+reintenta lecturas transitorias hasta tres veces por elemento antes de conservar
+un resultado fallido/parcial. Guardado y recibo del elemento se confirman en la
+misma transacción SQLite: recuperar el trabajo no repite un elemento confirmado.
+El envío usa un identificador idempotente; un POST incierto se reconcilia con GET,
+no con otro inicio automático. Recargar recupera el estado sin volver a enviarlo.
 
 ## Activarlo tras añadir/importar
 
@@ -86,6 +105,10 @@ se conserva por cuenta como booleano, nunca títulos, borradores o sesiones. Al 
 se enfoca el título.
 
 ## Refrescar imágenes por separado
+
+El trabajo persistente anterior es el autorrellenado de metadatos, incluidas sus
+propuestas de imágenes. El refresco de un solo rol descrito abajo sigue validando
+la carga de imagen en el navegador; no es una tarea desatendida del servidor.
 
 Elige Logo, Hero o Cover y **Refrescar imagen**. Lee el App ID Steam propio actual,
 carga un candidato y guarda solo ese rol revisado. No vacía primero la URL, no

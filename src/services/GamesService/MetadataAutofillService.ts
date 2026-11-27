@@ -61,7 +61,7 @@ export const autofillGameMetadata = async (target: MetadataAutofillTarget, overw
 	const notices = [...preview.notices]
 	// Deku's Metacritic badge does not prove a platform match. The interactive
 	// review may accept it deliberately; unattended accept-all leaves it for review.
-	const selected = preview.fields.filter(field => !(field.field === 'critic' && field.criticProvider === 'Metacritic' && field.criticScope === 'listed-platform'))
+	const selected = preview.fields.filter(field => !(field.field === 'critic' && field.criticProvider === 'Metacritic' && field.criticScope === 'listed-platform' && !field.unchanged))
 	const needsReview = selected.length !== preview.fields.length || notices.some(notice => notice === 'chooseIdentity' || notice === 'chooseDurationIdentity')
 	if (selected.length !== preview.fields.length) notices.push('criticPlatformScope')
 	const base = { ...target, appliedFields: [] as MetadataField[], notices }

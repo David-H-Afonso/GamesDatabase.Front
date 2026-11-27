@@ -74,6 +74,8 @@ Cypress.Commands.add('mockApiRoutes', () => {
 		request.reply({ statusCode: 404, body: { code: 'unmatchedCypressFixture' } })
 	})
 	cy.intercept('GET', `${API}/onboarding`, { version: '3.0.0', revision: 0, enabled: false, step: 'welcome', hasSamples: false, sampleGames: [], samplePlaylists: 0, sampleLists: [] }).as('getOnboarding')
+	cy.intercept('GET', `${API}/metadata-autofill/jobs/current*`, { statusCode: 200, body: 'null', headers: { 'content-type': 'application/json' } }).as('getCurrentMetadataJob')
+	cy.intercept('GET', `${API}/metadata-autofill/jobs?*`, []).as('getMetadataJobHistory')
 	cy.intercept('GET', `${API}/users/setup-status`, { defaultCredentialsAvailable: false, defaultUsername: null }).as('setupStatus')
 	cy.intercept('POST', `${API}/users/logout`, { statusCode: 200, body: {} })
 	cy.intercept('GET', `${API}/playlists*`, []).as('getPlaylists')

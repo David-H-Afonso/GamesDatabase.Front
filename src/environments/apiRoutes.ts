@@ -6,6 +6,12 @@ export const apiRoutes = {
 	home: { config: '/home/config', resolve: '/home/rows/resolve', games: (id: string) => `/home/rows/${encodeURIComponent(id)}/games` },
 	collection: { statistics: '/collection/statistics', games: '/collection/games', goty: '/collection/goty', gotyYear: (year: number) => `/collection/goty/${year}`, randomGame: '/collection/random-game', recommendations: '/collection/recommendations/preview' },
 	onboarding: { base: '/onboarding', start: '/onboarding/start', samples: '/onboarding/samples', keep: '/onboarding/samples/keep', views: '/onboarding/views' },
+	metadataJobs: {
+		base: '/metadata-autofill/jobs', current: '/metadata-autofill/jobs/current',
+		byId: (id: string) => `/metadata-autofill/jobs/${encodeURIComponent(id)}`,
+		action: (id: string, action: 'cancel' | 'retry' | 'dismiss' | 'accept-listed-critics') => `/metadata-autofill/jobs/${encodeURIComponent(id)}/${action}`,
+		review: (id: string, gameId: number) => `/metadata-autofill/jobs/${encodeURIComponent(id)}/items/${gameId}/review`,
+	},
 	/** Games endpoints */
 	games: {
 		base: '/games',

@@ -41,12 +41,16 @@ servidor y comprueba el timestamp revisado.
 Las duraciones opcionales incluyen `sourceHours` público exacto y una propuesta
 redondeada a horas enteras. Nunca se convierten horas Steam en una estimación.
 
-`GameMetadataProvider` mantiene también el lote explícito en memoria fuera del router.
-`useMetadataAutofillBatch` fija cuenta/IDs, serializa consulta/guardado, protege el
-guardado actual y cancela el resto al cambiar cuenta o desmontar. Header cierra al
-navegar sin reiniciar trabajo. Alta y selección comparten servicio; reintentar no
-repite altas/importaciones. Crítica v2 valida proveedor/ámbito/enlace y recibos exactos.
-El refresco de un rol no vacía URLs ni sincroniza jugadores. Véanse
+`GameMetadataProvider` observa trabajos propios persistentes fuera del router.
+`useMetadataAutofillJob` recupera estado/historial, consulta solo trabajo activo y
+rechaza resultados de otra cuenta/generación. Header oculta superficies al navegar,
+sin cancelar. La API fija los IDs y confirma cada Apply firmado junto a su recibo
+en SQLite. Banner/hoja tienen visibilidad independiente del trabajo; revisar un
+elemento conserva los demás y el regreso a resultados. Alta y selección comparten
+servicio; reintentar no repite altas/importaciones. Crítica v2 conserva proveedor/
+ámbito/enlace y recibos; Reemplazar acepta explícitamente notas de plataforma
+listada para coincidencias fiables. `useMetadataAutofillBatch` se mantiene para
+refrescar un rol con validación en navegador, sin vaciar URLs ni sincronizar jugadores. Véanse
 [Flujos de metadatos](METADATA_AUTOFILL.es.md).
 
 ## Descubrimiento y guía
