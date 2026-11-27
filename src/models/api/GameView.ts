@@ -176,6 +176,7 @@ export interface GameView {
 	createdAt: string // ISO date string
 	updatedAt: string // ISO date string
 	lastUsedAt?: string | null
+	pinnedSlot?: number | null
 	filterCount?: number
 }
 

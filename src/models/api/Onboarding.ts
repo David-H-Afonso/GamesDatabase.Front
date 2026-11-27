@@ -1,6 +1,6 @@
 import type { Game } from './Game'
 
-export const ONBOARDING_STEPS = ['welcome', 'library', 'organize', 'progress', 'home', 'discover', 'finish'] as const
+export const ONBOARDING_STEPS = ['welcome', 'library', 'views', 'organize', 'progress', 'home', 'discover', 'finish'] as const
 export type OnboardingStep = typeof ONBOARDING_STEPS[number]
 export interface OnboardingState {
 	version: string
@@ -13,6 +13,7 @@ export interface OnboardingState {
 	sampleGames: Game[]
 	samplePlaylists: number
 	sampleLists?: Array<{ id: number; name: string; createdAt: string; updatedAt: string }>
+	exampleViews?: Array<{ id: number; name: string; description?: string | null; isPublic: boolean }>
 }
 export interface TutorialSampleChange {
 	removedGames: number

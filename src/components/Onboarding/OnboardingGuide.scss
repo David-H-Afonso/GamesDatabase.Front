@@ -43,6 +43,7 @@
 .gdb-guide-error { margin-bottom: 20px; padding: 15px; border: 1px solid var(--gdb-line); border-radius: 7px; p { margin-bottom: 10px; } }
 .gdb-guide-loading { display: grid; place-items: center; min-height: 240px; color: var(--gdb-secondary); gap: 15px; .gdb-icon { width: 32px; height: 32px; } }
 .gdb-guide-message { margin-block: 18px; color: var(--gdb-secondary); }
+.gdb-guide-view-preview { display: grid; gap: 10px; margin-block: 18px; > .gdb-button { justify-content: flex-start; text-align: left; padding: 14px; min-height: 64px; white-space: normal; gap: 12px; } > .gdb-button > span { flex: 1; min-width: 0; } b { display: block; font-size: 15px; font-weight: 550; line-height: 1.5; } small { display: block; margin-top: 3px; color: var(--gdb-secondary); font-size: 13px; line-height: 1.5; } }
 .gdb-guide-sample-review { max-height: 220px; overflow: auto; padding-left: 20px; line-height: 1.8; margin-block: 14px; }
 .gdb-learning-notice { display: flex; align-items: center; gap: 14px; justify-content: space-between; padding: 8px var(--gdb-gutter); border-bottom: 1px solid var(--gdb-subtle-line); color: var(--gdb-secondary); font-size: 13px; .gdb-text-button { font-size: 13px; min-height: 44px; } }
 @media (max-width: 650px) {

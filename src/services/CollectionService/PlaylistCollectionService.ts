@@ -8,7 +8,7 @@ export interface ManualPlaylistShelf {
 	state: 'ready' | 'error'
 }
 
-const summaries = (value: PlaylistSummary[]): PlaylistSummary[] => {
+export const playlistSummaries = (value: PlaylistSummary[]): PlaylistSummary[] => {
 	if (!Array.isArray(value) || value.some(item => !item || !Number.isSafeInteger(item.id) || item.id <= 0 || typeof item.name !== 'string' || typeof item.isAutomatic !== 'boolean')) throw new Error('Invalid playlist summary response')
 	return value
 }
@@ -24,7 +24,7 @@ export const manualPlaylist = (value: Playlist, expectedId?: number): Playlist =
 /** Same selection as the Focus screen, without mounting its player-data sync effect. */
 export const getCollectionFocus = async (savedId: number | null, signal?: AbortSignal): Promise<Playlist | null> => {
 	ensureActive(signal)
-	const selected = resolveFocusPlaylist(summaries(await getPlaylists(signal)), savedId)
+	const selected = resolveFocusPlaylist(playlistSummaries(await getPlaylists(signal)), savedId)
 	ensureActive(signal)
 	if (!selected) return null
 	const result = await getPlaylistById(selected.id, signal)
@@ -35,7 +35,7 @@ export const getCollectionFocus = async (savedId: number | null, signal?: AbortS
 /** Real manual playlists, including all items, with bounded reads and per-shelf recovery. */
 export const getManualPlaylistShelves = async (signal?: AbortSignal): Promise<ManualPlaylistShelf[]> => {
 	ensureActive(signal)
-	const manual = summaries(await getPlaylists(signal)).filter(playlist => !playlist.isAutomatic)
+	const manual = playlistSummaries(await getPlaylists(signal)).filter(playlist => !playlist.isAutomatic)
 	ensureActive(signal)
 	const result = new Array<ManualPlaylistShelf>(manual.length)
 	let next = 0

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { usePlaylists } from '@/hooks'
@@ -11,7 +11,7 @@ import type { Game } from '@/models/api/Game'
 import type { PlaylistItem } from '@/models/api/Playlist'
 import { CollectionGameDetails as GameDetails } from '@/components/Collection/CollectionGameDetailsLazy'
 import { steamService } from '@/services/SteamService/SteamService'
-import type { Playlist } from '@/models/api/Playlist'
+import type { Playlist, PlaylistSummary } from '@/models/api/Playlist'
 import './GalleryFocus.scss'
 import { GameArtwork } from '@/components/Collection/GameArtwork'
 import { CollectionSheet } from '@/components/Collection/CollectionSheet'
@@ -19,6 +19,7 @@ import { CollectionIcon } from '@/components/Collection/CollectionIcon'
 import { SampleBadge } from '@/components/Collection/SampleBadge'
 import { isGameCompleted as isCompleted, isGameFullyCompleted, completionTitleKey } from '@/utils/gameCompletion'
 import { FOCUS_PLAYLIST_NAME, FOCUS_GAME_LIMIT, getFocusStorageKey, readFocusPlaylistId, resolveFocusPlaylist } from '@/utils/focusPlaylist'
+import { manualPlaylist, playlistSummaries } from '@/services/CollectionService/PlaylistCollectionService'
 
 const SEARCH_DEBOUNCE_MS = 250
 const focusHours = (hours: number | null | undefined, language: string) => hours == null ? '—' : `${formatCollectionNumber(hours, language)} h`
@@ -90,13 +91,17 @@ function OwnedFocusMode() {
 	const { t, i18n } = useTranslation()
 	const userId = useAppSelector(state => state.auth.user?.id)
 	const dispatch = useAppDispatch()
-	const { playlists, currentPlaylist, fetchAll, fetchById, create, addItem, removeItem, reorderItems } = usePlaylists()
+	const { fetchAll, fetchById, create, addItem, removeItem, reorderItems } = usePlaylists()
+	const [focusSummaries, setFocusSummaries] = useState<PlaylistSummary[]>([])
 	const [managing, setManaging] = useState(false)
 	const [featuredGameId, setFeaturedGameId] = useState<number | null>(null)
 	const [focusPlaylistId, setFocusPlaylistId] = useState<number | null>(null)
 	const [playlistsLoaded, setPlaylistsLoaded] = useState(false)
 	const [playlistLoading, setPlaylistLoading] = useState(false)
-	const [loadedPlaylistId, setLoadedPlaylistId] = useState<number | null>(null)
+	const [focusDetail, setFocusPlaylist] = useState<Playlist | null>(null)
+	const focusPlaylist = focusDetail?.id === focusPlaylistId ? focusDetail : null
+	const activeFocusId = useRef(focusPlaylistId)
+	activeFocusId.current = focusPlaylistId
 	const [creating, setCreating] = useState(false)
 	const [query, setQuery] = useState('')
 	const [searchResults, setSearchResults] = useState<Game[]>([])
@@ -112,9 +117,14 @@ function OwnedFocusMode() {
 	const mountedRef = useRef(false)
 	const [steamUpdating, setSteamUpdating] = useState(false)
 	const [steamFailed, setSteamFailed] = useState(false)
-	const [loadFailed, setLoadFailed] = useState(false), [loadRevision, setLoadRevision] = useState(0)
+	const [listFailed, setListFailed] = useState(false), [detailFailed, setDetailFailed] = useState(false), [loadRevision, setLoadRevision] = useState(0)
+	const loadFailed = listFailed || detailFailed
+	const displayError = loadFailed ? t('focus.loadError') : error
+	const focusRevision = useRef(0), mutationActive = useRef(false)
+	const invalidateFocusRefresh = useCallback(() => { setSteamUpdating(false); return ++focusRevision.current }, [])
 
-	const focusPlaylist = currentPlaylist?.id === focusPlaylistId && loadedPlaylistId === focusPlaylistId ? currentPlaylist : null
+	// The shared route cache can be replaced/refreshed by other playlist consumers.
+	// Render only the independently loaded, validated Focus detail and its own writes.
 	const allItems = focusPlaylist?.items ?? []
 	const visibleItems = allItems.slice(0, FOCUS_GAME_LIMIT)
 	const currentItem = visibleItems.find(item => item.gameId === featuredGameId) ?? visibleItems[0]
@@ -130,11 +140,10 @@ function OwnedFocusMode() {
 	useEffect(() => {
 		let cancelled = false
 		void fetchAll()
-			.then(() => { if (!cancelled) setPlaylistsLoaded(true) })
+			.then(value => { const summaries = playlistSummaries(value as PlaylistSummary[]); if (!cancelled) { setFocusSummaries(summaries); setListFailed(false); setPlaylistsLoaded(true) } })
 			.catch(() => {
 				if (!cancelled) {
-					setError(t('focus.loadError'))
-					setLoadFailed(true)
+					setListFailed(true)
 					setPlaylistsLoaded(true)
 				}
 			})
@@ -142,23 +151,25 @@ function OwnedFocusMode() {
 	}, [fetchAll, t, loadRevision])
 
 	useEffect(() => {
-		if (!playlistsLoaded || loadFailed || focusPlaylistId !== null) return
-
-		const found = resolveFocusPlaylist(playlists, readFocusPlaylistId(userId))
-		if (found) setFocusPlaylistId(found.id)
-	}, [focusPlaylistId, playlists, playlistsLoaded, loadFailed, userId])
+		if (!playlistsLoaded || listFailed || focusSummaries.some(list => list.id === focusPlaylistId && !list.isAutomatic)) return
+		const found = resolveFocusPlaylist(focusSummaries, readFocusPlaylistId(userId))
+		if ((found?.id ?? null) !== focusPlaylistId) { setError(null); setFocusPlaylistId(found?.id ?? null) }
+	}, [focusPlaylistId, focusSummaries, playlistsLoaded, listFailed, userId])
 
 	useEffect(() => {
-		if (focusPlaylistId === null) return
+		if (focusPlaylistId === null) { setFocusPlaylist(null); setPlaylistLoading(false); setDetailFailed(false); return }
+		if (!playlistsLoaded || listFailed || !focusSummaries.some(list => list.id === focusPlaylistId && !list.isAutomatic)) return
 		let cancelled = false
+		const revision = invalidateFocusRefresh()
 		setPlaylistLoading(true)
-		setLoadedPlaylistId(null)
+		setFocusPlaylist(null)
+		setDetailFailed(false)
 		void fetchById(focusPlaylistId)
-			.then(() => { if (!cancelled) setLoadedPlaylistId(focusPlaylistId) })
-			.catch(() => { if (!cancelled) { setError(t('focus.loadError')); setLoadFailed(true) } })
+			.then(value => { const detail = manualPlaylist(value as Playlist, focusPlaylistId); if (!cancelled && focusRevision.current === revision) setFocusPlaylist(detail) })
+			.catch(() => { if (!cancelled && focusRevision.current === revision) setDetailFailed(true) })
 			.finally(() => { if (!cancelled) setPlaylistLoading(false) })
 		return () => { cancelled = true }
-	}, [fetchById, focusPlaylistId, t, loadRevision])
+	}, [fetchById, focusPlaylistId, t, loadRevision, playlistsLoaded, listFailed, focusSummaries, invalidateFocusRefresh])
 
 	useEffect(() => {
 		if (!focusPlaylist || playlistLoading) return
@@ -167,20 +178,23 @@ function OwnedFocusMode() {
 		steamGames.forEach(item => syncedGamesRef.current.add(item.gameId))
 		setSteamUpdating(true)
 		setSteamFailed(false)
+		const revision = focusRevision.current
+		const current = () => mountedRef.current && activeFocusId.current === focusPlaylist.id && focusRevision.current === revision
 		void (async () => {
 			let failed = false
 			for (const item of steamGames) {
-				if (!mountedRef.current) return
+				if (!current()) return
 				try { const result = await steamService.syncGame(item.gameId); if (result.success === false || result.error || result.errors?.length) failed = true }
 				catch { failed = true }
 			}
-			if (!mountedRef.current) return
+			if (!current()) return
 			try {
-				const refreshed = await getPlaylistById(focusPlaylist.id)
-				if (!mountedRef.current) return
+				const refreshed = manualPlaylist(await getPlaylistById(focusPlaylist.id), focusPlaylist.id)
+				if (!current()) return
+				setFocusPlaylist(refreshed)
 				dispatch(refreshCurrentPlaylist(refreshed))
 			} catch { failed = true }
-			if (!mountedRef.current) return
+			if (!current()) return
 			setSteamFailed(failed)
 			setSteamUpdating(false)
 		})()
@@ -221,7 +235,8 @@ function OwnedFocusMode() {
 	}
 
 	const createFocusPlaylist = async () => {
-		if (creating) return
+		if (creating || mutationActive.current) return
+		mutationActive.current = true
 		setCreating(true)
 		setError(null)
 		try {
@@ -232,63 +247,81 @@ function OwnedFocusMode() {
 				isAutomatic: false,
 			}) as Playlist
 			if (!mountedRef.current) return
+			setFocusSummaries(current => [...current.filter(list => list.id !== created.id), created])
 			setFocusPlaylistId(created.id)
 			try { window.localStorage.setItem(getFocusStorageKey(userId), String(created.id)) } catch { /* Optional, account-scoped preference for the explicitly created list. */ }
 			setManaging(true)
 		} catch {
 			if (mountedRef.current) setError(t('focus.createError'))
 		} finally {
+			mutationActive.current = false
 			if (mountedRef.current) setCreating(false)
 		}
 	}
 
 	const addGame = async (game: Game) => {
-		if (focusPlaylistId === null || remainingCapacity === 0 || addingGameId !== null) return
+		if (focusPlaylistId === null || remainingCapacity === 0 || addingGameId !== null || mutationActive.current) return
 		if (allItems.some(item => item.gameId === game.id)) return
+		mutationActive.current = true
+		invalidateFocusRefresh()
 		setAddingGameId(game.id)
 		setError(null)
 		try {
-			await addItem(focusPlaylistId, game.id)
-			if (!mountedRef.current) return
+			const detail = manualPlaylist(await addItem(focusPlaylistId, game.id) as Playlist, focusPlaylistId)
+			if (!mountedRef.current || activeFocusId.current !== focusPlaylistId) return
+			setFocusPlaylist(detail)
 			setQuery('')
 			setSearchResults([])
 		} catch {
 			if (mountedRef.current) setError(t('focus.addError'))
 		} finally {
+			mutationActive.current = false
 			if (mountedRef.current) setAddingGameId(null)
 		}
 	}
 
 	const removeGame = async (item: PlaylistItem) => {
-		if (focusPlaylistId === null || busyItemId !== null) return
+		if (focusPlaylistId === null || busyItemId !== null || mutationActive.current) return
+		mutationActive.current = true
+		invalidateFocusRefresh()
 		setBusyItemId(item.id)
 		setError(null)
 		try {
-			await removeItem(focusPlaylistId, item.id)
+			const detail = manualPlaylist(await removeItem(focusPlaylistId, item.id) as Playlist, focusPlaylistId)
+			if (mountedRef.current && activeFocusId.current === focusPlaylistId) setFocusPlaylist(detail)
 		} catch {
 			if (mountedRef.current) setError(t('focus.removeError'))
 		} finally {
+			mutationActive.current = false
 			if (mountedRef.current) setBusyItemId(null)
 		}
 	}
 
 	const refreshAfterDetails = () => {
 		setDetailGame(null)
-		if (focusPlaylistId !== null) void fetchById(focusPlaylistId).catch(() => { if (mountedRef.current) { setError(t('focus.loadError')); setLoadFailed(true) } })
+		const revision = invalidateFocusRefresh()
+		if (focusPlaylistId !== null) void fetchById(focusPlaylistId)
+			.then(value => { const detail = manualPlaylist(value as Playlist, focusPlaylistId); if (mountedRef.current && activeFocusId.current === focusPlaylistId && focusRevision.current === revision) { setFocusPlaylist(detail); setDetailFailed(false) } })
+			.catch(() => { if (mountedRef.current && focusRevision.current === revision) setDetailFailed(true) })
 	}
 
 	const moveGameUp = async (index: number) => {
-		if (focusPlaylistId === null || index < 1 || busyItemId !== null) return
+		if (focusPlaylistId === null || index < 1 || busyItemId !== null || mutationActive.current) return
 		const item = allItems[index]
 		if (!item) return
+		mutationActive.current = true
+		invalidateFocusRefresh()
 		const ids = allItems.map(value => value.id)
 		;[ids[index - 1], ids[index]] = [ids[index], ids[index - 1]]
 		if (currentGame) setFeaturedGameId(currentGame.id)
 		setBusyItemId(item.id)
 		setError(null)
-		try { await reorderItems(focusPlaylistId, ids) }
+		try {
+			await reorderItems(focusPlaylistId, ids)
+			if (mountedRef.current && activeFocusId.current === focusPlaylistId) setFocusPlaylist(current => current?.id === focusPlaylistId ? { ...current, items: ids.map((id, position) => ({ ...allItems.find(item => item.id === id)!, position })) } : current)
+		}
 		catch { if (mountedRef.current) setError(t('gallery.focusPage.orderError')) }
-		finally { if (mountedRef.current) setBusyItemId(null) }
+		finally { mutationActive.current = false; if (mountedRef.current) setBusyItemId(null) }
 	}
 
 	const minutes = currentGame ? effectivePlaytime(currentGame) : null
@@ -318,7 +351,7 @@ function OwnedFocusMode() {
 					)}
 				</header>
 
-				{error && !managing && <p className='focus-alert' role='alert'>{error}{loadFailed && <button type='button' className='gdb-text-button' onClick={() => { setError(null); setLoadFailed(false); setPlaylistsLoaded(false); setLoadRevision(value => value + 1) }}>{t('gallery.common.retry')}</button>}</p>}
+				{displayError && !managing && <p className='focus-alert' role='alert'>{displayError}{loadFailed && <button type='button' className='gdb-text-button' onClick={() => { invalidateFocusRefresh(); setError(null); setListFailed(false); setDetailFailed(false); setPlaylistsLoaded(false); setLoadRevision(value => value + 1) }}>{t('gallery.common.retry')}</button>}</p>}
 
 				{loadFailed && !focusPlaylist ? null : !focusPlaylistId ? (
 					<section className='focus-setup' aria-labelledby='focus-setup-title'>
@@ -395,7 +428,7 @@ function OwnedFocusMode() {
 						<CollectionSheet open={managing} onClose={() => setManaging(false)} title={t('gallery.focusPage.managerTitle')} subtitle={t('gallery.focusPage.occupied', { count: allItems.length, max: focusCapacity })} className='focus-manager'
 							footer={<button type='button' className='gdb-button gdb-button--primary' onClick={() => setManaging(false)}><CollectionIcon name='check' />{t('gallery.common.done')}</button>}>
 							<section id='focus-management' className='focus-library' aria-labelledby='focus-library-title'>
-							{error && <p className='focus-alert' role='alert'>{error}</p>}
+							{displayError && <p className='focus-alert' role='alert'>{displayError}</p>}
 							<ol className='focus-manage-list'>{allItems.map((item, index) => <li key={item.id}>
 								<GameArtwork game={item.game} decorative className='focus-manage-cover' />
 								<div className='focus-manage-copy'><strong>{item.game.name}</strong><span>{item.game.platformName || t('focus.platformNotSet')}</span></div>

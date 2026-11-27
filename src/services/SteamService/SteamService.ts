@@ -199,6 +199,12 @@ export interface SteamStoreSearchResult {
 }
 
 export interface SteamDateSuggestion {
+	reviewVersion?: number
+	reviewTimeZone?: string
+	updatedAt?: string
+	observedLastPlayed?: string | null
+	firstAchievementDate?: string | null
+	lastAchievementDate?: string | null
 	gameId: number
 	gameName: string
 	steamAppId: number
@@ -219,7 +225,22 @@ export interface SteamDateSuggestion {
 export interface SteamApplyDateSuggestionsResult {
 	updated: number
 	errors: string[]
+	applied: Array<{ gameId: number; started?: string | null; finished?: string | null; updatedAt: string }>
+	skipped: Array<{ gameId: number; reason: string }>
 }
+
+export interface SteamDateSelection { gameId: number; started?: string; finished?: string; expectedUpdatedAt: string }
+export const steamDateReviewTimeZone = () => Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
+const calendarDay = (date: Date, timeZone: string): string | null => {
+	try { const parts = new Intl.DateTimeFormat('en-US', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(date); return ['year', 'month', 'day'].map(type => parts.find(part => part.type === type)?.value).join('-') } catch { return null }
+}
+export const isSteamReferenceDate = (value: unknown, timeZone = steamDateReviewTimeZone()): value is string => {
+	const today = calendarDay(new Date(), timeZone), earliest = calendarDay(new Date('2003-09-11T00:00:00Z'), timeZone)
+	if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value) || !today || !earliest || value < earliest || value > today) return false
+	const time = Date.parse(`${value}T00:00:00Z`)
+	return Number.isFinite(time) && new Date(time).toISOString().slice(0, 10) === value
+}
+const validDateReviewStamp = (value: unknown): value is string => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value) && Number.isFinite(Date.parse(value))
 
 class SteamService {
 	async getProfile(): Promise<SteamProfile> {
@@ -276,26 +297,46 @@ class SteamService {
 		return customFetch<SteamMatchSuggestion[]>(base.storeMatchSuggestions)
 	}
 
-	async getDateSuggestions(options: { gameId?: number; includeStarted?: boolean; signal?: AbortSignal } = {}): Promise<SteamDateSuggestion[]> {
+	async getDateSuggestions(options: { gameId?: number; includeStarted?: boolean; timeZone?: string; signal?: AbortSignal } = {}): Promise<SteamDateSuggestion[]> {
 		const { signal, ...params } = options
-		return customFetch<SteamDateSuggestion[]>(base.dateSuggestions, {
-			params,
+		const timeZone = params.timeZone ?? steamDateReviewTimeZone()
+		if (timeZone.length > 100 || !calendarDay(new Date(), timeZone)) throw new Error('Invalid date review time zone')
+		const rows = await customFetch<SteamDateSuggestion[]>(base.dateSuggestions, {
+			params: { ...params, reviewVersion: 2, timeZone },
+			signal,
+		})
+		if (!Array.isArray(rows) || rows.length > 5000 || rows.some(row => !row || !Number.isSafeInteger(row.gameId) || row.gameId <= 0 || typeof row.gameName !== 'string' || typeof row.steamName !== 'string' || options.gameId !== undefined && row.gameId !== options.gameId || !Array.isArray(row.notes) || [row.proposedStarted, row.proposedFinished].some(date => date != null && !isSteamReferenceDate(date, timeZone)))) throw new Error('Invalid date review response')
+		if (new Set(rows.map(row => row.gameId)).size !== rows.length) throw new Error('Invalid date review response')
+		return rows
+	}
+
+	async applyDateSuggestions(suggestions: SteamDateSelection[], signal?: AbortSignal, timeZone = steamDateReviewTimeZone()): Promise<SteamApplyDateSuggestionsResult> {
+		this.validateDateSelection(suggestions, timeZone)
+		const result = await customFetch<SteamApplyDateSuggestionsResult>(base.applyDateSuggestions, {
+			method: 'POST',
+			body: { suggestions, timeZone },
+			signal,
+		})
+		const requested = new Map(suggestions.map(row => [row.gameId, row]))
+		if (!result || !Number.isSafeInteger(result.updated) || result.updated < 0 || !Array.isArray(result.errors) || !Array.isArray(result.applied) || !Array.isArray(result.skipped) || result.updated !== result.applied.length
+			|| result.applied.some(row => !row || !requested.has(row.gameId) || !validDateReviewStamp(row.updatedAt) || !row.started && !row.finished || row.started != null && row.started !== requested.get(row.gameId)?.started || row.finished != null && row.finished !== requested.get(row.gameId)?.finished)
+			|| result.skipped.some(row => !row || !requested.has(row.gameId) || typeof row.reason !== 'string')
+			|| new Set([...result.applied, ...result.skipped].map(row => row.gameId)).size !== result.applied.length + result.skipped.length
+			|| result.applied.length + result.skipped.length !== requested.size) throw new Error('Invalid date save receipt')
+		return collectionChanged(result)
+	}
+
+	async dismissDateSuggestions(suggestions: SteamDateSelection[], signal?: AbortSignal, timeZone = steamDateReviewTimeZone()): Promise<{ dismissed: number }> {
+		this.validateDateSelection(suggestions, timeZone)
+		return customFetch<{ dismissed: number }>(base.dismissDateSuggestions, {
+			method: 'POST',
+			body: { suggestions, timeZone },
 			signal,
 		})
 	}
 
-	async applyDateSuggestions(suggestions: Array<{ gameId: number; started?: string; finished?: string }>): Promise<SteamApplyDateSuggestionsResult> {
-		return customFetch<SteamApplyDateSuggestionsResult>(base.applyDateSuggestions, {
-			method: 'POST',
-			body: { suggestions },
-		}).then(collectionChanged)
-	}
-
-	async dismissDateSuggestions(suggestions: Array<{ gameId: number; started?: string; finished?: string }>): Promise<{ dismissed: number }> {
-		return customFetch<{ dismissed: number }>(base.dismissDateSuggestions, {
-			method: 'POST',
-			body: { suggestions },
-		})
+	private validateDateSelection(suggestions: SteamDateSelection[], timeZone: string) {
+		if (!Array.isArray(suggestions) || suggestions.length === 0 || suggestions.length > 1000 || suggestions.some(row => !row || !Number.isSafeInteger(row.gameId) || row.gameId <= 0 || !validDateReviewStamp(row.expectedUpdatedAt) || !row.started && !row.finished || [row.started, row.finished].some(date => date !== undefined && !isSteamReferenceDate(date, timeZone))) || new Set(suggestions.map(row => row.gameId)).size !== suggestions.length) throw new Error('Invalid date review selection')
 	}
 
 	async dismissMatchSuggestions(suggestions: Array<{ steamAppId: number; gdbGameId: number }>): Promise<void> {

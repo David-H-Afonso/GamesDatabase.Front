@@ -23,9 +23,10 @@ export const OnboardingGuide = ({ onAddGame, onOpenGame, onRandomGame }: Props) 
 	const [password, setPassword] = useState(''), [repeat, setRepeat] = useState(''), [passwordBusy, setPasswordBusy] = useState(false), [passwordMessage, setPasswordMessage] = useState<string | null>(null)
 	const activeOwner = useRef(userId)
 	activeOwner.current = userId
-	const step = guide?.data?.step ?? 'welcome', index = ONBOARDING_STEPS.indexOf(step)
+	const steps = ONBOARDING_STEPS.filter(chapter => chapter !== 'views' || guide?.data?.exampleViews !== undefined)
+	const step = guide?.data?.step ?? 'welcome', index = steps.indexOf(step)
 	useEffect(() => {
-		if (guide?.open) { heading.current?.focus({ preventScroll: true }); const body = heading.current?.closest('.gdb-sheet__body'); if (body) body.scrollTop = 0 }
+		if (guide?.open) { heading.current?.focus({ preventScroll: true }); const dialog = heading.current?.closest('dialog'); if (dialog) dialog.scrollTop = 0 }
 		if (!guide?.open || step !== 'welcome') { setPassword(''); setRepeat(''); setPasswordMessage(null) }
 	}, [step, guide?.open, Boolean(guide?.data)])
 	if (!guide) return null
@@ -33,7 +34,7 @@ export const OnboardingGuide = ({ onAddGame, onOpenGame, onRandomGame }: Props) 
 	const visit = (path: string) => { guide.hide(); navigate(path) }
 	const practice = () => { guide.hide(); if (data?.sampleGames[0]) onOpenGame(data.sampleGames[0]); else navigate('/library') }
 	const next = async () => {
-		const saved = await guide.saveStep(ONBOARDING_STEPS[Math.min(index + 1, ONBOARDING_STEPS.length - 1)], step === 'finish')
+		const saved = await guide.saveStep(steps[Math.min(index + 1, steps.length - 1)], step === 'finish')
 		if (saved && step === 'finish') guide.hide()
 	}
 	const reviewSamples = (remove: boolean) => {
@@ -59,25 +60,27 @@ export const OnboardingGuide = ({ onAddGame, onOpenGame, onRandomGame }: Props) 
 		finally { if (activeOwner.current === owner) setPasswordBusy(false) }
 	}
 	return <>
-		<CollectionSheet open={guide.open} onClose={() => { if (!busy) { void guide.pause() } }} title={t('guide.title')} subtitle={t('guide.stepCount', { current: index + 1, total: ONBOARDING_STEPS.length })} wide className='gdb-onboarding' footer={data && <>
+		<CollectionSheet open={guide.open} onClose={() => { if (!busy) { void guide.pause() } }} title={t('guide.title')} subtitle={t('guide.stepCount', { current: index + 1, total: steps.length })} wide className='gdb-onboarding' footer={data && <>
 			<button type='button' className='gdb-button' disabled={busy} onClick={() => { void guide.pause() }}>{t('guide.pause')}</button>
-			{index > 0 && <button type='button' className='gdb-button' disabled={busy} onClick={() => { void guide.saveStep(ONBOARDING_STEPS[index - 1]) }}>{t('guide.back')}</button>}
+			{index > 0 && <button type='button' className='gdb-button' disabled={busy} onClick={() => { void guide.saveStep(steps[index - 1]) }}>{t('guide.back')}</button>}
 			{step !== 'welcome' && step !== 'finish' && <button type='button' className='gdb-text-button' disabled={busy} onClick={() => { void next() }}>{t('guide.skip')}</button>}
 			{step !== 'welcome' && <button type='button' className='gdb-button gdb-button--primary' disabled={busy || guide.loading} onClick={() => { void next() }}>{t(step === 'finish' ? hasSamples ? 'guide.later' : 'guide.finish' : 'guide.next')}<CollectionIcon name='arrow' /></button>}
 		</>}>
 			{guide.error && <div className='gdb-guide-error' role='alert'><p>{t(guide.error === 'conflict' ? 'guide.conflict' : 'guide.saveError')}</p><button type='button' className='gdb-text-button' disabled={busy} onClick={() => { setConfirmation(null); void guide.reload() }}>{t('guide.reload')}</button></div>}
 			{!data ? <div className='gdb-guide-loading' role='status'><CollectionIcon name='help' /><p>{t(guide.error ? 'guide.loadError' : 'gallery.common.loading')}</p></div> : <>
-				<ol className='gdb-guide-progress' aria-label={t('guide.chapters')}>{ONBOARDING_STEPS.map((chapter, position) => <li key={chapter} aria-current={chapter === step ? 'step' : undefined}><span>{position + 1}</span><b>{t(`guide.steps.${chapter}.title`)}</b></li>)}</ol>
+				<ol className='gdb-guide-progress' aria-label={t('guide.chapters')}>{steps.map((chapter, position) => <li key={chapter} aria-current={chapter === step ? 'step' : undefined}><span>{position + 1}</span><b>{t(`guide.steps.${chapter}.title`)}</b></li>)}</ol>
 				<div className='gdb-guide-chapter'><h3 ref={heading} tabIndex={-1}>{t(`guide.steps.${step}.title`)}</h3><p>{t(`guide.steps.${step}.intro`)}</p>
 					{step === 'welcome' ? <>
 						{data.requiresPassword && <form className='gdb-form gdb-guide-password' onSubmit={event => { void protectAccount(event) }}><h4>{t('guide.passwordTitle')}</h4><p className='gdb-hint'>{t('guide.passwordHelp')}</p><div className='gdb-form-grid'><label>{t('guide.password')}<input type='password' autoComplete='new-password' minLength={12} required value={password} onChange={event => setPassword(event.target.value)} disabled={busy} /></label><label>{t('guide.passwordAgain')}<input type='password' autoComplete='new-password' minLength={12} required value={repeat} onChange={event => setRepeat(event.target.value)} disabled={busy} /></label></div>{passwordMessage && <p role='status'>{passwordMessage}</p>}<button type='submit' className='gdb-button' disabled={busy}>{t('guide.setPassword')}</button></form>}
-						<div className='gdb-guide-data-choice'><div><CollectionIcon name='library' /><h4>{t('guide.useCollection')}</h4><p>{t('guide.ownHelp')}</p><button type='button' className='gdb-button gdb-button--primary' disabled={busy} onClick={() => { void guide.saveStep('library') }}>{t('guide.useCollection')}<CollectionIcon name='arrow' /></button></div><div><CollectionIcon name='cards' /><h4>{t('guide.tryExamples')}</h4><p>{hasSamples ? t('guide.examplesAdded') : t('guide.examplesHelp')}</p><button type='button' className='gdb-button' disabled={busy} onClick={() => { if (hasSamples) { void guide.saveStep('library') } else { void guide.createSamples() } }}>{t(hasSamples ? 'guide.next' : 'guide.tryExamples')}<CollectionIcon name='arrow' /></button></div></div>
+						<div className='gdb-guide-data-choice'><div><CollectionIcon name='library' /><h4>{t('guide.useCollection')}</h4><p>{t('guide.ownHelp')}</p><button type='button' className='gdb-button gdb-button--primary' disabled={busy} onClick={() => { void guide.saveStep('library') }}>{t('guide.useCollection')}<CollectionIcon name='arrow' /></button></div><div><CollectionIcon name='cards' /><h4>{t('guide.tryExamples')}</h4><p>{hasSamples ? t('guide.examplesAdded') : t(data.exampleViews === undefined ? 'guide.examplesHelpLegacy' : 'guide.examplesHelp')}</p><button type='button' className='gdb-button' disabled={busy} onClick={() => { if (hasSamples) { void guide.saveStep('library') } else { void guide.createSamples() } }}>{t(hasSamples ? 'guide.next' : 'guide.tryExamples')}<CollectionIcon name='arrow' /></button></div></div>
 					</> : step === 'finish' ? <>
 						{hasSamples && <div className='gdb-guide-samples'><h4>{t('guide.sampleCount', { count: data.sampleGames.length })}</h4><p>{t('guide.sampleScope')}</p><div className='gdb-guide-actions'><button type='button' className='gdb-button' disabled={busy} onClick={() => reviewSamples(false)}>{t('guide.keep')}</button><button type='button' className='gdb-button' disabled={busy} onClick={() => reviewSamples(true)}><CollectionIcon name='trash' />{t('guide.remove')}</button></div></div>}
 						{message && <p className='gdb-guide-message' role='status'>{message}</p>}
+						{Boolean(data.exampleViews?.length) && <p className='gdb-hint'>{t('guide.viewsRetained')}</p>}
 						<button type='button' className='gdb-text-button' disabled={busy} onClick={() => { void guide.openGuide(true) }}>{t('guide.restart')}</button>
 					</> : <>
 						<ol className='gdb-guide-instructions'>{(['one', 'two', 'three'] as const).map(key => <li key={key}>{t(`guide.steps.${step}.${key}`)}</li>)}</ol>
+						{step === 'views' && <><p className='gdb-hint'>{t('guide.viewsRetained')}</p>{data.exampleViews?.length ? <div className='gdb-guide-view-preview'>{data.exampleViews.map(view => <button type='button' className='gdb-button' key={view.id} disabled={busy || !view.isPublic} onClick={() => visit(`/library?viewId=${view.id}`)}><CollectionIcon name='filter' /><span><b>{view.name}</b><small>{view.isPublic ? view.description : t('guide.viewHidden')}</small></span><CollectionIcon name='arrow' /></button>)}</div> : <button type='button' className='gdb-button' disabled={busy} onClick={() => { void guide.createViews() }}><CollectionIcon name='plus' />{t('guide.createViews')}</button>}</>}
 						{data.sampleGames.length > 0 && (step === 'library' || step === 'progress') && <div className='gdb-guide-game-preview'>{data.sampleGames.slice(0, 3).map(game => <button type='button' key={game.id} disabled={busy} onClick={() => { guide.hide(); onOpenGame(game) }}><GameArtwork game={game} role='cover' /><b>{game.name}</b><small>{t('guide.sampleBadge')}</small></button>)}</div>}
 						<div className='gdb-guide-actions'>
 							{step === 'library' && <><button type='button' className='gdb-button' disabled={busy} onClick={() => visit('/library')}><CollectionIcon name='library' />{t('guide.openLibrary')}</button><button type='button' className='gdb-button' disabled={busy} onClick={() => { guide.hide(); onAddGame() }}><CollectionIcon name='plus' />{t('guide.addGame')}</button></>}

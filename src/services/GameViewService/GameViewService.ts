@@ -144,6 +144,18 @@ export const getPublicGameViews = async (): Promise<GameView[]> => {
 /** Usage is separate from view configuration and does not invalidate game results. */
 export const recordGameViewUse = (id: number, signal?: AbortSignal) => customFetch<GameView[]>(`${BASE}/${id}/use`, { method: 'POST', body: {}, signal })
 
+/** Pin metadata never edits the current query or marks the view as used. */
+export const setGameViewPinned = async (id: number, pinned: boolean, slot?: number, signal?: AbortSignal) => {
+	if (!Number.isSafeInteger(id) || id <= 0 || slot !== undefined && slot !== 1 && slot !== 2) throw new Error('Invalid view pin request')
+	const views = await customFetch<GameView[]>(environment.apiRoutes.gameViews.pin(id), { method: 'POST', body: { pinned, ...(slot ? { slot } : {}) }, signal })
+	if (!Array.isArray(views) || views.some(view => !view || !Number.isSafeInteger(view.id) || view.id <= 0 || !Object.hasOwn(view, 'pinnedSlot') || view.pinnedSlot !== null && view.pinnedSlot !== 1 && view.pinnedSlot !== 2)) throw new Error('Invalid pinned views')
+	const target = views.find(view => view.id === id)
+	if (!target || (target.pinnedSlot !== null) !== pinned) throw new Error('Invalid pinned views')
+	const slots = views.filter(view => view.pinnedSlot != null).map(view => view.pinnedSlot)
+	if (slots.length > 2 || new Set(slots).size !== slots.length || new Set(views.map(view => view.id)).size !== views.length) throw new Error('Invalid pinned views')
+	return views
+}
+
 /**
  * Update only the configuration for a GameView.
  * Accepts either a ViewConfiguration object, an array of ViewFilter, or a single ViewFilter

@@ -41,6 +41,12 @@ describe('Steam tab synchronization', () => {
 		await screen.findByText('Saved achievement')
 		expect(steamService.syncGame).not.toHaveBeenCalled()
 	})
+	it('keeps date review and achievement progress as distinct keyed children for the same game', async () => {
+		const warnings = vi.spyOn(console, 'error')
+		renderWithProviders(<SteamTab game={game} />, { preloadedState: { auth: { user: { id: 1, username: 'Public fixture', role: 'Standard' }, token: 'fixture', refreshToken: null, isAuthenticated: true, loading: false, error: null } } })
+		await screen.findByText('Saved achievement'); await waitFor(() => expect(steamService.getDateSuggestions).toHaveBeenCalled())
+		expect(warnings).not.toHaveBeenCalled()
+	})
 	it('upgrades a cached legacy game to sets once and refreshes the game summary', async () => {
 		vi.mocked(steamService.getAchievementProgress).mockResolvedValueOnce({ ...progress, source: 'legacy', lastSynced: undefined, sets: [] }).mockResolvedValue(progress)
 		const { rerender } = renderWithProviders(<SteamTab game={game} />)

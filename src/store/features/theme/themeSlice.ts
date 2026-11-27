@@ -34,7 +34,7 @@ const initialState: ThemeState = {
 	currentTheme: getInitialTheme(),
 	availableThemes: [...AVAILABLE_THEMES],
 	cardStyle: 'cover',
-	cardColumns: 3,
+	cardColumns: 4,
 	viewMode: 'default',
 	backgroundByTheme: {},
 }
@@ -83,6 +83,7 @@ const themeSlice = createSlice({
 			// Re-sync with the source of truth in case persisted state predates a new theme.
 			state.availableThemes = [...AVAILABLE_THEMES]
 			if (!state.backgroundByTheme) state.backgroundByTheme = {}
+			if (state.cardColumns !== 3 && state.cardColumns !== 4) state.cardColumns = 4
 
 			// Get theme from localStorage or system preference
 			let themeToSet = 'gallery'

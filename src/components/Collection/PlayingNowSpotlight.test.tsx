@@ -1,4 +1,4 @@
-import { fireEvent, screen } from '@testing-library/react'
+import { act, fireEvent, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderWithProviders } from '@/test/utils/renderWithProviders'
 import { createGame } from '@/test/factories'
@@ -20,7 +20,7 @@ describe('Playing now keeps a quiet independent side list', () => {
 	})
 	it('arrow keys browse without changing state; explicit selection and opening stay separate', () => {
 		const input = props(); renderWithProviders(<PlayingNowSpotlight {...input} />)
-		const first = screen.getByRole('button', { name: 'Feature Game 1' }); first.focus()
+		const first = screen.getByRole('button', { name: 'Feature Game 1' }); act(() => first.focus())
 		fireEvent.keyDown(first, { key: 'End' }); expect(screen.getByRole('button', { name: 'Feature Game 12' })).toHaveFocus(); expect(input.onSelect).not.toHaveBeenCalled()
 		fireEvent.click(screen.getByRole('button', { name: 'Feature Game 12' })); expect(input.onSelect).toHaveBeenCalledWith(12); expect(input.onOpen).not.toHaveBeenCalled()
 		fireEvent.click(screen.getByRole('button', { name: 'View game' })); expect(input.onOpen).toHaveBeenCalledWith(items[0])
@@ -35,5 +35,15 @@ describe('Playing now keeps a quiet independent side list', () => {
 		expect(container).toBeEmptyDOMElement()
 		rerender(<PlayingNowSpotlight {...input} items={[items[0]]} />)
 		expect(container.querySelector('.gdb-playing-list')).not.toBeInTheDocument(); expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
+		expect(screen.queryByRole('button', { name: /automatic game rotation/ })).not.toBeInTheDocument()
+	})
+	it('keeps a mouse Pause action paused after focus enters, and allows explicit keyboard resume', () => {
+		vi.useFakeTimers()
+		try {
+			const input = props(); renderWithProviders(<PlayingNowSpotlight {...input} />)
+			const pause = screen.getByRole('button', { name: 'Pause automatic game rotation' }); fireEvent.pointerDown(pause); act(() => pause.focus()); fireEvent.click(pause)
+			const resume = screen.getByRole('button', { name: 'Start automatic game rotation' }); act(() => vi.advanceTimersByTime(30_000)); expect(input.onSelect).not.toHaveBeenCalled()
+			fireEvent.click(resume); act(() => vi.advanceTimersByTime(20_000)); expect(input.onSelect).toHaveBeenCalledExactlyOnceWith(2)
+		} finally { vi.useRealTimers() }
 	})
 })

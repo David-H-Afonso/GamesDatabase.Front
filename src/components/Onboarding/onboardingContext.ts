@@ -12,6 +12,7 @@ export interface OnboardingContextValue {
 	pause: () => Promise<void>
 	saveStep: (step: OnboardingStep, complete?: boolean) => Promise<OnboardingState | null>
 	createSamples: () => Promise<OnboardingState | null>
+	createViews: () => Promise<OnboardingState | null>
 	changeSamples: (request: TutorialSampleRequest, remove: boolean) => Promise<TutorialSampleChange | null>
 	reload: () => Promise<OnboardingState | null>
 }

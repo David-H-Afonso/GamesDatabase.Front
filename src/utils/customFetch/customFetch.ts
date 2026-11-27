@@ -177,6 +177,12 @@ const parseResponseData = async (httpResponse: Response): Promise<any> => {
 	return await httpResponse.text()
 }
 
+const retryAfterSeconds = (header: string | null): number | undefined => {
+	if (!header) return undefined
+	const seconds = /^\d+$/.test(header) ? Number(header) : /^[A-Za-z]{3},/.test(header) ? Math.ceil((Date.parse(header) - Date.now()) / 1000) : NaN
+	return Number.isSafeInteger(seconds) ? Math.max(0, seconds) : undefined
+}
+
 export const customFetch = async <T = any>(endpoint: string, requestOptions: CustomFetchOptions = {}): Promise<T> => {
 	if (refs.handlingUnauthorized) throw new Error('Request cancelled')
 
@@ -264,14 +270,15 @@ export const customFetch = async <T = any>(endpoint: string, requestOptions: Cus
 				throw new Error('Authentication required. Please login.')
 			}
 			const errorMessage = typeof responseData === 'string' ? responseData : JSON.stringify(responseData)
-			throw Object.assign(new Error(`HTTP ${httpResponse.status} ${httpResponse.statusText}: ${errorMessage}`), { status: httpResponse.status, ...(responseData && typeof responseData === 'object' && typeof responseData.code === 'string' ? { code: responseData.code } : {}) })
+			const retry = retryAfterSeconds(httpResponse.headers.get('Retry-After'))
+			throw Object.assign(new Error(`HTTP ${httpResponse.status} ${httpResponse.statusText}: ${errorMessage}`), { status: httpResponse.status, ...(retry != null ? { retryAfterSeconds: retry } : {}), ...(responseData && typeof responseData === 'object' && typeof responseData.code === 'string' ? { code: responseData.code } : {}) })
 		}
 
 		return responseData as T
 	} catch (fetchError) {
 		if (fetchError instanceof Error && fetchError.name === 'AbortError') throw new Error('Request cancelled', { cause: fetchError })
 		if (fetchError instanceof Error)
-			throw Object.assign(new Error(`Request failed for ${method} ${completeUrl}: ${fetchError.message}`, { cause: fetchError }), 'status' in fetchError ? { status: fetchError.status } : {}, 'code' in fetchError ? { code: fetchError.code } : {})
+			throw Object.assign(new Error(`Request failed for ${method} ${completeUrl}: ${fetchError.message}`, { cause: fetchError }), 'status' in fetchError ? { status: fetchError.status } : {}, 'code' in fetchError ? { code: fetchError.code } : {}, 'retryAfterSeconds' in fetchError ? { retryAfterSeconds: fetchError.retryAfterSeconds } : {})
 		throw fetchError
 	} finally {
 		clearTimeout(timeoutHandle)

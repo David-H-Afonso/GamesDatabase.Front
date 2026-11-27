@@ -9,8 +9,8 @@ import { OnboardingProvider } from './OnboardingProvider'
 import { OnboardingGuide } from './OnboardingGuide'
 import { useOnboarding, type OnboardingContextValue } from './onboardingContext'
 
-const mocks = vi.hoisted(() => ({ get: vi.fn(), start: vi.fn(), save: vi.fn(), create: vi.fn(), change: vi.fn() }))
-vi.mock('@/services/CollectionService/OnboardingService', () => ({ getOnboarding: mocks.get, startOnboarding: mocks.start, saveOnboarding: mocks.save, createTutorialSamples: mocks.create, changeTutorialSamples: mocks.change }))
+const mocks = vi.hoisted(() => ({ get: vi.fn(), start: vi.fn(), save: vi.fn(), create: vi.fn(), views: vi.fn(), change: vi.fn() }))
+vi.mock('@/services/CollectionService/OnboardingService', () => ({ getOnboarding: mocks.get, startOnboarding: mocks.start, saveOnboarding: mocks.save, createTutorialSamples: mocks.create, createTutorialViews: mocks.views, changeTutorialSamples: mocks.change }))
 vi.mock('@/components/Collection/GameArtwork', () => ({ GameArtwork: () => <span>Artwork</span> }))
 const auth = { user: { id: 1, username: 'Fixture', role: 'Admin' }, token: 'fixture', refreshToken: null, isAuthenticated: true, loading: false, error: null } as const
 let state: OnboardingState
@@ -24,6 +24,7 @@ describe('owned onboarding and explicit sample choices', () => {
 		mocks.start.mockImplementation(async (revision: number, restart: boolean) => { state = { ...state, revision: revision + 1, enabled: true, step: restart ? 'welcome' : state.step }; return structuredClone(state) })
 		mocks.save.mockImplementation(async (revision: number, step: OnboardingState['step'], enabled: boolean, complete: boolean) => { state = { ...state, revision: revision + 1, step, enabled, completedVersion: complete ? '3.0.0' : null }; return structuredClone(state) })
 		mocks.create.mockImplementation(async (revision: number) => { state = { ...state, revision: revision + 1, step: 'library', sampleGames: [createGame({ id: 77, isSample: true })], samplePlaylists: 1 }; return structuredClone(state) })
+		mocks.views.mockImplementation(async (revision: number) => { state = { ...state, revision: revision + 1, exampleViews: [{ id: 201, name: 'Example · Favorites', description: 'Keeps favorites ready.', isPublic: true }, { id: 202, name: 'Example · Not rated', isPublic: true }, { id: 203, name: 'Example · Short games', isPublic: true }] }; return structuredClone(state) })
 	})
 	it('anonymous and existing accounts never get automatic writes or example games', async () => {
 		const anonymous = renderGuide(false); expect(mocks.get).not.toHaveBeenCalled(); anonymous.unmount()
@@ -64,7 +65,7 @@ describe('owned onboarding and explicit sample choices', () => {
 		state.enabled = true; mocks.create.mockRejectedValueOnce(Object.assign(new Error('Fixture conflict'), { status: 409 })); renderGuide(); await screen.findByRole('dialog', { name: 'Getting started' })
 		await userEvent.click(screen.getByRole('button', { name: 'Try six example games' })); expect(await screen.findByRole('alert')).toHaveTextContent(i18n.t('guide.conflict'))
 		state.revision = 9; await userEvent.click(screen.getByRole('button', { name: i18n.t('guide.reload') })); await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument())
-		await userEvent.click(screen.getByRole('button', { name: 'Try six example games' })); await screen.findByRole('heading', { name: 'Add and edit games' }); expect(mocks.create).toHaveBeenLastCalledWith(9, expect.any(AbortSignal))
+		await userEvent.click(screen.getByRole('button', { name: 'Try six example games' })); await screen.findByRole('heading', { name: 'Add and edit games' }); expect(mocks.create).toHaveBeenLastCalledWith(9, expect.any(AbortSignal), 'en')
 		await userEvent.click(screen.getByRole('button', { name: 'Manage examples' })); await screen.findByRole('heading', { name: 'Your library is ready' }); await userEvent.click(screen.getByRole('button', { name: i18n.t('guide.restart') })); await screen.findByRole('heading', { name: 'Set up your library' })
 		expect(mocks.start).toHaveBeenLastCalledWith(expect.any(Number), true, expect.any(AbortSignal))
 	})
@@ -104,5 +105,21 @@ describe('owned onboarding and explicit sample choices', () => {
 		await waitFor(() => expect(context.data?.step).toBe('organize'))
 		await act(async () => { await old.openGuide(); await old.createSamples(); old.hide(); resolve({ ...state, step: 'finish', sampleGames: [createGame({ id: 88 })] }); await sampleRequest })
 		expect(mocks.create).toHaveBeenCalledOnce(); expect(mocks.start).not.toHaveBeenCalled(); expect(context.data?.step).toBe('organize'); expect(context.data?.sampleGames).toEqual([]); expect(context.open).toBe(true)
+	})
+	it('explains retained views and creates them only from the explicit views action', async () => {
+		state = { ...state, enabled: true, step: 'views', exampleViews: [] }; renderGuide(); await screen.findByRole('heading', { name: 'Keep useful views ready' })
+		expect(mocks.views).not.toHaveBeenCalled(); expect(screen.getByText(/remain available after the guide/)).toBeInTheDocument()
+		await userEvent.click(screen.getByRole('button', { name: 'Add three example views' })); await screen.findByRole('button', { name: /Example · Favorites/ })
+		expect(mocks.views).toHaveBeenCalledExactlyOnceWith(0, expect.any(AbortSignal), 'en'); expect(mocks.create).not.toHaveBeenCalled(); expect(state.sampleGames).toEqual([])
+	})
+	it('advances from Library to Views when the API supports them, without auto-creating anything', async () => {
+		state = { ...state, enabled: true, step: 'library', exampleViews: [] }; renderGuide(); await screen.findByRole('heading', { name: 'Add and edit games' }); await userEvent.click(screen.getByRole('button', { name: 'Continue' })); await screen.findByRole('heading', { name: 'Keep useful views ready' })
+		expect(mocks.save).toHaveBeenCalledWith(0, 'views', true, false, expect.any(AbortSignal)); expect(mocks.views).not.toHaveBeenCalled()
+	})
+	it('returns the actual scrollable dialog to its top when changing a long chapter', async () => {
+		state = { ...state, enabled: true, step: 'views', exampleViews: [] }; renderGuide(); await screen.findByRole('heading', { name: 'Keep useful views ready' })
+		const dialog = screen.getByRole('dialog'); dialog.scrollTop = 240
+		await userEvent.click(screen.getByRole('button', { name: 'Continue' })); await screen.findByRole('heading', { name: 'Give your collection some order' })
+		expect(dialog.scrollTop).toBe(0)
 	})
 })

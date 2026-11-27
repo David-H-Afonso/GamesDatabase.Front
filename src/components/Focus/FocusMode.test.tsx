@@ -66,9 +66,9 @@ const makePlaylistHook = (playlist: Playlist | null, playlists: PlaylistSummary[
 	loading: false,
 	error: null,
 	reordering: false,
-	fetchAll: vi.fn().mockResolvedValue(undefined),
+	fetchAll: vi.fn().mockResolvedValue(playlists),
 	fetchById: vi.fn().mockResolvedValue(playlist),
-	create: vi.fn().mockResolvedValue({ id: 19 }),
+	create: vi.fn().mockResolvedValue({ ...makePlaylist([]), id: 19 }),
 	update: vi.fn().mockResolvedValue(undefined),
 	remove: vi.fn().mockResolvedValue(undefined),
 	reorder: vi.fn().mockResolvedValue(undefined),
@@ -192,12 +192,14 @@ describe('FocusMode', () => {
 	it('syncs only linked Focus games once and reloads their saved statistics', async () => {
 		const steamGame = { ...currentGame, steamAppId: 100, steamAchievementsTotal: 8, steamAchievementsUnlocked: 8 }
 		const hooks = makePlaylistHook(makePlaylist([makeItem(101, steamGame), items[1]]))
+		vi.mocked(getPlaylistById).mockResolvedValueOnce(makePlaylist([makeItem(101, { ...steamGame, steamPlaytimeForever: 180 }), items[1]]))
 		mockUsePlaylists.mockReturnValue(hooks as any)
 		renderWithProviders(<FocusMode />)
 		await waitFor(() => expect(steamService.syncGame).toHaveBeenCalledTimes(1))
 		expect(steamService.syncGame).toHaveBeenCalledWith(1)
 		await waitFor(() => expect(getPlaylistById).toHaveBeenCalledWith(7))
 		expect(hooks.fetchById).toHaveBeenCalledTimes(1)
+		expect(await screen.findAllByText('3 h')).not.toHaveLength(0)
 		expect(screen.getAllByLabelText('Completado al 100%')).toHaveLength(2)
 	})
 

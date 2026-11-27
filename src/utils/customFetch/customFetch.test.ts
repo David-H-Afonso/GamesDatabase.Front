@@ -524,6 +524,22 @@ describe('HTTP error handling', () => {
 		server.use(http.get(`${BASE}/down`, () => new HttpResponse(null, { status: 503, statusText: 'Service Unavailable' })))
 		await expect(customFetch('/down')).rejects.toThrow('HTTP 503')
 	})
+	it.each(['2', '120'])('preserves Retry-After %s as typed evidence without retrying a request itself', async header => {
+		let seen = 0
+		server.use(http.get(`${BASE}/limited`, () => { seen++; return new HttpResponse(null, { status: 429, headers: { 'Retry-After': header } }) }))
+		await expect(customFetch('/limited')).rejects.toMatchObject({ status: 429, retryAfterSeconds: Number(header) }); expect(seen).toBe(1)
+	})
+	it('understands HTTP-date Retry-After but ignores malformed numeric or date values', async () => {
+		const now = Date.now(), clock = vi.spyOn(Date, 'now').mockReturnValue(now)
+		try {
+			server.use(http.get(`${BASE}/limited-date`, () => new HttpResponse(null, { status: 429, headers: { 'Retry-After': new Date(now + 10000).toUTCString() } })))
+			await expect(customFetch('/limited-date')).rejects.toMatchObject({ status: 429, retryAfterSeconds: 10 })
+			for (const header of ['-2', 'not-a-date', 'Infinity', '1e100', '999999999999999999999']) {
+				server.use(http.get(`${BASE}/bad-limit`, () => new HttpResponse(null, { status: 429, headers: { 'Retry-After': header } })))
+				const error = await customFetch('/bad-limit').catch(error => error); expect(error).toMatchObject({ status: 429 }); expect(error).not.toHaveProperty('retryAfterSeconds')
+			}
+		} finally { clock.mockRestore() }
+	})
 
 	it('includes the plain-text error body in the thrown message', async () => {
 		server.use(http.post(`${BASE}/bad`, () => new HttpResponse('name is required', { status: 400, statusText: 'Bad Request' })))

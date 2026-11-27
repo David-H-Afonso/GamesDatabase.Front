@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Game } from '@/models/api/Game'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { syncSteamGame } from '@/store/features/steam/steamSlice'
 import { fetchGameById } from '@/store/features/games'
-import { steamService, type SteamAchievementProgress, type SteamDateSuggestion } from '@/services/SteamService/SteamService'
+import { steamService, type SteamAchievementProgress } from '@/services/SteamService/SteamService'
+import { SteamDateReview } from '@/components/Collection/SteamDateReview'
 import { SteamAchievements } from './SteamAchievements'
 import './SteamTab.scss'
 import { steamErrorKey } from '@/utils/steamErrors'
@@ -19,28 +20,10 @@ export const SteamTab = ({ game, gallery = false }: { game: Game; gallery?: bool
 	const [loading, setLoading] = useState(true)
 	const [loadError, setLoadError] = useState(false)
 	const [syncMessage, setSyncMessage] = useState<string | null>(null)
-	const [dateSuggestion, setDateSuggestion] = useState<SteamDateSuggestion | null>(null)
-	const [dateSuggestionLoading, setDateSuggestionLoading] = useState(false)
-	const [dateSuggestionBusy, setDateSuggestionBusy] = useState(false)
+	const [dateReviewOpen, setDateReviewOpen] = useState(!gallery)
 	const request = useRef<AbortController | null>(null)
 	const locale = i18n.resolvedLanguage ?? i18n.language
 	const formatDate = (date: string) => new Date(date).toLocaleDateString(locale)
-
-	const loadDateSuggestion = useCallback(
-		async (signal: AbortSignal) => {
-			if (!game.steamAppId) return
-			setDateSuggestionLoading(true)
-			try {
-				const suggestions = await steamService.getDateSuggestions({ gameId: game.id, includeStarted: false, signal })
-				if (!signal.aborted) setDateSuggestion(suggestions.find((suggestion) => suggestion.gameId === game.id && suggestion.proposedFinished) ?? null)
-			} catch {
-				if (!signal.aborted) setDateSuggestion(null)
-			} finally {
-				if (!signal.aborted) setDateSuggestionLoading(false)
-			}
-		},
-		[game.id, game.steamAppId]
-	)
 
 	useEffect(() => {
 		const controller = new AbortController()
@@ -48,9 +31,7 @@ export const SteamTab = ({ game, gallery = false }: { game: Game; gallery?: bool
 		setProgress(null)
 		setLoadError(false)
 		setLoading(true)
-		setDateSuggestion(null)
-		setDateSuggestionLoading(false)
-		setDateSuggestionBusy(false)
+		setDateReviewOpen(!gallery)
 		setSyncMessage(null)
 		const load = async () => {
 			try {
@@ -74,9 +55,8 @@ export const SteamTab = ({ game, gallery = false }: { game: Game; gallery?: bool
 			}
 		}
 		void load()
-		if (!gallery) void loadDateSuggestion(controller.signal)
 		return () => controller.abort()
-	}, [game.id, game.steamAppId, dispatch, loadDateSuggestion, gallery])
+	}, [game.id, game.steamAppId, dispatch, gallery])
 
 	useEffect(() => {
 		if (!syncMessage) return
@@ -96,29 +76,8 @@ export const SteamTab = ({ game, gallery = false }: { game: Game; gallery?: bool
 			setProgress(data)
 			setLoadError(false)
 			await dispatch(fetchGameById(game.id)).unwrap()
-			await loadDateSuggestion(signal)
 		} catch (error) {
 			if (!signal.aborted) setSyncMessage(t(steamErrorKey(error) === 'steamSync.errors.busy' ? 'steamSync.errors.busy' : 'steamAchievements.syncFailed'))
-		}
-	}
-
-	const handleDateSuggestion = async (apply: boolean) => {
-		if (!dateSuggestion?.proposedFinished) return
-		const signal = request.current?.signal
-		if (!signal) return
-		setDateSuggestionBusy(true)
-		try {
-			const changes = [{ gameId: game.id, finished: dateSuggestion.proposedFinished }]
-			if (apply) await steamService.applyDateSuggestions(changes)
-			else await steamService.dismissDateSuggestions(changes)
-			if (signal.aborted) return
-			setSyncMessage(t(apply ? 'steamAchievements.dateApplied' : 'steamAchievements.dateDismissed'))
-			setDateSuggestion(null)
-			await dispatch(fetchGameById(game.id)).unwrap()
-		} catch {
-			if (!signal.aborted) setSyncMessage(t('steamAchievements.dateFailed'))
-		} finally {
-			if (!signal.aborted) setDateSuggestionBusy(false)
 		}
 	}
 
@@ -127,7 +86,7 @@ export const SteamTab = ({ game, gallery = false }: { game: Game; gallery?: bool
 		total = progress?.totalAchievements ?? game.steamAchievementsTotal ?? 0
 	const cachedAt = lastSynced ?? game.steamLastSynced,
 		percent = total > 0 ? Math.min(100, (unlocked / total) * 100) : 0
-	const finishSourceLabel = game.steamFinishedSource === 'steam' ? 'Steam' : t(game.finished ? 'steamAchievements.manual' : 'steamAchievements.noDate')
+	const finishSourceLabel = game.steamFinishedSource?.startsWith('steam') ? 'Steam' : t(game.finished ? 'steamAchievements.manual' : 'steamAchievements.noDate')
 	return (
 		<div className={`steam-tab ${gallery ? 'gdb-gallery-steam' : ''} ${progress?.isFullyCompleted ? 'steam-tab--complete' : ''}`} aria-busy={loading}>
 			{gallery && (
@@ -159,18 +118,15 @@ export const SteamTab = ({ game, gallery = false }: { game: Game; gallery?: bool
 							</p>
 						</section>
 					)}
-					<div className='gdb-steam-data-tools'>
+					{!dateReviewOpen && <div className='gdb-steam-data-tools'>
 						<button
 							type='button'
 							className='gdb-button'
-							disabled={dateSuggestionLoading || syncLoading}
-							onClick={() => {
-								const signal = request.current?.signal
-								if (signal) void loadDateSuggestion(signal)
-							}}>
+							disabled={syncLoading || loading}
+							onClick={() => setDateReviewOpen(true)}>
 							{t('gallery.tabs.steamDateSearch')}
 						</button>
-					</div>
+					</div>}
 				</>
 			)}
 			{!gallery && (
@@ -209,25 +165,7 @@ export const SteamTab = ({ game, gallery = false }: { game: Game; gallery?: bool
 					{syncMessage}
 				</p>
 			)}
-			{dateSuggestionLoading ? (
-				<p className='sync-message'>{t('steamAchievements.dateLoading')}</p>
-			) : dateSuggestion?.proposedFinished ? (
-				<div className={`steam-date-suggestion ${dateSuggestion.isFinishedConflict ? 'steam-date-suggestion--conflict' : ''}`}>
-					<div className='steam-date-suggestion__copy'>
-						<span className='steam-date-suggestion__eyebrow'>{t(dateSuggestion.isFinishedConflict ? 'steamAchievements.dateConflict' : 'steamAchievements.dateSuggestion')}</span>
-						<strong>{dateSuggestion.proposedFinished}</strong>
-						<span>{t('steamAchievements.currentDate', { date: game.finished || t('steamAchievements.noDate'), source: finishSourceLabel })}</span>
-					</div>
-					<div className='steam-date-suggestion__actions'>
-						<button type='button' className='btn btn-primary btn-sm' onClick={() => handleDateSuggestion(true)} disabled={dateSuggestionBusy}>
-							{t('steamAchievements.useSteam')}
-						</button>
-						<button type='button' className='btn btn-secondary btn-sm' onClick={() => handleDateSuggestion(false)} disabled={dateSuggestionBusy}>
-							{t('steamAchievements.dismissDate')}
-						</button>
-					</div>
-				</div>
-			) : null}
+			{dateReviewOpen && <SteamDateReview key={`dates-${game.id}`} gameId={game.id} onApplied={() => dispatch(fetchGameById(game.id)).unwrap()} />}
 			{loadError && (
 				<p className='steam-achievement-notice' role='alert'>
 					{t('steamAchievements.loadFailed')}{' '}
@@ -236,7 +174,7 @@ export const SteamTab = ({ game, gallery = false }: { game: Game; gallery?: bool
 					</button>
 				</p>
 			)}
-			{loading && !progress ? <p role='status'>{t('steamAchievements.loading')}</p> : progress && <SteamAchievements key={game.id} progress={progress} hideSummary={gallery} />}
+			{loading && !progress ? <p role='status'>{t('steamAchievements.loading')}</p> : progress && <SteamAchievements key={`achievements-${game.id}`} progress={progress} hideSummary={gallery} />}
 		</div>
 	)
 }

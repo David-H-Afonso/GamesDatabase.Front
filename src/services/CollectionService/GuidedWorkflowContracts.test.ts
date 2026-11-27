@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { http, HttpResponse } from 'msw'
 import { server } from '@/test/mocks/server'
-import { changeTutorialSamples, createTutorialSamples, getOnboarding, saveOnboarding, startOnboarding } from './OnboardingService'
+import { changeTutorialSamples, createTutorialSamples, createTutorialViews, getOnboarding, saveOnboarding, startOnboarding } from './OnboardingService'
 import { applyGameMetadata, previewGameMetadata } from '@/services/GamesService/GameMetadataService'
 
 const API = 'https://localhost:7245/api'
@@ -31,7 +31,7 @@ describe('guided workflow transport contracts (not backend authorization proof)'
 			http.post(`${API}/onboarding/samples`, async ({ request }) => { seen.push(await request.json()); return HttpResponse.json(state) }),
 		)
 		await startOnboarding(7, false); await saveOnboarding(7, 'progress', false, false); await createTutorialSamples(7)
-		expect(seen).toEqual([{ revision: 7, restart: false }, { revision: 7, step: 'progress', enabled: false, complete: false }, { revision: 7, confirm: true }])
+		expect(seen).toEqual([{ revision: 7, restart: false }, { revision: 7, step: 'progress', enabled: false, complete: false }, { revision: 7, confirm: true, locale: 'en' }])
 	})
 	it.each([false, true])('keeps the reviewed cleanup body and distinct keep/remove endpoint (remove=%s)', async remove => {
 		server.use(http[remove ? 'delete' : 'post'](`${API}/onboarding/samples${remove ? '' : '/keep'}`, async ({ request }) => { expect(await request.json()).toEqual(review); return HttpResponse.json({ state, removedGames: 0, keptGames: 0, removedPlaylists: 0, keptPlaylists: 0 }) }))
@@ -40,6 +40,11 @@ describe('guided workflow transport contracts (not backend authorization proof)'
 	it('sends metadata choices and returns a review without applying it', async () => {
 		server.use(http.post(`${API}/games/51/metadata/preview`, async ({ request }) => { expect(await request.json()).toEqual({ overwrite: false, includeArtwork: true }); return HttpResponse.json(preview) }))
 		expect(await previewGameMetadata(51, { overwrite: false, includeArtwork: true })).toEqual(preview)
+	})
+	it('creates retained example views with explicit confirmation and normalized Spanish locale', async () => {
+		const answer = { ...state, step: 'views', exampleViews: [] }
+		server.use(http.post(`${API}/onboarding/views`, async ({ request }) => { expect(await request.json()).toEqual({ revision: 7, confirm: true, locale: 'es' }); return HttpResponse.json(answer) }))
+		expect(await createTutorialViews(7, undefined, 'es-ES')).toEqual(answer)
 	})
 	it.each([
 		{ ...preview, overwrite: 'yes' }, { ...preview, fields: null }, { ...preview, fields: Array(8).fill(preview.fields[0]) }, { ...preview, matches: Array(13).fill({}) },

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import gameViewReducer, { setLoading, setError, updateGameView, removeGameView, setFilters, resetFilters, recordViewUsage } from '../gameViewSlice'
+import gameViewReducer, { setLoading, setError, updateGameView, removeGameView, setFilters, resetFilters, recordViewUsage, applyViewPins } from '../gameViewSlice'
 import type { GameViewState } from '@/models/store/GameViewState'
 import { fetchGameViews, fetchPublicGameViews, fetchGameViewById, createGameViewThunk, updateGameViewThunk, deleteGameViewThunk, updateGameViewConfiguration } from '../thunk'
 import { selectGameViews, selectPublicGameViews, selectCurrentGameView, selectGameViewsLoading, selectGameViewsError, selectGameViewById } from '../selector'
@@ -20,6 +20,21 @@ describe('gameViewSlice — initial state', () => {
 
 describe('gameViewSlice — sync reducers', () => {
 	beforeEach(() => resetIdCounter())
+	it('merges pin metadata only and rejects list reads started before the pin or before a newer read', () => {
+		const first = createGameView({ id: 1, pinnedSlot: null, lastUsedAt: '2026-11-26T12:00:00Z' })
+		let state: GameViewState = { ...initialState, gameViews: [first], publicGameViews: [first], currentGameView: first }
+		state = gameViewReducer(state, fetchGameViews.pending('old', {})); state = gameViewReducer(state, fetchPublicGameViews.pending('old-public', undefined))
+		state = gameViewReducer(state, applyViewPins([{ id: 1, pinnedSlot: 2 }, { id: 999, pinnedSlot: 1 }]))
+		expect(state.gameViews).toEqual([{ ...first, pinnedSlot: 2 }]); expect(state.currentGameView).toEqual({ ...first, pinnedSlot: 2 })
+		state = gameViewReducer(state, fetchGameViews.fulfilled([first], 'old', {})); state = gameViewReducer(state, fetchPublicGameViews.fulfilled([first], 'old-public', undefined))
+		expect(state.gameViews[0].pinnedSlot).toBe(2); expect(state.publicGameViews[0].pinnedSlot).toBe(2); expect(state.loading).toBe(false)
+		state = gameViewReducer(state, fetchPublicGameViews.pending('new-public', undefined)); state = gameViewReducer(state, fetchPublicGameViews.fulfilled([{ ...first, pinnedSlot: 2 }], 'new-public', undefined))
+		state = gameViewReducer(state, fetchPublicGameViews.fulfilled([first], 'old-public', undefined))
+		expect(state.publicGameViews[0].pinnedSlot).toBe(2)
+		state = gameViewReducer(state, fetchGameViews.pending('new', {})); state = gameViewReducer(state, fetchGameViews.fulfilled([{ ...first, pinnedSlot: 2 }], 'new', {}))
+		state = gameViewReducer(state, fetchGameViews.fulfilled([first], 'old', {})); state = gameViewReducer(state, fetchGameViews.rejected(null, 'old', {}, 'old error'))
+		expect(state.gameViews[0].pinnedSlot).toBe(2); expect(state.error).toBeNull()
+	})
 	it('merges newer usage only, repairs missing/invalid dates and never replaces configuration or manual order', () => {
 		const first = createGameView({ id: 1, lastUsedAt: 'invalid' }), second = createGameView({ id: 2, lastUsedAt: '2026-11-26T12:00:00Z' })
 		const state = { ...initialState, gameViews: [first, second], publicGameViews: [first, second], currentGameView: second }

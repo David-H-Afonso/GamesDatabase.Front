@@ -1,4 +1,4 @@
-import { getGameViews, getGameViewById, createGameView, updateGameView, deleteGameView, getPublicGameViews, updateGameViewConfiguration, reorderGameViews } from './GameViewService'
+import { getGameViews, getGameViewById, createGameView, updateGameView, deleteGameView, getPublicGameViews, updateGameViewConfiguration, reorderGameViews, setGameViewPinned } from './GameViewService'
 import { customFetch } from '@/utils/customFetch'
 
 vi.mock('@/utils/customFetch', () => ({
@@ -9,6 +9,26 @@ const mockFetch = vi.mocked(customFetch)
 
 describe('GameViewService', () => {
 	beforeEach(() => vi.clearAllMocks())
+	it('pins through a dedicated cancellable preference request without resaving filters', async () => {
+		const controller = new AbortController(), views = [{ id: 1, pinnedSlot: 2 }, { id: 2, pinnedSlot: null }]
+		mockFetch.mockResolvedValue(views)
+		expect(await setGameViewPinned(1, true, 2, controller.signal)).toBe(views)
+		expect(mockFetch).toHaveBeenCalledExactlyOnceWith('/gameviews/1/pin', { method: 'POST', body: { pinned: true, slot: 2 }, signal: controller.signal })
+	})
+	it('accepts an explicit unpin and omitted preferred slot', async () => {
+		mockFetch.mockResolvedValue([{ id: 1, pinnedSlot: null }])
+		await setGameViewPinned(1, false)
+		expect(mockFetch).toHaveBeenCalledWith('/gameviews/1/pin', expect.objectContaining({ body: { pinned: false } }))
+	})
+	it.each([null, {}, [], [null], [{ id: 1 }], [{ id: 2, pinnedSlot: 1 }], [{ id: 1, pinnedSlot: null }], [{ id: 1, pinnedSlot: 3 }], [{ id: 1, pinnedSlot: 1 }, { id: 2, pinnedSlot: 1 }], [{ id: 1, pinnedSlot: 1 }, { id: 1, pinnedSlot: 2 }], [{ id: 1, pinnedSlot: 1 }, { id: 0, pinnedSlot: null }]].map(answer => ({ answer })))('rejects malformed or contradictory authoritative pins %#', async ({ answer }) => {
+		mockFetch.mockResolvedValue(answer)
+		await expect(setGameViewPinned(1, true)).rejects.toThrow('Invalid pinned views')
+	})
+	it('validates identifiers and slot bounds before sending a request', async () => {
+		await expect(setGameViewPinned(0, true)).rejects.toThrow('Invalid view pin request')
+		await expect(setGameViewPinned(1, true, 3)).rejects.toThrow('Invalid view pin request')
+		expect(mockFetch).not.toHaveBeenCalled()
+	})
 
 	it('getGameViews calls GET', async () => {
 		mockFetch.mockResolvedValue([])

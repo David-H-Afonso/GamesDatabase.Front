@@ -1,5 +1,5 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
-import themeReducer, { setTheme, addTheme, removeTheme, initializeTheme, setCardStyle, setViewMode, reset } from '../themeSlice'
+import themeReducer, { setTheme, addTheme, removeTheme, initializeTheme, setCardStyle, setCardColumns, setViewMode, reset } from '../themeSlice'
 import type { ThemeState } from '@/models/store/ThemeState'
 
 // jsdom does not implement globalThis.matchMedia; provide a minimal stub
@@ -34,6 +34,11 @@ describe('themeSlice — initial state', () => {
 
 	it('new collections default to Covers', () => {
 		expect(initialState.cardStyle).toBe('cover')
+	})
+	it('uses four Cards by default while retaining an explicit three-column choice on initialization', () => {
+		expect(initialState.cardColumns).toBe(4)
+		const chosen = themeReducer(initialState, setCardColumns(3)); expect(themeReducer(chosen, initializeTheme()).cardColumns).toBe(3)
+		expect(themeReducer({ ...initialState, cardColumns: undefined }, initializeTheme()).cardColumns).toBe(4)
 	})
 
 	it('viewMode defaults to default', () => {

@@ -11,6 +11,7 @@ const initialState: GameViewState = {
 	loading: false,
 	error: null,
 	filters: {},
+	pinRevision: 0,
 }
 
 const gameViewSlice = createSlice({
@@ -77,27 +78,40 @@ const gameViewSlice = createSlice({
 				if (timestamp && Number.isFinite(next) && (!Number.isFinite(previous) || next > previous)) view.lastUsedAt = timestamp
 			}
 		},
+		applyViewPins: (state, action: PayloadAction<Array<Pick<GameView, 'id' | 'pinnedSlot'>>>) => {
+			const pins = new Map(action.payload.map(view => [view.id, view.pinnedSlot]))
+			for (const view of [...state.gameViews, ...state.publicGameViews, ...(state.currentGameView ? [state.currentGameView] : [])]) if (pins.has(view.id)) view.pinnedSlot = pins.get(view.id)
+			state.pinRevision = (state.pinRevision ?? 0) + 1
+		},
 	},
 	extraReducers: (builder) => {
 		// Fetch GameViews
 		builder
-			.addCase(fetchGameViews.pending, (state) => {
+			.addCase(fetchGameViews.pending, (state, action) => {
 				state.loading = true
 				state.error = null
+				state.viewsRead = { requestId: action.meta.requestId, pinRevision: state.pinRevision ?? 0 }
 			})
-			.addCase(fetchGameViews.fulfilled, (state, action: PayloadAction<GameView[]>) => {
+			.addCase(fetchGameViews.fulfilled, (state, action) => {
+				if (state.viewsRead && state.viewsRead.requestId !== action.meta.requestId) return
+				if (state.viewsRead && state.viewsRead.pinRevision !== (state.pinRevision ?? 0)) { state.loading = false; return }
 				state.loading = false
 				state.error = null
 				// Replace the current list with the fetched ones
 				state.gameViews = action.payload || []
 			})
 			.addCase(fetchGameViews.rejected, (state, action) => {
+				if (state.viewsRead && (state.viewsRead.requestId !== action.meta.requestId || state.viewsRead.pinRevision !== (state.pinRevision ?? 0))) return
 				state.loading = false
 				state.error = action.payload as string
 			})
 
 			// Fetch public game views
-			.addCase(fetchPublicGameViews.fulfilled, (state, action: PayloadAction<GameView[]>) => {
+			.addCase(fetchPublicGameViews.pending, (state, action) => {
+				state.publicViewsRead = { requestId: action.meta.requestId, pinRevision: state.pinRevision ?? 0 }
+			})
+			.addCase(fetchPublicGameViews.fulfilled, (state, action) => {
+				if (state.publicViewsRead && (state.publicViewsRead.requestId !== action.meta.requestId || state.publicViewsRead.pinRevision !== (state.pinRevision ?? 0))) return
 				state.loading = false
 				state.error = null
 				state.publicGameViews = action.payload || []
@@ -208,6 +222,6 @@ const gameViewSlice = createSlice({
 	},
 })
 
-export const { setLoading, setError, setCurrentGameView, addGameView, updateGameView, removeGameView, setFilters, resetFilters, resetState, recordViewUsage } = gameViewSlice.actions
+export const { setLoading, setError, setCurrentGameView, addGameView, updateGameView, removeGameView, setFilters, resetFilters, resetState, recordViewUsage, applyViewPins } = gameViewSlice.actions
 
 export default gameViewSlice.reducer

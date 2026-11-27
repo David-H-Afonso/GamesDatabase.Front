@@ -11,7 +11,7 @@ import {
 	markSteamGameLinked,
 } from '@/store/features/steam/steamSlice'
 import { setSteamProfile } from '@/store/features/auth/authSlice'
-import { steamService, type SteamDateSuggestion, type SteamMatchSuggestion, type SteamStoreSearchResult } from '@/services/SteamService/SteamService'
+import { steamService, type SteamMatchSuggestion, type SteamStoreSearchResult } from '@/services/SteamService/SteamService'
 import { getGames } from '@/services/GamesService/GamesService'
 import type { Game } from '@/models/api/Game'
 import { ConfirmDialog, Toast } from '@/components/elements'
@@ -19,6 +19,7 @@ import './AdminSteam.scss'
 import './AdminSteamImport.scss'
 import { useSteamSyncJob } from './useSteamSyncJob'
 import { SteamSyncPanel } from './SteamSyncPanel'
+import { SteamDateReview } from '@/components/Collection/SteamDateReview'
 import { steamErrorKey } from '@/utils/steamErrors'
 
 type ImportAction = 'create' | 'skip' | 'link'
@@ -56,15 +57,6 @@ export const AdminSteamImport = () => {
 	const [storeSuggestionsError, setStoreSuggestionsError] = useState<string | null>(null)
 	const [storeSuggestionSearch, setStoreSuggestionSearch] = useState('')
 	const [selectedStoreSuggestionIds, setSelectedStoreSuggestionIds] = useState<Set<string>>(new Set())
-	const [dateSuggestions, setDateSuggestions] = useState<SteamDateSuggestion[]>([])
-	const [dateSuggestionsLoading, setDateSuggestionsLoading] = useState(false)
-	const [dateSuggestionsApplying, setDateSuggestionsApplying] = useState(false)
-	const [dateSuggestionsDismissing, setDateSuggestionsDismissing] = useState(false)
-	const [dateSuggestionsError, setDateSuggestionsError] = useState<string | null>(null)
-	const [dateSuggestionSearch, setDateSuggestionSearch] = useState('')
-	const [selectedDateSuggestionIds, setSelectedDateSuggestionIds] = useState<Set<number>>(new Set())
-	const [dateApplyResult, setDateApplyResult] = useState<{ updated: number; errors: string[] } | null>(null)
-	const [dateDismissResult, setDateDismissResult] = useState<number | null>(null)
 	const [librarySort, setLibrarySort] = useState<{ key: LibrarySortKey; direction: SortDirection }>({ key: 'appId', direction: 'asc' })
 	const [message, setMessage] = useState<string | null>(null)
 	const [isSuccess, setIsSuccess] = useState(true)
@@ -101,9 +93,6 @@ export const AdminSteamImport = () => {
 		}
 		if (isSteamLinked && activeTab === 'storeSuggestions' && storeSuggestions.length === 0 && !storeSuggestionsLoading && !storeSuggestionsError) {
 			loadStoreSuggestions()
-		}
-		if (isSteamLinked && activeTab === 'dateSuggestions' && dateSuggestions.length === 0 && !dateSuggestionsLoading && !dateSuggestionsError) {
-			loadDateSuggestions()
 		}
 	}, [isSteamLinked, activeTab])
 
@@ -229,58 +218,6 @@ export const AdminSteamImport = () => {
 		})
 	}
 
-	const settleAppliedDateSuggestions = (applied: SteamDateSuggestion[]) => {
-		const appliedByGameId = new Map(applied.map((suggestion) => [suggestion.gameId, suggestion]))
-		setDateSuggestions((prev) =>
-			prev
-				.map((suggestion) => {
-					const appliedSuggestion = appliedByGameId.get(suggestion.gameId)
-					if (!appliedSuggestion) return suggestion
-
-					const startedApplied = !suggestion.currentStarted && !!suggestion.proposedStarted
-					const finishedApplied = !!suggestion.proposedFinished && (!suggestion.currentFinished || suggestion.isFinishedSteamManaged)
-					return {
-						...suggestion,
-						currentStarted: startedApplied ? suggestion.proposedStarted : suggestion.currentStarted,
-						currentFinished: finishedApplied ? suggestion.proposedFinished : suggestion.currentFinished,
-						proposedStarted: startedApplied ? undefined : suggestion.proposedStarted,
-						proposedFinished: finishedApplied ? undefined : suggestion.proposedFinished,
-					}
-				})
-				.filter((suggestion) => suggestion.proposedStarted || suggestion.proposedFinished)
-		)
-		setSelectedDateSuggestionIds((prev) => {
-			const next = new Set(prev)
-			appliedByGameId.forEach((_, id) => next.delete(id))
-			return next
-		})
-	}
-
-	const settleDismissedDateSuggestions = (dismissed: SteamDateSuggestion[]) => {
-		const dismissedIds = new Set(dismissed.map((suggestion) => suggestion.gameId))
-		setDateSuggestions((prev) => prev.filter((suggestion) => !dismissedIds.has(suggestion.gameId)))
-		setSelectedDateSuggestionIds((prev) => {
-			const next = new Set(prev)
-			dismissedIds.forEach((id) => next.delete(id))
-			return next
-		})
-	}
-
-	const loadDateSuggestions = async () => {
-		setDateSuggestionsLoading(true)
-		setDateSuggestionsError(null)
-		setDateApplyResult(null)
-		setSelectedDateSuggestionIds(new Set())
-		try {
-			const data = await steamService.getDateSuggestions()
-			setDateSuggestions(data)
-		} catch (e) {
-			setDateSuggestionsError(e instanceof Error ? e.message : t('admin.steam.dateSuggestions.loadError'))
-		} finally {
-			setDateSuggestionsLoading(false)
-		}
-	}
-
 	const handleLinkSuggestion = async (suggestion: SteamMatchSuggestion) => {
 		try {
 			await steamService.linkGame(suggestion.steamAppId, suggestion.gdbGameId)
@@ -358,73 +295,6 @@ export const AdminSteamImport = () => {
 			setStoreSuggestionsError(e instanceof Error ? e.message : t('admin.steam.storeSuggestions.dismissError'))
 		} finally {
 			setStoreSuggestionsDismissing(false)
-		}
-	}
-
-	const toggleDateSuggestionSelection = (gameId: number) => {
-		setSelectedDateSuggestionIds((prev) => {
-			const next = new Set(prev)
-			if (next.has(gameId)) next.delete(gameId)
-			else next.add(gameId)
-			return next
-		})
-	}
-
-	const toggleAllVisibleDateSuggestions = () => {
-		const visibleIds = filteredDateSuggestions.map((s) => s.gameId)
-		const allSelected = visibleIds.every((id) => selectedDateSuggestionIds.has(id))
-		setSelectedDateSuggestionIds((prev) => {
-			const next = new Set(prev)
-			visibleIds.forEach((id) => {
-				if (allSelected) next.delete(id)
-				else next.add(id)
-			})
-			return next
-		})
-	}
-
-	const handleApplyDateSuggestions = async () => {
-		const toApply = filteredDateSuggestions.filter((s) => selectedDateSuggestionIds.has(s.gameId) && (s.proposedStarted || s.proposedFinished))
-		if (toApply.length === 0) return
-
-		setDateSuggestionsApplying(true)
-		setDateSuggestionsError(null)
-		try {
-			const result = await steamService.applyDateSuggestions(
-				toApply.map((s) => ({
-					gameId: s.gameId,
-					started: s.proposedStarted,
-					finished: s.proposedFinished,
-				}))
-			)
-			setDateApplyResult(result)
-			setDateDismissResult(null)
-			settleAppliedDateSuggestions(toApply)
-		} catch (e) {
-			setDateSuggestionsError(e instanceof Error ? e.message : t('admin.steam.dateSuggestions.applyError'))
-		} finally {
-			setDateSuggestionsApplying(false)
-		}
-	}
-
-	const handleDismissDateSuggestions = async (gameIds?: number[]) => {
-		const ids = gameIds ?? [...selectedDateSuggestionIds]
-		const toDismiss = dateSuggestions.filter((s) => ids.includes(s.gameId) && (s.proposedStarted || s.proposedFinished))
-		if (toDismiss.length === 0) return
-
-		setDateSuggestionsDismissing(true)
-		setDateSuggestionsError(null)
-		try {
-			const result = await steamService.dismissDateSuggestions(
-				toDismiss.map((s) => ({ gameId: s.gameId, started: s.proposedStarted, finished: s.proposedFinished }))
-			)
-			setDateDismissResult(result.dismissed)
-			setDateApplyResult(null)
-			settleDismissedDateSuggestions(toDismiss)
-		} catch (e) {
-			setDateSuggestionsError(e instanceof Error ? e.message : t('admin.steam.dateSuggestions.dismissError'))
-		} finally {
-			setDateSuggestionsDismissing(false)
 		}
 	}
 
@@ -681,43 +551,6 @@ export const AdminSteamImport = () => {
 			s.steamName.toLowerCase().includes(storeSuggestionSearch.toLowerCase()) ||
 			s.gdbGameName.toLowerCase().includes(storeSuggestionSearch.toLowerCase())
 	)
-	const filteredDateSuggestions = dateSuggestions.filter(
-		(s) =>
-			!dateSuggestionSearch.trim() ||
-			s.steamName.toLowerCase().includes(dateSuggestionSearch.toLowerCase()) ||
-			s.gameName.toLowerCase().includes(dateSuggestionSearch.toLowerCase())
-	)
-
-	const dateSourceLabel = (source: string) => {
-		switch (source) {
-			case 'lastPlayed':
-				return t('admin.steam.dateSuggestions.sourceLastPlayed')
-			case 'firstAchievement':
-				return t('admin.steam.dateSuggestions.sourceFirstAchievement')
-			default:
-				return t('admin.steam.dateSuggestions.sourceNone')
-		}
-	}
-
-	const dateNoteLabel = (note: string) => {
-		switch (note) {
-			case 'noLastPlayed':
-				return t('admin.steam.dateSuggestions.noteNoLastPlayed')
-			case 'noFirstAchievement':
-				return t('admin.steam.dateSuggestions.noteNoFirstAchievement')
-			case 'keptStarted':
-				return t('admin.steam.dateSuggestions.noteKeptStarted')
-			default:
-				return note
-		}
-	}
-
-	const formatSteamMinutes = (minutes?: number) => {
-		if (minutes == null) return '—'
-		if (minutes <= 0) return '0h'
-		return `${Math.round(minutes / 60)}h`
-	}
-
 	const toCreateCount = library.filter((g) => getAction(g.appId) === 'create').length
 	const toLinkCount = library.filter((g) => getAction(g.appId) === 'link' && linkTargets.has(g.appId)).length
 	const totalActionCount = toCreateCount + toLinkCount
@@ -929,8 +762,9 @@ export const AdminSteamImport = () => {
 										<tr>
 											<th className='check-cell'>
 												<input
-													type='checkbox'
-													checked={filteredStoreSuggestions.length > 0 && filteredStoreSuggestions.every((s) => selectedStoreSuggestionIds.has(getSuggestionKey(s)))}
+														type='checkbox'
+														aria-label={t('admin.steam.common.selectVisibleSuggestions')}
+														checked={filteredStoreSuggestions.length > 0 && filteredStoreSuggestions.every((s) => selectedStoreSuggestionIds.has(getSuggestionKey(s)))}
 													onChange={toggleAllVisibleStoreSuggestions}
 												/>
 											</th>
@@ -950,8 +784,9 @@ export const AdminSteamImport = () => {
 													onClick={() => toggleStoreSuggestionSelection(s)}>
 													<td className='check-cell'>
 														<input
-															type='checkbox'
-															checked={selectedStoreSuggestionIds.has(key)}
+																type='checkbox'
+																aria-label={t('admin.steam.common.selectSuggestion', { steam: s.steamName, game: s.gdbGameName })}
+																checked={selectedStoreSuggestionIds.has(key)}
 															onClick={(event) => event.stopPropagation()}
 															onChange={() => toggleStoreSuggestionSelection(s)}
 														/>
@@ -992,148 +827,7 @@ export const AdminSteamImport = () => {
 					)}
 				</div>
 			) : activeTab === 'dateSuggestions' ? (
-				<div className='suggestions-view'>
-					{dateSuggestionsLoading ? (
-						<p>{t('admin.steam.dateSuggestions.loading')}</p>
-					) : dateSuggestionsError ? (
-						<div className='alert alert--error'>{dateSuggestionsError}</div>
-					) : dateSuggestions.length === 0 ? (
-						<div className='no-suggestions'>
-							<p>{t('admin.steam.dateSuggestions.empty')}</p>
-							<button className='btn btn-secondary btn-sm' onClick={loadDateSuggestions}>
-								{t('admin.steam.dateSuggestions.refresh')}
-							</button>
-						</div>
-					) : (
-						<>
-							<p className='suggestions-hint'>{t('admin.steam.dateSuggestions.hint', { count: dateSuggestions.length })}</p>
-							{dateApplyResult && (
-								<div className='import-result alert alert--success'>
-									<strong>{t('admin.steam.dateSuggestions.applyDone')}:</strong> {dateApplyResult.updated}
-									{dateApplyResult.errors.length > 0 && (
-										<ul>
-											{dateApplyResult.errors.map((e, i) => (
-												<li key={i}>{e}</li>
-											))}
-										</ul>
-									)}
-								</div>
-							)}
-							{dateDismissResult !== null && <div className='import-result alert alert--success'>{t('admin.steam.dateSuggestions.dismissDone')}</div>}
-							<div className='suggestions-toolbar'>
-								<input
-									className='search-input'
-									type='text'
-									placeholder={t('admin.steam.common.searchByName')}
-									value={dateSuggestionSearch}
-									onChange={(e) => setDateSuggestionSearch(e.target.value)}
-								/>
-								<button className='btn btn-secondary btn-sm' onClick={loadDateSuggestions} disabled={dateSuggestionsLoading}>
-									{t('admin.steam.dateSuggestions.refresh')}
-								</button>
-								{selectedDateSuggestionIds.size > 0 && (
-									<div className='bulk-actions'>
-										<span className='bulk-count'>{t('admin.steam.common.selectedCount', { count: selectedDateSuggestionIds.size })}</span>
-										<button className='btn btn-primary btn-sm' onClick={handleApplyDateSuggestions} disabled={dateSuggestionsApplying || dateSuggestionsDismissing}>
-											{dateSuggestionsApplying ? t('admin.steam.dateSuggestions.applying') : t('admin.steam.dateSuggestions.applySelected')}
-										</button>
-										<button className='btn btn-danger btn-sm' onClick={() => handleDismissDateSuggestions()} disabled={dateSuggestionsDismissing || dateSuggestionsApplying}>
-											{dateSuggestionsDismissing ? t('admin.steam.dateSuggestions.dismissing') : t('admin.steam.dateSuggestions.dismissSelected')}
-										</button>
-									</div>
-								)}
-							</div>
-							<div className='library-table-wrapper'>
-								<table className='library-table'>
-									<thead>
-										<tr>
-											<th className='check-cell'>
-												<input
-													type='checkbox'
-													checked={filteredDateSuggestions.length > 0 && filteredDateSuggestions.every((s) => selectedDateSuggestionIds.has(s.gameId))}
-													onChange={toggleAllVisibleDateSuggestions}
-												/>
-											</th>
-											<th>{t('admin.steam.common.gdb')}</th>
-											<th>{t('admin.steam.common.steam')}</th>
-											<th>{t('admin.steam.dateSuggestions.currentDates')}</th>
-											<th>{t('admin.steam.dateSuggestions.proposedDates')}</th>
-											<th>{t('admin.steam.dateSuggestions.sources')}</th>
-											<th></th>
-										</tr>
-									</thead>
-									<tbody>
-										{filteredDateSuggestions.map((s) => (
-											<tr
-												key={s.gameId}
-												className={selectedDateSuggestionIds.has(s.gameId) ? 'row--selected row--selectable' : 'row--selectable'}
-												onClick={() => toggleDateSuggestionSelection(s.gameId)}>
-												<td className='check-cell'>
-													<input
-														type='checkbox'
-														checked={selectedDateSuggestionIds.has(s.gameId)}
-														onClick={(event) => event.stopPropagation()}
-														onChange={() => toggleDateSuggestionSelection(s.gameId)}
-													/>
-												</td>
-												<td>
-													<span className='game-name'>{s.gameName}</span>
-													<span className='game-appid'>GDB #{s.gameId}</span>
-												</td>
-												<td>
-													<div className='suggestion-game'>
-														{s.steamIconUrl && <img src={s.steamIconUrl} alt='' width={32} height={32} style={{ borderRadius: 2 }} />}
-														<div>
-															<span className='game-name'>{s.steamName}</span>
-															<span className='game-appid'>App {s.steamAppId}</span>
-															<span className='game-appid'>
-																{t('admin.steam.dateSuggestions.playtime')}: {formatSteamMinutes(s.steamPlaytimeForever)}
-															</span>
-														</div>
-													</div>
-												</td>
-												<td>
-													<span className='game-appid'>
-														{t('admin.steam.dateSuggestions.started')}: {s.currentStarted || '—'}
-													</span>
-													<span className='game-appid'>
-														{t('admin.steam.dateSuggestions.finished')}: {s.currentFinished || '—'}
-													</span>
-												</td>
-												<td>
-													<span className='game-appid'>
-														{t('admin.steam.dateSuggestions.started')}: {s.proposedStarted || '—'}
-													</span>
-													<span className='game-appid'>
-														{t('admin.steam.dateSuggestions.finished')}: {s.proposedFinished || '—'}
-													</span>
-												</td>
-												<td>
-													<span className='game-appid'>{dateSourceLabel(s.startedSource)}</span>
-													<span className='game-appid'>{dateSourceLabel(s.finishedSource)}</span>
-													{s.notes.map((note) => (
-														<span className='game-appid' key={note}>
-															{dateNoteLabel(note)}
-														</span>
-													))}
-												</td>
-												<td className='action-cell' onClick={(e) => e.stopPropagation()}>
-													<button
-														className='btn btn-danger btn-sm'
-														title={t('admin.steam.dateSuggestions.dismiss')}
-														disabled={dateSuggestionsDismissing || dateSuggestionsApplying}
-														onClick={() => handleDismissDateSuggestions([s.gameId])}>
-														{t('admin.steam.dateSuggestions.dismiss')}
-													</button>
-												</td>
-											</tr>
-										))}
-									</tbody>
-								</table>
-							</div>
-						</>
-					)}
-				</div>
+				<SteamDateReview />
 			) : activeTab === 'suggestions' ? (
 				<div className='suggestions-view'>
 					{suggestionsLoading ? (
@@ -1165,8 +859,9 @@ export const AdminSteamImport = () => {
 										<tr>
 											<th className='check-cell'>
 												<input
-													type='checkbox'
-													checked={filteredSuggestions.length > 0 && filteredSuggestions.every((s) => selectedSuggestionIds.has(s.steamAppId))}
+														type='checkbox'
+														aria-label={t('admin.steam.common.selectVisibleSuggestions')}
+														checked={filteredSuggestions.length > 0 && filteredSuggestions.every((s) => selectedSuggestionIds.has(s.steamAppId))}
 													onChange={toggleAllVisibleSuggestions}
 												/>
 											</th>
@@ -1184,8 +879,9 @@ export const AdminSteamImport = () => {
 												onClick={() => toggleSuggestionSelection(s.steamAppId)}>
 												<td className='check-cell'>
 													<input
-														type='checkbox'
-														checked={selectedSuggestionIds.has(s.steamAppId)}
+															type='checkbox'
+															aria-label={t('admin.steam.common.selectSuggestion', { steam: s.steamName, game: s.gdbGameName })}
+															checked={selectedSuggestionIds.has(s.steamAppId)}
 														onClick={(event) => event.stopPropagation()}
 														onChange={() => toggleSuggestionSelection(s.steamAppId)}
 													/>
@@ -1326,7 +1022,7 @@ export const AdminSteamImport = () => {
 														)}
 													</td>
 													<td className='action-cell'>
-														<select value={action} onChange={(e) => setAction(game.appId, e.target.value as ImportAction)} className='action-select'>
+														<select aria-label={t('admin.steam.common.actionFor', { game: game.name })} value={action} onChange={(e) => setAction(game.appId, e.target.value as ImportAction)} className='action-select'>
 															<option value='skip'>{t('admin.steam.libraryView.actionSkip')}</option>
 															<option value='create'>{t('admin.steam.libraryView.actionCreate')}</option>
 															<option value='link'>{t('admin.steam.libraryView.actionLink')}</option>

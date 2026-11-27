@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { useAppSelector } from '@/store/hooks'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { useTranslation } from 'react-i18next'
+import { fetchGameViews, fetchPublicGameViews } from '@/store/features/gameViews/thunk'
 import { useCollectionResource } from '@/hooks/useCollectionResource'
-import { changeTutorialSamples, createTutorialSamples, getOnboarding, saveOnboarding, startOnboarding } from '@/services/CollectionService/OnboardingService'
+import { changeTutorialSamples, createTutorialSamples, createTutorialViews, getOnboarding, saveOnboarding, startOnboarding } from '@/services/CollectionService/OnboardingService'
 import { invalidateCollection, isCollectionConflict } from '@/services/CollectionService/collectionEvents'
 import type { OnboardingState, OnboardingStep, TutorialSampleRequest } from '@/models/api/Onboarding'
 import { OnboardingContext } from './onboardingContext'
@@ -9,6 +11,7 @@ import { OnboardingContext } from './onboardingContext'
 /** One coordinator across routes and both app shells; state is always owned by the API account. */
 export const OnboardingProvider = ({ children }: { children: ReactNode }) => {
 	const userId = useAppSelector(state => state.auth.isAuthenticated ? state.auth.user?.id : undefined)
+	const dispatch = useAppDispatch(), { i18n } = useTranslation()
 	const resource = useCollectionResource('onboarding', signal => getOnboarding(signal), Boolean(userId))
 	const owner = useRef(userId), active = useRef<{ ownerId: number; controller: AbortController } | null>(null), autoShown = useRef<number | null>(null)
 	owner.current = userId
@@ -33,7 +36,7 @@ export const OnboardingProvider = ({ children }: { children: ReactNode }) => {
 			const answer = await operation(resource.data, controller.signal)
 			if (controller.signal.aborted || owner.current !== id) return null
 			resource.replaceData(answer.state)
-			if (invalidate) invalidateCollection()
+			if (invalidate) { invalidateCollection(); void dispatch(fetchGameViews({})); void dispatch(fetchPublicGameViews()) }
 			return answer.result
 		} catch (error) {
 			if (!controller.signal.aborted && owner.current === id) setFailure({ ownerId: id, kind: isCollectionConflict(error) ? 'conflict' : 'request' })
@@ -65,9 +68,14 @@ export const OnboardingProvider = ({ children }: { children: ReactNode }) => {
 	}
 	const createSamples = () => run(async (current, signal) => {
 		if (!current) throw new Error('Guide not loaded')
-		const state = await createTutorialSamples(current.revision, signal)
+		const state = await createTutorialSamples(current.revision, signal, i18n.resolvedLanguage ?? i18n.language)
+		return { state, result: state }
+	}, true)
+	const createViews = () => run(async (current, signal) => {
+		if (!current) throw new Error('Guide not loaded')
+		const state = await createTutorialViews(current.revision, signal, i18n.resolvedLanguage ?? i18n.language)
 		return { state, result: state }
 	}, true)
 	const changeSamples = (request: TutorialSampleRequest, remove: boolean) => run(async (_, signal) => { const result = await changeTutorialSamples(request, remove, signal); return { state: result.state, result } }, true)
-	return <OnboardingContext.Provider value={{ data: resource.data, loading: resource.loading, busy: busyFor === userId, open: Boolean(userId && openFor === userId), error: failure && failure.ownerId === userId ? failure.kind : null, openGuide, hide: () => { if (owner.current === userId) setOpenFor(null) }, pause, saveStep, createSamples, changeSamples, reload }}>{children}</OnboardingContext.Provider>
+	return <OnboardingContext.Provider value={{ data: resource.data, loading: resource.loading, busy: busyFor === userId, open: Boolean(userId && openFor === userId), error: failure && failure.ownerId === userId ? failure.kind : null, openGuide, hide: () => { if (owner.current === userId) setOpenFor(null) }, pause, saveStep, createSamples, createViews, changeSamples, reload }}>{children}</OnboardingContext.Provider>
 }

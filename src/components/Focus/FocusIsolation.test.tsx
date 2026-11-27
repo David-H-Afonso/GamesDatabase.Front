@@ -6,9 +6,11 @@ import { createGame } from '@/test/factories'
 import type { Playlist } from '@/models/api/Playlist'
 import i18n from '@/i18n'
 import FocusMode from './FocusMode'
+import { refreshCurrentPlaylist, setCurrentPlaylist } from '@/store/features/playlists/playlistSlice'
+import { fetchPlaylists } from '@/store/features/playlists/thunk'
 
-const calls = vi.hoisted(() => ({ lists: vi.fn(), detail: vi.fn(), sync: vi.fn(), create: vi.fn() }))
-vi.mock('@/services/PlaylistService/PlaylistService', async original => ({ ...await original<typeof import('@/services/PlaylistService/PlaylistService')>(), getPlaylists: calls.lists, getPlaylistById: calls.detail, createPlaylist: calls.create }))
+const calls = vi.hoisted(() => ({ lists: vi.fn(), detail: vi.fn(), sync: vi.fn(), create: vi.fn(), remove: vi.fn() }))
+vi.mock('@/services/PlaylistService/PlaylistService', async original => ({ ...await original<typeof import('@/services/PlaylistService/PlaylistService')>(), getPlaylists: calls.lists, getPlaylistById: calls.detail, createPlaylist: calls.create, removePlaylistItem: calls.remove }))
 vi.mock('@/services/SteamService/SteamService', () => ({ steamService: { syncGame: calls.sync } }))
 
 const auth = { user: { id: 1, username: 'Focus fixture', role: 'Standard' }, token: 'fixture', refreshToken: null, isAuthenticated: true, loading: false, error: null } as const
@@ -57,5 +59,41 @@ describe('Focus with real Redux ownership/request boundaries', () => {
 		await waitFor(() => expect(calls.detail).toHaveBeenCalledOnce()); expect(calls.sync).not.toHaveBeenCalled(); expect(screen.queryByRole('heading', { name: 'Cached game no longer in Focus' })).not.toBeInTheDocument()
 		await act(async () => { request.resolve(fresh) }); await screen.findByRole('heading', { name: 'Fresh linked Focus game' }); await waitFor(() => expect(calls.detail).toHaveBeenCalledTimes(2))
 		expect(calls.sync).toHaveBeenCalledExactlyOnceWith(202)
+	})
+	it('keeps its owned detail when another route replaces the shared current playlist', async () => {
+		const { store } = renderWithProviders(<FocusMode />, { preloadedState: { auth } }); await screen.findByRole('heading', { name: 'Owned Focus game' })
+		act(() => { store.dispatch(setCurrentPlaylist(metro)) })
+		expect(screen.getByRole('heading', { name: 'Owned Focus game' })).toBeInTheDocument(); expect(screen.queryByRole('heading', { name: metro.items[0].game.name })).not.toBeInTheDocument(); expect(calls.sync).not.toHaveBeenCalled()
+	})
+	it('does not let a same-ID shared-cache refresh inject Metro into the independently loaded Focus', async () => {
+		const { store } = renderWithProviders(<FocusMode />, { preloadedState: { auth } }); await screen.findByRole('heading', { name: 'Owned Focus game' })
+		act(() => { store.dispatch(refreshCurrentPlaylist({ ...focus, items: metro.items })) })
+		expect(screen.getByRole('heading', { name: 'Owned Focus game' })).toBeInTheDocument(); expect(screen.queryByRole('heading', { name: metro.items[0].game.name })).not.toBeInTheDocument(); expect(localStorage.getItem('gdb.focus-playlist.1')).toBeNull()
+	})
+	it.each(['wrong-list', 'wrong-game', 'automatic'] as const)('rejects %s detail data instead of rendering or syncing an unrelated game', async problem => {
+		calls.detail.mockResolvedValueOnce(problem === 'wrong-list' ? metro : problem === 'wrong-game' ? { ...focus, items: [{ ...focus.items[0], game: metro.items[0].game }] } : { ...focus, isAutomatic: true })
+		renderWithProviders(<FocusMode />, { preloadedState: { auth } })
+		expect(await screen.findByRole('alert')).toHaveTextContent(i18n.t('focus.loadError')); expect(screen.queryByRole('heading', { name: metro.items[0].game.name })).not.toBeInTheDocument(); expect(calls.sync).not.toHaveBeenCalled(); expect(calls.create).not.toHaveBeenCalled()
+	})
+	it('uses its own summary response even when another route replaces the shared summary cache', async () => {
+		const summaries = deferred<Playlist[]>(); calls.lists.mockReturnValueOnce(summaries.promise); calls.detail.mockImplementation((id: number) => Promise.resolve(id === 22 ? focus : metro))
+		const { store } = renderWithProviders(<FocusMode />, { preloadedState: { auth } }); await waitFor(() => expect(calls.lists).toHaveBeenCalledOnce())
+		act(() => { store.dispatch(fetchPlaylists.pending('other-route', undefined)); store.dispatch(fetchPlaylists.fulfilled([{ ...metro, name: 'Focus' }], 'other-route', undefined)) })
+		await act(async () => { summaries.resolve([focus]) }); await screen.findByRole('heading', { name: 'Owned Focus game' })
+		expect(calls.detail).toHaveBeenCalledExactlyOnceWith(22); expect(screen.queryByRole('heading', { name: metro.items[0].game.name })).not.toBeInTheDocument()
+	})
+	it('does not reinsert a removed game from a late Steam refresh of the same playlist', async () => {
+		const before = { ...focus, items: [{ ...metro.items[0], game: { ...metro.items[0].game, steamAppId: 570 } }, ...focus.items] }, stale = deferred<Playlist>()
+		calls.lists.mockResolvedValue([before]); calls.detail.mockResolvedValueOnce(before).mockReturnValueOnce(stale.promise); calls.remove.mockResolvedValue(focus)
+		renderWithProviders(<FocusMode />, { preloadedState: { auth } }); await waitFor(() => expect(calls.detail).toHaveBeenCalledTimes(2))
+		await userEvent.click(screen.getByRole('button', { name: 'Manage' })); await userEvent.click(screen.getByRole('button', { name: i18n.t('focus.removeGame', { name: metro.items[0].game.name }) })); await waitFor(() => expect(calls.remove).toHaveBeenCalledWith(22, metro.items[0].id)); await userEvent.click(screen.getByRole('button', { name: 'Done' })); await screen.findByRole('heading', { name: 'Owned Focus game' })
+		await act(async () => { stale.resolve(before) })
+		expect(screen.getByRole('heading', { name: 'Owned Focus game' })).toBeInTheDocument(); expect(screen.queryByRole('heading', { name: metro.items[0].game.name })).not.toBeInTheDocument(); expect(localStorage.getItem('gdb.focus-playlist.1')).toBeNull()
+	})
+	it('re-resolves an unavailable Focus ID against fresh owned summaries on retry without rewriting the saved preference', async () => {
+		const replacement = list(33, 'Focus', 'Replacement Focus game', 301); localStorage.setItem('gdb.focus-playlist.1', '22')
+		calls.lists.mockResolvedValueOnce([focus]).mockResolvedValue([replacement]); calls.detail.mockImplementation((id: number) => id === 22 ? Promise.reject(new Error('Removed list fixture')) : Promise.resolve(replacement))
+		renderWithProviders(<FocusMode />, { preloadedState: { auth } }); await userEvent.click(await screen.findByRole('button', { name: 'Try again' })); await screen.findByRole('heading', { name: 'Replacement Focus game' })
+		expect(calls.detail).toHaveBeenCalledWith(33); expect(localStorage.getItem('gdb.focus-playlist.1')).toBe('22'); expect(calls.create).not.toHaveBeenCalled()
 	})
 })
